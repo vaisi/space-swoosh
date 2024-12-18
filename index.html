@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Space Dodge</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #E1D9C1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: none;
+        }
+        #gameContainer {
+            width: 100%;
+            max-width: 500px;
+            min-width: 280px;
+            aspect-ratio: 2/3;
+            position: relative;
+        }
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            #gameContainer {
+                max-width: 100%;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html> 
