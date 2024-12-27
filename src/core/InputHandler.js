@@ -3,13 +3,20 @@ export class InputHandler {
         this.game = game;
         this.setupKeyboardControls();
         this.setupTouchControls();
-        this.touchStartX = null;
-        this.touchStartY = null;
-        this.minSwipeDistance = 30; // Minimum distance for a swipe
     }
 
     setupKeyboardControls() {
         window.addEventListener('keydown', (e) => {
+            // Always allow space for pause toggle
+            if (e.code === 'Space') {
+                e.preventDefault();
+                this.game.togglePause();
+                return;
+            }
+
+            // Ignore other inputs while paused
+            if (this.game.isPaused) return;
+
             switch(e.key) {
                 case 'ArrowLeft':
                     this.game.spacecraft.startMovement('left');

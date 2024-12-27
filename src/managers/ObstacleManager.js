@@ -1,3 +1,30 @@
+// Add these helper functions at the top of the file
+function pointInPolygonOrNearEdge(px, py, vertices, radius) {
+    // Check distance to each edge
+    for (let i = 0; i < vertices.length; i++) {
+        const j = (i + 1) % vertices.length;
+        const dist = distanceToLine(
+            px, py,
+            vertices[i].x, vertices[i].y,
+            vertices[j].x, vertices[j].y
+        );
+        if (dist <= radius) return true;
+    }
+
+    // If not near any edge, check if point is inside polygon
+    let inside = false;
+    for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+        const xi = vertices[i].x, yi = vertices[i].y;
+        const xj = vertices[j].x, yj = vertices[j].y;
+        
+        const intersect = ((yi > py) !== (yj > py))
+            && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    
+    return inside;
+}
+
 class BaseObstacle {
     constructor(game, x, y, size) {
         this.game = game;
@@ -5,13 +32,13 @@ class BaseObstacle {
         this.y = y;
         this.size = size;
         this.rotation = 0;
-        this.rotationSpeed = Math.random() * 
-            (game.config.obstacles.rotationRange[1] - game.config.obstacles.rotationRange[0]) + 
-            game.config.obstacles.rotationRange[0];
+        this.rotationSpeed = (Math.random() - 0.5) * 0.05; // Adjusted speed
     }
 
     update() {
         this.rotation += this.rotationSpeed;
+        if (this.rotation > Math.PI * 2) this.rotation -= Math.PI * 2;
+        if (this.rotation < 0) this.rotation += Math.PI * 2;
     }
 
     checkCollision(spacecraft) {
@@ -121,6 +148,10 @@ class SimpleAsteroid extends BaseObstacle {
             );
         }
     }
+
+    update() {
+        super.update();
+    }
 }
 
 // Add this helper function at the file level
@@ -182,8 +213,8 @@ function distanceToLine(px, py, x1, y1, x2, y2) {
 
 class AsteroidBelt extends BaseObstacle {
     constructor(game, y) {
-        const width = game.canvas.width * 0.7; // 70% of screen width
-        const height = game.baseUnit * 3;
+        const width = game.canvas.width * 0.5; // Reduced from 0.7 to 0.5 (50% of screen width)
+        const height = game.baseUnit * 2;      // Reduced from 3 to 2
         super(game, game.canvas.width / 2, y, Math.max(width, height) / 2);
         
         this.width = width;
@@ -224,34 +255,29 @@ class AsteroidBelt extends BaseObstacle {
         return (Math.pow(xRot, 2) / Math.pow(this.width/2, 2) + 
                 Math.pow(yRot, 2) / Math.pow(this.height/2, 2)) <= 1;
     }
+
+    update() {
+        super.update();
+    }
 }
 
 class ComplexAsteroid extends BaseObstacle {
     constructor(game, x, y, size) {
-        super(game, x, y, size);
+        super(game, x, y, size * 0.8); // Reduce base size by 20%
         this.satellites = [];
         
         // Create 2-4 orbiting satellites
         const satelliteCount = 2 + Math.floor(Math.random() * 3);
-        // Single random speed for all satellites
         const orbitSpeed = 0.02 + Math.random() * 0.02;
         
         for (let i = 0; i < satelliteCount; i++) {
             this.satellites.push({
                 angle: (Math.PI * 2 * i) / satelliteCount,
-                distance: size * 2,
-                size: size * 0.3,
-                speed: orbitSpeed  // Same speed for all satellites
+                distance: size * 1.5, // Reduced from 2 to 1.5
+                size: size * 0.25,    // Reduced from 0.3 to 0.25
+                speed: orbitSpeed
             });
         }
-    }
-
-    update() {
-        super.update();
-        // Update satellite positions
-        this.satellites.forEach(satellite => {
-            satellite.angle += satellite.speed;
-        });
     }
 
     render(ctx) {
@@ -290,10 +316,12 @@ class ComplexAsteroid extends BaseObstacle {
 
     checkCollision(spacecraft) {
         // Check main asteroid collision with proper radius
-        const dxMain = this.x - spacecraft.x;
-        const dyMain = this.y - spacecraft.y;
+        const dxMain = spacecraft.x - this.x;
+        const dyMain = spacecraft.y - this.y;
         const distanceMain = Math.sqrt(dxMain * dxMain + dyMain * dyMain);
-        if (distanceMain < (this.size + spacecraft.radius)) {
+        
+        // More precise collision for main body
+        if (distanceMain < (this.size + spacecraft.radius) * 0.9) { // Slightly smaller hitbox
             return true;
         }
 
@@ -306,8 +334,15 @@ class ComplexAsteroid extends BaseObstacle {
             const dy = satY - spacecraft.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // Only check collision with the satellite circle itself
-            return distance < (satellite.size + spacecraft.radius);
+            return distance < (satellite.size + spacecraft.radius) * 0.9; // Slightly smaller hitbox
+        });
+    }
+
+    update() {
+        super.update();
+        // Update satellite positions
+        this.satellites.forEach(satellite => {
+            satellite.angle += satellite.speed;
         });
     }
 }
@@ -319,14 +354,6 @@ class PulsatingAsteroid extends BaseObstacle {
         this.growthRate = 0.5; // Size increase per second
         this.maxSize = size * 2;
         this.currentSize = size;
-    }
-
-    update() {
-        super.update();
-        this.currentSize += this.growthRate * (1/60);
-        if (this.currentSize > this.maxSize) {
-            this.currentSize = this.baseSize;
-        }
     }
 
     render(ctx) {
@@ -354,25 +381,23 @@ class PulsatingAsteroid extends BaseObstacle {
         const distance = Math.sqrt(dx * dx + dy * dy);
         return distance < (this.currentSize + spacecraft.radius);
     }
+
+    update() {
+        super.update();
+        this.currentSize += this.growthRate * (1/60);
+        if (this.currentSize > this.maxSize) {
+            this.currentSize = this.baseSize;
+        }
+    }
 }
 
 class MovingAsteroid extends BaseObstacle {
     constructor(game, x, y, size) {
-        super(game, x, y, size);
-        this.speed = game.baseUnit * 2; // Horizontal movement speed
+        super(game, x, y, size * 0.8); // Reduce pentagon size by 20%
+        this.speed = game.baseUnit * 2;
         this.direction = Math.random() < 0.5 ? -1 : 1;
         this.originalX = x;
-        this.amplitude = game.canvas.width * 0.3; // Movement range
-    }
-
-    update() {
-        super.update();
-        this.x += this.speed * this.direction * (1/60);
-        
-        // Reverse direction at boundaries
-        if (Math.abs(this.x - this.originalX) > this.amplitude) {
-            this.direction *= -1;
-        }
+        this.amplitude = game.canvas.width * 0.3;
     }
 
     render(ctx) {
@@ -405,28 +430,39 @@ class MovingAsteroid extends BaseObstacle {
     checkCollision(spacecraft) {
         const dx = spacecraft.x - this.x;
         const dy = spacecraft.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Rotate point to match pentagon orientation
-        const cosR = Math.cos(-this.rotation);
-        const sinR = Math.sin(-this.rotation);
-        const rotX = dx * cosR - dy * sinR;
-        const rotY = dx * sinR + dy * cosR;
+        // Quick circle check first
+        if (distance > this.size * 1.5) {
+            return false;
+        }
         
-        // Pentagon bounds (approximation using regular pentagon)
-        const radius = this.size;
-        const angle = Math.atan2(rotY, rotX);
-        const angleStep = (2 * Math.PI) / 5;
-        const currentSegment = Math.floor((angle + Math.PI) / angleStep);
-        const nextSegment = (currentSegment + 1) % 5;
+        // Generate pentagon vertices
+        const vertices = [];
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * 2 * Math.PI / 5) - Math.PI/2 + this.rotation;
+            vertices.push({
+                x: this.x + this.size * Math.cos(angle),
+                y: this.y + this.size * Math.sin(angle)
+            });
+        }
         
-        const x1 = radius * Math.cos(currentSegment * angleStep);
-        const y1 = radius * Math.sin(currentSegment * angleStep);
-        const x2 = radius * Math.cos(nextSegment * angleStep);
-        const y2 = radius * Math.sin(nextSegment * angleStep);
+        return pointInPolygonOrNearEdge(
+            spacecraft.x, 
+            spacecraft.y, 
+            vertices, 
+            spacecraft.radius
+        );
+    }
+
+    update() {
+        super.update();
+        this.x += this.speed * this.direction * (1/60);
         
-        // Distance from point to line segment
-        const distance = pointToLineDistance(rotX, rotY, x1, y1, x2, y2);
-        return distance < spacecraft.radius;
+        // Reverse direction at boundaries
+        if (Math.abs(this.x - this.originalX) > this.amplitude) {
+            this.direction *= -1;
+        }
     }
 }
 
@@ -469,33 +505,6 @@ class ShootingAsteroid extends BaseObstacle {
         this.lastShootTime = performance.now();
         this.projectileSpeed = game.baseUnit * 3;
         this.projectileSize = size * 0.2;
-    }
-
-    update() {
-        super.update();
-        const currentTime = performance.now();
-        
-        // Shoot new projectile
-        if (currentTime - this.lastShootTime > this.shootInterval) {
-            const angle = Math.random() * Math.PI * 2;
-            this.projectiles.push({
-                x: this.x,
-                y: this.y,
-                vx: Math.cos(angle) * this.projectileSpeed,
-                vy: Math.sin(angle) * this.projectileSpeed
-            });
-            this.lastShootTime = currentTime;
-        }
-
-        // Update projectiles
-        this.projectiles = this.projectiles.map(p => ({
-            ...p,
-            x: p.x + p.vx * (1/60),
-            y: p.y + p.vy * (1/60)
-        })).filter(p => {
-            const relativeY = this.game.camera.getRelativeY(p.y);
-            return relativeY > -this.size && relativeY < this.game.canvas.height + this.size;
-        });
     }
 
     render(ctx) {
@@ -545,6 +554,33 @@ class ShootingAsteroid extends BaseObstacle {
             const dy = p.y - spacecraft.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             return distance < (this.projectileSize + spacecraft.radius);
+        });
+    }
+
+    update() {
+        super.update();
+        const currentTime = performance.now();
+        
+        // Shoot new projectile
+        if (currentTime - this.lastShootTime > this.shootInterval) {
+            const angle = Math.random() * Math.PI * 2;
+            this.projectiles.push({
+                x: this.x,
+                y: this.y,
+                vx: Math.cos(angle) * this.projectileSpeed,
+                vy: Math.sin(angle) * this.projectileSpeed
+            });
+            this.lastShootTime = currentTime;
+        }
+
+        // Update projectiles
+        this.projectiles = this.projectiles.map(p => ({
+            ...p,
+            x: p.x + p.vx * (1/60),
+            y: p.y + p.vy * (1/60)
+        })).filter(p => {
+            const relativeY = this.game.camera.getRelativeY(p.y);
+            return relativeY > -this.size && relativeY < this.game.canvas.height + this.size;
         });
     }
 }
@@ -617,25 +653,226 @@ class CometObstacle extends BaseObstacle {
     }
 }
 
+class BlackHoleObstacle extends BaseObstacle {
+    constructor(game, x, y, size, isAdvanced = false) {
+        super(game, x, y, size * (isAdvanced ? 2 : 1.5));
+        this.pulsePhase = 0;
+        this.pulseSpeed = 0.03;
+        this.isAdvanced = isAdvanced;
+        this.gravitationalForce = game.baseUnit * (isAdvanced ? 0.15 : 0.08);
+        this.influenceRadius = this.size * (isAdvanced ? 5 : 4);
+        // Add more rings but make them closer together
+        this.rings = Array(4).fill(0).map((_, i) => ({
+            phase: (i * Math.PI * 2) / 4, // Evenly space ring phases
+            radius: this.size * (1.2 + i * 0.3) // Rings closer together
+        }));
+    }
+
+    render(ctx) {
+        const relativeY = this.game.camera.getRelativeY(this.y);
+        
+        if (relativeY + this.influenceRadius < 0 || 
+            relativeY - this.influenceRadius > this.game.canvas.height) {
+            return;
+        }
+
+        ctx.save();
+        ctx.translate(this.x, relativeY);
+
+        // Draw pulsing rings
+        this.rings.forEach((ring, i) => {
+            const ringPhase = this.pulsePhase + ring.phase;
+            const pulseScale = 1 + Math.sin(ringPhase) * 0.2;
+            const opacity = 0.4 - (i * 0.06); // Darker rings that fade out more gradually
+
+            ctx.beginPath();
+            ctx.arc(0, 0, ring.radius * pulseScale, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(0, 0, 0, ${opacity})`;
+            ctx.lineWidth = this.size * 0.05; // Thinner lines
+            ctx.stroke();
+        });
+
+        // Draw core
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = this.isAdvanced ? '#1a0033' : '#000000';
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    update() {
+        super.update();
+        this.pulsePhase += this.pulseSpeed;
+        
+        // Apply gentler gravitational pull with smoother falloff
+        const dx = this.game.spacecraft.x - this.x;
+        const dy = this.game.spacecraft.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < this.influenceRadius) {
+            // Add smooth falloff curve
+            const falloff = Math.pow(1 - distance / this.influenceRadius, 2);
+            const force = this.gravitationalForce * falloff;
+            const angle = Math.atan2(dy, dx);
+            
+            this.game.spacecraft.x -= Math.cos(angle) * force;
+            this.game.spacecraft.y -= Math.sin(angle) * force;
+        }
+    }
+}
+
+// Add new Wormhole class
+class WormholeGate extends BaseObstacle {
+    constructor(game, x, y, size, isExit = false) {
+        super(game, x, y, size);
+        this.isExit = isExit;
+        this.pulsePhase = 0;
+        this.pulseSpeed = 0.02;
+        this.dashOffset = 0;
+        this.active = true;
+        this.paired = false;
+        this.partner = null;
+        // Add safe zone radius
+        this.safeZoneRadius = size * 1.2;
+    }
+
+    // Override collision check to always return false
+    checkCollision() {
+        return false;
+    }
+
+    // Separate method to check if a point is in the safe zone
+    isInSafeZone(x, y) {
+        const dx = x - this.x;
+        const dy = y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < this.safeZoneRadius;
+    }
+
+    update() {
+        super.update();
+        this.pulsePhase += this.pulseSpeed;
+        this.dashOffset += 1;
+    }
+
+    checkTeleport(spacecraft) {
+        if (this.isExit || !this.active || this.paired) return;
+
+        const dx = spacecraft.x - this.x;
+        const dy = spacecraft.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < this.size * 0.8) {
+            this.transportSpacecraft(spacecraft);
+        }
+    }
+
+    transportSpacecraft(spacecraft) {
+        if (!this.partner) {
+            this.partner = this.game.obstacleManager.obstacles.find(
+                obs => obs instanceof WormholeGate && 
+                      obs.isExit && 
+                      obs.y < this.y && 
+                      !obs.paired
+            );
+        }
+
+        if (this.partner) {
+            console.log('Transporting through wormhole');
+            this.paired = true;
+            this.partner.paired = true;
+            
+            spacecraft.isVisible = false;
+            this.active = false;
+            
+            setTimeout(() => {
+                spacecraft.x = this.partner.x;
+                spacecraft.y = this.partner.y;
+                spacecraft.isVisible = true;
+                this.partner.pulsePhase = 0;
+
+                // Debug log
+                console.log('Attempting to activate shield on spacecraft:', spacecraft);
+                
+                // Try to activate shield directly on the game's spacecraft instance
+                this.game.spacecraft.activateShield();
+                this.game.soundManager?.playShield?.();
+                
+                // Debug log
+                console.log('Shield activation attempted');
+            }, 300);
+        }
+    }
+
+    render(ctx) {
+        const relativeY = this.game.camera.getRelativeY(this.y);
+        
+        ctx.save();
+        ctx.translate(this.x, relativeY);
+
+        // Simple pulsing effect
+        const pulseScale = 1 + Math.sin(this.pulsePhase) * 0.1;
+        
+        // Draw rotating dashed circle
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size * pulseScale, 0, Math.PI * 2);
+        ctx.setLineDash([5, 5]);
+        ctx.lineDashOffset = this.dashOffset;
+        
+        // Color based on state
+        if (this.paired) {
+            ctx.strokeStyle = '#666666'; // Gray out used gates
+        } else {
+            ctx.strokeStyle = this.isExit ? '#00ff00' : '#0000ff';
+        }
+        
+        ctx.lineWidth = this.size * 0.1;
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
 export class ObstacleManager {
     constructor(game) {
         this.game = game;
         this.obstacles = [];
         this.nextSpawnY = 0;
         
-        // Define default weights and unlock scores if config is missing
-        const defaultTypes = {
-            simple: { weight: 1, unlockScore: 0 },      // Start with triangles
-            belt: { weight: 1, unlockScore: 200 },      // Later than before
-            complex: { weight: 1, unlockScore: 300 },    // Later than before
-            pulsating: { weight: 1, unlockScore: 400 },  // Later than before
-            moving: { weight: 1, unlockScore: 500 },     // Later than before
-            shooting: { weight: 1, unlockScore: 600 },   // Later than before
-            comet: { weight: 0.3, unlockScore: 700 }    // Later than before
+        // Define progression with clear unlock points
+        this.obstacleTypes = {
+            'simple': {
+                weight: 0.6,
+                unlockScore: 0, // Available from start
+                message: 'Watch out for asteroids!'
+            },
+            'complex': {
+                weight: 0.1,
+                unlockScore: 2000, // When complex asteroids start appearing
+                message: 'Warning: Asteroids with orbiting debris detected!'
+            },
+            'belt': {
+                weight: 0.1,
+                unlockScore: 7000, // Earlier unlock (was 10000)
+                message: 'Dense asteroid field ahead!'
+            },
+            'moving': {
+                weight: 0.1,
+                unlockScore: 4000, // Earlier unlock (was 15000)
+                message: 'Caution: Moving asteroids detected!'
+            },
+            'pulsating': {
+                weight: 0.05,
+                unlockScore: 10000, // Earlier unlock (was 20000)
+                message: 'Warning: Unstable asteroids ahead!'
+            },
+            'wormhole': {
+                weight: 0.05,
+                unlockScore: 15000, // Earlier unlock (was 25000)
+                message: 'Spatial anomalies detected!'
+            }
         };
-
-        // Use config types if available, otherwise use defaults
-        this.obstacleTypes = this.game.config.obstacles?.types || defaultTypes;
         
         // Start with just simple obstacles
         this.availableTypes = new Set(['simple']);
@@ -669,6 +906,10 @@ export class ObstacleManager {
         this.cutsceneStartTime = 0;
         this.cutsceneDuration = 1500; // 1.5 seconds
         this.motionLines = []; // Add motion lines array
+        this.pauseSpawning = false;
+
+        this.minVerticalGap = game.canvas.height * 0.25;  // Reduced from 0.35
+        this.maxVerticalGap = game.canvas.height * 0.4;   // Reduced from 0.5
     }
 
     hasPlayerMoved() {
@@ -679,10 +920,22 @@ export class ObstacleManager {
         this.movementHistory[direction] = true;
     }
 
-    update() {
+    update(remainingDistance) {
+        // Faster difficulty increase
+        const progress = 1 - (remainingDistance / this.game.TOTAL_DISTANCE);
+        const difficultyMultiplier = 1 + (progress * 2.5); // Increased from 2
+        
         const currentDistance = Math.abs(this.game.camera.totalDistance);
         
-        // Tutorial phase (first 75 units instead of 250)
+        // Debug log (simplified)
+        console.log('Update cycle:', {
+            distance: currentDistance,
+            obstacles: this.obstacles.length,
+            tutorialPhase: this.tutorialPhase,
+            inCutscene: this.inCutscene
+        });
+
+        // Tutorial phase handling
         if (currentDistance < 75) {
             // Track player movements for tutorial
             if (this.game.spacecraft.moveState) {
@@ -753,18 +1006,43 @@ export class ObstacleManager {
 
         // Regular obstacle spawning logic
         while (this.nextSpawnY > this.game.camera.y - this.game.canvas.height) {
+            const spacing = this.minVerticalGap + Math.random() * (this.maxVerticalGap - this.minVerticalGap);
+            this.nextSpawnY -= spacing;
             this.spawnObstacleRow();
-            this.nextSpawnY -= this.game.canvas.height * this.game.config.obstacles.verticalSpacing;
         }
 
-        // Update and check collisions for existing obstacles
-        this.obstacles.forEach(obstacle => obstacle.update());
-        
-        // Check collisions with spacecraft
+        // First check for wormhole teleports
+        const wormholes = this.obstacles.filter(obs => obs instanceof WormholeGate);
+        wormholes.forEach(wormhole => {
+            if (!wormhole.isExit && !wormhole.paired) {
+                const dx = this.game.spacecraft.x - wormhole.x;
+                const dy = this.game.spacecraft.y - wormhole.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < wormhole.size * 0.8) {
+                    wormhole.transportSpacecraft(this.game.spacecraft);
+                }
+            }
+        });
+
+        // Then check collisions with other obstacles, respecting wormhole safe zones
         this.obstacles = this.obstacles.filter(obstacle => {
+            if (obstacle instanceof WormholeGate) return true;
+
+            // Check if spacecraft is in any wormhole's safe zone
+            const inSafeZone = wormholes.some(wormhole => 
+                wormhole.isInSafeZone(this.game.spacecraft.x, this.game.spacecraft.y)
+            );
+
+            // If in safe zone, ignore collisions
+            if (inSafeZone) return true;
+
             if (obstacle.checkCollision(this.game.spacecraft)) {
                 if (this.game.spacecraft.shieldActive) {
-                    // If shield is active, destroy obstacle and add score
+                    // Play shield crash sound
+                    this.game.soundManager.playShieldCrash();
+                    
+                    // Create destruction particles
                     this.destructionParticles.push(
                         ...obstacle.createDestructionParticles()
                     );
@@ -772,6 +1050,7 @@ export class ObstacleManager {
                     this.showScorePopup(obstacle.x, obstacle.y, 10);
                     // Add score
                     this.game.score += 10;
+                    this.game.obstaclesDestroyed++; // Increment counter
                     return false; // Remove the obstacle
                 } else {
                     // If no shield, game over
@@ -797,14 +1076,27 @@ export class ObstacleManager {
             }))
             .filter(particle => particle.opacity > 0);
 
-        // Check if it's time to spawn a comet
-        const currentTime = performance.now();
-        if (currentTime - this.lastCometTime > this.cometInterval) {
-            this.spawnComet();
-            this.lastCometTime = currentTime;
-            // Randomize next comet interval between 9-23 seconds
-            this.cometInterval = 9000 + Math.random() * 14000;
+        // Spawn new obstacles
+        if (!this.inCutscene && this.obstacles.length < 7) { // Increased from 6
+            const minSpawnInterval = this.game.canvas.height * 0.35; // Reduced from 0.4
+            
+            if (!this.lastSpawnY || 
+                this.nextSpawnY - this.lastSpawnY >= minSpawnInterval) {
+                this.lastSpawnY = this.nextSpawnY;
+                this.spawnObstacleRow();
+            }
         }
+        
+        // Update and filter obstacles
+        this.obstacles = this.obstacles.filter(obstacle => {
+            if (obstacle.update) {
+                obstacle.update();
+            }
+            return obstacle.y > this.game.camera.y - this.game.canvas.height * 1.5;
+        });
+
+        // Update available types based on score
+        this.updateAvailableTypes(this.game.score);
     }
 
     showTutorialMessage(message) {
@@ -814,106 +1106,189 @@ export class ObstacleManager {
 
     getDifficultyMultiplier() {
         const config = this.game.config.obstacles.scaling;
-        const progress = Math.min(this.game.score / config.rampUpDistance, 1);
-        return config.startDensity + (config.maxDensity - config.startDensity) * progress;
+        // Moderate difficulty increase
+        const progress = Math.min(this.game.score / (config.rampUpDistance * 1.2), 1);
+        return config.startDensity + (config.maxDensity - config.startDensity) * Math.pow(progress, 1.2); // Less gradual curve
     }
 
-    updateAvailableTypes() {
-        const score = this.game.score;
-        
-        Object.entries(this.obstacleTypes).forEach(([type, settings]) => {
-            if (score >= settings.unlockScore) {
+    updateAvailableTypes(distance) {
+        Object.entries(this.obstacleTypes).forEach(([type, data]) => {
+            // Add debug logging
+            console.log(`Checking ${type}: distance=${distance}, unlockScore=${data.unlockScore}, has=${this.availableTypes.has(type)}`);
+            
+            if (distance >= data.unlockScore && !this.availableTypes.has(type)) {
+                console.log(`Unlocking new type: ${type} at distance ${distance}`);
                 this.availableTypes.add(type);
+                this.game.milestoneManager.showMessage(data.message);
+                this.normalizeWeights();
+            }
+        });
+    }
+
+    normalizeWeights() {
+        const availableCount = this.availableTypes.size;
+        
+        Object.keys(this.obstacleTypes).forEach(type => {
+            if (this.availableTypes.has(type)) {
+                if (type === 'simple') {
+                    this.obstacleTypes[type].weight = 0.6; // Simple obstacles are most common
+                } else if (type === 'wormhole') {
+                    this.obstacleTypes[type].weight = 0.1; // Rare wormholes
+                } else {
+                    // Distribute remaining 30% among other types
+                    this.obstacleTypes[type].weight = 0.3 / (availableCount - 2);
+                }
             }
         });
     }
 
     spawnObstacleRow() {
-        this.updateAvailableTypes();
-        
         const availableTypesArray = Array.from(this.availableTypes);
-        const weights = availableTypesArray.map(type => this.obstacleTypes[type].weight);
-        const totalWeight = weights.reduce((a, b) => a + b, 0);
+        const difficultyMultiplier = this.getDifficultyMultiplier();
         
-        // Debug log to check distribution
-        console.log('Available types:', availableTypesArray);
-        console.log('Weights:', weights);
+        // More balanced distribution of obstacle counts
+        const spawnCount = Math.random() < 0.7 ? 1 : Math.random() < 0.9 ? 2 : 3;
         
-        // Simplified random selection
-        const random = Math.random();
-        let cumulativeProbability = 0;
-        
-        for (let i = 0; i < availableTypesArray.length; i++) {
-            cumulativeProbability += weights[i] / totalWeight;
-            if (random <= cumulativeProbability) {
-                const selectedType = availableTypesArray[i];
-                console.log('Selected type:', selectedType, 'Random:', random, 'Cumulative:', cumulativeProbability);
-                
-                switch(selectedType) {
-                    case 'belt': return this.spawnAsteroidBelt();
-                    case 'complex': return this.spawnComplexAsteroid();
-                    case 'pulsating': return this.spawnPulsatingAsteroid();
-                    case 'moving': return this.spawnMovingAsteroid();
-                    case 'shooting': return this.spawnShootingAsteroid();
-                    case 'comet': return this.spawnComet();
-                    default: return this.spawnSimpleAsteroids(this.getDifficultyMultiplier());
-                }
+        if (spawnCount === 1) {
+            // Single obstacle - can be any type
+            const type = this.selectObstacleType(availableTypesArray);
+            if (type === 'simple') {
+                // For simple asteroids, spawn a cluster
+                this.spawnSimpleAsteroids(difficultyMultiplier);
+            } else {
+                // For other types, position randomly but avoid edges
+                const margin = 0.2; // 20% margin from edges
+                const xPos = margin + Math.random() * (1 - margin * 2);
+                this.spawnObstacleByType(type, xPos, xPos + 0.2);
             }
+        } else {
+            // Multiple obstacles - mix types and ensure good spacing
+            const positions = this.generateSpawnPositions(spawnCount);
+            let lastType = null;
+            
+            positions.forEach(pos => {
+                const type = this.selectObstacleType(availableTypesArray);
+                // Prevent same complex type spawning next to each other
+                if (type !== 'simple' && type === lastType) {
+                    this.spawnSimpleAsteroids(difficultyMultiplier / 2, pos.start, pos.end);
+                } else {
+                    if (type === 'simple') {
+                        this.spawnSimpleAsteroids(difficultyMultiplier / 2, pos.start, pos.end);
+                    } else {
+                        this.spawnObstacleByType(type, pos.start, pos.end);
+                    }
+                    lastType = type;
+                }
+            });
         }
-        
-        // Fallback to simple asteroid if something goes wrong
-        return this.spawnSimpleAsteroids(this.getDifficultyMultiplier());
     }
 
-    spawnAsteroidBelt() {
+    generateSpawnPositions(count) {
+        const positions = [];
+        const totalSpace = 0.8; // Leave 10% margin on each side
+        const segmentSize = totalSpace / count;
+        const jitter = segmentSize * 0.2; // Reduced from 0.3 for more consistent spacing
+        
+        for (let i = 0; i < count; i++) {
+            const baseStart = 0.1 + (i * segmentSize);
+            const start = baseStart + (Math.random() * jitter * 2 - jitter);
+            const end = start + (segmentSize * 0.5); // Reduced from 0.6 for better spacing
+            positions.push({ start, end });
+        }
+        
+        return positions;
+    }
+
+    spawnObstacleByType(type, startX = 0, endX = 1) {
+        const x = startX * this.game.canvas.width;
+        const width = (endX - startX) * this.game.canvas.width;
+        
+        switch(type) {
+            case 'wormhole':
+                this.spawnWormhole(x, width);
+                break;
+            case 'simple':
+                this.spawnSimpleAsteroids(this.getDifficultyMultiplier(), startX, endX);
+                break;
+            case 'complex':
+                this.spawnComplexAsteroid(x, width);
+                break;
+            case 'belt':
+                this.spawnAsteroidBelt(x, width);
+                break;
+            case 'moving':
+                this.spawnMovingAsteroid(x, width);
+                break;
+            case 'pulsating':
+                this.spawnPulsatingAsteroid(x, width);
+                break;
+        }
+    }
+
+    spawnAsteroidBelt(x, width) {
         this.obstacles.push(new AsteroidBelt(
             this.game,
             this.nextSpawnY
         ));
     }
 
-    spawnComplexAsteroid() {
-        const size = this.game.config.obstacles.minSize * this.game.baseUnit +
+    spawnComplexAsteroid(x, width) {
+        // Reduce size by 20%
+        const baseSize = this.game.config.obstacles.minSize * this.game.baseUnit +
             Math.random() * (this.game.config.obstacles.maxSize - this.game.config.obstacles.minSize) * this.game.baseUnit;
+        const size = baseSize * 0.8; // 20% smaller
         
-        const x = size * 3 + Math.random() * (this.game.canvas.width - size * 6);
-        
-        this.obstacles.push(new ComplexAsteroid(
-            this.game,
-            x,
+        const margin = size * 3;
+        const position = this.findValidPosition(
+            size * 2.5, // Increased collision check radius for satellites
+            margin,
+            this.game.canvas.width - margin,
             this.nextSpawnY,
-            size
-        ));
-    }
-
-    spawnSimpleAsteroids(difficultyMultiplier) {
-        // Reduce initial obstacle count and increase gradually
-        const progress = Math.min(this.game.score / 500, 1); // Slower difficulty ramp
-        const baseCount = 1 + Math.floor(progress); // Start with 1 obstacle
-        const count = baseCount + Math.floor(Math.random() * difficultyMultiplier * progress);
+            15 // Increased max attempts to find valid position
+        );
         
-        for (let i = 0; i < count; i++) {
-            const size = this.game.config.obstacles.minSize * this.game.baseUnit +
-                Math.random() * (this.game.config.obstacles.maxSize - this.game.config.obstacles.minSize) * this.game.baseUnit;
-            
-            const sectionWidth = this.game.canvas.width / count;
-            const minX = i * sectionWidth + size;
-            const maxX = (i + 1) * sectionWidth - size;
-            
-            this.obstacles.push(new SimpleAsteroid(
+        if (position) {
+            this.obstacles.push(new ComplexAsteroid(
                 this.game,
-                minX + Math.random() * (maxX - minX),
-                this.nextSpawnY,
+                position.x,
+                position.y,
                 size
             ));
         }
     }
 
-    spawnPulsatingAsteroid() {
+    spawnSimpleAsteroids(difficultyMultiplier, startX = 0, endX = 1) {
+        // Start with more asteroids
+        const baseCount = 2 + Math.floor(this.game.score / 8000); // Start with 2, increase faster
+        const count = Math.min(
+            baseCount + Math.floor(Math.random() * difficultyMultiplier),
+            4
+        );
+        
+        // Slightly tighter spacing for more challenge
+        const sections = count + 1.2; // Reduced from 1.5
+        const sectionWidth = this.game.canvas.width / sections;
+        
+        for (let i = 0; i < count; i++) {
+            const size = this.game.baseUnit * (0.9 + Math.random() * 0.5);
+            const minX = sectionWidth * (i + 0.6); // Adjusted spacing
+            const maxX = sectionWidth * (i + 1.6);
+            
+            const position = this.findValidPosition(size, minX, maxX, this.nextSpawnY);
+            if (position) {
+                this.obstacles.push(new SimpleAsteroid(
+                    this.game,
+                    position.x,
+                    position.y,
+                    size
+                ));
+            }
+        }
+    }
+
+    spawnPulsatingAsteroid(x, width) {
         const size = this.game.config.obstacles.minSize * this.game.baseUnit +
             Math.random() * (this.game.config.obstacles.maxSize - this.game.config.obstacles.minSize) * this.game.baseUnit;
-        
-        const x = size * 2 + Math.random() * (this.game.canvas.width - size * 4);
         
         this.obstacles.push(new PulsatingAsteroid(
             this.game,
@@ -923,11 +1298,9 @@ export class ObstacleManager {
         ));
     }
 
-    spawnMovingAsteroid() {
+    spawnMovingAsteroid(x, width) {
         const size = this.game.config.obstacles.minSize * this.game.baseUnit +
             Math.random() * (this.game.config.obstacles.maxSize - this.game.config.obstacles.minSize) * this.game.baseUnit;
-        
-        const x = this.game.canvas.width / 2;
         
         this.obstacles.push(new MovingAsteroid(
             this.game,
@@ -937,11 +1310,9 @@ export class ObstacleManager {
         ));
     }
 
-    spawnShootingAsteroid() {
+    spawnShootingAsteroid(x, width) {
         const size = this.game.config.obstacles.minSize * this.game.baseUnit +
             Math.random() * (this.game.config.obstacles.maxSize - this.game.config.obstacles.minSize) * this.game.baseUnit;
-        
-        const x = size * 2 + Math.random() * (this.game.canvas.width - size * 4);
         
         this.obstacles.push(new ShootingAsteroid(
             this.game,
@@ -951,10 +1322,71 @@ export class ObstacleManager {
         ));
     }
 
-    spawnComet() {
+    spawnComet(x, width) {
         // Spawn comet at random height near the player
         const y = this.game.camera.y - (Math.random() * this.game.canvas.height * 0.5);
         this.obstacles.push(new CometObstacle(this.game, y));
+    }
+
+    spawnBlackHole(x, width) {
+        const size = this.game.baseUnit * 3;
+        const margin = size * 4;
+        // Use the passed x parameter or calculate a position if score is low
+        const finalX = this.game.score < 100 ? 
+            this.game.canvas.width / 2 : 
+            x;
+        
+        const blackHole = new BlackHoleObstacle(
+            this.game,
+            finalX,
+            this.nextSpawnY,
+            size,
+            this.game.score > 1000 // isAdvanced
+        );
+        
+        this.obstacles.push(blackHole);
+    }
+
+    spawnWormhole(x, width) {
+        console.log('Spawning wormhole pair');
+        const size = this.game.baseUnit * 2;
+        const margin = size * 4;
+        
+        // Entry gate in bottom half of screen with obstacles around it
+        const entryX = margin + Math.random() * (this.game.canvas.width - margin * 2);
+        const entry = new WormholeGate(this.game, entryX, this.nextSpawnY, size, false);
+        
+        // Spawn obstacles around the entry gate, but respect safe zone
+        const obstacleCount = 2 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < obstacleCount; i++) {
+            const angle = (Math.PI * 2 * i) / obstacleCount;
+            const distance = this.game.baseUnit * (8 + Math.random() * 2); // Increased minimum distance
+            const obstacleX = entryX + Math.cos(angle) * distance;
+            const obstacleY = this.nextSpawnY + Math.sin(angle) * distance;
+            
+            // Only spawn if within screen bounds and outside safe zone
+            if (obstacleX > margin && 
+                obstacleX < this.game.canvas.width - margin) {
+                const obstacle = new SimpleAsteroid(
+                    this.game,
+                    obstacleX,
+                    obstacleY,
+                    this.game.baseUnit * (1 + Math.random())
+                );
+                this.obstacles.push(obstacle);
+            }
+        }
+        
+        // Exit gate higher up
+        const exitY = this.nextSpawnY - this.game.canvas.height * 0.8;
+        const exitX = margin + Math.random() * (this.game.canvas.width - margin * 2);
+        const exit = new WormholeGate(this.game, exitX, exitY, size, true);
+        
+        // Link the gates
+        entry.partner = exit;
+        exit.partner = entry;
+        
+        this.obstacles.push(entry, exit);
     }
 
     render(ctx) {
@@ -1047,5 +1479,52 @@ export class ObstacleManager {
                 line.x = Math.random() * this.game.canvas.width;
             }
         });
+    }
+
+    checkOverlap(x, y, size, existingObstacles) {
+        // More forgiving overlap detection
+        const minDistance = size * 2; // Reduced from 3
+        
+        return existingObstacles.some(obstacle => {
+            const dx = x - obstacle.x;
+            const dy = y - obstacle.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minAllowedDistance = size + obstacle.size * 1.5; // Reduced from 2
+            
+            return distance < minAllowedDistance;
+        });
+    }
+
+    findValidPosition(size, minX, maxX, baseY, maxAttempts = 5) {
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const x = minX + Math.random() * (maxX - minX);
+            const verticalOffset = (Math.random() - 0.5) * this.game.canvas.height * 0.15;
+            const y = baseY + verticalOffset;
+            
+            if (!this.checkOverlap(x, y, size, this.obstacles)) {
+                return { x, y };
+            }
+        }
+        // If we can't find a non-overlapping position, just return the last attempted position
+        const x = minX + Math.random() * (maxX - minX);
+        const verticalOffset = (Math.random() - 0.5) * this.game.canvas.height * 0.15;
+        const y = baseY + verticalOffset;
+        return { x, y };
+    }
+
+    selectObstacleType(types) {
+        // Slightly higher chance for variety
+        if (Math.random() < 0.65 && types.includes('simple')) { // Reduced from 0.7
+            return 'simple';
+        }
+        
+        // Filter out 'simple' type for other selections
+        const otherTypes = types.filter(type => type !== 'simple');
+        if (otherTypes.length > 0) {
+            const randomIndex = Math.floor(Math.random() * otherTypes.length);
+            return otherTypes[randomIndex];
+        }
+        
+        return 'simple';
     }
 } 

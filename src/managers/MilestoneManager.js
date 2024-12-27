@@ -2,47 +2,43 @@ export class MilestoneManager {
     constructor(game) {
         this.game = game;
         this.milestones = [...game.config.milestones];
-        this.currentMilestone = null;
-        this.messageAlpha = 0;
-        this.messageTimer = 0;
+        this.currentMessage = null;
     }
 
     showMessage(message) {
-        // Show a temporary message without affecting milestones
-        this.currentMilestone = { message };
-        this.messageAlpha = 0;
-        this.messageTimer = 3000;
+        console.log("Showing milestone message:", message);
+        this.currentMessage = {
+            text: message,
+            opacity: 1,
+            startTime: performance.now()
+        };
     }
 
     update() {
-        // Check for new milestones
-        if (this.milestones.length > 0 && this.game.score >= this.milestones[0].score) {
-            this.currentMilestone = this.milestones.shift();
-            this.messageAlpha = 0;
-            this.messageTimer = 3000; // 3 seconds display time
-        }
-
-        // Update message display
-        if (this.messageTimer > 0) {
-            this.messageTimer -= (1000 / 60); // Assuming 60fps
+        if (this.currentMessage) {
+            const elapsed = performance.now() - this.currentMessage.startTime;
+            const duration = 3000; // 3 seconds display time
             
-            // Fade in
-            if (this.messageTimer > 2500) {
-                this.messageAlpha = (3000 - this.messageTimer) / 500;
-            }
-            // Fade out
-            else if (this.messageTimer < 500) {
-                this.messageAlpha = this.messageTimer / 500;
-            }
-            // Full opacity
-            else {
-                this.messageAlpha = 1;
+            if (elapsed < duration) {
+                // Fade in and out
+                if (elapsed < 500) {
+                    // First 0.5s: fade in
+                    this.currentMessage.opacity = elapsed / 500;
+                } else if (elapsed > duration - 500) {
+                    // Last 0.5s: fade out
+                    this.currentMessage.opacity = (duration - elapsed) / 500;
+                } else {
+                    // Middle: full opacity
+                    this.currentMessage.opacity = 1;
+                }
+            } else {
+                this.currentMessage = null;
             }
         }
     }
 
     render(ctx) {
-        if (this.currentMilestone && this.messageTimer > 0) {
+        if (this.currentMessage) {
             ctx.save();
             
             // Set up text style
@@ -54,10 +50,10 @@ export class MilestoneManager {
             ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
             ctx.shadowBlur = 1.5 * this.game.baseUnit;
             
-            // Draw text with current alpha
-            ctx.fillStyle = `rgba(255, 255, 255, ${this.messageAlpha})`;
+            // Draw text with current opacity
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.currentMessage.opacity})`;
             ctx.fillText(
-                this.currentMilestone.message,
+                this.currentMessage.text,
                 this.game.canvas.width / 2,
                 this.game.canvas.height / 2
             );

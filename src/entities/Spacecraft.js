@@ -22,6 +22,8 @@ export class Spacecraft {
         this.shieldWarningStarted = false; // For visual feedback when shield is about to end
         
         console.log('Spacecraft position:', this.x, this.y);
+        this.pausedState = null; // Store movement state during pause
+        this.pausedTime = 0;  // Store time when paused
     }
 
     reset() {
@@ -33,8 +35,27 @@ export class Spacecraft {
     }
 
     update() {
+        if (this.game.isPaused) return;
+
         const currentTime = performance.now();
         
+        // If we were paused and have a movement state
+        if (this.pausedTime > 0) {
+            if (this.moveState) {
+                // Adjust the movement timing
+                const pauseDuration = currentTime - this.pausedTime;
+                this.moveState.startTime += pauseDuration;
+                
+                // Check if movement should have completed during pause
+                const elapsed = currentTime - this.moveState.startTime;
+                if (elapsed >= this.arcDuration) {
+                    this.moveState = null;
+                }
+            }
+            // Always reset pause time after handling it
+            this.pausedTime = 0;
+        }
+
         // Smooth vertical movement
         const targetVerticalSpeed = this.baseSpeed;
         this.verticalVelocity = this.verticalVelocity * 0.95 + targetVerticalSpeed * 0.05;
@@ -52,6 +73,9 @@ export class Spacecraft {
             if (newX < this.radius || newX > this.game.canvas.width - this.radius) {
                 const newDirection = newX < this.radius ? 'right' : 'left';
                 const bounceX = newX < this.radius ? this.radius : this.game.canvas.width - this.radius;
+                
+                // Play turn sound when bouncing
+                this.game.soundManager.playTurn();
                 
                 this.moveState = {
                     startX: bounceX,
@@ -95,12 +119,19 @@ export class Spacecraft {
     }
 
     startMovement(direction) {
+        if (this.game.isPaused) return;
+
+        // Play turn sound when starting a new movement
+        this.game.soundManager.playTurn();
+        
+        // Always start fresh movement
         this.moveState = {
             startX: this.x,
             startY: this.y,
             startTime: performance.now(),
             direction
         };
+        this.game.soundManager.playMove();
     }
 
     updateTrail() {

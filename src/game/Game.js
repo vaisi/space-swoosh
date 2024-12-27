@@ -5,6 +5,7 @@ import { InputHandler } from '../core/InputHandler.js';
 import { MilestoneManager } from '../managers/MilestoneManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
+import { ScoreService } from '../services/ScoreService.js';
 
 export class Game {
     constructor(config) {
@@ -18,6 +19,13 @@ export class Game {
         this.gameOverAlpha = 0;
         this.explosionParticles = [];
         this.gameOverScreen = 'main'; // 'main' or 'highscores'
+        this.isPaused = false;
+        this.pauseBlur = 10; // Blur amount when paused
+        this.TOTAL_DISTANCE = 50000; // Total distance to win
+        this.hasWon = false; // Track if player has won
+        this.lastTime = performance.now();
+        this.accumulatedTime = 0; // Track time between pauses
+        this.obstaclesDestroyed = 0;  // Add counter
         
         this.setupCanvas();
         this.initializeGame();
@@ -32,6 +40,22 @@ export class Game {
             this.soundManager.initialize();
             this.soundManager.playBGM();
         }, { once: true });
+        
+        // Add pause button
+        this.setupPauseButton();
+        
+        // Add spacebar listener
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); // Prevent page scroll
+                this.togglePause();
+            }
+        });
+        
+        // Reset high scores (remove this line after testing)
+        localStorage.removeItem('highScores');
+        
+        this.loadHighScores();
     }
 
     setupCanvas() {
@@ -66,20 +90,19 @@ export class Game {
     }
 
     gameLoop() {
-        // Clear with beige background
-        this.ctx.fillStyle = '#E1D9C1';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        const currentTime = performance.now();
         
-        // Update game state
-        this.update();
-        // Render game
+        if (!this.isPaused) {
+            const deltaTime = (currentTime - this.lastTime) / 1000;
+            this.update(deltaTime);
+            this.lastTime = currentTime;
+        }
+        
         this.render();
-        
-        // Continue the game loop
         requestAnimationFrame(() => this.gameLoop());
     }
 
-    update() {
+    update(deltaTime) {
         const currentTime = performance.now();
         
         if (this.isGameOver) {
@@ -87,20 +110,27 @@ export class Game {
             const deceleration = this.config.camera.deceleration;
             
             if (timeSinceGameOver < deceleration) {
-                // Gradually slow down camera during deceleration period
                 const slowdownFactor = 1 - (timeSinceGameOver / deceleration);
                 this.camera.update(slowdownFactor);
             }
-        } else {
+        } else if (!this.isPaused) {  // Only update if not paused
+            // Update all game components
             this.camera.update(1);
             this.spacecraft.update();
-            this.obstacleManager.update();
-            this.milestoneManager.update();
-            this.updateScore();
+            
+            // Update score based on camera movement, multiplied by 100
+            this.score += Math.abs(this.camera.velocity) * deltaTime * 100;
+            
+            // Calculate remaining distance for difficulty scaling
+            const remainingDistance = Math.max(0, this.TOTAL_DISTANCE - (this.score / 100));
+            
+            // Update managers with remaining distance for proper difficulty scaling
+            this.obstacleManager.update(remainingDistance);
+            this.milestoneManager.update(remainingDistance);
+            this.powerUpManager.update();
         }
         
         this.updateExplosion();
-        this.powerUpManager.update();
     }
 
     render() {
@@ -157,43 +187,127 @@ export class Game {
             }
 
             this.milestoneManager.render(this.ctx);
-
+            this.powerUpManager.render(this.ctx);
+            
             // Score display during gameplay
             this.ctx.fillStyle = '#000000';
             this.ctx.font = `${this.baseUnit * 2}px Arial`;
             this.ctx.textAlign = 'left';
             this.ctx.fillText(
-                `Score: ${Math.floor(this.score)}`,
+                `Distance: ${ScoreService.formatScore(this.score)} KM`,
                 this.baseUnit * 2,
                 this.baseUnit * 3
             );
+            
+            // Obstacles destroyed
+            this.ctx.fillText(
+                `Obstacles Destroyed: ${this.obstaclesDestroyed}`,
+                this.baseUnit * 2,
+                this.baseUnit * 6
+            );
         }
 
-        this.powerUpManager.render(this.ctx);
+        // Pause overlay
+        if (this.isPaused) {
+            // Draw semi-transparent overlay
+            this.ctx.fillStyle = 'rgba(225, 217, 193, 0.7)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Draw pause message
+            this.ctx.save();
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            this.ctx.font = `500 ${this.baseUnit * 3}px "Helvetica Neue", Arial, sans-serif`;
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(
+                'Mission Paused', 
+                this.canvas.width / 2, 
+                this.canvas.height / 2
+            );
+            this.ctx.restore();
+        }
     }
 
     renderMainGameOver() {
         const centerX = this.canvas.width / 2;
         const spacing = this.baseUnit * 4;
-        let currentY = this.canvas.height * 0.3;
+        let currentY = this.canvas.height * 0.25;
 
         // Game Over Title
         this.ctx.fillStyle = '#E1D9C1';
         this.ctx.font = `bold ${this.baseUnit * 4}px Arial`;
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('GAME OVER', centerX, currentY);
-        
-        currentY += spacing * 1.5;
-
-        // Final Score
-        this.ctx.font = `${this.baseUnit * 2}px Arial`;
         this.ctx.fillText(
-            `Distance: ${Math.floor(this.finalScore)} units`,
+            this.hasWon ? 'MISSION COMPLETE!' : 'GAME OVER',
             centerX,
             currentY
         );
         
         currentY += spacing * 1.5;
+
+        // Score display
+        this.ctx.font = `${this.baseUnit * 2}px Arial`;
+        this.ctx.fillText(
+            `Distance traveled: ${ScoreService.formatScore(this.finalScore)} KM`,
+            centerX,
+            currentY
+        );
+        
+        currentY += spacing;
+        
+        // Obstacles destroyed display
+        this.ctx.fillText(
+            `Obstacles Destroyed: ${this.obstaclesDestroyed}`,
+            centerX,
+            currentY
+        );
+
+        // Debug log for high score status
+        console.log('Pending high score:', this.pendingHighScore);
+
+        // Name input if there's a pending high score
+        if (this.pendingHighScore) {
+            currentY += spacing;
+            this.ctx.font = `${this.baseUnit * 1.5}px Arial`;
+            this.ctx.fillText(
+                'You made the top 100! Click here to enter your name:',
+                centerX,
+                currentY
+            );
+            
+            // Draw input box
+            const inputWidth = this.baseUnit * 20;
+            const inputHeight = this.baseUnit * 3;
+            const inputY = currentY + spacing/2;
+            
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.fillRect(
+                centerX - inputWidth/2,
+                inputY,
+                inputWidth,
+                inputHeight
+            );
+            
+            // Draw current input text
+            this.ctx.fillStyle = '#000000';
+            this.ctx.font = `${this.baseUnit * 1.5}px Arial`;
+            this.ctx.fillText(
+                this.playerNameInput || 'Click to enter name',
+                centerX,
+                inputY + inputHeight/2 + this.baseUnit/2
+            );
+            
+            // Store input box position for click handling
+            this.nameInputBox = {
+                x: centerX - inputWidth/2,
+                y: inputY,
+                width: inputWidth,
+                height: inputHeight
+            };
+            
+            currentY += spacing * 2;
+        } else {
+            currentY += spacing;
+        }
 
         // Buttons
         const buttonWidth = this.baseUnit * 12;
@@ -220,7 +334,6 @@ export class Game {
             '#2196F3'
         );
 
-        // Store button positions for click handling
         this.gameOverButtons = {
             playAgain: {
                 x: centerX - buttonWidth - this.baseUnit,
@@ -239,7 +352,7 @@ export class Game {
 
     renderHighScores() {
         const centerX = this.canvas.width / 2;
-        let currentY = this.canvas.height * 0.2;
+        let currentY = this.canvas.height * 0.15; // Start higher
 
         // High Scores Title
         this.ctx.fillStyle = '#E1D9C1';
@@ -247,41 +360,46 @@ export class Game {
         this.ctx.textAlign = 'center';
         this.ctx.fillText('HIGH SCORES', centerX, currentY);
         
-        currentY += this.baseUnit * 4;
+        currentY += this.baseUnit * 6; // More space after title
 
         // Scores List
         if (this.highScores && this.highScores.length > 0) {
-            this.ctx.font = `${this.baseUnit * 2}px Arial`;
+            this.ctx.font = `${this.baseUnit * 1.8}px Arial`;
             
             this.highScores.slice(0, 5).forEach((score, index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
-                const text = `${medal} ${score.player_name}`;
-                const scoreText = `${score.score}`;
+                // Just show the distance traveled directly
+                const scoreValue = score.isWinner ? 'COMPLETED!' : 
+                                 `${Math.floor(score.score)} units`;
+                
+                const prefix = score.isWinner ? '👑' : 
+                             (index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ');
                 
                 // Draw rank and name (left-aligned)
                 this.ctx.textAlign = 'left';
+                this.ctx.fillStyle = '#E1D9C1';
                 this.ctx.fillText(
-                    text,
-                    centerX - this.baseUnit * 10,
-                    currentY + (index * this.baseUnit * 3)
+                    `${prefix} ${score.player_name}`,
+                    centerX - this.baseUnit * 12,
+                    currentY + (index * this.baseUnit * 4) // More vertical spacing
                 );
                 
                 // Draw score (right-aligned)
                 this.ctx.textAlign = 'right';
+                this.ctx.fillStyle = score.isWinner ? '#4CAF50' : '#E1D9C1';
                 this.ctx.fillText(
-                    scoreText,
-                    centerX + this.baseUnit * 10,
-                    currentY + (index * this.baseUnit * 3)
+                    scoreValue,
+                    centerX + this.baseUnit * 12,
+                    currentY + (index * this.baseUnit * 4)
                 );
             });
         } else {
             this.ctx.fillText('No scores yet!', centerX, currentY);
         }
 
-        // Back Button
+        // Back Button - positioned lower
         const buttonWidth = this.baseUnit * 10;
         const buttonHeight = this.baseUnit * 3;
-        const buttonY = this.canvas.height * 0.8;
+        const buttonY = this.canvas.height * 0.85; // Lower position
 
         this.drawButton(
             centerX - buttonWidth / 2,
@@ -292,7 +410,6 @@ export class Game {
             '#FF5722'
         );
 
-        // Store button position
         this.highScoresBackButton = {
             x: centerX - buttonWidth / 2,
             y: buttonY,
@@ -317,8 +434,41 @@ export class Game {
     }
 
     updateScore() {
-        // Calculate score based on camera's total distance instead of spacecraft position
-        this.score = Math.floor(Math.abs(this.camera.totalDistance));
+        // Calculate remaining distance
+        const distanceTraveled = Math.abs(this.camera.totalDistance);
+        this.score = Math.max(0, this.TOTAL_DISTANCE - distanceTraveled);
+
+        // Check for win condition
+        if (this.score === 0 && !this.hasWon) {
+            this.hasWon = true;
+            this.victory();
+        }
+    }
+
+    victory() {
+        this.isGameOver = true;
+        this.gameOverStartTime = performance.now();
+        this.finalScore = this.score;
+        this.soundManager.stopBGM();
+        this.soundManager.playVictory();
+        
+        // Save victory score
+        const playerName = localStorage.getItem('playerName') || 'Anonymous';
+        const highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
+        
+        // Store the actual distance traveled
+        const distanceTraveled = 50000 - this.score;
+        
+        highScores.push({ 
+            player_name: playerName, 
+            score: distanceTraveled,  // Store actual distance traveled
+            isWinner: true
+        });
+        
+        // Higher scores (more distance) should be first
+        highScores.sort((a, b) => b.score - a.score);
+        localStorage.setItem('highScores', JSON.stringify(highScores.slice(0, 10)));
+        this.highScores = highScores;
     }
 
     async gameOver() {
@@ -327,16 +477,27 @@ export class Game {
             this.soundManager.playExplosion();
             this.isGameOver = true;
             this.gameOverStartTime = performance.now();
-            this.finalScore = this.score;
+            this.finalScore = this.score; // Store actual distance traveled
             
-            // Replace Supabase code with localStorage
-            if (this.score > 100) {
-                const playerName = localStorage.getItem('playerName') || 'Anonymous';
-                const highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
-                highScores.push({ player_name: playerName, score: this.score });
-                highScores.sort((a, b) => b.score - a.score);
-                localStorage.setItem('highScores', JSON.stringify(highScores.slice(0, 10)));
-                this.highScores = highScores;
+            try {
+                // Get current top scores
+                const topScores = await ScoreService.getTopScores();
+                console.log('Current top scores:', topScores);
+                
+                // Use actual distance traveled
+                console.log('Distance traveled:', this.score);
+                
+                // Always set pending high score for testing
+                this.pendingHighScore = {
+                    score: this.score,
+                    obstaclesDestroyed: this.obstaclesDestroyed,
+                    isWinner: this.hasWon
+                };
+                console.log('Set pending high score:', this.pendingHighScore);
+                
+                await this.loadHighScores();
+            } catch (error) {
+                console.error('Error handling high score:', error);
             }
             
             // Create explosion particles
@@ -347,16 +508,12 @@ export class Game {
             
             // Hide the spacecraft
             this.spacecraft.isVisible = false;
-
-            // Load and display high scores
-            this.loadHighScores();
         }
     }
 
     async loadHighScores() {
-        // Replace Supabase code with localStorage
         try {
-            this.highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
+            this.highScores = await ScoreService.getTopScores(10);
         } catch (error) {
             console.error('Failed to load high scores:', error);
             this.highScores = [];
@@ -414,9 +571,7 @@ export class Game {
     }
 
     setupEventListeners() {
-        this.canvas.addEventListener('click', (e) => {
-            if (!this.isGameOver) return;
-
+        this.canvas.addEventListener('click', async (e) => {
             // Only allow interaction after explosion animation
             const timeSinceGameOver = performance.now() - this.gameOverStartTime;
             if (timeSinceGameOver < this.config.camera.deceleration) return;
@@ -425,6 +580,27 @@ export class Game {
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
+            // Handle name input box click
+            if (this.pendingHighScore && this.nameInputBox && 
+                this.isClickInButton(x, y, this.nameInputBox)) {
+                const name = prompt('Enter your name:', '');
+                if (name) {
+                    try {
+                        await ScoreService.saveScore(
+                            this.pendingHighScore.score, 
+                            name,
+                            this.obstaclesDestroyed
+                        );
+                        this.pendingHighScore = null;
+                        await this.loadHighScores();
+                    } catch (error) {
+                        console.error('Error saving score:', error);
+                    }
+                }
+                return;
+            }
+
+            // Handle other buttons
             if (this.gameOverScreen === 'main') {
                 if (this.isClickInButton(x, y, this.gameOverButtons.playAgain)) {
                     this.restart();
@@ -447,28 +623,71 @@ export class Game {
     }
 
     restart() {
-        this.gameOverScreen = 'main';  // Reset to main game over screen
-        this.soundManager.playBGM();
+        // Reset game state
+        this.score = 0;
         this.isGameOver = false;
         this.gameOverAlpha = 0;
-        this.explosionParticles = [];
-        this.score = 0;
+        this.gameOverScreen = 'main';
+        this.hasWon = false;
+        this.obstaclesDestroyed = 0; // Reset obstacle counter
         
-        // Reset camera
-        this.camera.y = 0;
-        this.camera.targetY = 0;
-        this.camera.totalDistance = 0;
-        
-        // Reset spacecraft
-        if (this.spacecraft) {
-            this.spacecraft.reset();
-        } else {
-            this.spacecraft = new Spacecraft(this);
-        }
-        
-        // Reset managers
+        // Reset game components
+        this.camera = new Camera(this);
+        this.spacecraft = new Spacecraft(this);
         this.obstacleManager = new ObstacleManager(this);
         this.milestoneManager = new MilestoneManager(this);
-        this.powerUpManager.reset();
+        
+        // Reset explosion particles
+        this.explosionParticles = [];
+        
+        // Start background music
+        this.soundManager.playBGM();
+    }
+
+    setupPauseButton() {
+        const button = document.createElement('button');
+        button.innerHTML = '&#9208;'; // Fat pause symbol
+        button.style.cssText = `
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 1000;
+            padding: 15px;
+            color: black;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            font-family: Arial, sans-serif;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        button.addEventListener('mouseover', () => button.style.opacity = '1');
+        button.addEventListener('mouseout', () => button.style.opacity = '0.8');
+        button.addEventListener('click', () => this.togglePause());
+        
+        this.canvas.parentElement.appendChild(button);
+        this.pauseButton = button;
+    }
+
+    togglePause() {
+        if (this.isGameOver) return;
+        
+        this.isPaused = !this.isPaused;
+        this.pauseButton.innerHTML = this.isPaused ? '&#9654;' : '&#9208;';
+        
+        if (this.isPaused) {
+            // Store the pause time in spacecraft
+            this.spacecraft.pausedTime = performance.now();
+        } else {
+            // Reset game time
+            this.lastTime = performance.now();
+        }
     }
 } 

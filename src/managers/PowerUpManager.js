@@ -58,48 +58,24 @@ class ShieldPowerUp {
 export class PowerUpManager {
     constructor(game) {
         this.game = game;
-        this.reset();
-    }
-
-    reset() {
         this.powerUps = [];
-        this.nextSpawnY = -250;
-        this.minSpawnInterval = 600;
-        this.maxSpawnInterval = 800;
-        this.lastSpawnDistance = 0;
-        this.nextSpawnDistance = this.calculateNextSpawnDistance();
-        this.powerUpTypes = ['shield'];
+        this.lastSpawnTime = 0;
+        this.spawnInterval = 5000; // Base spawn interval
         
-        // Ensure sound manager exists
-        if (!this.game.soundManager) {
-            console.warn('SoundManager not initialized');
-            this.game.soundManager = {
-                playPowerup: () => {} // Empty function as fallback
-            };
-        }
-        
-        console.log('PowerUpManager reset');
-    }
-
-    calculateNextSpawnDistance() {
-        return this.minSpawnInterval + Math.random() * (this.maxSpawnInterval - this.minSpawnInterval);
+        // Only start spawning shields after learning phase
+        this.shieldsEnabled = false;
     }
 
     update() {
-        const currentDistance = Math.abs(this.game.camera.totalDistance);
-        
-        // Debug logs for power-up spawning
-        if (currentDistance % 100 === 0) {
-            console.log('Current distance:', currentDistance);
-            console.log('Next spawn at:', this.lastSpawnDistance + this.nextSpawnDistance);
+        // Enable shields after learning phase
+        if (!this.shieldsEnabled && this.game.score >= 500) {
+            this.shieldsEnabled = true;
         }
-        
-        // Check if it's time to spawn a new power-up
-        if (currentDistance >= this.lastSpawnDistance + this.nextSpawnDistance) {
-            console.log('Spawning shield at distance:', currentDistance);
+
+        const currentTime = performance.now();
+        if (this.shieldsEnabled && currentTime - this.lastSpawnTime > this.spawnInterval) {
             this.spawnPowerUp();
-            this.lastSpawnDistance = currentDistance;
-            this.nextSpawnDistance = this.calculateNextSpawnDistance();
+            this.lastSpawnTime = currentTime;
         }
 
         // Update existing power-ups
@@ -109,8 +85,8 @@ export class PowerUpManager {
         this.powerUps = this.powerUps.filter(powerUp => {
             if (powerUp.checkCollision(this.game.spacecraft)) {
                 console.log('Shield collected!');
-                // Safely call sound method
-                this.game.soundManager?.playPowerup?.();
+                // Play shield sound before activating shield
+                this.game.soundManager.playShield();
                 this.game.spacecraft.activateShield();
                 return false;
             }
