@@ -1,6 +1,7 @@
 export class SoundManager {
     constructor() {
-        const base = import.meta.env.BASE_URL || '/';
+        // For GitHub Pages, we need to include the repository name in the base path
+        const base = '/space-swoosh/';  // Hardcode the repository name
         this.sounds = {
             bgm: new Audio(`${base}sounds/bgm.mp3`),
             shield: new Audio(`${base}sounds/shield.mp3`),
@@ -10,6 +11,17 @@ export class SoundManager {
             turn: new Audio(`${base}sounds/turn.mp3`),
             shieldCrash: new Audio(`${base}sounds/crash_with_shield.mp3`)
         };
+
+        // Add debug logging
+        console.log('Sound paths:', {
+            bgm: `${base}sounds/bgm.mp3`,
+            shield: `${base}sounds/shield.mp3`,
+            explosion: `${base}sounds/explosion.mp3`,
+            powerup: `${base}sounds/powerup.mp3`,
+            move: `${base}sounds/move.mp3`,
+            turn: `${base}sounds/turn.mp3`,
+            shieldCrash: `${base}sounds/crash_with_shield.mp3`
+        });
 
         // Set up background music
         this.sounds.bgm.loop = true;
