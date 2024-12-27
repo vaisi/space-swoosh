@@ -1,13 +1,17 @@
+import bgmSound from '/sounds/bgm.mp3'
+import crashSound from '/sounds/crash.mp3'
+// ... other imports
+
 export class SoundManager {
     constructor() {
         this.sounds = {
-            bgm: new Audio('sounds/bgm.mp3'),
-            shield: new Audio('sounds/shield.mp3'),
-            explosion: new Audio('sounds/explosion.mp3'),
-            powerup: new Audio('sounds/powerup.mp3'),
-            move: new Audio('sounds/move.mp3'),
-            turn: new Audio('sounds/turn.mp3'),
-            shieldCrash: new Audio('sounds/crash_with_shield.mp3')
+            bgm: new Audio('/sounds/bgm.mp3'),
+            shield: new Audio('/sounds/shield.mp3'),
+            explosion: new Audio('/sounds/explosion.mp3'),
+            powerup: new Audio('/sounds/powerup.mp3'),
+            move: new Audio('/sounds/move.mp3'),
+            turn: new Audio('/sounds/turn.mp3'),
+            shieldCrash: new Audio('/sounds/crash_with_shield.mp3')
         };
 
         // Set up background music
@@ -126,5 +130,13 @@ export class SoundManager {
         } catch (error) {
             console.error("Error in playShieldCrash:", error);
         }
+    }
+
+    loadSounds() {
+        this.sounds = {
+            bgm: new Audio(bgmSound),
+            crash: new Audio(crashSound),
+            // ... other sounds
+        };
     }
 } 
