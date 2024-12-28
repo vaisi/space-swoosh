@@ -1,7 +1,6 @@
 import { Spacecraft } from '../entities/Spacecraft.js';
 import { ObstacleManager } from '../managers/ObstacleManager.js';
 import { Camera } from '../core/Camera.js';
-import { InputHandler } from '../core/InputHandler.js';
 import { MilestoneManager } from '../managers/MilestoneManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
@@ -58,7 +57,7 @@ export class Game {
         
         this.loadHighScores();
         
-        // Initialize input manager
+        // Initialize input manager first
         this.inputManager = new InputManager(this);
     }
 
@@ -85,7 +84,6 @@ export class Game {
         this.camera = new Camera(this);
         this.spacecraft = new Spacecraft(this);
         this.obstacleManager = new ObstacleManager(this);
-        this.inputHandler = new InputHandler(this);
         this.milestoneManager = new MilestoneManager(this);
     }
 
