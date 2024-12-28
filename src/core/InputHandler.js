@@ -4,7 +4,9 @@ export class InputHandler {
         this.keys = {};
         this.touchStartX = null;
         this.touchStartY = null;
-        this.swipeThreshold = 30;
+        this.lastTouchX = null;
+        this.swipeThreshold = 10;
+        this.touchVelocity = 0;
         
         // Keyboard controls
         window.addEventListener('keydown', e => this.handleKeyDown(e));
@@ -68,6 +70,8 @@ export class InputHandler {
         const touch = e.touches[0];
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
+        this.lastTouchX = touch.clientX;
+        this.touchVelocity = 0;
 
         // Double tap detection for shield
         const now = Date.now();
@@ -84,27 +88,38 @@ export class InputHandler {
         if (!this.touchStartX) return;
 
         const touch = e.touches[0];
-        const deltaX = touch.clientX - this.touchStartX;
+        const currentX = touch.clientX;
         
-        // Update touch position for continuous movement
-        this.touchStartX = touch.clientX;
+        // Calculate velocity based on movement since last frame
+        if (this.lastTouchX !== null) {
+            const deltaX = currentX - this.lastTouchX;
+            this.touchVelocity = deltaX;
 
-        // Convert touch movement to spacecraft movement
-        if (deltaX < 0) {
-            this.game.spacecraft.startMovement('left');
-        } else if (deltaX > 0) {
-            this.game.spacecraft.startMovement('right');
+            // More responsive movement based on velocity
+            if (Math.abs(this.touchVelocity) > this.swipeThreshold) {
+                if (this.touchVelocity < 0) {
+                    this.game.spacecraft.startMovement('left');
+                } else {
+                    this.game.spacecraft.startMovement('right');
+                }
+            } else {
+                // Stop movement if the velocity is below threshold
+                this.game.spacecraft.stopMovement();
+            }
         }
+
+        this.lastTouchX = currentX;
     }
 
     handleTouchEnd(e) {
         e.preventDefault();
-        // Only call stopMovement if game is not over and spacecraft exists
         if (!this.game.gameOver && this.game.spacecraft) {
             this.game.spacecraft.stopMovement();
         }
         this.touchStartX = null;
         this.touchStartY = null;
+        this.lastTouchX = null;
+        this.touchVelocity = 0;
     }
 
     isPressed(keyCode) {
