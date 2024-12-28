@@ -654,71 +654,98 @@ class CometObstacle extends BaseObstacle {
 }
 
 class BlackHoleObstacle extends BaseObstacle {
-    constructor(game, x, y, size, isAdvanced = false) {
-        super(game, x, y, size * (isAdvanced ? 2 : 1.5));
-        this.pulsePhase = 0;
-        this.pulseSpeed = 0.03;
+    constructor(game, x, y, size, isAdvanced) {
+        super(game, x, y, size);
         this.isAdvanced = isAdvanced;
-        this.gravitationalForce = game.baseUnit * (isAdvanced ? 0.15 : 0.08);
-        this.influenceRadius = this.size * (isAdvanced ? 5 : 4);
-        // Add more rings but make them closer together
-        this.rings = Array(4).fill(0).map((_, i) => ({
-            phase: (i * Math.PI * 2) / 4, // Evenly space ring phases
-            radius: this.size * (1.2 + i * 0.3) // Rings closer together
-        }));
-    }
-
-    render(ctx) {
-        const relativeY = this.game.camera.getRelativeY(this.y);
-        
-        if (relativeY + this.influenceRadius < 0 || 
-            relativeY - this.influenceRadius > this.game.canvas.height) {
-            return;
-        }
-
-        ctx.save();
-        ctx.translate(this.x, relativeY);
-
-        // Draw pulsing rings
-        this.rings.forEach((ring, i) => {
-            const ringPhase = this.pulsePhase + ring.phase;
-            const pulseScale = 1 + Math.sin(ringPhase) * 0.2;
-            const opacity = 0.4 - (i * 0.06); // Darker rings that fade out more gradually
-
-            ctx.beginPath();
-            ctx.arc(0, 0, ring.radius * pulseScale, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(0, 0, 0, ${opacity})`;
-            ctx.lineWidth = this.size * 0.05; // Thinner lines
-            ctx.stroke();
-        });
-
-        // Draw core
-        ctx.beginPath();
-        ctx.arc(0, 0, this.size * 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = this.isAdvanced ? '#1a0033' : '#000000';
-        ctx.fill();
-
-        ctx.restore();
+        this.pullStrength = 1.1; // Increased by 10% (was 1.0)
+        this.pulsePhase = 0;
     }
 
     update() {
         super.update();
-        this.pulsePhase += this.pulseSpeed;
         
-        // Apply gentler gravitational pull with smoother falloff
-        const dx = this.game.spacecraft.x - this.x;
-        const dy = this.game.spacecraft.y - this.y;
+        // Update pulse animation
+        this.pulsePhase += 0.05;
+
+        // Calculate distance to spacecraft
+        const dx = this.x - this.game.spacecraft.x;
+        const dy = this.y - this.game.spacecraft.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Increased pull radius by 10%
+        const pullRadius = this.size * 11; // Was size * 10
+
+        if (distance < pullRadius) {
+            // Calculate pull force (increased by 10%)
+            const force = (1 - (distance / pullRadius)) * this.pullStrength;
+            
+            // Apply gravitational pull
+            this.game.spacecraft.x += (dx / distance) * force;
+            // Optionally pull in Y direction too for advanced black holes
+            if (this.isAdvanced) {
+                this.game.spacecraft.y += (dy / distance) * force;
+            }
+        }
+    }
+
+    render(ctx) {
+        // Main black hole (pure black)
+        ctx.beginPath();
+        ctx.arc(
+            this.x,
+            this.game.camera.getRelativeY(this.y),
+            this.size,
+            0,
+            Math.PI * 2
+        );
+        ctx.fillStyle = '#000000'; // Changed to pure black
+        ctx.fill();
+
+        // Outer glow effect
+        const gradient = ctx.createRadialGradient(
+            this.x,
+            this.game.camera.getRelativeY(this.y),
+            this.size,
+            this.x,
+            this.game.camera.getRelativeY(this.y),
+            this.size * 4
+        );
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        ctx.beginPath();
+        ctx.arc(
+            this.x,
+            this.game.camera.getRelativeY(this.y),
+            this.size * 4,
+            0,
+            Math.PI * 2
+        );
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Pulsing effect
+        const pulseSize = this.size * (1.2 + Math.sin(this.pulsePhase) * 0.2);
+        ctx.beginPath();
+        ctx.arc(
+            this.x,
+            this.game.camera.getRelativeY(this.y),
+            pulseSize,
+            0,
+            Math.PI * 2
+        );
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    checkCollision(spacecraft) {
+        const dx = this.x - spacecraft.x;
+        const dy = this.y - spacecraft.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance < this.influenceRadius) {
-            // Add smooth falloff curve
-            const falloff = Math.pow(1 - distance / this.influenceRadius, 2);
-            const force = this.gravitationalForce * falloff;
-            const angle = Math.atan2(dy, dx);
-            
-            this.game.spacecraft.x -= Math.cos(angle) * force;
-            this.game.spacecraft.y -= Math.sin(angle) * force;
-        }
+        // Increased collision radius by 10%
+        return distance < (this.size + spacecraft.radius) * 1.1;
     }
 }
 
@@ -843,34 +870,39 @@ export class ObstacleManager {
         // Define progression with clear unlock points
         this.obstacleTypes = {
             'simple': {
-                weight: 0.6,
-                unlockScore: 0, // Available from start
+                weight: 0.4,  // Reduced to give more chance to other types
+                unlockScore: 0,
                 message: 'Watch out for asteroids!'
             },
             'complex': {
                 weight: 0.1,
-                unlockScore: 2000, // When complex asteroids start appearing
+                unlockScore: 1000,  // Was 2000
                 message: 'Warning: Asteroids with orbiting debris detected!'
-            },
-            'belt': {
-                weight: 0.1,
-                unlockScore: 7000, // Earlier unlock (was 10000)
-                message: 'Dense asteroid field ahead!'
             },
             'moving': {
                 weight: 0.1,
-                unlockScore: 4000, // Earlier unlock (was 15000)
+                unlockScore: 2000,  // Was 4000
                 message: 'Caution: Moving asteroids detected!'
             },
+            'belt': {
+                weight: 0.1,
+                unlockScore: 3000,  // Was 7000
+                message: 'Dense asteroid field ahead!'
+            },
             'pulsating': {
-                weight: 0.05,
-                unlockScore: 10000, // Earlier unlock (was 20000)
+                weight: 0.1,
+                unlockScore: 4000,  // Was 10000
                 message: 'Warning: Unstable asteroids ahead!'
             },
             'wormhole': {
-                weight: 0.05,
-                unlockScore: 15000, // Earlier unlock (was 25000)
+                weight: 0.1,  // Increased from 0.05
+                unlockScore: 5000,  // Was 12000
                 message: 'Spatial anomalies detected!'
+            },
+            'blackhole': {
+                weight: 0.1,  // Increased from 0.05
+                unlockScore: 6000,  // Was 15000
+                message: 'Gravitational anomalies detected!'
             }
         };
         
@@ -1202,6 +1234,9 @@ export class ObstacleManager {
         switch(type) {
             case 'wormhole':
                 this.spawnWormhole(x, width);
+                break;
+            case 'blackhole':
+                this.spawnBlackHole(x, width);
                 break;
             case 'simple':
                 this.spawnSimpleAsteroids(this.getDifficultyMultiplier(), startX, endX);

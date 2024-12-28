@@ -2,9 +2,9 @@ export class Spacecraft {
     constructor(game) {
         console.log('Creating spacecraft...');
         this.game = game;
-        this.radius = game.config.spacecraft.radius * game.baseUnit;
-        this.x = game.canvas.width / 2;
-        this.y = game.canvas.height * 0.85;
+        this.radius = this.game.baseUnit;
+        this.x = this.game.canvas.width / 2;
+        this.y = this.game.canvas.height * 0.8;
         this.baseSpeed = game.config.spacecraft.speed * game.canvas.height;
         this.arcRadius = game.config.spacecraft.arcRadius * game.canvas.width;
         this.arcDuration = game.config.spacecraft.arcDuration;
@@ -157,7 +157,12 @@ export class Spacecraft {
     }
 
     render(ctx) {
-        // Render spacecraft
+        if (!this.isVisible) return;
+
+        // Save context state
+        ctx.save();
+        
+        // Draw spacecraft
         ctx.beginPath();
         ctx.arc(
             this.x,
@@ -169,7 +174,7 @@ export class Spacecraft {
         ctx.fillStyle = '#000000';
         ctx.fill();
 
-        // Render dotted trail
+        // Render dotted trail with proper scaling
         const dotSize = this.radius * this.game.config.spacecraft.trailDotSize;
         this.trail.forEach(point => {
             ctx.beginPath();
@@ -183,6 +188,8 @@ export class Spacecraft {
             ctx.fillStyle = `rgba(0, 0, 0, ${point.opacity})`;
             ctx.fill();
         });
+
+        ctx.restore();
 
         // Render shield if active
         if (this.shieldActive) {

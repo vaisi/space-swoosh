@@ -102,9 +102,6 @@ export class InputHandler {
                 } else {
                     this.game.spacecraft.startMovement('right');
                 }
-            } else {
-                // Stop movement if the velocity is below threshold
-                this.game.spacecraft.stopMovement();
             }
         }
 

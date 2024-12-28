@@ -35,22 +35,23 @@ export class Game {
         this.powerUpManager = new PowerUpManager(this);
         this.soundManager = new SoundManager();
         
-        // Initialize sound on first user interaction
-        window.addEventListener('click', () => {
+        // Initialize sound on any user interaction
+        const initSound = () => {
             this.soundManager.initialize();
             this.soundManager.playBGM();
-        }, { once: true });
+            // Remove the event listeners after first interaction
+            window.removeEventListener('click', initSound);
+            window.removeEventListener('touchstart', initSound);
+            window.removeEventListener('keydown', initSound);
+        };
+
+        // Add multiple event listeners for different types of interaction
+        window.addEventListener('click', initSound);
+        window.addEventListener('touchstart', initSound);
+        window.addEventListener('keydown', initSound);
         
         // Add pause button
         this.setupPauseButton();
-        
-        // Add spacebar listener
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault(); // Prevent page scroll
-                this.togglePause();
-            }
-        });
         
         // Reset high scores (remove this line after testing)
         localStorage.removeItem('highScores');
@@ -59,7 +60,6 @@ export class Game {
     }
 
     setupCanvas() {
-        console.log('Setting up canvas...');
         const container = this.canvas.parentElement;
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
@@ -67,13 +67,16 @@ export class Game {
         this.canvas.width = containerWidth;
         this.canvas.height = containerHeight;
         
-        // Adjust base unit based on screen size
+        // Adjust base unit based on screen size with better scaling
         const isMobile = window.innerWidth <= 768;
         this.baseUnit = isMobile ? 
-            Math.min(containerWidth / 30, containerHeight / 50) : 
+            Math.min(containerWidth / 35, containerHeight / 60) : // Smaller base unit for mobile
             containerWidth / 50;
-        
-        console.log('Base unit:', this.baseUnit);
+
+        // Update game components if they exist
+        if (this.spacecraft) {
+            this.spacecraft.radius = this.baseUnit;
+        }
     }
 
     initializeGame() {
@@ -229,12 +232,13 @@ export class Game {
 
     renderMainGameOver() {
         const centerX = this.canvas.width / 2;
-        const spacing = this.baseUnit * 4;
-        let currentY = this.canvas.height * 0.25;
+        const isMobile = window.innerWidth <= 768;
+        const spacing = isMobile ? this.baseUnit * 3 : this.baseUnit * 4; // Reduced spacing for mobile
+        let currentY = isMobile ? this.canvas.height * 0.2 : this.canvas.height * 0.25; // Higher start on mobile
 
-        // Game Over Title
+        // Game Over Title - smaller on mobile
         this.ctx.fillStyle = '#E1D9C1';
-        this.ctx.font = `bold ${this.baseUnit * 4}px Arial`;
+        this.ctx.font = `bold ${isMobile ? this.baseUnit * 3 : this.baseUnit * 4}px Arial`;
         this.ctx.textAlign = 'center';
         this.ctx.fillText(
             this.hasWon ? 'MISSION COMPLETE!' : 'GAME OVER',
@@ -244,8 +248,8 @@ export class Game {
         
         currentY += spacing * 1.5;
 
-        // Score display
-        this.ctx.font = `${this.baseUnit * 2}px Arial`;
+        // Score display - smaller on mobile
+        this.ctx.font = `${isMobile ? this.baseUnit * 1.5 : this.baseUnit * 2}px Arial`;
         this.ctx.fillText(
             `Distance traveled: ${ScoreService.formatScore(this.finalScore)} KM`,
             centerX,
@@ -309,14 +313,21 @@ export class Game {
             currentY += spacing;
         }
 
-        // Buttons
-        const buttonWidth = this.baseUnit * 12;
-        const buttonHeight = this.baseUnit * 3;
-        const buttonY = currentY;
+        // Button positioning and sizing
+        const buttonY = isMobile ? this.canvas.height * 0.7 : currentY + spacing * 2;
+        const buttonWidth = isMobile ? 
+            Math.min(this.baseUnit * 10, this.canvas.width / 2.5) : 
+            Math.min(this.baseUnit * 12, this.canvas.width / 3);
+        const buttonHeight = isMobile ? this.baseUnit * 4 : this.baseUnit * 3;
+        const buttonSpacing = isMobile ? this.baseUnit : this.baseUnit * 2;
+        
+        // Center buttons horizontally with proper spacing
+        const totalWidth = (buttonWidth * 2) + buttonSpacing;
+        const startX = (this.canvas.width - totalWidth) / 2;
 
-        // Play Again Button
+        // Draw buttons
         this.drawButton(
-            centerX - buttonWidth - this.baseUnit,
+            startX,
             buttonY,
             buttonWidth,
             buttonHeight,
@@ -324,9 +335,8 @@ export class Game {
             '#4CAF50'
         );
 
-        // High Scores Button
         this.drawButton(
-            centerX + this.baseUnit,
+            startX + buttonWidth + buttonSpacing,
             buttonY,
             buttonWidth,
             buttonHeight,
@@ -334,15 +344,16 @@ export class Game {
             '#2196F3'
         );
 
+        // Update button hitboxes
         this.gameOverButtons = {
             playAgain: {
-                x: centerX - buttonWidth - this.baseUnit,
+                x: startX,
                 y: buttonY,
                 width: buttonWidth,
                 height: buttonHeight
             },
             highScores: {
-                x: centerX + this.baseUnit,
+                x: startX + buttonWidth + buttonSpacing,
                 y: buttonY,
                 width: buttonWidth,
                 height: buttonHeight
@@ -419,18 +430,20 @@ export class Game {
     }
 
     drawButton(x, y, width, height, text, color) {
-        // Button background
+        const isMobile = window.innerWidth <= 768;
+        
+        // Draw button background
         this.ctx.fillStyle = color;
         this.ctx.beginPath();
         this.ctx.roundRect(x, y, width, height, height / 4);
         this.ctx.fill();
-
-        // Button text
+        
+        // Draw button text - adjusted size for mobile
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = `bold ${this.baseUnit * 1.5}px Arial`;
+        this.ctx.font = `bold ${isMobile ? this.baseUnit * 1.2 : this.baseUnit * 1.5}px Arial`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(text, x + width / 2, y + height / 2);
+        this.ctx.fillText(text, x + width/2, y + height/2);
     }
 
     updateScore() {
@@ -689,9 +702,12 @@ export class Game {
         if (this.isPaused) {
             // Store the pause time in spacecraft
             this.spacecraft.pausedTime = performance.now();
+            this.soundManager.stopBGM();
         } else {
-            // Reset game time
+            // Reset game time and restart sound
             this.lastTime = performance.now();
+            this.soundManager.initialize(); // Ensure sounds are initialized
+            this.soundManager.playBGM();
         }
     }
 } 

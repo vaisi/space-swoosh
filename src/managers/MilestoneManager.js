@@ -41,21 +41,35 @@ export class MilestoneManager {
         if (this.currentMessage) {
             ctx.save();
             
-            // Set up text style
-            ctx.font = `${3 * this.game.baseUnit}px Arial`;
+            // Check if on mobile
+            const isMobile = window.innerWidth <= 768;
+            
+            // Adjust font size based on screen size and message length
+            const baseFontSize = isMobile ? 1.8 : 2.5;
+            const messageLength = this.currentMessage.text.length;
+            const fontSizeAdjustment = messageLength > 30 ? 0.8 : 1; // Reduce font size for longer messages
+            
+            // Set up text style with adjusted size
+            ctx.font = `${baseFontSize * this.game.baseUnit * fontSizeAdjustment}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
-            // Add glow effect
+            // Add glow effect (reduced for mobile)
             ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-            ctx.shadowBlur = 1.5 * this.game.baseUnit;
+            ctx.shadowBlur = isMobile ? this.game.baseUnit : 1.5 * this.game.baseUnit;
             
             // Draw text with current opacity
             ctx.fillStyle = `rgba(255, 255, 255, ${this.currentMessage.opacity})`;
+            
+            // Position message higher on mobile
+            const yPosition = isMobile ? 
+                this.game.canvas.height * 0.3 : 
+                this.game.canvas.height / 2;
+            
             ctx.fillText(
                 this.currentMessage.text,
                 this.game.canvas.width / 2,
-                this.game.canvas.height / 2
+                yPosition
             );
             
             ctx.restore();
