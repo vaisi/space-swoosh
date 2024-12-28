@@ -6,15 +6,25 @@ export class InputManager {
         this.minSwipeDistance = 30;
         this.isMoving = false;
         
-        // Add touch event listeners to the canvas element specifically
+        // Get canvas element
         const canvas = document.getElementById('gameCanvas');
-        canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
-        canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
-        canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
         
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
-        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+        // Add touch event listeners with proper binding and options
+        canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+        canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+        canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+        canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
+        
+        // Add tap detection for shield
+        this.lastTap = 0;
+        this.doubleTapDelay = 300; // ms between taps
+        
+        // Keyboard controls for desktop
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        document.addEventListener('keyup', this.handleKeyUp.bind(this));
+
+        // Debug flag
+        this.debug = true;
     }
 
     handleTouchStart(event) {
@@ -23,6 +33,17 @@ export class InputManager {
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
         this.isMoving = false;
+
+        // Handle double tap for shield
+        const currentTime = Date.now();
+        const tapLength = currentTime - this.lastTap;
+        if (tapLength < this.doubleTapDelay) {
+            this.game.spacecraft.activateShield();
+            event.preventDefault();
+        }
+        this.lastTap = currentTime;
+
+        if (this.debug) console.log('Touch Start:', this.touchStartX, this.touchStartY);
     }
 
     handleTouchMove(event) {
@@ -32,23 +53,29 @@ export class InputManager {
         const touch = event.touches[0];
         const deltaX = touch.clientX - this.touchStartX;
         
-        // Update movement based on touch position
+        // If we've moved far enough horizontally
         if (Math.abs(deltaX) > this.minSwipeDistance) {
-            this.isMoving = true;
-            if (deltaX > 0) {
-                this.game.spacecraft.move('right');
-            } else {
-                this.game.spacecraft.move('left');
+            const direction = deltaX > 0 ? 'right' : 'left';
+            
+            // Only start a new movement if we're not already moving
+            if (!this.isMoving) {
+                this.isMoving = true;
+                this.game.spacecraft.startMovement(direction);
+                if (this.debug) console.log('Starting movement:', direction);
             }
-            // Update start position for continuous movement
+            
+            // Update touch start position for continuous movement
             this.touchStartX = touch.clientX;
         }
+
+        if (this.debug) console.log('Touch Move:', deltaX);
     }
 
     handleTouchEnd(event) {
         event.preventDefault();
         if (this.isMoving) {
             this.game.spacecraft.stopMoving();
+            if (this.debug) console.log('Stopping movement');
         }
         this.touchStartX = null;
         this.touchStartY = null;
@@ -59,11 +86,11 @@ export class InputManager {
         switch(event.key) {
             case 'ArrowLeft':
             case 'a':
-                this.game.spacecraft.move('left');
+                this.game.spacecraft.startMovement('left');
                 break;
             case 'ArrowRight':
             case 'd':
-                this.game.spacecraft.move('right');
+                this.game.spacecraft.startMovement('right');
                 break;
             case ' ':
                 this.game.spacecraft.activateShield();

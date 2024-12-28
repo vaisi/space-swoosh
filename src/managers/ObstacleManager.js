@@ -1258,6 +1258,10 @@ export class ObstacleManager {
     }
 
     spawnSimpleAsteroids(difficultyMultiplier, startX = 0, endX = 1) {
+        const isMobile = window.innerWidth <= 768;
+        const baseSize = isMobile ? 
+            this.game.baseUnit * (0.8 + Math.random() * 0.4) : // Smaller on mobile
+            this.game.baseUnit * (0.9 + Math.random() * 0.5);  // Original size
         // Start with more asteroids
         const baseCount = 2 + Math.floor(this.game.score / 8000); // Start with 2, increase faster
         const count = Math.min(

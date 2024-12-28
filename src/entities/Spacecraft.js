@@ -2,6 +2,9 @@ export class Spacecraft {
     constructor(game) {
         console.log('Creating spacecraft...');
         this.game = game;
+        // Adjust size based on device
+        const isMobile = window.innerWidth <= 768;
+        this.size = isMobile ? game.baseUnit * 1.2 : game.baseUnit * 1.5;
         this.radius = game.config.spacecraft.radius * game.baseUnit;
         this.x = game.canvas.width / 2;
         this.y = game.canvas.height * 0.85;
@@ -120,17 +123,18 @@ export class Spacecraft {
 
     startMovement(direction) {
         if (this.game.isPaused) return;
-
-        // Play turn sound when starting a new movement
-        this.game.soundManager.playTurn();
         
-        // Always start fresh movement
+        console.log('Starting movement:', direction); // Add debug log
+        
         this.moveState = {
             startX: this.x,
             startY: this.y,
             startTime: performance.now(),
             direction
         };
+        
+        // Play sound effects
+        this.game.soundManager.playTurn();
         this.game.soundManager.playMove();
     }
 
