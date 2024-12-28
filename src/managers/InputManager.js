@@ -14,27 +14,12 @@ export class InputManager {
         canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
         canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
         
-        // Add click/tap for shield
-        canvas.addEventListener('click', this.handleClick.bind(this));
-        
         // Keyboard controls
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.addEventListener('keyup', this.handleKeyUp.bind(this));
 
         // Debug touch events
-        this.debug = false;
-    }
-
-    handleClick(event) {
-        event.preventDefault();
-        // Activate shield on tap/click
-        this.game.spacecraft.activateShield();
-        setTimeout(() => this.game.spacecraft.deactivateShield(), 100);
-        
-        // Initialize sound if needed
-        if (!this.game.soundManager.initialized) {
-            this.game.soundManager.initialize();
-        }
+        this.debug = true; // Set to true to help debug mobile controls
     }
 
     handleTouchStart(event) {
@@ -45,11 +30,6 @@ export class InputManager {
         this.isTouching = true;
         
         if (this.debug) console.log('Touch start:', this.touchStartX, this.touchStartY);
-        
-        // Initialize sound if needed
-        if (!this.game.soundManager.initialized) {
-            this.game.soundManager.initialize();
-        }
     }
 
     handleTouchMove(event) {
@@ -99,14 +79,6 @@ export class InputManager {
             case 'd':
                 this.game.spacecraft.move('right');
                 break;
-            case ' ':
-                this.game.spacecraft.activateShield();
-                break;
-        }
-
-        // Initialize sound on first interaction
-        if (!this.game.soundManager.initialized) {
-            this.game.soundManager.initialize();
         }
     }
 
@@ -117,9 +89,6 @@ export class InputManager {
             case 'ArrowRight':
             case 'd':
                 this.game.spacecraft.stopMoving();
-                break;
-            case ' ':
-                this.game.spacecraft.deactivateShield();
                 break;
         }
     }
