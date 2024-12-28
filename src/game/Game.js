@@ -6,6 +6,7 @@ import { MilestoneManager } from '../managers/MilestoneManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
 import { ScoreService } from '../services/ScoreService.js';
+import { InputManager } from '../managers/InputManager.js';
 
 export class Game {
     constructor(config) {
@@ -56,6 +57,9 @@ export class Game {
         localStorage.removeItem('highScores');
         
         this.loadHighScores();
+        
+        // Initialize input manager
+        this.inputManager = new InputManager(this);
     }
 
     setupCanvas() {
