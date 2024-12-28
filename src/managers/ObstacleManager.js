@@ -923,7 +923,7 @@ export class ObstacleManager {
     update(remainingDistance) {
         // Faster difficulty increase
         const progress = 1 - (remainingDistance / this.game.TOTAL_DISTANCE);
-        const difficultyMultiplier = 1 + (progress * 2.5); // Increased from 2
+        const difficultyMultiplier = 1 + (progress * 2.5);
         
         const currentDistance = Math.abs(this.game.camera.totalDistance);
         
@@ -1113,11 +1113,7 @@ export class ObstacleManager {
 
     updateAvailableTypes(distance) {
         Object.entries(this.obstacleTypes).forEach(([type, data]) => {
-            // Add debug logging
-            console.log(`Checking ${type}: distance=${distance}, unlockScore=${data.unlockScore}, has=${this.availableTypes.has(type)}`);
-            
             if (distance >= data.unlockScore && !this.availableTypes.has(type)) {
-                console.log(`Unlocking new type: ${type} at distance ${distance}`);
                 this.availableTypes.add(type);
                 this.game.milestoneManager.showMessage(data.message);
                 this.normalizeWeights();
@@ -1258,10 +1254,6 @@ export class ObstacleManager {
     }
 
     spawnSimpleAsteroids(difficultyMultiplier, startX = 0, endX = 1) {
-        const isMobile = window.innerWidth <= 768;
-        const baseSize = isMobile ? 
-            this.game.baseUnit * (0.8 + Math.random() * 0.4) : // Smaller on mobile
-            this.game.baseUnit * (0.9 + Math.random() * 0.5);  // Original size
         // Start with more asteroids
         const baseCount = 2 + Math.floor(this.game.score / 8000); // Start with 2, increase faster
         const count = Math.min(

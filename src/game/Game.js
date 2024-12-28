@@ -262,7 +262,7 @@ export class Game {
         );
 
         // Debug log for high score status
-        console.log('Pending high score:', this.pendingHighScore);
+        //console.log('Pending high score:', this.pendingHighScore);
 
         // Name input if there's a pending high score
         if (this.pendingHighScore) {
@@ -477,36 +477,25 @@ export class Game {
             this.soundManager.playExplosion();
             this.isGameOver = true;
             this.gameOverStartTime = performance.now();
-            this.finalScore = this.score; // Store actual distance traveled
+            this.finalScore = this.score;
             
             try {
-                // Get current top scores
                 const topScores = await ScoreService.getTopScores();
-                console.log('Current top scores:', topScores);
-                
-                // Use actual distance traveled
-                console.log('Distance traveled:', this.score);
-                
-                // Always set pending high score for testing
                 this.pendingHighScore = {
                     score: this.score,
                     obstaclesDestroyed: this.obstaclesDestroyed,
                     isWinner: this.hasWon
                 };
-                console.log('Set pending high score:', this.pendingHighScore);
-                
                 await this.loadHighScores();
             } catch (error) {
                 console.error('Error handling high score:', error);
             }
             
-            // Create explosion particles
             this.explosionParticles = this.createExplosionParticles(
                 this.spacecraft.x,
                 this.spacecraft.y
             );
             
-            // Hide the spacecraft
             this.spacecraft.isVisible = false;
         }
     }
@@ -571,14 +560,16 @@ export class Game {
     }
 
     setupEventListeners() {
-        this.canvas.addEventListener('click', async (e) => {
+        const handleInteraction = async (clientX, clientY) => {
+            if (!this.isGameOver) return; // Only handle if game is over
+
             // Only allow interaction after explosion animation
             const timeSinceGameOver = performance.now() - this.gameOverStartTime;
             if (timeSinceGameOver < this.config.camera.deceleration) return;
 
             const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const x = (clientX - rect.left) * (this.canvas.width / rect.width);
+            const y = (clientY - rect.top) * (this.canvas.height / rect.height);
 
             // Handle name input box click
             if (this.pendingHighScore && this.nameInputBox && 
@@ -612,6 +603,19 @@ export class Game {
                     this.gameOverScreen = 'main';
                 }
             }
+        };
+
+        // Mouse click handler
+        this.canvas.addEventListener('click', async (e) => {
+            handleInteraction(e.clientX, e.clientY);
+        });
+
+        // Touch handler for game over screen
+        this.canvas.addEventListener('touchend', async (e) => {
+            if (!this.isGameOver) return; // Only handle if game is over
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            handleInteraction(touch.clientX, touch.clientY);
         });
     }
 
