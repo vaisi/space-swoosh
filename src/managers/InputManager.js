@@ -6,77 +6,77 @@ export class InputManager {
         this.minSwipeDistance = 30;
         this.isMoving = false;
         
-        // Get canvas element
-        const canvas = document.getElementById('gameCanvas');
+        // Get both canvas and container
+        this.canvas = document.getElementById('gameCanvas');
+        this.container = document.getElementById('gameContainer');
         
-        // Add touch event listeners with proper binding and options
-        canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-        canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-        canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-        canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
-        
-        // Add tap detection for shield
-        this.lastTap = 0;
-        this.doubleTapDelay = 300; // ms between taps
+        // Add touch events to both canvas and container
+        [this.canvas, this.container].forEach(element => {
+            element.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+            element.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+            element.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+            element.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
+        });
+
+        // Debug logging
+        console.log('Input Manager initialized');
         
         // Keyboard controls for desktop
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
-        document.addEventListener('keyup', this.handleKeyUp.bind(this));
-
-        // Debug flag
-        this.debug = true;
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
     }
 
-    handleTouchStart(event) {
-        event.preventDefault();
-        const touch = event.touches[0];
-        this.touchStartX = touch.clientX;
-        this.touchStartY = touch.clientY;
-        this.isMoving = false;
-
-        // Handle double tap for shield
-        const currentTime = Date.now();
-        const tapLength = currentTime - this.lastTap;
-        if (tapLength < this.doubleTapDelay) {
-            this.game.spacecraft.activateShield();
-            event.preventDefault();
+    handleTouchStart(e) {
+        // Prevent default only if it's a game interaction
+        if (e.target === this.canvas || e.target === this.container) {
+            e.preventDefault();
         }
-        this.lastTap = currentTime;
-
-        if (this.debug) console.log('Touch Start:', this.touchStartX, this.touchStartY);
+        
+        const touch = e.touches[0];
+        this.touchStartX = touch.pageX; // Using pageX instead of clientX
+        this.touchStartY = touch.pageY;
+        this.isMoving = false;
+        
+        console.log('Touch Start detected:', { x: this.touchStartX, y: this.touchStartY });
     }
 
-    handleTouchMove(event) {
-        event.preventDefault();
+    handleTouchMove(e) {
         if (!this.touchStartX) return;
-
-        const touch = event.touches[0];
-        const deltaX = touch.clientX - this.touchStartX;
         
-        // If we've moved far enough horizontally
+        // Prevent default only if it's a game interaction
+        if (e.target === this.canvas || e.target === this.container) {
+            e.preventDefault();
+        }
+
+        const touch = e.touches[0];
+        const deltaX = touch.pageX - this.touchStartX;
+        
+        console.log('Touch Move:', { deltaX });
+
         if (Math.abs(deltaX) > this.minSwipeDistance) {
             const direction = deltaX > 0 ? 'right' : 'left';
             
-            // Only start a new movement if we're not already moving
             if (!this.isMoving) {
                 this.isMoving = true;
+                console.log('Starting movement:', direction);
                 this.game.spacecraft.startMovement(direction);
-                if (this.debug) console.log('Starting movement:', direction);
             }
             
-            // Update touch start position for continuous movement
-            this.touchStartX = touch.clientX;
+            this.touchStartX = touch.pageX;
         }
-
-        if (this.debug) console.log('Touch Move:', deltaX);
     }
 
-    handleTouchEnd(event) {
-        event.preventDefault();
-        if (this.isMoving) {
-            this.game.spacecraft.stopMoving();
-            if (this.debug) console.log('Stopping movement');
+    handleTouchEnd(e) {
+        // Prevent default only if it's a game interaction
+        if (e.target === this.canvas || e.target === this.container) {
+            e.preventDefault();
         }
+        
+        if (this.isMoving) {
+            console.log('Stopping movement');
+            this.game.spacecraft.stopMoving();
+        }
+        
         this.touchStartX = null;
         this.touchStartY = null;
         this.isMoving = false;
