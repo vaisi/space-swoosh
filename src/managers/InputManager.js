@@ -6,34 +6,23 @@ export class InputManager {
         this.minSwipeDistance = 30;
         this.isMoving = false;
         
-        // Get both canvas and container
-        this.canvas = document.getElementById('gameCanvas');
-        this.container = document.getElementById('gameContainer');
-        
-        // Add touch events to both canvas and container
-        [this.canvas, this.container].forEach(element => {
-            element.addEventListener('touchstart', (e) => this.handleTouchStart(e));
-            element.addEventListener('touchmove', (e) => this.handleTouchMove(e));
-            element.addEventListener('touchend', (e) => this.handleTouchEnd(e));
-            element.addEventListener('touchcancel', (e) => this.handleTouchEnd(e));
-        });
+        // Add touch events at document level
+        document.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+        document.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+        document.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+        document.addEventListener('touchcancel', (e) => this.handleTouchEnd(e), { passive: false });
 
-        // Debug logging
-        console.log('Input Manager initialized');
-        
-        // Keyboard controls for desktop
+        // Keyboard controls
         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
         document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+        
+        console.log('Input Manager initialized');
     }
 
     handleTouchStart(e) {
-        // Prevent default only if it's a game interaction
-        if (e.target === this.canvas || e.target === this.container) {
-            e.preventDefault();
-        }
-        
+        e.preventDefault();  // Always prevent default
         const touch = e.touches[0];
-        this.touchStartX = touch.pageX; // Using pageX instead of clientX
+        this.touchStartX = touch.pageX;
         this.touchStartY = touch.pageY;
         this.isMoving = false;
         
@@ -43,11 +32,7 @@ export class InputManager {
     handleTouchMove(e) {
         if (!this.touchStartX) return;
         
-        // Prevent default only if it's a game interaction
-        if (e.target === this.canvas || e.target === this.container) {
-            e.preventDefault();
-        }
-
+        e.preventDefault();  // Always prevent default
         const touch = e.touches[0];
         const deltaX = touch.pageX - this.touchStartX;
         
@@ -67,10 +52,7 @@ export class InputManager {
     }
 
     handleTouchEnd(e) {
-        // Prevent default only if it's a game interaction
-        if (e.target === this.canvas || e.target === this.container) {
-            e.preventDefault();
-        }
+        e.preventDefault();  // Always prevent default
         
         if (this.isMoving) {
             console.log('Stopping movement');
