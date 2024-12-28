@@ -1,73 +1,61 @@
 export class InputManager {
     constructor(game) {
         this.game = game;
-        this.isTouching = false;
-        this.touchIdentifier = null;
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.minSwipeDistance = 30;
+        this.isMoving = false;
         
-        const canvas = this.game.canvas;
-        
-        // Touch events
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (this.isTouching) return; // Only handle first touch
-            
-            const touch = e.touches[0];
-            this.touchIdentifier = touch.identifier;
-            
-            const rect = canvas.getBoundingClientRect();
-            const touchX = touch.clientX - rect.left;
-            const centerX = rect.width / 2;
-            
-            this.isTouching = true;
-            
-            // Move based on which half of the screen was touched
-            if (touchX < centerX) {
-                this.game.spacecraft.move('left');
-            } else {
-                this.game.spacecraft.move('right');
-            }
-            
-            console.log('Touch start:', touchX < centerX ? 'left' : 'right');
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!this.isTouching) return;
-            
-            // Find our touch
-            const touch = Array.from(e.touches).find(t => t.identifier === this.touchIdentifier);
-            if (!touch) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const touchX = touch.clientX - rect.left;
-            const centerX = rect.width / 2;
-            
-            // Update movement based on current position
-            if (touchX < centerX) {
-                this.game.spacecraft.move('left');
-            } else {
-                this.game.spacecraft.move('right');
-            }
-        }, { passive: false });
-
-        const endTouch = (e) => {
-            e.preventDefault();
-            this.isTouching = false;
-            this.touchIdentifier = null;
-            this.game.spacecraft.stopMoving();
-        };
-
-        canvas.addEventListener('touchend', endTouch, { passive: false });
-        canvas.addEventListener('touchcancel', endTouch, { passive: false });
+        // Add touch event listeners to the canvas element specifically
+        const canvas = document.getElementById('gameCanvas');
+        canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+        canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+        canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
         
         // Keyboard controls
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
-        document.addEventListener('keyup', this.handleKeyUp.bind(this));
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+    }
+
+    handleTouchStart(event) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        this.touchStartX = touch.clientX;
+        this.touchStartY = touch.clientY;
+        this.isMoving = false;
+    }
+
+    handleTouchMove(event) {
+        event.preventDefault();
+        if (!this.touchStartX) return;
+
+        const touch = event.touches[0];
+        const deltaX = touch.clientX - this.touchStartX;
+        
+        // Update movement based on touch position
+        if (Math.abs(deltaX) > this.minSwipeDistance) {
+            this.isMoving = true;
+            if (deltaX > 0) {
+                this.game.spacecraft.move('right');
+            } else {
+                this.game.spacecraft.move('left');
+            }
+            // Update start position for continuous movement
+            this.touchStartX = touch.clientX;
+        }
+    }
+
+    handleTouchEnd(event) {
+        event.preventDefault();
+        if (this.isMoving) {
+            this.game.spacecraft.stopMoving();
+        }
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.isMoving = false;
     }
 
     handleKeyDown(event) {
-        if (event.repeat) return;
-
         switch(event.key) {
             case 'ArrowLeft':
             case 'a':
@@ -76,6 +64,9 @@ export class InputManager {
             case 'ArrowRight':
             case 'd':
                 this.game.spacecraft.move('right');
+                break;
+            case ' ':
+                this.game.spacecraft.activateShield();
                 break;
         }
     }
@@ -87,6 +78,9 @@ export class InputManager {
             case 'ArrowRight':
             case 'd':
                 this.game.spacecraft.stopMoving();
+                break;
+            case ' ':
+                this.game.spacecraft.deactivateShield();
                 break;
         }
     }
