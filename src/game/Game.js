@@ -362,71 +362,114 @@ export class Game {
     }
 
     renderHighScores() {
-        const centerX = this.canvas.width / 2;
-        let currentY = this.canvas.height * 0.15; // Start higher
-
-        // High Scores Title
-        this.ctx.fillStyle = '#E1D9C1';
-        this.ctx.font = `bold ${this.baseUnit * 3}px Arial`;
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('HIGH SCORES', centerX, currentY);
-        
-        currentY += this.baseUnit * 6; // More space after title
-
-        // Scores List
-        if (this.highScores && this.highScores.length > 0) {
-            this.ctx.font = `${this.baseUnit * 1.8}px Arial`;
-            
-            this.highScores.slice(0, 5).forEach((score, index) => {
-                // Just show the distance traveled directly
-                const scoreValue = score.isWinner ? 'COMPLETED!' : 
-                                 `${Math.floor(score.score)} units`;
-                
-                const prefix = score.isWinner ? '👑' : 
-                             (index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ');
-                
-                // Draw rank and name (left-aligned)
-                this.ctx.textAlign = 'left';
-                this.ctx.fillStyle = '#E1D9C1';
-                this.ctx.fillText(
-                    `${prefix} ${score.player_name}`,
-                    centerX - this.baseUnit * 12,
-                    currentY + (index * this.baseUnit * 4) // More vertical spacing
-                );
-                
-                // Draw score (right-aligned)
-                this.ctx.textAlign = 'right';
-                this.ctx.fillStyle = score.isWinner ? '#4CAF50' : '#E1D9C1';
-                this.ctx.fillText(
-                    scoreValue,
-                    centerX + this.baseUnit * 12,
-                    currentY + (index * this.baseUnit * 4)
-                );
-            });
-        } else {
-            this.ctx.fillText('No scores yet!', centerX, currentY);
-        }
-
-        // Back Button - positioned lower
-        const buttonWidth = this.baseUnit * 10;
+        const isMobile = window.innerWidth <= 768;
+        const padding = this.baseUnit * 2;
         const buttonHeight = this.baseUnit * 3;
-        const buttonY = this.canvas.height * 0.85; // Lower position
-
-        this.drawButton(
-            centerX - buttonWidth / 2,
-            buttonY,
-            buttonWidth,
-            buttonHeight,
-            'Back',
-            '#FF5722'
-        );
-
+        
+        // Back button at the top
         this.highScoresBackButton = {
-            x: centerX - buttonWidth / 2,
-            y: buttonY,
-            width: buttonWidth,
+            x: padding,
+            y: padding,
+            width: this.baseUnit * 8,
             height: buttonHeight
         };
+
+        this.drawButton(
+            this.highScoresBackButton.x,
+            this.highScoresBackButton.y,
+            this.highScoresBackButton.width,
+            this.highScoresBackButton.height,
+            'Back',
+            '#4CAF50'
+        );
+
+        // High Scores title
+        this.ctx.fillStyle = '#E1D9C1';
+        this.ctx.font = `bold ${isMobile ? this.baseUnit * 2 : this.baseUnit * 2.5}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(
+            'High Scores',
+            this.canvas.width / 2,
+            padding + buttonHeight
+        );
+
+        // Scrollable area for scores
+        const scoreAreaTop = padding + buttonHeight * 2;
+        const scoreAreaBottom = this.canvas.height - padding;
+        const scoreAreaHeight = scoreAreaBottom - scoreAreaTop;
+        
+        // Calculate visible scores
+        const scoreHeight = this.baseUnit * 2;
+        const visibleScores = Math.floor(scoreAreaHeight / scoreHeight);
+        
+        // Draw scores
+        this.ctx.font = `${isMobile ? this.baseUnit * 1.2 : this.baseUnit * 1.5}px Arial`;
+        this.ctx.textAlign = 'left';
+        
+        // Create clipping region for scrollable area
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.rect(padding, scoreAreaTop, this.canvas.width - padding * 2, scoreAreaHeight);
+        this.ctx.clip();
+
+        // Draw all scores with scroll offset
+        const scrollOffset = this.highScoreScrollOffset || 0;
+        this.highScores.slice(0, 100).forEach((score, index) => {
+            const y = scoreAreaTop + (index * scoreHeight) - scrollOffset;
+            
+            // Only draw if within visible area
+            if (y >= scoreAreaTop - scoreHeight && y <= scoreAreaBottom) {
+                const rank = `${index + 1}.`;
+                const name = score.player_name || 'Anonymous';
+                const scoreText = ScoreService.formatScore(score.score);
+                
+                // Rank
+                this.ctx.textAlign = 'right';
+                this.ctx.fillText(rank, padding + this.baseUnit * 3, y);
+                
+                // Name
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(name, padding + this.baseUnit * 4, y);
+                
+                // Score
+                this.ctx.textAlign = 'right';
+                this.ctx.fillText(scoreText, this.canvas.width - padding, y);
+            }
+        });
+        
+        this.ctx.restore();
+
+        // Add scroll handling
+        if (!this.scrollHandlerAdded) {
+            this.canvas.addEventListener('wheel', (e) => {
+                if (this.gameOverScreen === 'highscores') {
+                    e.preventDefault();
+                    const maxScroll = Math.max(0, (this.highScores.length * scoreHeight) - scoreAreaHeight);
+                    this.highScoreScrollOffset = Math.min(Math.max(0, 
+                        (this.highScoreScrollOffset || 0) + e.deltaY), maxScroll);
+                }
+            });
+            
+            // Add touch scroll handling for mobile
+            let touchStartY = 0;
+            this.canvas.addEventListener('touchstart', (e) => {
+                if (this.gameOverScreen === 'highscores') {
+                    touchStartY = e.touches[0].clientY;
+                }
+            });
+            
+            this.canvas.addEventListener('touchmove', (e) => {
+                if (this.gameOverScreen === 'highscores') {
+                    const deltaY = touchStartY - e.touches[0].clientY;
+                    const maxScroll = Math.max(0, (this.highScores.length * scoreHeight) - scoreAreaHeight);
+                    this.highScoreScrollOffset = Math.min(Math.max(0, 
+                        (this.highScoreScrollOffset || 0) + deltaY), maxScroll);
+                    touchStartY = e.touches[0].clientY;
+                }
+            });
+
+            this.scrollHandlerAdded = true;
+        }
     }
 
     drawButton(x, y, width, height, text, color) {
@@ -691,6 +734,14 @@ export class Game {
         
         this.canvas.parentElement.appendChild(button);
         this.pauseButton = button;
+
+        // Add spacebar listener for pause
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); // Prevent page scroll
+                this.togglePause();
+            }
+        });
     }
 
     togglePause() {

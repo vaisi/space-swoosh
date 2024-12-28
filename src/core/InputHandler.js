@@ -49,9 +49,10 @@ export class InputHandler {
             }
         }
         
+        // Change spacebar to toggle pause
         if (e.code === 'Space') {
             e.preventDefault();
-            this.game.spacecraft.activateShield();
+            this.game.togglePause();
         }
     }
 
@@ -73,14 +74,14 @@ export class InputHandler {
         this.lastTouchX = touch.clientX;
         this.touchVelocity = 0;
 
-        // Double tap detection for shield
-        const now = Date.now();
-        if (this.lastTap && (now - this.lastTap) < 300) {
-            this.game.spacecraft.activateShield();
-            this.lastTap = null;
-        } else {
-            this.lastTap = now;
-        }
+        // Remove double tap detection for shield
+        // const now = Date.now();
+        // if (this.lastTap && (now - this.lastTap) < 300) {
+        //     this.game.spacecraft.activateShield();
+        //     this.lastTap = null;
+        // } else {
+        //     this.lastTap = now;
+        // }
     }
 
     handleTouchMove(e) {
