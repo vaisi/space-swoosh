@@ -3,68 +3,57 @@ export class InputManager {
         this.game = game;
         this.touchStartX = null;
         this.touchStartY = null;
-        this.minSwipeDistance = 20;
+        this.minSwipeDistance = 10;
         this.currentDirection = null;
         this.isTouching = false;
         
-        // Add touch event listeners to the canvas specifically
+        // Get canvas and its container
         const canvas = this.game.canvas;
-        canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-        canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-        canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-        canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
+        
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            this.touchStartX = touch.clientX - rect.left;
+            this.isTouching = true;
+            console.log('Touch start at:', this.touchStartX);
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!this.isTouching) return;
+
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const currentX = touch.clientX - rect.left;
+            const deltaX = currentX - this.touchStartX;
+            
+            console.log('Touch move delta:', deltaX);
+
+            // More responsive movement
+            if (Math.abs(deltaX) > this.minSwipeDistance) {
+                const direction = deltaX > 0 ? 'right' : 'left';
+                this.game.spacecraft.move(direction);
+                // Update reference point for continuous movement
+                this.touchStartX = currentX;
+            }
+        }, { passive: false });
+
+        const endTouch = (e) => {
+            e.preventDefault();
+            this.isTouching = false;
+            this.touchStartX = null;
+            this.game.spacecraft.stopMoving();
+            console.log('Touch end');
+        };
+
+        canvas.addEventListener('touchend', endTouch, { passive: false });
+        canvas.addEventListener('touchcancel', endTouch, { passive: false });
         
         // Keyboard controls
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.addEventListener('keyup', this.handleKeyUp.bind(this));
-
-        // Debug touch events
-        this.debug = true; // Set to true to help debug mobile controls
-    }
-
-    handleTouchStart(event) {
-        event.preventDefault();
-        const touch = event.touches[0];
-        this.touchStartX = touch.clientX;
-        this.touchStartY = touch.clientY;
-        this.isTouching = true;
-        
-        if (this.debug) console.log('Touch start:', this.touchStartX, this.touchStartY);
-    }
-
-    handleTouchMove(event) {
-        event.preventDefault();
-        if (!this.isTouching) return;
-
-        const touch = event.touches[0];
-        const deltaX = touch.clientX - this.touchStartX;
-        
-        if (this.debug) console.log('Touch move delta:', deltaX);
-        
-        // Update spacecraft movement based on swipe direction
-        const newDirection = deltaX > this.minSwipeDistance ? 'right' : 
-                           deltaX < -this.minSwipeDistance ? 'left' : null;
-        
-        if (newDirection !== this.currentDirection) {
-            if (this.currentDirection) {
-                this.game.spacecraft.stopMoving();
-            }
-            if (newDirection) {
-                this.game.spacecraft.move(newDirection);
-                this.currentDirection = newDirection;
-            }
-        }
-    }
-
-    handleTouchEnd(event) {
-        event.preventDefault();
-        if (this.debug) console.log('Touch end');
-        
-        this.touchStartX = null;
-        this.touchStartY = null;
-        this.currentDirection = null;
-        this.isTouching = false;
-        this.game.spacecraft.stopMoving();
     }
 
     handleKeyDown(event) {
