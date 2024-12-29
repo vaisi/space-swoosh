@@ -291,13 +291,9 @@ class ComplexAsteroid extends BaseObstacle {
         ctx.translate(this.x, relativeY);
         ctx.rotate(this.rotation);
         
-        // Draw a diamond
+        // Draw a circle instead of a diamond
         ctx.beginPath();
-        ctx.moveTo(0, -this.size);
-        ctx.lineTo(this.size, 0);
-        ctx.lineTo(0, this.size);
-        ctx.lineTo(-this.size, 0);
-        ctx.closePath();
+        ctx.arc(0, 0, this.size, 0, Math.PI * 2);
         ctx.fillStyle = '#000000';
         ctx.fill();
         
@@ -320,7 +316,7 @@ class ComplexAsteroid extends BaseObstacle {
         const dyMain = spacecraft.y - this.y;
         const distanceMain = Math.sqrt(dxMain * dxMain + dyMain * dyMain);
         
-        // More precise collision for main body
+        // More precise collision for main body (now using circle)
         if (distanceMain < (this.size + spacecraft.radius) * 0.9) { // Slightly smaller hitbox
             return true;
         }
@@ -861,6 +857,48 @@ class WormholeGate extends BaseObstacle {
     }
 }
 
+class SideBarrier extends BaseObstacle {
+    constructor(game, isLeft, y, height) {
+        const width = game.baseUnit * 2;
+        const x = isLeft ? width/2 : game.canvas.width - width/2;
+        super(game, x, y, width);
+        this.isLeft = isLeft;
+        this.height = height;
+        this.width = width;
+    }
+
+    render(ctx) {
+        const relativeY = this.game.camera.getRelativeY(this.y);
+        
+        if (relativeY + this.height < 0 || relativeY > this.game.canvas.height) {
+            return;
+        }
+
+        ctx.save();
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.rect(
+            this.x - this.width/2,
+            relativeY - this.height/2,
+            this.width,
+            this.height
+        );
+        ctx.fill();
+        ctx.restore();
+    }
+
+    checkCollision(spacecraft) {
+        // Rectangle collision check
+        const halfWidth = this.width/2;
+        const halfHeight = this.height/2;
+        
+        return spacecraft.x - spacecraft.radius < this.x + halfWidth &&
+               spacecraft.x + spacecraft.radius > this.x - halfWidth &&
+               spacecraft.y - spacecraft.radius < this.y + halfHeight &&
+               spacecraft.y + spacecraft.radius > this.y - halfHeight;
+    }
+}
+
 export class ObstacleManager {
     constructor(game) {
         this.game = game;
@@ -870,38 +908,43 @@ export class ObstacleManager {
         // Define progression with clear unlock points
         this.obstacleTypes = {
             'simple': {
-                weight: 0.4,  // Reduced to give more chance to other types
+                weight: 0.35,  // Reduced to make room for side barriers
                 unlockScore: 0,
                 message: 'Watch out for asteroids!'
             },
+            'sideBarrier': {  // New type
+                weight: 0.15,
+                unlockScore: 1000,
+                message: 'Warning: Side barriers detected!'
+            },
             'complex': {
                 weight: 0.1,
-                unlockScore: 1000,  // Was 2000
+                unlockScore: 1000,
                 message: 'Warning: Asteroids with orbiting debris detected!'
             },
             'moving': {
                 weight: 0.1,
-                unlockScore: 2000,  // Was 4000
+                unlockScore: 2000,
                 message: 'Caution: Moving asteroids detected!'
             },
-            'belt': {
+            'shooting': {
                 weight: 0.1,
-                unlockScore: 3000,  // Was 7000
-                message: 'Dense asteroid field ahead!'
+                unlockScore: 3000,
+                message: 'Warning: Hostile asteroids detected!'
             },
             'pulsating': {
                 weight: 0.1,
-                unlockScore: 4000,  // Was 10000
+                unlockScore: 4000,
                 message: 'Warning: Unstable asteroids ahead!'
             },
             'wormhole': {
-                weight: 0.1,  // Increased from 0.05
-                unlockScore: 5000,  // Was 12000
+                weight: 0.1,
+                unlockScore: 5000,
                 message: 'Spatial anomalies detected!'
             },
             'blackhole': {
-                weight: 0.1,  // Increased from 0.05
-                unlockScore: 6000,  // Was 15000
+                weight: 0.1,
+                unlockScore: 6000,
                 message: 'Gravitational anomalies detected!'
             }
         };
@@ -1232,26 +1275,29 @@ export class ObstacleManager {
         const width = (endX - startX) * this.game.canvas.width;
         
         switch(type) {
-            case 'wormhole':
-                this.spawnWormhole(x, width);
-                break;
-            case 'blackhole':
-                this.spawnBlackHole(x, width);
-                break;
             case 'simple':
                 this.spawnSimpleAsteroids(this.getDifficultyMultiplier(), startX, endX);
                 break;
             case 'complex':
                 this.spawnComplexAsteroid(x, width);
                 break;
-            case 'belt':
-                this.spawnAsteroidBelt(x, width);
-                break;
             case 'moving':
                 this.spawnMovingAsteroid(x, width);
                 break;
+            case 'shooting':
+                this.spawnShootingAsteroid(x, width);
+                break;
             case 'pulsating':
                 this.spawnPulsatingAsteroid(x, width);
+                break;
+            case 'wormhole':
+                this.spawnWormhole(x, width);
+                break;
+            case 'blackhole':
+                this.spawnBlackHole(x, width);
+                break;
+            case 'sideBarrier':
+                this.spawnSideBarriers(this.nextSpawnY);
                 break;
         }
     }
@@ -1418,6 +1464,26 @@ export class ObstacleManager {
         exit.partner = entry;
         
         this.obstacles.push(entry, exit);
+    }
+
+    spawnSideBarriers(y) {
+        const height = this.game.baseUnit * 15;  // Tall barriers
+        
+        // Spawn left barrier
+        this.obstacles.push(new SideBarrier(
+            this.game,
+            true,  // isLeft
+            y,
+            height
+        ));
+        
+        // Spawn right barrier
+        this.obstacles.push(new SideBarrier(
+            this.game,
+            false,  // isRight
+            y,
+            height
+        ));
     }
 
     render(ctx) {

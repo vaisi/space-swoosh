@@ -31,25 +31,20 @@ export class ScoreService {
         }).format(score);
     }
 
-    static async getTopScores(limit = 100) {
+    static async getTopScores(type = 'distance') {
         try {
             const { data, error } = await supabase
                 .from('high_scores')
                 .select('*')
-                .order('score', { ascending: false })
-                .limit(limit)
+                .order(type === 'distance' ? 'score' : 'obstacles_destroyed', { ascending: false })
+                .limit(20)
 
-            if (error) {
-                console.error('Supabase error:', error)
-                throw error
-            }
+            if (error) throw error
             
-            const formattedData = data?.map(score => ({
+            return data?.map(score => ({
                 ...score,
-                formattedScore: this.formatScore(score.score)
+                formattedScore: this.formatScore(type === 'distance' ? score.score : score.obstacles_destroyed)
             })) || [];
-            
-            return formattedData;
         } catch (error) {
             console.error('Error fetching scores:', error)
             throw error
