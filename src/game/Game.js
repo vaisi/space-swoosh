@@ -72,8 +72,8 @@ export class Game {
         // Adjust base unit based on screen size with better scaling
         const isMobile = window.innerWidth <= 768;
         this.baseUnit = isMobile ? 
-            Math.min(containerWidth / 35, containerHeight / 60) : // Smaller base unit for mobile
-            containerWidth / 50;
+            Math.min(containerWidth / 45, containerHeight / 75) : // More zoomed out for mobile (changed from 35,60)
+            containerWidth / 50; // Desktop remains the same
 
         // Update game components if they exist
         if (this.spacecraft) {
@@ -628,8 +628,19 @@ export class Game {
             const y = (clientY - rect.top) * scaleY;
 
             // Handle name input modal
-            if (this.pendingHighScore?.shouldPromptName && this.submitButton) {
-                if (this.isClickInButton(x, y, this.submitButton) && this.nameInput?.value.trim()) {
+            if (this.pendingHighScore?.shouldPromptName) {
+                if (this.isClickInButton(x, y, this.closeButton)) {
+                    // Clean up modal
+                    if (this.nameInput) {
+                        document.body.removeChild(this.nameInput);
+                        this.nameInput = null;
+                    }
+                    this.pendingHighScore = null;
+                    this.scoreSubmitted = false;
+                    this.gameOverScreen = 'main';
+                    return;
+                }
+                if (this.submitButton && this.isClickInButton(x, y, this.submitButton) && this.nameInput?.value.trim()) {
                     await this.submitHighScore(this.nameInput.value.trim());
                 }
                 return;
@@ -828,7 +839,23 @@ export class Game {
         this.ctx.roundRect(modalX, modalY, modalWidth, modalHeight, 12);
         this.ctx.fill();
 
-        // Content positioning with improved spacing
+        // Add close button (X)
+        this.ctx.fillStyle = '#333333';
+        this.ctx.font = `bold ${this.baseUnit * 2}px Arial`;
+        this.ctx.textAlign = 'center';
+        const closeX = modalX + modalWidth - this.baseUnit * 3;
+        const closeY = modalY + this.baseUnit * 3;
+        this.ctx.fillText('×', closeX, closeY);
+
+        // Store close button hitbox
+        this.closeButton = {
+            x: closeX - this.baseUnit * 2,
+            y: closeY - this.baseUnit * 2,
+            width: this.baseUnit * 4,
+            height: this.baseUnit * 4
+        };
+
+        // Rest of the existing modal content...
         const contentX = modalX + modalWidth/2;
         let currentY = modalY + modalHeight * 0.12;
 
@@ -997,5 +1024,38 @@ export class Game {
             document.body.removeChild(this.nameInput);
             this.nameInput = null;
         }
+    }
+
+    showScoreModal() {
+        const modal = document.createElement('div');
+        modal.className = 'score-modal';
+        
+        // Add close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'modal-close';
+        closeButton.innerHTML = '×';
+        closeButton.style.cssText = `
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            padding: 5px 10px;
+        `;
+        
+        closeButton.addEventListener('click', () => {
+            modal.remove();
+            this.resetGame();  // Reset the game state when modal is closed
+        });
+
+        modal.appendChild(closeButton);
+        
+        // Rest of your existing modal content...
+        // ...
+
+        document.body.appendChild(modal);
     }
 } 
