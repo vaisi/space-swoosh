@@ -530,7 +530,8 @@ export class Game {
     async gameOver() {
         if (!this.isGameOver) {
             this.soundManager.stopBGM();
-            this.soundManager.playExplosion();
+            this.soundManager.playCrash();  // Play crash sound first
+            this.soundManager.playExplosion();  // Then play explosion
             this.isGameOver = true;
             this.gameOverStartTime = performance.now();
             this.finalScore = this.score;
@@ -759,6 +760,25 @@ export class Game {
             this.lastTime = performance.now();
             this.soundManager.initialize(); // Ensure sounds are initialized
             this.soundManager.playBGM();
+        }
+    }
+
+    checkCollisions() {
+        if (this.spacecraft.invulnerable) return;
+
+        const collision = this.obstacleManager.checkCollisions(this.spacecraft);
+        if (collision) {
+            if (this.spacecraft.shieldActive) {
+                this.soundManager.playShieldCrash();
+                this.spacecraft.deactivateShield();
+                this.camera.shake = {
+                    x: (Math.random() - 0.5) * this.baseUnit,
+                    y: (Math.random() - 0.5) * this.baseUnit
+                };
+            } else {
+                this.soundManager.playCrash(); // Play crash sound
+                this.gameOver();
+            }
         }
     }
 } 

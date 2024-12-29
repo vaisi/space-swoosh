@@ -1,43 +1,30 @@
 export class SoundManager {
     constructor() {
-        // For GitHub Pages, we need to include the repository name in the base path
-        const base = '/space-swoosh/';  // Hardcode the repository name
+        const base = '/space-swoosh/';
         this.sounds = {
-            bgm: new Audio(`${base}sounds/bgm.mp3`),
+            bgm: new Audio(`${base}sounds/background.mp3`),
             shield: new Audio(`${base}sounds/shield.mp3`),
             explosion: new Audio(`${base}sounds/explosion.mp3`),
             powerup: new Audio(`${base}sounds/powerup.mp3`),
             move: new Audio(`${base}sounds/move.mp3`),
             turn: new Audio(`${base}sounds/turn.mp3`),
-            shieldCrash: new Audio(`${base}sounds/crash_with_shield.mp3`)
+            shieldCrash: new Audio(`${base}sounds/crash_with_shield.mp3`),
+            crash: new Audio(`${base}sounds/crash.mp3`)
         };
-
-        // Add debug logging
-        console.log('Sound paths:', {
-            bgm: `${base}sounds/bgm.mp3`,
-            shield: `${base}sounds/shield.mp3`,
-            explosion: `${base}sounds/explosion.mp3`,
-            powerup: `${base}sounds/powerup.mp3`,
-            move: `${base}sounds/move.mp3`,
-            turn: `${base}sounds/turn.mp3`,
-            shieldCrash: `${base}sounds/crash_with_shield.mp3`
-        });
 
         // Set up background music
         this.sounds.bgm.loop = true;
-        this.sounds.bgm.volume = 0.2;
+        this.sounds.bgm.volume = 0.3;
 
-        // Set up sound effects volumes
+        // Set up other sound volumes
         this.sounds.shield.volume = 0.4;
         this.sounds.explosion.volume = 0.4;
         this.sounds.powerup.volume = 0.3;
         this.sounds.move.volume = 0.15;
         this.sounds.turn.volume = 0.3;
-
-        // Set shield crash sound volume
         this.sounds.shieldCrash.volume = 0.4;
+        this.sounds.crash.volume = 0.4;
 
-        // Flag to track if sounds are initialized
         this.initialized = false;
 
         // Add error handling for sound loading
@@ -51,7 +38,7 @@ export class SoundManager {
     initialize() {
         if (this.initialized) return;
         
-        // Create initial silent play for all sounds (needed for mobile)
+        // Initialize all sounds
         Object.values(this.sounds).forEach(sound => {
             sound.play().catch(() => {});
             sound.pause();
@@ -62,7 +49,18 @@ export class SoundManager {
     }
 
     playBGM() {
-        this.sounds.bgm.play().catch(() => {});
+        if (!this.initialized) this.initialize();
+        
+        try {
+            const playPromise = this.sounds.bgm.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("Error playing background music:", error);
+                });
+            }
+        } catch (error) {
+            console.error("Error in playBGM:", error);
+        }
     }
 
     stopBGM() {
@@ -138,6 +136,24 @@ export class SoundManager {
             }
         } catch (error) {
             console.error("Error in playShieldCrash:", error);
+        }
+    }
+
+    playCrash() {
+        if (!this.initialized) return;
+        
+        try {
+            const crashSound = this.sounds.crash;
+            crashSound.currentTime = 0;
+            const playPromise = crashSound.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("Error playing crash sound:", error);
+                });
+            }
+        } catch (error) {
+            console.error("Error in playCrash:", error);
         }
     }
 } 
