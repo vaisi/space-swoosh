@@ -14,7 +14,7 @@ export class SoundManager {
 
         // Set up background music
         this.sounds.bgm.loop = true;
-        this.sounds.bgm.volume = 0.3;
+        this.sounds.bgm.volume = 0.4;
 
         // Set up other sound volumes
         this.sounds.shield.volume = 0.4;
