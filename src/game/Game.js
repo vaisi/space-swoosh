@@ -827,9 +827,10 @@ export class Game {
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Flat modal box with refined proportions
-        const modalWidth = Math.min(this.canvas.width * 0.85, 450);
-        const modalHeight = Math.min(this.canvas.height * 0.65, 450);
+        const isMobile = window.innerWidth <= 768;
+        // Adjust modal size for mobile
+        const modalWidth = Math.min(this.canvas.width * (isMobile ? 0.9 : 0.85), 450);
+        const modalHeight = Math.min(this.canvas.height * (isMobile ? 0.8 : 0.65), isMobile ? 550 : 450);
         const modalX = (this.canvas.width - modalWidth) / 2;
         const modalY = (this.canvas.height - modalHeight) / 2;
 
@@ -855,27 +856,33 @@ export class Game {
             height: this.baseUnit * 4
         };
 
-        // Rest of the existing modal content...
+        // Content positioning with dynamic spacing
         const contentX = modalX + modalWidth/2;
-        let currentY = modalY + modalHeight * 0.12;
+        const contentHeight = modalHeight - (this.baseUnit * 8); // Available space for content
+        const elementSpacing = contentHeight * 0.12; // Dynamic spacing between elements
 
-        // Trophy icon
+        let currentY = modalY + elementSpacing * 1.5;
+
+        // Trophy icon - scaled based on modal size
+        const trophySize = Math.min(this.baseUnit * 3.5, modalHeight * 0.1);
         this.ctx.fillStyle = '#FFD700';
-        this.ctx.font = `${this.baseUnit * 3.5}px Arial`;
+        this.ctx.font = `${trophySize}px Arial`;
         this.ctx.textAlign = 'center';
         this.ctx.fillText('🏆', contentX, currentY);
 
-        currentY += this.baseUnit * 4.5;
+        currentY += elementSpacing * 1.2;
 
-        // Title
+        // Title - scaled based on modal size
+        const titleSize = Math.min(this.baseUnit * 2.2, modalHeight * 0.08);
         this.ctx.fillStyle = '#000000';
-        this.ctx.font = `bold ${this.baseUnit * 2.2}px Arial`;
+        this.ctx.font = `bold ${titleSize}px Arial`;
         this.ctx.fillText('New High Score!', contentX, currentY);
 
-        currentY += this.baseUnit * 3.5;
+        currentY += elementSpacing;
 
-        // Score display
-        this.ctx.font = `${this.baseUnit * 2}px Arial`;
+        // Score display - scaled based on modal size
+        const scoreSize = Math.min(this.baseUnit * 2, modalHeight * 0.07);
+        this.ctx.font = `${scoreSize}px Arial`;
         this.ctx.fillStyle = '#333333';
         this.ctx.fillText(
             `${ScoreService.formatScore(this.finalScore)} KM`,
@@ -883,11 +890,11 @@ export class Game {
             currentY
         );
 
-        currentY += this.baseUnit * 4.5;
+        currentY += elementSpacing * 1.2;
 
-        // Input field - narrower than modal width
-        const inputWidth = modalWidth * 0.7; // Reduced from 0.8
-        const inputHeight = this.baseUnit * 3.5;
+        // Input field - dynamically sized
+        const inputWidth = modalWidth * (isMobile ? 0.8 : 0.7);
+        const inputHeight = Math.min(this.baseUnit * 3.5, modalHeight * 0.09);
         const inputX = contentX - inputWidth/2;
 
         // Create or update input element
@@ -905,14 +912,13 @@ export class Game {
             const scaledWidth = inputWidth * canvasRect.width / this.canvas.width;
             const scaledHeight = inputHeight * canvasRect.height / this.canvas.height;
             
-            // Clean, flat input styling with fixed width
             input.style.cssText = `
                 position: absolute;
                 left: ${scaledX}px;
                 top: ${scaledY}px;
                 width: ${scaledWidth}px;
                 height: ${scaledHeight}px;
-                font-size: ${this.baseUnit * 1.4 * canvasRect.height / this.canvas.height}px;
+                font-size: ${Math.min(this.baseUnit * 1.4, modalHeight * 0.05)}px;
                 text-align: center;
                 border: 2px solid #E0E0E0;
                 border-radius: 6px;
@@ -941,35 +947,17 @@ export class Game {
             this.nameInput = input;
             document.body.appendChild(input);
             input.focus();
-
-            // Add resize handler
-            window.addEventListener('resize', () => {
-                if (this.nameInput) {
-                    const newCanvasRect = this.canvas.getBoundingClientRect();
-                    const newScaledX = newCanvasRect.left + (inputX * newCanvasRect.width / this.canvas.width);
-                    const newScaledY = newCanvasRect.top + (currentY * newCanvasRect.height / this.canvas.height);
-                    const newScaledWidth = inputWidth * newCanvasRect.width / this.canvas.width;
-                    const newScaledHeight = inputHeight * newCanvasRect.height / this.canvas.height;
-                    
-                    this.nameInput.style.left = `${newScaledX}px`;
-                    this.nameInput.style.top = `${newScaledY}px`;
-                    this.nameInput.style.width = `${newScaledWidth}px`;
-                    this.nameInput.style.height = `${newScaledHeight}px`;
-                    this.nameInput.style.fontSize = `${this.baseUnit * 1.4 * newCanvasRect.height / this.canvas.height}px`;
-                }
-            });
         }
 
-        currentY += this.baseUnit * 6;
+        currentY += elementSpacing * 2;
 
-        // Submit button
-        const buttonWidth = modalWidth * 0.4; // Slightly narrower than input
-        const buttonHeight = this.baseUnit * 4;
+        // Submit button - ensure it's below input field with proper spacing
+        const buttonWidth = modalWidth * (isMobile ? 0.5 : 0.4);
+        const buttonHeight = Math.min(this.baseUnit * 4, modalHeight * 0.1);
         const buttonX = contentX - buttonWidth/2;
         
         const hasInput = this.nameInput && this.nameInput.value.trim().length > 0;
         
-        // Flat button
         this.ctx.fillStyle = hasInput ? '#4CAF50' : '#E0E0E0';
         this.ctx.beginPath();
         this.ctx.roundRect(buttonX, currentY, buttonWidth, buttonHeight, 6);
@@ -977,7 +965,7 @@ export class Game {
 
         // Button text
         this.ctx.fillStyle = hasInput ? '#FFFFFF' : '#999999';
-        this.ctx.font = `bold ${this.baseUnit * 1.4}px Arial`;
+        this.ctx.font = `bold ${Math.min(this.baseUnit * 1.4, modalHeight * 0.05)}px Arial`;
         this.ctx.fillText(
             'Submit',
             contentX,
