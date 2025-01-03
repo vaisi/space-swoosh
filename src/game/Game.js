@@ -59,6 +59,21 @@ export class Game {
         localStorage.removeItem('highScores');
         
         this.loadHighScores();
+
+        // Add visibility change handler
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Pause the game when tab becomes hidden
+                if (!this.isGameOver && !this.isPaused) {
+                    this.togglePause();
+                    this.wasAutoPaused = true; // Flag to track auto-pause
+                }
+            } else if (this.wasAutoPaused) {
+                // Only unpause if the game was auto-paused
+                this.togglePause();
+                this.wasAutoPaused = false;
+            }
+        });
     }
 
     setupCanvas() {
@@ -95,15 +110,19 @@ export class Game {
     }
 
     gameLoop() {
-        const currentTime = performance.now();
-        
-        if (!this.isPaused) {
-            const deltaTime = (currentTime - this.lastTime) / 1000;
-            this.update(deltaTime);
-            this.lastTime = currentTime;
+        // Only run the game loop if the tab is visible
+        if (!document.hidden) {
+            const currentTime = performance.now();
+            
+            if (!this.isPaused) {
+                // Cap deltaTime to prevent huge jumps
+                const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
+                this.update(deltaTime);
+                this.lastTime = currentTime;
+            }
+            
+            this.render();
         }
-        
-        this.render();
         requestAnimationFrame(() => this.gameLoop());
     }
 
@@ -797,9 +816,11 @@ export class Game {
             this.soundManager.stopBGM();
         } else {
             // Reset game time and restart sound
-            this.lastTime = performance.now();
-            this.soundManager.initialize(); // Ensure sounds are initialized
-            this.soundManager.playBGM();
+            this.lastTime = performance.now(); // Reset the last time to prevent huge time jumps
+            if (!document.hidden) { // Only play sound if tab is visible
+                this.soundManager.initialize();
+                this.soundManager.playBGM();
+            }
         }
     }
 
