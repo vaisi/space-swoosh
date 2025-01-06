@@ -546,26 +546,35 @@ export class Game {
             this.soundManager.playExplosion();
             this.isGameOver = true;
             this.gameOverStartTime = performance.now();
-            this.finalScore = this.score;
+            this.finalScore = Math.floor(this.score);
             
             // Hide pause button
             this.updatePauseButtonVisibility();
             
             try {
-                // Check if score is in top 20 before showing input
-                const topScores = await ScoreService.getTopScores();
-                const isTop20 = topScores.length < 20 || this.score > topScores[19].score;
+                // Get actual rank by counting all higher scores
+                const higherScoresCount = await ScoreService.getAllScoresCount(this.finalScore);
+                const rank = higherScoresCount + 1;
+                
+                // Store rank separately so it persists even if modal is closed
+                this.currentRank = rank;
+                
+                // Only show score submission immediately for top 20
+                const isTop20 = rank <= 20;
                 
                 this.pendingHighScore = isTop20 ? {
-                    score: this.score,
+                    score: this.finalScore,
                     obstaclesDestroyed: this.obstaclesDestroyed,
                     isWinner: this.hasWon,
-                    shouldPromptName: true // Flag to show modal immediately
+                    shouldPromptName: true,
+                    rank: this.currentRank
                 } : null;
                 
                 await this.loadHighScores();
             } catch (error) {
                 console.error('Error handling high score:', error);
+                this.currentRank = '?';
+                this.pendingHighScore = null;
             }
             
             this.explosionParticles = this.createExplosionParticles(
@@ -678,7 +687,8 @@ export class Game {
                         score: this.finalScore,
                         obstaclesDestroyed: this.obstaclesDestroyed,
                         isWinner: this.hasWon,
-                        shouldPromptName: true
+                        shouldPromptName: true,
+                        rank: this.currentRank
                     };
                 }
             } else if (this.gameOverScreen === 'highscores') {
@@ -884,20 +894,38 @@ export class Game {
 
         let currentY = modalY + elementSpacing * 1.5;
 
-        // Trophy icon - scaled based on modal size
-        const trophySize = Math.min(this.baseUnit * 3.5, modalHeight * 0.1);
-        this.ctx.fillStyle = '#FFD700';
-        this.ctx.font = `${trophySize}px Arial`;
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('🏆', contentX, currentY);
+        // Trophy icon - only show for top 20
+        const isTop20 = this.pendingHighScore.rank <= 20;
+        if (isTop20) {
+            const trophySize = Math.min(this.baseUnit * 3.5, modalHeight * 0.1);
+            this.ctx.fillStyle = '#FFD700';
+            this.ctx.font = `${trophySize}px Arial`;
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('🏆', contentX, currentY);
+            currentY += elementSpacing * 1.2;
+        }
+
+        // Show rank - different styling based on position
+        const rankSize = Math.min(this.baseUnit * 2.5, modalHeight * 0.09);
+        this.ctx.fillStyle = isTop20 ? '#FFD700' : '#666666';
+        this.ctx.font = `bold ${rankSize}px Arial`;
+        this.ctx.fillText(
+            `#${this.pendingHighScore.rank}`,
+            contentX,
+            currentY
+        );
 
         currentY += elementSpacing * 1.2;
 
-        // Title - scaled based on modal size
+        // Title - different text based on rank
         const titleSize = Math.min(this.baseUnit * 2.2, modalHeight * 0.08);
         this.ctx.fillStyle = '#000000';
         this.ctx.font = `bold ${titleSize}px Arial`;
-        this.ctx.fillText('New High Score!', contentX, currentY);
+        this.ctx.fillText(
+            isTop20 ? 'New High Score!' : 'Submit Your Score',
+            contentX,
+            currentY
+        );
 
         currentY += elementSpacing;
 
