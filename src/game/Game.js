@@ -559,6 +559,13 @@ export class Game {
             this.gameOverStartTime = performance.now();
             this.finalScore = Math.floor(this.score);
             
+            // Send game over event to Google Analytics
+            gtag('event', 'game_over', {
+                'score': this.finalScore,
+                'obstacles_destroyed': this.obstaclesDestroyed,
+                'distance': Math.floor(this.score)
+            });
+            
             // Hide pause button
             this.updatePauseButtonVisibility();
             
@@ -1049,6 +1056,14 @@ export class Game {
                 name,
                 this.obstaclesDestroyed
             );
+            
+            // Send high score submission event to Google Analytics
+            gtag('event', 'submit_highscore', {
+                'score': this.finalScore,
+                'player_name': name,
+                'obstacles_destroyed': this.obstaclesDestroyed,
+                'rank': this.currentRank
+            });
             
             // Clean up
             if (this.nameInput) {
