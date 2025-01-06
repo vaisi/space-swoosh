@@ -1,6 +1,6 @@
 export class SoundManager {
     constructor() {
-        const base = '/space-swoosh/';
+        const base = '/';
         this.sounds = {
             bgm: new Audio(`${base}sounds/background.mp3`),
             shield: new Audio(`${base}sounds/shield.mp3`),

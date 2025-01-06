@@ -36,21 +36,32 @@ export class Game {
         this.setupEventListeners();
         this.powerUpManager = new PowerUpManager(this);
         this.soundManager = new SoundManager();
+        this.soundInitialized = false;  // Add flag to track initialization
         
-        // Initialize sound on any user interaction
+        // Initialize sound on first user interaction
         const initSound = () => {
+            if (this.soundInitialized) {
+                console.log('Sound already initialized, skipping...');
+                return;
+            }
+            
+            console.log('Initializing sound...');
             this.soundManager.initialize();
+            console.log('Sound initialized, playing BGM...');
             this.soundManager.playBGM();
-            // Remove the event listeners after first interaction
+            this.soundInitialized = true;
+            
+            // Remove the event listeners
             window.removeEventListener('click', initSound);
             window.removeEventListener('touchstart', initSound);
             window.removeEventListener('keydown', initSound);
+            console.log('Sound initialization complete');
         };
 
-        // Add multiple event listeners for different types of interaction
-        window.addEventListener('click', initSound);
-        window.addEventListener('touchstart', initSound);
-        window.addEventListener('keydown', initSound);
+        // Add event listeners for different types of interaction
+        window.addEventListener('click', initSound, { once: true });
+        window.addEventListener('touchstart', initSound, { once: true });
+        window.addEventListener('keydown', initSound, { once: true });
         
         // Add pause button
         this.setupPauseButton();
@@ -821,14 +832,13 @@ export class Game {
         this.pauseButton.innerHTML = this.isPaused ? '&#9654;' : '&#9208;';
         
         if (this.isPaused) {
-            // Store the pause time in spacecraft
             this.spacecraft.pausedTime = performance.now();
-            this.soundManager.stopBGM();
+            if (this.soundInitialized) {
+                this.soundManager.stopBGM();
+            }
         } else {
-            // Reset game time and restart sound
-            this.lastTime = performance.now(); // Reset the last time to prevent huge time jumps
-            if (!document.hidden) { // Only play sound if tab is visible
-                this.soundManager.initialize();
+            this.lastTime = performance.now();
+            if (this.soundInitialized && !document.hidden) {
                 this.soundManager.playBGM();
             }
         }
