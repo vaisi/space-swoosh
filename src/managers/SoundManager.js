@@ -36,28 +36,43 @@ export class SoundManager {
     }
 
     initialize() {
-        if (this.initialized) return;
+        if (this.initialized) {
+            console.log('Sound already initialized, skipping...');
+            return;
+        }
         
+        console.log('Starting sound initialization...');
         // Initialize all sounds
         Object.values(this.sounds).forEach(sound => {
-            sound.play().catch(() => {});
-            sound.pause();
-            sound.currentTime = 0;
+            try {
+                console.log('Pre-loading sound:', sound.src);
+                sound.play().catch(() => {});
+                sound.pause();
+                sound.currentTime = 0;
+            } catch (error) {
+                console.error('Error pre-loading sound:', error);
+            }
         });
 
         this.initialized = true;
+        console.log('Sound initialization complete');
     }
 
     playBGM() {
-        if (!this.initialized) this.initialize();
+        if (!this.initialized) {
+            console.log('Initializing sound before playing BGM');
+            this.initialize();
+        }
         
         try {
+            console.log('Attempting to play BGM...');
             const playPromise = this.sounds.bgm.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
                     console.error("Error playing background music:", error);
                 });
             }
+            console.log('BGM play command issued');
         } catch (error) {
             console.error("Error in playBGM:", error);
         }

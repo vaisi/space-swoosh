@@ -265,13 +265,14 @@ export class Game {
     renderMainGameOver() {
         const centerX = this.canvas.width / 2;
         const isMobile = window.innerWidth <= 768;
-        const spacing = isMobile ? this.baseUnit * 3 : this.baseUnit * 4;
+        const spacing = isMobile ? this.baseUnit * 3.5 : this.baseUnit * 4;
         let currentY = isMobile ? this.canvas.height * 0.2 : this.canvas.height * 0.25;
 
-        // Game Over Title
+        // Game Over Title - clean and bold
         this.ctx.fillStyle = '#E1D9C1';
-        this.ctx.font = `bold ${isMobile ? this.baseUnit * 3 : this.baseUnit * 4}px Arial`;
+        this.ctx.font = `bold ${isMobile ? Math.min(this.baseUnit * 4, 48) : this.baseUnit * 4}px Arial`;
         this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
         this.ctx.fillText(
             this.hasWon ? 'MISSION COMPLETE!' : 'GAME OVER',
             centerX,
@@ -280,8 +281,8 @@ export class Game {
         
         currentY += spacing * 1.5;
 
-        // Score display
-        this.ctx.font = `${isMobile ? this.baseUnit * 1.5 : this.baseUnit * 2}px Arial`;
+        // Score display - larger and clearer
+        this.ctx.font = `${isMobile ? Math.min(this.baseUnit * 2.5, 32) : this.baseUnit * 2}px Arial`;
         this.ctx.fillText(
             `Distance traveled: ${ScoreService.formatScore(this.finalScore)} KM`,
             centerX,
@@ -290,83 +291,76 @@ export class Game {
         
         currentY += spacing;
         
-        // Obstacles destroyed display
+        // Obstacles destroyed
         this.ctx.fillText(
             `Obstacles Destroyed: ${this.obstaclesDestroyed}`,
             centerX,
             currentY
         );
 
-        // If showing name input modal, don't show other buttons
         if (this.pendingHighScore?.shouldPromptName) {
             this.renderNameInputModal();
             return;
         }
 
-        // Button layout
+        // Simple, clean button layout
         const buttonY = currentY + spacing * 2;
         const buttonWidth = isMobile ? 
-            Math.min(this.baseUnit * 10, this.canvas.width / 2.5) : 
+            Math.min(this.baseUnit * 12, this.canvas.width / 2.2) : 
             Math.min(this.baseUnit * 12, this.canvas.width / 3);
-        const buttonHeight = isMobile ? this.baseUnit * 4 : this.baseUnit * 3;
-        const buttonSpacing = isMobile ? this.baseUnit : this.baseUnit * 2;
+        const buttonHeight = isMobile ? this.baseUnit * 5 : this.baseUnit * 3.5;
+        const buttonSpacing = isMobile ? this.baseUnit * 2 : this.baseUnit * 2;
 
-        // Calculate total width based on number of buttons
         const numButtons = this.scoreSubmitted ? 2 : 3;
         const totalWidth = (buttonWidth * numButtons) + (buttonSpacing * (numButtons - 1));
         const startX = (this.canvas.width - totalWidth) / 2;
 
-        // Draw buttons
         this.gameOverButtons = {};
 
-        // Play Again button
-        this.drawButton(
+        // Helper function for minimal button rendering
+        const renderButton = (x, y, width, height, text, color) => {
+            // Simple rectangular button
+            this.ctx.fillStyle = color;
+            this.ctx.fillRect(x, y, width, height);
+
+            // Clean, centered text
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.font = `bold ${isMobile ? Math.min(this.baseUnit * 2, 24) : this.baseUnit * 1.8}px Arial`;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(text, x + width/2, y + height/2);
+
+            return { x, y, width, height };
+        };
+
+        // Render buttons with consistent spacing
+        this.gameOverButtons.playAgain = renderButton(
             startX,
             buttonY,
             buttonWidth,
             buttonHeight,
             'Play Again',
-            '#4CAF50'
+            '#000000'
         );
-        this.gameOverButtons.playAgain = {
-            x: startX,
-            y: buttonY,
-            width: buttonWidth,
-            height: buttonHeight
-        };
 
-        // High Scores button
-        this.drawButton(
+        this.gameOverButtons.highScores = renderButton(
             startX + buttonWidth + buttonSpacing,
             buttonY,
             buttonWidth,
             buttonHeight,
             'High Scores',
-            '#2196F3'
+            '#000000'
         );
-        this.gameOverButtons.highScores = {
-            x: startX + buttonWidth + buttonSpacing,
-            y: buttonY,
-            width: buttonWidth,
-            height: buttonHeight
-        };
 
-        // Submit Score button (only if not submitted)
         if (!this.scoreSubmitted) {
-            this.drawButton(
+            this.gameOverButtons.submitScore = renderButton(
                 startX + (buttonWidth + buttonSpacing) * 2,
                 buttonY,
                 buttonWidth,
                 buttonHeight,
                 'Submit Score',
-                '#FFA500'
+                '#000000'
             );
-            this.gameOverButtons.submitScore = {
-                x: startX + (buttonWidth + buttonSpacing) * 2,
-                y: buttonY,
-                width: buttonWidth,
-                height: buttonHeight
-            };
         }
     }
 
@@ -375,123 +369,127 @@ export class Game {
         const padding = this.baseUnit * 2;
         const buttonHeight = this.baseUnit * 3;
         
-        // Back button at the top
+        // Back button - simple black rectangle
         this.highScoresBackButton = {
             x: padding,
             y: padding,
             width: this.baseUnit * 8,
             height: buttonHeight
         };
-
-        this.drawButton(
+        
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(
             this.highScoresBackButton.x,
             this.highScoresBackButton.y,
             this.highScoresBackButton.width,
-            this.highScoresBackButton.height,
-            'Back',
-            '#4CAF50'
+            this.highScoresBackButton.height
         );
-
-        // High Scores header
-        const headerY = padding + buttonHeight + this.baseUnit * 3;
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = `bold ${isMobile ? this.baseUnit * 2 : this.baseUnit * 2.5}px Arial`;
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('High Scores', this.canvas.width / 2, headerY);
-
-        // Tab text styling
-        const tabY = headerY + this.baseUnit * 4;
-        this.ctx.font = `${this.baseUnit * 1.8}px Arial`;
         
-        // Calculate tab positions with increased spacing
-        const distanceX = this.canvas.width * 0.2;
-        const tabSpacing = this.baseUnit * 15; // Increased spacing between tabs
-        const obstaclesX = distanceX + tabSpacing;
-
-        // Pre-calculate text widths
-        const tabTexts = ['DISTANCE', 'OBSTACLES'];
-        const tabWidths = tabTexts.map(text => this.ctx.measureText(text).width);
-
-        // Draw tabs as text
-        tabTexts.forEach((tab, index) => {
-            const x = index === 0 ? distanceX : obstaclesX;
-            const isSelected = (index === 0 && this.highScoreTab === 'distance') || 
-                              (index === 1 && this.highScoreTab === 'obstacles');
-            
+        // Back button text
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = `bold ${this.baseUnit * 1.5}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(
+            'Back',
+            this.highScoresBackButton.x + this.highScoresBackButton.width / 2,
+            this.highScoresBackButton.y + this.highScoresBackButton.height / 2
+        );
+        
+        // Title
+        this.ctx.fillStyle = '#E1D9C1';
+        this.ctx.font = `bold ${isMobile ? Math.min(this.baseUnit * 3, 36) : this.baseUnit * 3}px Arial`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(
+            'HIGH SCORES',
+            this.canvas.width / 2,
+            padding + buttonHeight / 2
+        );
+        
+        // Tab buttons
+        const tabWidth = this.canvas.width * (isMobile ? 0.4 : 0.3);
+        const tabHeight = buttonHeight;
+        const tabY = padding + buttonHeight + padding;
+        const tabSpacing = this.baseUnit * 2;
+        
+        // Distance tab
+        this.distanceTab = {
+            x: this.canvas.width / 2 - tabWidth - tabSpacing / 2,
+            y: tabY,
+            width: tabWidth,
+            height: tabHeight
+        };
+        
+        // Obstacles tab
+        this.obstaclesTab = {
+            x: this.canvas.width / 2 + tabSpacing / 2,
+            y: tabY,
+            width: tabWidth,
+            height: tabHeight
+        };
+        
+        // Draw tabs
+        [
+            { tab: this.distanceTab, text: 'DISTANCE', active: this.highScoreTab === 'distance' },
+            { tab: this.obstaclesTab, text: 'OBSTACLES', active: this.highScoreTab === 'obstacles' }
+        ].forEach(({ tab, text, active }) => {
             // Tab text
-            this.ctx.fillStyle = isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillText(tab, x, tabY);
+            this.ctx.fillStyle = '#E1D9C1';
+            this.ctx.font = `bold ${isMobile ? Math.min(this.baseUnit * 1.8, 20) : this.baseUnit * 1.5}px Arial`;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(
+                text,
+                tab.x + tab.width / 2,
+                tab.y + tab.height / 2
+            );
 
-            // Underline for selected tab
-            if (isSelected) {
-                const underlineY = tabY + this.baseUnit * 0.8;
+            // Underline for active tab
+            if (active) {
                 this.ctx.beginPath();
-                this.ctx.moveTo(x, underlineY);
-                this.ctx.lineTo(x + tabWidths[index], underlineY);
-                this.ctx.strokeStyle = '#FFFFFF';
+                this.ctx.moveTo(tab.x, tab.y + tab.height);
+                this.ctx.lineTo(tab.x + tab.width, tab.y + tab.height);
+                this.ctx.strokeStyle = '#E1D9C1';
                 this.ctx.lineWidth = 2;
                 this.ctx.stroke();
             }
-
-            // Store tab hitboxes with padding
-            const hitboxPadding = this.baseUnit * 2;
-            if (index === 0) {
-                this.distanceTab = {
-                    x: x - hitboxPadding,
-                    y: tabY - hitboxPadding,
-                    width: tabWidths[index] + hitboxPadding * 2,
-                    height: hitboxPadding * 2
-                };
-            } else {
-                this.obstaclesTab = {
-                    x: x - hitboxPadding,
-                    y: tabY - hitboxPadding,
-                    width: tabWidths[index] + hitboxPadding * 2,
-                    height: hitboxPadding * 2
-                };
-            }
         });
-
-        // Start scores list below tabs
-        const scoreStartY = tabY + this.baseUnit * 4;
-        const scoreSpacing = this.baseUnit * 2.5;
         
-        // Draw scores
-        this.ctx.font = `${isMobile ? this.baseUnit * 1.5 : this.baseUnit * 1.8}px Arial`;
+        // Scores list
+        const startY = tabY + tabHeight + padding;
+        const scoreHeight = isMobile ? this.baseUnit * 3 : this.baseUnit * 2.5;
+        const scoreSpacing = this.baseUnit * 0.5;
         
-        this.highScores.slice(0, 20).forEach((score, index) => {
-            const y = scoreStartY + (index * scoreSpacing);
+        this.highScores.forEach((score, index) => {
+            const y = startY + (scoreHeight + scoreSpacing) * index;
             
-            this.ctx.fillStyle = '#FFFFFF';
-            
-            // Draw rank
+            // Rank number
+            this.ctx.fillStyle = '#E1D9C1';
+            this.ctx.font = `bold ${isMobile ? Math.min(this.baseUnit * 2, 24) : this.baseUnit * 1.8}px Arial`;
             this.ctx.textAlign = 'right';
-            this.ctx.fillText(`${index + 1}.`, this.canvas.width * 0.2, y);
-            
-            // Draw name
-            this.ctx.textAlign = 'left';
             this.ctx.fillText(
-                (score.player_name || 'Anonymous').slice(0, 15),
-                this.canvas.width * 0.25,
-                y
+                `${index + 1}.`,
+                this.canvas.width * 0.2,
+                y + scoreHeight / 2
             );
             
-            // Draw score based on current tab
+            // Player name
+            this.ctx.textAlign = 'left';
+            this.ctx.fillText(
+                score.player_name,
+                this.canvas.width * 0.25,
+                y + scoreHeight / 2
+            );
+            
+            // Score
             this.ctx.textAlign = 'right';
-            if (this.highScoreTab === 'distance') {
-                this.ctx.fillText(
-                    `${ScoreService.formatScore(score.score)} KM`,
-                    this.canvas.width * 0.8,
-                    y
-                );
-            } else {
-                this.ctx.fillText(
-                    `${score.obstacles_destroyed}`,
-                    this.canvas.width * 0.8,
-                    y
-                );
-            }
+            this.ctx.fillText(
+                this.highScoreTab === 'distance' ? 
+                    `${score.formattedScore} KM` : 
+                    score.formattedScore,
+                this.canvas.width * 0.8,
+                y + scoreHeight / 2
+            );
         });
     }
 
@@ -871,110 +869,87 @@ export class Game {
     }
 
     renderNameInputModal() {
-        // Clean dark overlay
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        // Dark overlay
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        const isMobile = window.innerWidth <= 768;
-        // Adjust modal size for mobile
-        const modalWidth = Math.min(this.canvas.width * (isMobile ? 0.9 : 0.85), 450);
-        const modalHeight = Math.min(this.canvas.height * (isMobile ? 0.8 : 0.65), isMobile ? 550 : 450);
+        // Modal dimensions
+        const modalWidth = 320;  // Fixed width
+        const modalHeight = 280;  // Fixed height
         const modalX = (this.canvas.width - modalWidth) / 2;
         const modalY = (this.canvas.height - modalHeight) / 2;
+        const padding = 24;
 
-        // Clean white background
+        // White background
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.beginPath();
-        this.ctx.roundRect(modalX, modalY, modalWidth, modalHeight, 12);
-        this.ctx.fill();
+        this.ctx.fillRect(modalX, modalY, modalWidth, modalHeight);
 
-        // Add close button (X)
-        this.ctx.fillStyle = '#333333';
-        this.ctx.font = `bold ${this.baseUnit * 2}px Arial`;
-        this.ctx.textAlign = 'center';
-        const closeX = modalX + modalWidth - this.baseUnit * 3;
-        const closeY = modalY + this.baseUnit * 3;
-        this.ctx.fillText('×', closeX, closeY);
+        let currentY = modalY + padding;
 
-        // Store close button hitbox
-        this.closeButton = {
-            x: closeX - this.baseUnit * 2,
-            y: closeY - this.baseUnit * 2,
-            width: this.baseUnit * 4,
-            height: this.baseUnit * 4
-        };
-
-        // Content positioning with dynamic spacing
-        const contentX = modalX + modalWidth/2;
-        const contentHeight = modalHeight - (this.baseUnit * 8); // Available space for content
-        const elementSpacing = contentHeight * 0.12; // Dynamic spacing between elements
-
-        let currentY = modalY + elementSpacing * 1.5;
-
-        // Trophy icon - only show for top 20
-        const isTop20 = this.pendingHighScore.rank <= 20;
-        if (isTop20) {
-            const trophySize = Math.min(this.baseUnit * 3.5, modalHeight * 0.1);
-            this.ctx.fillStyle = '#FFD700';
-            this.ctx.font = `${trophySize}px Arial`;
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('🏆', contentX, currentY);
-            currentY += elementSpacing * 1.2;
-        }
-
-        // Show rank - different styling based on position
-        const rankSize = Math.min(this.baseUnit * 2.5, modalHeight * 0.09);
-        this.ctx.fillStyle = isTop20 ? '#FFD700' : '#666666';
-        this.ctx.font = `bold ${rankSize}px Arial`;
-        this.ctx.fillText(
-            `#${this.pendingHighScore.rank}`,
-            contentX,
-            currentY
-        );
-
-        currentY += elementSpacing * 1.2;
-
-        // Title - different text based on rank
-        const titleSize = Math.min(this.baseUnit * 2.2, modalHeight * 0.08);
+        // Header row with title and rank
         this.ctx.fillStyle = '#000000';
-        this.ctx.font = `bold ${titleSize}px Arial`;
+        this.ctx.font = 'bold 20px Arial';
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText('Submit your score', modalX + padding, currentY + 8);
+
+        // Rank tag
+        const rankText = `#${this.pendingHighScore.rank}`;
+        const rankWidth = 45;
+        const rankHeight = 24;
+        const rankX = modalX + modalWidth - padding - rankWidth;
+        
+        this.ctx.fillStyle = '#F5F5F5';
+        this.ctx.fillRect(rankX, currentY, rankWidth, rankHeight);
+        
+        this.ctx.fillStyle = '#000000';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(rankText, rankX + rankWidth/2, currentY + rankHeight/2);
+
+        currentY += padding * 2;
+
+        // Score row
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'alphabetic';
+        this.ctx.fillStyle = '#000000';
+        this.ctx.font = 'bold 32px Arial';
+        const scoreText = ScoreService.formatScore(this.finalScore);
+        const scoreWidth = this.ctx.measureText(scoreText).width;
+        this.ctx.fillText(scoreText, modalX + padding, currentY);
+        
+        this.ctx.font = '16px Arial';
+        this.ctx.fillStyle = '#666666';
+        this.ctx.fillText('KM', modalX + padding + scoreWidth + 8, currentY);
+
+        currentY += padding;
+
+        // Obstacles count
+        this.ctx.font = '16px Arial';
+        this.ctx.fillStyle = '#666666';
         this.ctx.fillText(
-            isTop20 ? 'New High Score!' : 'Submit Your Score',
-            contentX,
+            `${this.obstaclesDestroyed} obstacles destroyed`,
+            modalX + padding,
             currentY
         );
 
-        currentY += elementSpacing;
+        currentY += padding * 1.5;
 
-        // Score display - scaled based on modal size
-        const scoreSize = Math.min(this.baseUnit * 2, modalHeight * 0.07);
-        this.ctx.font = `${scoreSize}px Arial`;
-        this.ctx.fillStyle = '#333333';
-        this.ctx.fillText(
-            `${ScoreService.formatScore(this.finalScore)} KM`,
-            contentX,
-            currentY
-        );
+        // Input field
+        const inputWidth = modalWidth - (padding * 2);
+        const inputHeight = 40;
+        const inputX = modalX + padding;
 
-        currentY += elementSpacing * 1.2;
-
-        // Input field - dynamically sized
-        const inputWidth = modalWidth * (isMobile ? 0.8 : 0.7);
-        const inputHeight = Math.min(this.baseUnit * 3.5, modalHeight * 0.09);
-        const inputX = contentX - inputWidth/2;
-
-        // Create or update input element
         if (!this.nameInput) {
             const input = document.createElement('input');
             input.type = 'text';
             input.maxLength = 15;
-            input.placeholder = 'Enter your name';
+            input.placeholder = 'Enter your username';
             
             const canvasRect = this.canvas.getBoundingClientRect();
             const scaledX = canvasRect.left + (inputX * canvasRect.width / this.canvas.width);
             const scaledY = canvasRect.top + (currentY * canvasRect.height / this.canvas.height);
             
-            // Calculate scaled dimensions
             const scaledWidth = inputWidth * canvasRect.width / this.canvas.width;
             const scaledHeight = inputHeight * canvasRect.height / this.canvas.height;
             
@@ -984,25 +959,15 @@ export class Game {
                 top: ${scaledY}px;
                 width: ${scaledWidth}px;
                 height: ${scaledHeight}px;
-                font-size: ${Math.min(this.baseUnit * 1.4, modalHeight * 0.05)}px;
-                text-align: center;
-                border: 2px solid #E0E0E0;
-                border-radius: 6px;
+                font-size: 16px;
+                border: 1px solid #000000;
+                border-radius: 0;
                 outline: none;
-                padding: 0 15px;
+                padding: 0 12px;
                 background: #FFFFFF;
-                color: #333333;
-                transition: border-color 0.2s;
-                box-sizing: border-box;
+                color: #000000;
+                font-family: Arial;
             `;
-
-            input.addEventListener('focus', () => {
-                input.style.borderColor = '#4CAF50';
-            });
-
-            input.addEventListener('blur', () => {
-                input.style.borderColor = '#E0E0E0';
-            });
 
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && input.value.trim()) {
@@ -1015,35 +980,30 @@ export class Game {
             input.focus();
         }
 
-        currentY += elementSpacing * 2;
+        currentY += inputHeight + padding;
 
-        // Submit button - ensure it's below input field with proper spacing
-        const buttonWidth = modalWidth * (isMobile ? 0.5 : 0.4);
-        const buttonHeight = Math.min(this.baseUnit * 4, modalHeight * 0.1);
-        const buttonX = contentX - buttonWidth/2;
+        // Submit button
+        const buttonHeight = 40;
         
-        const hasInput = this.nameInput && this.nameInput.value.trim().length > 0;
-        
-        this.ctx.fillStyle = hasInput ? '#4CAF50' : '#E0E0E0';
-        this.ctx.beginPath();
-        this.ctx.roundRect(buttonX, currentY, buttonWidth, buttonHeight, 6);
-        this.ctx.fill();
+        this.ctx.fillStyle = '#666666';
+        this.ctx.fillRect(modalX + padding, currentY, inputWidth, buttonHeight);
 
-        // Button text
-        this.ctx.fillStyle = hasInput ? '#FFFFFF' : '#999999';
-        this.ctx.font = `bold ${Math.min(this.baseUnit * 1.4, modalHeight * 0.05)}px Arial`;
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
         this.ctx.fillText(
-            'Submit',
-            contentX,
-            currentY + buttonHeight/2 + this.baseUnit * 0.4
+            'Submit score',
+            modalX + padding + inputWidth/2,
+            currentY + buttonHeight/2
         );
 
         this.submitButton = {
-            x: buttonX,
+            x: modalX + padding,
             y: currentY,
-            width: buttonWidth,
+            width: inputWidth,
             height: buttonHeight,
-            enabled: hasInput
+            enabled: this.nameInput && this.nameInput.value.trim().length > 0
         };
     }
 
