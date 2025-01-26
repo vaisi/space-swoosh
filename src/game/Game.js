@@ -36,32 +36,29 @@ export class Game {
         this.setupEventListeners();
         this.powerUpManager = new PowerUpManager(this);
         this.soundManager = new SoundManager();
-        this.soundInitialized = false;  // Add flag to track initialization
+        this.soundInitialized = false;
         
         // Initialize sound on first user interaction
-        const initSound = () => {
-            if (this.soundInitialized) {
-                console.log('Sound already initialized, skipping...');
-                return;
-            }
+        const initSound = async () => {
+            if (this.soundInitialized) return;
             
             console.log('Initializing sound...');
-            this.soundManager.initialize();
-            console.log('Sound initialized, playing BGM...');
-            this.soundManager.playBGM();
+            await this.soundManager.initialize();
             this.soundInitialized = true;
             
-            // Remove the event listeners
+            // Explicitly start BGM
+            this.soundManager.playBGM();
+            
+            // Remove listeners after first interaction
             window.removeEventListener('click', initSound);
             window.removeEventListener('touchstart', initSound);
             window.removeEventListener('keydown', initSound);
-            console.log('Sound initialization complete');
         };
 
-        // Add event listeners for different types of interaction
-        window.addEventListener('click', initSound, { once: true });
-        window.addEventListener('touchstart', initSound, { once: true });
-        window.addEventListener('keydown', initSound, { once: true });
+        // Add event listeners for user interaction
+        window.addEventListener('click', initSound);
+        window.addEventListener('touchstart', initSound);
+        window.addEventListener('keydown', initSound);
         
         // Add pause button
         this.setupPauseButton();
@@ -117,6 +114,9 @@ export class Game {
     }
 
     start() {
+        if (this.soundInitialized) {
+            this.soundManager.playBGM();
+        }
         this.gameLoop();
     }
 
@@ -834,18 +834,12 @@ export class Game {
         if (this.isGameOver) return;
         
         this.isPaused = !this.isPaused;
-        this.pauseButton.innerHTML = this.isPaused ? '&#9654;' : '&#9208;';
         
+        // Handle background music
         if (this.isPaused) {
-            this.spacecraft.pausedTime = performance.now();
-            if (this.soundInitialized) {
-                this.soundManager.stopBGM();
-            }
+            this.soundManager.pauseBGM();  // New method to pause without resetting
         } else {
-            this.lastTime = performance.now();
-            if (this.soundInitialized && !document.hidden) {
-                this.soundManager.playBGM();
-            }
+            this.soundManager.resumeBGM(); // New method to resume from where it left off
         }
     }
 

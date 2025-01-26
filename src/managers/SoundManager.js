@@ -26,6 +26,8 @@ export class SoundManager {
         this.sounds.crash.volume = 0.4;
 
         this.initialized = false;
+        this.bgmPlaying = false;
+        this.bgmPaused = false;
 
         // Add error handling for sound loading
         Object.values(this.sounds).forEach(sound => {
@@ -35,52 +37,92 @@ export class SoundManager {
         });
     }
 
-    initialize() {
-        if (this.initialized) {
-            console.log('Sound already initialized, skipping...');
-            return;
-        }
+    async initialize() {
+        if (this.initialized) return;
         
-        console.log('Starting sound initialization...');
-        // Initialize all sounds
-        Object.values(this.sounds).forEach(sound => {
-            try {
-                console.log('Pre-loading sound:', sound.src);
-                sound.play().catch(() => {});
+        try {
+            // Pre-load all sounds
+            for (const sound of Object.values(this.sounds)) {
+                await sound.play().catch(() => {});
                 sound.pause();
                 sound.currentTime = 0;
-            } catch (error) {
-                console.error('Error pre-loading sound:', error);
             }
-        });
-
-        this.initialized = true;
-        console.log('Sound initialization complete');
+            
+            this.initialized = true;
+        } catch (error) {
+            console.error('Error initializing sounds:', error);
+        }
     }
 
     playBGM() {
-        if (!this.initialized) {
-            console.log('Initializing sound before playing BGM');
-            this.initialize();
-        }
+        if (!this.initialized) return;
+        if (this.bgmPlaying) return;
         
         try {
-            console.log('Attempting to play BGM...');
             const playPromise = this.sounds.bgm.play();
             if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Error playing background music:", error);
-                });
+                playPromise
+                    .then(() => {
+                        this.bgmPlaying = true;
+                    })
+                    .catch(error => {
+                        console.error("Error playing background music:", error);
+                        this.bgmPlaying = false;
+                    });
             }
-            console.log('BGM play command issued');
         } catch (error) {
             console.error("Error in playBGM:", error);
+            this.bgmPlaying = false;
+        }
+    }
+
+    pauseBGM() {
+        if (!this.initialized || !this.bgmPlaying) return;
+        
+        try {
+            this.sounds.bgm.pause();
+            this.bgmPlaying = false;
+            this.bgmPaused = true;
+        } catch (error) {
+            console.error("Error pausing background music:", error);
+        }
+    }
+
+    resumeBGM() {
+        if (!this.initialized || !this.bgmPaused) return;
+        
+        try {
+            const playPromise = this.sounds.bgm.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        this.bgmPlaying = true;
+                        this.bgmPaused = false;
+                    })
+                    .catch(error => {
+                        console.error("Error resuming background music:", error);
+                        this.bgmPlaying = false;
+                        this.bgmPaused = false;
+                    });
+            }
+        } catch (error) {
+            console.error("Error in resumeBGM:", error);
+            this.bgmPlaying = false;
+            this.bgmPaused = false;
         }
     }
 
     stopBGM() {
-        this.sounds.bgm.pause();
-        this.sounds.bgm.currentTime = 0;
+        if (!this.initialized) return;
+        
+        try {
+            this.sounds.bgm.pause();
+            this.sounds.bgm.currentTime = 0;
+            this.bgmPlaying = false;
+            this.bgmPaused = false;
+        } catch (error) {
+            console.error("Error in stopBGM:", error);
+        }
     }
 
     playShield() {
