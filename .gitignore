@@ -1,0 +1,56 @@
+# .gitignore
+# Changes:
+# - Created file: keep dependencies, build output, local secrets and native
+#   signing material out of version control ahead of adding Capacitor + CI.
+#   The Capacitor `ios/` and `android/` projects ARE committed (Capacitor's
+#   recommended layout) but the web assets copied into them by `cap sync` are
+#   generated on every build, so those are ignored.
+
+# --- Dependencies ------------------------------------------------------------
+node_modules/
+
+# --- Build output ------------------------------------------------------------
+dist/
+*.local
+
+# --- Secrets -----------------------------------------------------------------
+# .env holds VITE_SUPABASE_* / VITE_REVENUECAT_*. See .env.example for the shape.
+.env
+.env.*
+!.env.example
+
+# --- Native signing material (NEVER commit) ----------------------------------
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+key.properties
+google-services.json
+GoogleService-Info.plist
+
+# --- Capacitor: generated web assets inside the native projects --------------
+ios/App/App/public/
+ios/App/Pods/
+ios/App/output/
+ios/App/build/
+ios/capacitor-cordova-ios-plugins/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins/
+
+# --- Native build caches -----------------------------------------------------
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+*.iml
+
+# --- Editor / OS -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp

@@ -1,0 +1,128 @@
+/*
+ * tokens.css
+ * -----------------------------------------------------------------------------
+ * SPACE SWOOSH — Brand design tokens as CSS custom properties.
+ *
+ * Changes:
+ * - Created file: mirrors src/brand/tokens.js for DOM/CSS surfaces (index.html,
+ *   pause button, name input, brandkit.html). Import once at the root and use
+ *   var(--ss-*) everywhere so the paper/ink/signal system + geometric type
+ *   (Space Grotesk / Space Mono) stay consistent across canvas and DOM.
+ * - Framed motif-tile treatment (`.ss-frame`) and matching framed buttons
+ *   (`.ss-btn`) so boxed elements share one geometric style.
+ * - Removed the "math paper" grid — every surface is now clean flat paper.
+ * -----------------------------------------------------------------------------
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+    /* Color — ground */
+    --ss-paper:       #E1D9C1;
+    --ss-paper-tint:  #EAE4D2;
+    --ss-paper-deep:  #D3C9AC;
+
+    /* Color — ink */
+    --ss-ink:      #1A1A1A;
+    --ss-ink-80:   rgba(26, 26, 26, 0.80);
+    --ss-ink-55:   rgba(26, 26, 26, 0.55);
+    --ss-ink-30:   rgba(26, 26, 26, 0.30);
+    --ss-ink-12:   rgba(26, 26, 26, 0.12);
+    --ss-ink-06:   rgba(26, 26, 26, 0.06);
+
+    /* Color — signal (the one accent) */
+    --ss-signal:      #0000FF;
+    --ss-signal-soft: rgba(0, 0, 255, 0.14);
+
+    /* Typography */
+    --ss-font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --ss-font-ui:      'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --ss-font-mono:    'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+    --ss-track-tight:  -0.02em;
+    --ss-track-wide:    0.08em;
+    --ss-track-label:   0.18em;
+
+    /* Spacing (8px grid) */
+    --ss-space-xs: 4px;
+    --ss-space-sm: 8px;
+    --ss-space-md: 16px;
+    --ss-space-lg: 24px;
+    --ss-space-xl: 40px;
+    --ss-space-xxl: 64px;
+
+    /* Radius — geometry stays crisp */
+    --ss-radius-sm: 2px;
+    --ss-radius-pill: 999px;
+
+    /* Motion */
+    --ss-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ss-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+    --ss-dur-fast: 120ms;
+    --ss-dur-base: 240ms;
+}
+
+/* Framed motif-tile — the shared "boxed" treatment for cards, panels, sections. */
+.ss-frame {
+    border: 1.5px solid var(--ss-ink);
+    background: var(--ss-paper-tint);
+    border-radius: 0;
+}
+.ss-frame__cap {
+    border-top: 1px solid var(--ss-ink-12);
+    padding: 8px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px;
+}
+.ss-frame__cap b { font-weight: 700; }
+.ss-frame__cap span {
+    font-family: var(--ss-font-mono);
+    color: var(--ss-ink-55); font-size: 11px;
+}
+
+/* Framed button — a boxed control in the motif-tile style: an uppercase label
+   and a mono micro-tag divided by a hairline, hard corners, lift on hover. */
+.ss-btn {
+    display: inline-flex; align-items: stretch;
+    border: 1.5px solid var(--ss-ink);
+    background: var(--ss-paper-tint);
+    cursor: pointer; border-radius: 0;
+    transition: transform var(--ss-dur-fast) var(--ss-ease-standard);
+}
+.ss-btn:hover { transform: translateY(-2px); }
+.ss-btn__label {
+    padding: 13px 18px;
+    font-family: var(--ss-font-ui); font-weight: 700; font-size: 14px;
+    text-transform: uppercase; letter-spacing: var(--ss-track-wide);
+    color: var(--ss-ink);
+}
+.ss-btn__tag {
+    display: flex; align-items: center;
+    border-left: 1px solid var(--ss-ink-12);
+    padding: 0 14px;
+    font-family: var(--ss-font-mono); font-size: 12px;
+    color: var(--ss-ink-55);
+}
+.ss-btn--primary { background: var(--ss-ink); }
+.ss-btn--primary .ss-btn__label { color: var(--ss-paper); }
+.ss-btn--primary .ss-btn__tag { color: var(--ss-paper-deep); border-left-color: rgba(225,217,193,0.25); }
+.ss-btn--signal { border-color: var(--ss-signal); }
+.ss-btn--signal .ss-btn__tag { color: var(--ss-signal); border-left-color: var(--ss-signal-soft); }
+
+/* Utility: tabular numerals so HUD/score digits never shift width. */
+.ss-nums {
+    font-family: var(--ss-font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: var(--ss-track-tight);
+}
+
+/* Utility: the ALL-CAPS micro label treatment ("KM", "SCORE", "PAUSED"). */
+.ss-label {
+    font-family: var(--ss-font-ui);
+    text-transform: uppercase;
+    letter-spacing: var(--ss-track-label);
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--ss-ink-55);
+}

@@ -1,0 +1,32 @@
+# .gitattributes
+# Changes:
+# - Created file: normalize line endings to LF in the repository. The project is
+#   authored on Windows but Codemagic builds on macOS and the Pages deploy runs
+#   on Linux, where CRLF in shell scripts / Gradle wrappers causes failures.
+
+* text=auto eol=lf
+
+# Native wrappers and scripts must stay LF regardless of platform.
+*.sh          text eol=lf
+gradlew       text eol=lf
+*.pbxproj     text eol=lf
+*.plist       text eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat         text eol=crlf
+*.cmd         text eol=crlf
+gradlew.bat   text eol=crlf
+
+# Binary assets — never diff or convert.
+*.png         binary
+*.jpg         binary
+*.jpeg        binary
+*.ico         binary
+*.mp3         binary
+*.wav         binary
+*.woff        binary
+*.woff2       binary
+*.ttf         binary
+*.otf         binary
+*.keystore    binary
+*.jks         binary

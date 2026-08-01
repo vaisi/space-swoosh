@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<!--
+  brandkit.html
+  ---------------------------------------------------------------------------
+  SPACE SWOOSH — Visual brand board.
+
+  Changes:
+  - Created file: a self-contained, openable brand kit page presenting the
+    "geometric minimalism" identity distilled from the game screenshot —
+    logo, color, typography (Space Grotesk + Space Mono), geometric motif
+    system, and a before/after of the HUD so the new number treatment is
+    obvious. Reads tokens from src/brand/tokens.css.
+  - Updated: reworked buttons into the framed motif-tile style, and rewrote the
+    voice as Spock (logical / precise).
+  - Updated: removed the "math paper" grid entirely — every surface is now clean
+    flat paper — and opened the layout up for more breathing room.
+  ---------------------------------------------------------------------------
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Space Swoosh — Brand Kit</title>
+<link rel="stylesheet" href="./src/brand/tokens.css" />
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        background: var(--ss-paper);
+        color: var(--ss-ink);
+        font-family: var(--ss-font-ui);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        padding: clamp(32px, 6vw, 88px);
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; }
+
+    /* ---- Header / logo ---- */
+    header { margin-bottom: var(--ss-space-xxl); }
+    .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: var(--ss-track-label);
+        font-size: 12px; font-weight: 500;
+        color: var(--ss-ink-55);
+        margin-bottom: var(--ss-space-md);
+    }
+    .logo-lockup { display: flex; align-items: center; gap: 22px; margin-bottom: var(--ss-space-lg); }
+    .wordmark {
+        font-family: var(--ss-font-display);
+        font-weight: 700;
+        font-size: clamp(40px, 7vw, 76px);
+        letter-spacing: var(--ss-track-tight);
+        line-height: 0.95;
+    }
+    .wordmark .swoosh { color: var(--ss-signal); }
+    .tagline {
+        max-width: 640px;
+        font-size: clamp(16px, 2vw, 20px);
+        color: var(--ss-ink-80);
+    }
+
+    /* ---- Section scaffolding ---- */
+    section { margin-bottom: var(--ss-space-xxl); }
+    .sec-head {
+        display: flex; align-items: baseline; gap: 14px;
+        border-bottom: 1.5px solid var(--ss-ink);
+        padding-bottom: 12px; margin-bottom: var(--ss-space-lg);
+    }
+    .sec-num {
+        font-family: var(--ss-font-mono); font-weight: 700; font-size: 14px;
+        color: var(--ss-signal);
+    }
+    .sec-title {
+        text-transform: uppercase; letter-spacing: var(--ss-track-wide);
+        font-size: 15px; font-weight: 700;
+    }
+    .sec-note { margin-left: auto; font-size: 13px; color: var(--ss-ink-55); }
+
+    /* ---- Color ---- */
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+    .swatch {
+        border: 1.5px solid var(--ss-ink);
+        background: var(--ss-paper-tint);
+        overflow: hidden;
+    }
+    .swatch .chip { height: 96px; }
+    .swatch .meta { padding: 10px 12px; }
+    .swatch .name { font-weight: 700; font-size: 14px; }
+    .swatch .hex {
+        font-family: var(--ss-font-mono); font-size: 12px;
+        color: var(--ss-ink-55); text-transform: uppercase;
+    }
+    .swatch .role { font-size: 11px; color: var(--ss-ink-55); margin-top: 2px; }
+
+    /* ---- Type specimens ---- */
+    .type-row { border-bottom: 1px dashed var(--ss-ink-30); padding: var(--ss-space-lg) 0; }
+    .type-row:last-child { border-bottom: none; }
+    .type-tag {
+        font-family: var(--ss-font-mono); font-size: 11px; color: var(--ss-ink-55);
+        text-transform: uppercase; letter-spacing: var(--ss-track-wide);
+        margin-bottom: 10px;
+    }
+    .specimen-display { font-family: var(--ss-font-display); font-weight: 700; font-size: clamp(34px,5vw,56px); letter-spacing: var(--ss-track-tight); }
+    .specimen-ui { font-family: var(--ss-font-ui); font-weight: 500; font-size: 22px; }
+    .specimen-mono { font-family: var(--ss-font-mono); font-weight: 700; font-size: clamp(30px,4vw,48px); font-variant-numeric: tabular-nums; letter-spacing: var(--ss-track-tight); }
+    .glyphset { font-family: var(--ss-font-mono); font-size: 18px; color: var(--ss-ink-80); letter-spacing: 0.06em; margin-top: 8px; }
+
+    /* ---- Motif grid ---- */
+    .motif-group-label {
+        font-family: var(--ss-font-mono); font-size: 11px; color: var(--ss-ink-55);
+        text-transform: uppercase; letter-spacing: var(--ss-track-wide);
+        margin: var(--ss-space-lg) 0 12px;
+    }
+    .motif-group-label:first-of-type { margin-top: 0; }
+    .motifs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 14px; }
+    .motif {
+        border: 1.5px solid var(--ss-ink);
+        background: var(--ss-paper-tint);
+        aspect-ratio: 1/1;
+        display: flex; flex-direction: column;
+    }
+    .motif svg { flex: 1; width: 100%; }
+    .motif .cap {
+        border-top: 1px solid var(--ss-ink-12);
+        padding: 8px 10px; font-size: 12px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .motif .cap b { font-weight: 700; }
+    .motif .cap span { font-family: var(--ss-font-mono); color: var(--ss-ink-55); font-size: 11px; }
+
+    /* ---- HUD before/after ---- */
+    .hud-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 720px) { .hud-compare { grid-template-columns: 1fr; } }
+    /* Gameplay HUD sits on clean flat paper — no grid in-game. */
+    .hud-frame {
+        position: relative; aspect-ratio: 3/4;
+        border: 1.5px solid var(--ss-ink);
+        overflow: hidden;
+        background: var(--ss-paper);
+    }
+    .hud-frame .badge {
+        position: absolute; top: 12px; left: 12px;
+        font-family: var(--ss-font-mono); font-size: 11px;
+        text-transform: uppercase; letter-spacing: var(--ss-track-wide);
+        background: var(--ss-ink); color: var(--ss-paper); padding: 4px 8px;
+    }
+    .hud-frame .badge.good { background: var(--ss-signal); }
+    .hud-old { position: absolute; top: 44px; left: 20px; }
+    .hud-old .km { font-family: Arial, sans-serif; font-size: 30px; }
+    .hud-old .sc { font-family: Arial, sans-serif; font-size: 30px; }
+    .hud-new { position: absolute; top: 44px; left: 20px; }
+    .hud-new .km {
+        font-family: var(--ss-font-mono); font-weight: 700; font-size: 34px;
+        font-variant-numeric: tabular-nums; letter-spacing: var(--ss-track-tight);
+        display: flex; align-items: baseline; gap: 8px;
+    }
+    .hud-new .km .unit {
+        font-family: var(--ss-font-ui); font-weight: 500; font-size: 13px;
+        text-transform: uppercase; letter-spacing: var(--ss-track-label);
+        color: var(--ss-ink-55);
+    }
+    .hud-new .destroyed {
+        margin-top: 14px; display: flex; align-items: center; gap: 8px;
+        font-family: var(--ss-font-mono); font-weight: 700; font-size: 20px;
+        font-variant-numeric: tabular-nums;
+    }
+    .hud-new .destroyed .lbl {
+        font-family: var(--ss-font-ui); font-weight: 500; font-size: 11px;
+        text-transform: uppercase; letter-spacing: var(--ss-track-label); color: var(--ss-ink-55);
+    }
+    .hud-scene { position: absolute; inset: 0; }
+
+    /* ---- Components ---- */
+    .components { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+    /* Framed motif-tile button: uppercase label + mono micro-tag, hairline split. */
+    .btn {
+        display: inline-flex; align-items: stretch;
+        border: 1.5px solid var(--ss-ink); background: var(--ss-paper-tint);
+        cursor: pointer;
+        transition: transform var(--ss-dur-fast) var(--ss-ease-standard);
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn .lbl {
+        padding: 13px 18px;
+        font-family: var(--ss-font-ui); font-weight: 700; font-size: 14px;
+        text-transform: uppercase; letter-spacing: var(--ss-track-wide);
+        color: var(--ss-ink);
+    }
+    .btn .tag {
+        display: flex; align-items: center;
+        border-left: 1px solid var(--ss-ink-12); padding: 0 14px;
+        font-family: var(--ss-font-mono); font-size: 12px; color: var(--ss-ink-55);
+    }
+    .btn.primary { background: var(--ss-ink); }
+    .btn.primary .lbl { color: var(--ss-paper); }
+    .btn.primary .tag { color: var(--ss-paper-deep); border-left-color: rgba(225,217,193,0.25); }
+    .btn.signal { border-color: var(--ss-signal); }
+    .btn.signal .tag { color: var(--ss-signal); border-left-color: var(--ss-signal-soft); }
+    .chip-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        border: 1.5px solid var(--ss-ink); border-radius: var(--ss-radius-pill);
+        padding: 8px 16px; font-size: 13px; font-weight: 500;
+    }
+    .dot-divider { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
+    .dot-divider i { width: 3px; height: 3px; border-radius: 50%; background: var(--ss-ink-30); display: block; }
+
+    .voice { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 720px) { .voice { grid-template-columns: 1fr; } }
+    .voice .card { border: 1.5px solid var(--ss-ink); background: var(--ss-paper-tint); padding: 20px; }
+    .voice .card h4 { font-size: 12px; text-transform: uppercase; letter-spacing: var(--ss-track-wide); margin-bottom: 10px; }
+    .voice .yes { color: var(--ss-ink); }
+    .voice .no { color: var(--ss-ink-55); }
+    .voice p { margin: 6px 0; font-family: var(--ss-font-mono); font-size: 14px; }
+
+    footer { color: var(--ss-ink-55); font-size: 12px; text-align: center; padding-top: var(--ss-space-lg); border-top: 1px dashed var(--ss-ink-30); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    <!-- =============== HEADER / LOGO =============== -->
+    <header>
+        <div class="eyebrow">Brand Kit · v1</div>
+        <div class="logo-lockup">
+            <!-- Monogram: reticle + orbiting dot (the ship's focus glyph) -->
+            <svg width="88" height="88" viewBox="0 0 88 88" aria-label="Space Swoosh mark">
+                <circle cx="44" cy="44" r="30" fill="none" stroke="#1A1A1A" stroke-width="3"/>
+                <line x1="44" y1="6" x2="44" y2="26" stroke="#1A1A1A" stroke-width="3"/>
+                <line x1="44" y1="62" x2="44" y2="82" stroke="#1A1A1A" stroke-width="3"/>
+                <line x1="6" y1="44" x2="26" y2="44" stroke="#1A1A1A" stroke-width="3"/>
+                <line x1="62" y1="44" x2="82" y2="44" stroke="#1A1A1A" stroke-width="3"/>
+                <circle cx="44" cy="44" r="7" fill="#0000FF"/>
+            </svg>
+            <div class="wordmark">SPACE<br>SW<span class="swoosh">OO</span>SH</div>
+        </div>
+        <p class="tagline">A one-thumb flight through a paper universe. Pure geometry, endless distance, and a single blue signal to guide you home.</p>
+    </header>
+
+    <!-- =============== 01 · PRINCIPLES =============== -->
+    <section>
+        <div class="sec-head">
+            <span class="sec-num">01</span>
+            <span class="sec-title">Principles</span>
+            <span class="sec-note">what the brand stands for</span>
+        </div>
+        <div class="voice">
+            <div class="card">
+                <h4>The idea</h4>
+                <p style="font-family:var(--ss-font-ui);font-size:16px;line-height:1.6;color:var(--ss-ink-80)">
+                    Everything is built from four shapes on warm paper. Circles, squares, a
+                    dotted trail, and a crosshair. Nothing decorative — every mark means
+                    something. Minimalism as gameplay, geometry as language.
+                </p>
+            </div>
+            <div class="card">
+                <h4>Three rules</h4>
+                <p style="font-family:var(--ss-font-ui);font-size:16px;line-height:1.9;color:var(--ss-ink-80)">
+                    1 — Paper &amp; ink only; blue means something.<br>
+                    2 — Draw with the four primitives, nothing else.<br>
+                    3 — Numbers are monospaced and never jump.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- =============== 02 · COLOR =============== -->
+    <section>
+        <div class="sec-head">
+            <span class="sec-num">02</span>
+            <span class="sec-title">Color</span>
+            <span class="sec-note">monochrome + one signal</span>
+        </div>
+        <div class="swatches">
+            <div class="swatch"><div class="chip" style="background:#E1D9C1"></div><div class="meta"><div class="name">Paper</div><div class="hex">#E1D9C1</div><div class="role">Ground / canvas</div></div></div>
+            <div class="swatch"><div class="chip" style="background:#EAE4D2"></div><div class="meta"><div class="name">Paper Tint</div><div class="hex">#EAE4D2</div><div class="role">Raised surfaces</div></div></div>
+            <div class="swatch"><div class="chip" style="background:#D3C9AC"></div><div class="meta"><div class="name">Paper Deep</div><div class="hex">#D3C9AC</div><div class="role">Wells / pressed</div></div></div>
+            <div class="swatch"><div class="chip" style="background:#1A1A1A"></div><div class="meta"><div class="name">Ink</div><div class="hex">#1A1A1A</div><div class="role">Shapes / text</div></div></div>
+            <div class="swatch"><div class="chip" style="background:rgba(26,26,26,0.55)"></div><div class="meta"><div class="name">Ink 55</div><div class="hex">#1A1A1A · 55%</div><div class="role">Muted text</div></div></div>
+            <div class="swatch"><div class="chip" style="background:rgba(26,26,26,0.30)"></div><div class="meta"><div class="name">Ink 30</div><div class="hex">#1A1A1A · 30%</div><div class="role">Trails / dividers</div></div></div>
+            <div class="swatch"><div class="chip" style="background:#0000FF"></div><div class="meta"><div class="name">Signal Blue</div><div class="hex">#0000FF</div><div class="role">Shield / focus / active</div></div></div>
+            <div class="swatch"><div class="chip" style="background:rgba(0,0,255,0.14)"></div><div class="meta"><div class="name">Signal Soft</div><div class="hex">#0000FF · 14%</div><div class="role">Accent fills / glow</div></div></div>
+        </div>
+    </section>
+
+    <!-- =============== 03 · TYPE =============== -->
+    <section>
+        <div class="sec-head">
+            <span class="sec-num">03</span>
+            <span class="sec-title">Typography</span>
+            <span class="sec-note">Space Grotesk + Space Mono</span>
+        </div>
+        <div class="type-row">
+            <div class="type-tag">Display / Wordmark — Space Grotesk Bold · tight tracking</div>
+            <div class="specimen-display">Endless distance,<br>drawn by hand.</div>
+        </div>
+        <div class="type-row">
+            <div class="type-tag">UI / Labels — Space Grotesk Medium</div>
+            <div class="specimen-ui">Play Again &nbsp;·&nbsp; High Scores &nbsp;·&nbsp; Submit Score</div>
+            <div class="glyphset ss-label" style="margin-top:14px">MISSION PAUSED · DISTANCE · OBSTACLES</div>
+        </div>
+        <div class="type-row">
+            <div class="type-tag">Numerals / HUD — Space Mono Bold · tabular figures</div>
+            <div class="specimen-mono">2,786 · 0123456789 · 50,000 KM</div>
+            <div class="glyphset">0 1 2 3 4 5 6 7 8 9 &nbsp; , . % + −</div>
+        </div>
+    </section>
+
+    <!-- =============== 04 · MOTIF SYSTEM =============== -->
+    <section>
+        <div class="sec-head">
+            <span class="sec-num">04</span>
+            <span class="sec-title">Element Library</span>
+            <span class="sec-note">every in-game shape, one ink family</span>
+        </div>
+
+        <div class="motif-group-label">Asteroids &amp; debris — solid ink</div>
+        <div class="motifs">
+            <div class="motif">
+                <svg viewBox="0 0 160 160"><circle cx="80" cy="80" r="34" fill="#1A1A1A"/></svg>
+                <div class="cap"><b>Asteroid</b><span>circle</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160"><polygon points="80,44 111,116 49,116" fill="#1A1A1A"/></svg>
+                <div class="cap"><b>Shard</b><span>triangle</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160"><rect x="52" y="52" width="56" height="56" fill="#1A1A1A" transform="rotate(8 80 80)"/></svg>
+                <div class="cap"><b>Block</b><span>square · 8°</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160"><polygon points="80,44 114,69 101,110 59,110 46,69" fill="#1A1A1A"/></svg>
+                <div class="cap"><b>Drifter</b><span>pentagon · moves</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <polygon fill="#1A1A1A" points="80,40 90,70 120,70 96,88 105,118 80,100 55,118 64,88 40,70 70,70"/>
+                    <circle cx="128" cy="44" r="4" fill="#1A1A1A"/><circle cx="120" cy="120" r="3.4" fill="#1A1A1A"/>
+                </svg>
+                <div class="cap"><b>Hostile</b><span>star · shoots</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160"><ellipse cx="80" cy="80" rx="52" ry="18" fill="#1A1A1A"/></svg>
+                <div class="cap"><b>Belt</b><span>ellipse band</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="24" fill="#1A1A1A"/>
+                    <circle cx="80" cy="34" r="7" fill="#1A1A1A"/><circle cx="122" cy="96" r="6" fill="#1A1A1A"/><circle cx="42" cy="104" r="6" fill="#1A1A1A"/>
+                </svg>
+                <div class="cap"><b>Cluster</b><span>circle + orbit</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="20" fill="rgba(26,26,26,0.25)"/>
+                    <circle cx="80" cy="80" r="30" fill="none" stroke="#1A1A1A" stroke-width="2"/>
+                    <circle cx="80" cy="80" r="14" fill="#1A1A1A"/>
+                </svg>
+                <div class="cap"><b>Pulsar</b><span>circle · scales</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <g fill="rgba(26,26,26,0.3)"><circle cx="40" cy="120" r="3"/><circle cx="54" cy="110" r="3.6"/><circle cx="70" cy="98" r="4.4"/></g>
+                    <circle cx="96" cy="74" r="16" fill="#1A1A1A"/>
+                </svg>
+                <div class="cap"><b>Comet</b><span>circle + trail</span></div>
+            </div>
+        </div>
+
+        <div class="motif-group-label">Anomalies — hazards</div>
+        <div class="motifs">
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="52" fill="rgba(26,26,26,0.12)"/>
+                    <circle cx="80" cy="80" r="40" fill="none" stroke="#1A1A1A" stroke-width="2"/>
+                    <circle cx="80" cy="80" r="26" fill="#1A1A1A"/>
+                </svg>
+                <div class="cap"><b>Black hole</b><span>disc + glow</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="34" fill="none" stroke="#0000FF" stroke-width="4" stroke-dasharray="10 10"/>
+                </svg>
+                <div class="cap"><b>Teleport</b><span>dashed ring · signal</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <rect x="24" y="28" width="16" height="104" fill="#1A1A1A"/>
+                    <rect x="120" y="28" width="16" height="104" fill="#1A1A1A"/>
+                </svg>
+                <div class="cap"><b>Barrier</b><span>edge bars</span></div>
+            </div>
+        </div>
+
+        <div class="motif-group-label">Ship &amp; signals</div>
+        <div class="motifs">
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="30" fill="none" stroke="#1A1A1A" stroke-width="3"/>
+                    <line x1="80" y1="34" x2="80" y2="58" stroke="#1A1A1A" stroke-width="3"/>
+                    <line x1="80" y1="102" x2="80" y2="126" stroke="#1A1A1A" stroke-width="3"/>
+                    <line x1="34" y1="80" x2="58" y2="80" stroke="#1A1A1A" stroke-width="3"/>
+                    <line x1="102" y1="80" x2="126" y2="80" stroke="#1A1A1A" stroke-width="3"/>
+                    <circle cx="80" cy="80" r="7" fill="#0000FF"/>
+                </svg>
+                <div class="cap"><b>Ship</b><span>reticle + signal</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <g fill="rgba(26,26,26,0.3)">
+                        <circle cx="30" cy="120" r="4"/><circle cx="46" cy="108" r="3.4"/><circle cx="62" cy="98" r="3"/>
+                        <circle cx="78" cy="90" r="2.6"/><circle cx="94" cy="80" r="2.4"/><circle cx="110" cy="66" r="2.2"/>
+                        <circle cx="124" cy="50" r="2"/><circle cx="136" cy="34" r="1.8"/>
+                    </g>
+                </svg>
+                <div class="cap"><b>Trail</b><span>dot-path</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="30" fill="none" stroke="#0000FF" stroke-width="3"/>
+                    <circle cx="80" cy="80" r="18" fill="rgba(0,0,255,0.14)"/>
+                </svg>
+                <div class="cap"><b>Shield</b><span>ring · signal</span></div>
+            </div>
+            <div class="motif">
+                <svg viewBox="0 0 160 160">
+                    <rect x="60" y="52" width="12" height="56" fill="#1A1A1A"/>
+                    <rect x="88" y="52" width="12" height="56" fill="#1A1A1A"/>
+                </svg>
+                <div class="cap"><b>Pause</b><span>two bars</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =============== 05 · HUD BEFORE / AFTER =============== -->
+    <section>
+        <div class="sec-head">
+            <span class="sec-num">05</span>
+            <span class="sec-title">The HUD, fixed</span>
+            <span class="sec-note">the numbers you weren't happy with</span>
+        </div>
+        <div class="hud-compare">
+            <div class="hud-frame">
+                <div class="badge">Before · Arial</div>
+                <div class="hud-old">
+                    <div class="km">2,786 KM</div>
+                    <div class="sc">0</div>
+                </div>
+            </div>
+            <div class="hud-frame">
+                <div class="badge good">After · Space Mono</div>
+                <svg class="hud-scene" viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice">
+                    <circle cx="210" cy="150" r="18" fill="#1A1A1A"/>
+                    <rect x="120" y="250" width="26" height="26" fill="#1A1A1A" transform="rotate(8 133 263)"/>
+                    <g fill="rgba(26,26,26,0.30)">
+                        <circle cx="60" cy="360" r="3"/><circle cx="72" cy="345" r="2.6"/><circle cx="86" cy="332" r="2.3"/>
+                        <circle cx="100" cy="320" r="2"/><circle cx="116" cy="306" r="1.8"/>
+                    </g>
+                </svg>
+                <div class="hud-new">
+                    <div class="km">2,786<span class="unit">KM</span></div>
+                    <div class="destroyed"><span class="lbl">Destroyed</span> 0</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =============== 06 · COMPONENTS =============== -->
+    <section>
+        <div class="sec-head">
+            <span class="sec-num">06</span>
+            <span class="sec-title">Components</span>
+            <span class="sec-note">framed motif-tile buttons, chips, dividers</span>
+        </div>
+        <div class="components">
+            <button class="btn primary"><span class="lbl">Play Again</span><span class="tag">↺</span></button>
+            <button class="btn"><span class="lbl">High Scores</span><span class="tag">#</span></button>
+            <button class="btn signal"><span class="lbl">Shielded</span><span class="tag">◎</span></button>
+            <span class="chip-pill"><svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="#0000FF"/></svg> Rank #4</span>
+        </div>
+        <div class="dot-divider" style="margin-top:22px">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+    </section>
+
+    <!-- =============== 07 · VOICE =============== -->
+    <section>
+        <div class="sec-head">
+            <span class="sec-num">07</span>
+            <span class="sec-title">Voice</span>
+            <span class="sec-note">science officer — logical, precise (Spock)</span>
+        </div>
+        <div class="voice">
+            <div class="card">
+                <h4 class="yes">Do — say</h4>
+                <p class="yes">"Fascinating."</p>
+                <p class="yes">"Asteroid density increasing. Survival probability: 4.2%."</p>
+                <p class="yes">"Your trajectory is illogical, yet effective."</p>
+                <p class="yes">"Live long and prosper."</p>
+            </div>
+            <div class="card">
+                <h4 class="no">Don't — say</h4>
+                <p class="no">"Oops! You crashed!! 😅"</p>
+                <p class="no">"Wanna play again buddy?"</p>
+                <p class="no">"GREAT JOB SUPERSTAR!!!"</p>
+            </div>
+        </div>
+        <div style="margin-top:16px" class="voice">
+            <div class="card" style="grid-column:1 / -1">
+                <h4>Milestone log — in persona</h4>
+                <p style="color:var(--ss-ink-80)">1,000 — "Atmosphere cleared. Ascent nominal."</p>
+                <p style="color:var(--ss-ink-80)">5,000 — "Asteroid belt ahead. Collision: probable."</p>
+                <p style="color:var(--ss-ink-80)">50,000 — "Approaching the void. Fascinating."</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>SPACE SWOOSH · Brand Kit v1 · geometry &amp; minimalism · paper #E1D9C1 · ink #1A1A1A · signal #0000FF</footer>
+</div>
+</body>
+</html>
