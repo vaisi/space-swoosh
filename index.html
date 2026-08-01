@@ -11,9 +11,15 @@
         gtag('config', 'G-SMEY63Z40C');
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- viewport-fit=cover lets the paper ground bleed into the notch / home
+         indicator area; the canvas itself is inset by env(safe-area-inset-*)
+         below so the HUD never sits under hardware. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#E1D9C1">
+    <meta name="description" content="A one-thumb space dodge game in a paper universe. Steer, survive, climb.">
     <title>Space Swoosh</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -21,6 +27,9 @@
          so DOM chrome (pause button, name input) matches the canvas surfaces. -->
     <link rel="stylesheet" href="/src/brand/tokens.css">
     <style>
+        html, body {
+            height: 100%;
+        }
         body {
             margin: 0;
             padding: 0;
@@ -30,6 +39,13 @@
             align-items: center;
             min-height: 100vh;
             touch-action: none;
+            /* Native shell hygiene: a WebView will happily rubber-band, long-press
+               to select, and flash a tap highlight over the game surface. */
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
         #gameContainer {
             width: 100%;
@@ -45,11 +61,33 @@
             touch-action: none;
         }
 
-        /* Mobile adjustments */
+        /* Mobile / packaged app: fill the screen, but keep the drawn surface
+           clear of the notch, the status bar and the home indicator. The body
+           padding is invisible because its background is the same paper the
+           canvas draws, so the ground still reaches every edge. */
         @media (max-width: 768px) {
+            body {
+                box-sizing: border-box;
+                padding:
+                    env(safe-area-inset-top)
+                    env(safe-area-inset-right)
+                    env(safe-area-inset-bottom)
+                    env(safe-area-inset-left);
+            }
             #gameContainer {
                 max-width: 100%;
-                height: 100vh;
+                aspect-ratio: auto;
+                height: 100%;
+            }
+        }
+
+        /* dvh accounts for the collapsing browser chrome on mobile Safari /
+           Chrome, which 100vh overshoots. Declared second so it wins where
+           supported and is ignored where it isn't. */
+        @supports (height: 100dvh) {
+            body {
+                min-height: 100dvh;
+                height: 100dvh;
             }
         }
     </style>

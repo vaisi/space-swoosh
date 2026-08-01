@@ -11,10 +11,54 @@
  * - Framed motif-tile treatment (`.ss-frame`) and matching framed buttons
  *   (`.ss-btn`) so boxed elements share one geometric style.
  * - Removed the "math paper" grid — every surface is now clean flat paper.
+ * - Self-hosted the brand type. The Google Fonts @import was a network
+ *   dependency at first paint, which meant the packaged iOS/Android app fell
+ *   back to a system font whenever it launched offline. The woff2 files now
+ *   live in public/fonts/ (latin subset, ~55KB total) and are declared below.
  * -----------------------------------------------------------------------------
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
+/* --- Brand type (self-hosted, offline-safe) ---------------------------------
+ * Space Grotesk ships as a single variable font covering 300-700, so one file
+ * serves the regular / medium / bold the game paints. Space Mono is static and
+ * needs one file per weight.
+ *
+ * `font-display: block` rather than `swap`: the canvas measures text at draw
+ * time, so a fallback frame would lay out at the wrong width and then jump.
+ * ensureBrandFonts() in utils/BrandDraw.js awaits these before the first paint.
+ */
+@font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: block;
+    src: url('/fonts/SpaceGrotesk-latin-var.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+        U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+        U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Space Mono';
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+    src: url('/fonts/SpaceMono-latin-400.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+        U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+        U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Space Mono';
+    font-style: normal;
+    font-weight: 700;
+    font-display: block;
+    src: url('/fonts/SpaceMono-latin-700.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+        U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+        U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 :root {
     /* Color — ground */
