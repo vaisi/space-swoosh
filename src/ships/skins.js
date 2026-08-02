@@ -6,9 +6,12 @@
 // - `drawSkinPreview` now feeds the renderers a banked hull and a gently curved
 //   wake (with per-point tangents), so the cards actually show how each ship's
 //   trail behaves in a turn rather than a straight column of dots.
+// - load/save refuse premium skins the player doesn't own (Entitlements.js), so
+//   a stale localStorage id can't equip a locked ship after a reinstall.
 
 import { SKIN_DEFS } from './skinDefs.js';
 import { MAX_BANK } from './hulls.js';
+import { isSkinOwned } from '../services/Entitlements.js';
 
 export const DEFAULT_SHIP_SKIN = 'focus';
 export const SHIP_SKIN_STORAGE_KEY = 'shipSkinId';
@@ -29,7 +32,8 @@ export function getSkin(id) {
 
 export function loadShipSkinId() {
     try {
-        return resolveShipSkinId(localStorage.getItem(SHIP_SKIN_STORAGE_KEY));
+        const id = resolveShipSkinId(localStorage.getItem(SHIP_SKIN_STORAGE_KEY));
+        return isSkinOwned(id) ? id : DEFAULT_SHIP_SKIN;
     } catch {
         return DEFAULT_SHIP_SKIN;
     }
@@ -37,6 +41,7 @@ export function loadShipSkinId() {
 
 export function saveShipSkinId(id) {
     const resolved = resolveShipSkinId(id);
+    if (!isSkinOwned(resolved)) return loadShipSkinId();
     try {
         localStorage.setItem(SHIP_SKIN_STORAGE_KEY, resolved);
     } catch {

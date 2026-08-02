@@ -8,6 +8,8 @@
 //   follow the flight path instead of stacking axis-aligned blobs —
 //   `drawRibbonTrail` (tapered comet ribbon), `drawStreakTrail` (marks rotated
 //   to the local tangent) and `drawWispTrail` (thin ribbon + drifting embers).
+// - `drawDotTrail` / `drawRibbonTrail` accept an optional `rgb` so premium
+//   skins can paint a Signal-Blue wake without a second renderer.
 
 import { color } from '../brand/tokens.js';
 import { withHeading } from './hulls.js';
@@ -89,20 +91,21 @@ function ribbonPath(ctx, pts, widthAt) {
     ctx.closePath();
 }
 
-export function drawDotTrail(ctx, ship, trail, toScreenY) {
+export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { rgb = INK_RGB } = opts;
     const dotScale = ship.game?.config?.spacecraft?.trailDotSize ?? 0.2;
     const dotSize = ship.radius * dotScale;
 
     for (const point of trail) {
         ctx.beginPath();
         ctx.arc(point.x, toScreenY(point.y), dotSize, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${INK_RGB}, ${point.opacity})`;
+        ctx.fillStyle = `rgba(${rgb}, ${point.opacity})`;
         ctx.fill();
     }
 }
 
 export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { widthScale = 1, alpha = 0.8, smudge = true } = opts;
+    const { widthScale = 1, alpha = 0.8, smudge = true, rgb = INK_RGB } = opts;
     const pts = wakePoints(ship, trail, toScreenY);
     if (pts.length < 3) return;
 
@@ -116,13 +119,13 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
     // The fill can't vary per vertex, so length-wise fade rides on a gradient
     // along the wake's chord; the width taper carries the rest.
     const chord = Math.hypot(pts[last].x - pts[0].x, pts[last].y - pts[0].y);
-    let gradient = `rgba(${INK_RGB}, ${alpha * 0.7})`;
+    let gradient = `rgba(${rgb}, ${alpha * 0.7})`;
 
     if (chord > 1) {
         gradient = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[last].x, pts[last].y);
-        gradient.addColorStop(0, `rgba(${INK_RGB}, 0)`);
-        gradient.addColorStop(0.45, `rgba(${INK_RGB}, ${alpha * 0.55})`);
-        gradient.addColorStop(1, `rgba(${INK_RGB}, ${alpha})`);
+        gradient.addColorStop(0, `rgba(${rgb}, 0)`);
+        gradient.addColorStop(0.45, `rgba(${rgb}, ${alpha * 0.55})`);
+        gradient.addColorStop(1, `rgba(${rgb}, ${alpha})`);
     }
 
     ctx.save();

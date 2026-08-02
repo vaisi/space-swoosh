@@ -49,6 +49,8 @@ Credentials live in `.env` (`VITE_SUPABASE_*`). See `.env.example`.
 | `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
+| `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
+| `services/Entitlements.js` | Skin ownership cache + purchase / restore. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
 | `ships/skinDefs.js` | The four skins (Focus / Flicker / Ember / Wisp) composed from hulls + trails. |

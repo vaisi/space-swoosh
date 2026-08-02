@@ -12,6 +12,9 @@
 // - Created file: Focus (circle + dotted trail) plus three shaped ships that
 //   differ in their wake: Flicker (ribbon), Ember (streaks), Wisp (thread +
 //   drifting sparks).
+// - Added two premium skins (Pulse, Quill): Signal-Blue wakes, same physics.
+//   Each carries `productId` + `entitlementId` for RevenueCat; the four
+//   originals stay free (no productId).
 // - Shaped hulls rotate with `ship.bank` and lean/stretch into turns.
 // - Replaced the old ~3-4 Hz hull strobe with two slow layered sines so the
 //   light breathes instead of flickering.
@@ -155,4 +158,44 @@ const wisp = {
     },
 };
 
-export const SKIN_DEFS = [focus, flicker, ember, wisp];
+// Premium: Focus geometry with a Signal-Blue dotted wake — the "active" accent
+// as a trail. Same hitbox and arcs as Focus.
+const pulse = {
+    id: 'pulse',
+    name: 'Pulse',
+    blurb: 'Signal wake. Instrumental, lit.',
+    hitbox: CIRCLE_HITBOX,
+    productId: 'gg.orbi.spaceswoosh.skin.pulse',
+    entitlementId: 'skin_pulse',
+
+    drawHull(ctx, ship, screenY) {
+        drawCircleHull(ctx, ship, screenY);
+    },
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawDotTrail(ctx, ship, trail, toScreenY, { rgb: color.signalRgb });
+    },
+};
+
+// Premium: tear hull with a thin Signal-Blue ribbon — Flicker's shape, lit wake.
+const quill = {
+    id: 'quill',
+    name: 'Quill',
+    blurb: 'A fine blue line of travel.',
+    hitbox: TEAR_HITBOX,
+    productId: 'gg.orbi.spaceswoosh.skin.quill',
+    entitlementId: 'skin_quill',
+
+    drawHull: drawTearHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawRibbonTrail(ctx, ship, trail, toScreenY, {
+            widthScale: 0.55,
+            alpha: 0.85,
+            smudge: false,
+            rgb: color.signalRgb,
+        });
+    },
+};
+
+export const SKIN_DEFS = [focus, flicker, ember, wisp, pulse, quill];

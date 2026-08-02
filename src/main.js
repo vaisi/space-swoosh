@@ -16,12 +16,17 @@ import { GameConfig } from './config/GameConfig.js';
 import { ensureBrandFonts } from './utils/BrandDraw.js';
 import { initNative } from './native/index.js';
 import { initAnalytics } from './services/Analytics.js';
+import { initEntitlements } from './services/Entitlements.js';
 
 window.addEventListener('load', async () => {
     initAnalytics();
 
     // Make sure the geometric brand type is ready before we draw anything.
     await ensureBrandFonts();
+
+    // Hydrate owned skins (and configure RevenueCat on native) before Game
+    // reads the selected skin from localStorage.
+    await initEntitlements();
 
     const game = new Game(GameConfig);
     game.start();

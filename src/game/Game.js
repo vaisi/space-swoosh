@@ -70,6 +70,13 @@ import { StyleSwooshManager } from '../managers/StyleSwooshManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
 import { ScoreService } from '../services/ScoreService.js';
 import { track } from '../services/Analytics.js';
+import {
+    getSkinPriceLabel,
+    isSkinOwned,
+    isSkinPremium,
+    purchaseSkin,
+    restorePurchases,
+} from '../services/Entitlements.js';
 import { syncKeepAwake } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { color, font } from '../brand/tokens.js';
@@ -151,6 +158,9 @@ export class Game {
         this.modeSelectButtons = null;
         this.journeyMapButtons = null;
         this.levelOutcomeButtons = null;
+        // Short status line on Options → Ship / hub after a purchase or restore.
+        this.purchaseStatus = null;
+        this.purchaseBusy = false;
         this.isPaused = false;
         this.pauseBlur = 10; // Blur amount when paused
         this.TOTAL_DISTANCE = 50000; // Total distance to win
@@ -911,7 +921,7 @@ export class Game {
         );
     }
 
-    // Options hub — three destinations fill the content band like the main menu.
+    // Options hub — Ship / Controls / Sound / Restore Purchases.
     renderOptionsHub() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -924,12 +934,14 @@ export class Game {
 
         const subPx = L.isMobile ? Math.min(unit * 1.35, 15) : unit * 1.2;
         const buttonWidth = Math.min(unit * 30, L.width);
-        const buttonHeight = L.isMobile ? unit * 6 : unit * 5.4;
-        const buttonGap = unit * 1.6;
-        const buttonsH = buttonHeight * 3 + buttonGap * 2;
+        const buttonHeight = L.isMobile ? unit * 5.4 : unit * 5;
+        const buttonGap = unit * 1.4;
+        const buttonsH = buttonHeight * 4 + buttonGap * 3;
+        const statusPx = Math.max(10, unit * 0.95);
+        const statusH = this.purchaseStatus ? statusPx * 1.6 + L.block : 0;
         const subH = subPx * 1.4;
 
-        const blockH = subH + L.section + buttonsH;
+        const blockH = subH + L.section + buttonsH + statusH;
         const available = L.bottom - header.contentTop;
         let y = header.contentTop + Math.max(0, (available - blockH) / 2);
 
@@ -955,6 +967,23 @@ export class Game {
         this.optionsHubButtons.sound = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, 'Sound', { tag: '\u266A' }
         );
+        y += buttonHeight + buttonGap;
+        // Required on iOS (guideline 3.1.1) whenever the app sells non-consumables.
+        this.optionsHubButtons.restore = this.drawBrandButton(
+            bx, y, buttonWidth, buttonHeight, 'Restore Purchases', { tag: '\u21A9' }
+        );
+
+        if (this.purchaseStatus) {
+            y += buttonHeight + L.block;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            setLabelType(ctx, statusPx);
+            ctx.fillStyle = color.ink55;
+            ctx.fillText(this.purchaseStatus.toUpperCase(), L.centerX, y + statusPx * 0.5);
+            resetType(ctx);
+            ctx.restore();
+        }
     }
 
     // Ship picker sub-screen — top-aligned under the header (no vertical
@@ -1009,7 +1038,12 @@ export class Game {
             this.optionsButtons.skins[skin.id] = {
                 x, y: tileY, width: tileW, height: tileH, skinId: skin.id,
             };
-            this.drawShipTile(skin, x, tileY, tileW, tileH, this.shipSkinId === skin.id, time);
+            this.drawShipTile(
+                skin, x, tileY, tileW, tileH,
+                this.shipSkinId === skin.id,
+                time,
+                { locked: !isSkinOwned(skin.id) }
+            );
         });
 
         ctx.save();
@@ -1017,7 +1051,10 @@ export class Game {
         ctx.textBaseline = 'middle';
         setLabelType(ctx, footnotePx);
         ctx.fillStyle = color.ink30;
-        ctx.fillText('SAVED AUTOMATICALLY', L.centerX, footnoteY);
+        const footnote = this.purchaseStatus
+            ? this.purchaseStatus.toUpperCase()
+            : 'SAVED AUTOMATICALLY';
+        ctx.fillText(footnote, L.centerX, footnoteY);
         resetType(ctx);
         ctx.restore();
     }
@@ -1094,8 +1131,10 @@ export class Game {
     }
 
     // One selectable ship card: preview, name, blurb. Selected cards take the
-    // Signal-Blue border plus a corner mark (blue = "active" everywhere else too).
-    drawShipTile(skin, x, y, w, h, selected, time) {
+    // Signal-Blue border plus a corner mark. Locked (premium, unowned) cards
+    // keep a full preview so the player can see what they're buying, with a
+    // price / LOCKED tag instead of the selected mark.
+    drawShipTile(skin, x, y, w, h, selected, time, { locked = false } = {}) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const pad = unit * 1.3;
@@ -1106,7 +1145,7 @@ export class Game {
             stroke: selected ? color.signal : color.ink,
         });
 
-        if (selected) {
+        if (selected && !locked) {
             ctx.save();
             ctx.strokeStyle = color.signal;
             ctx.lineWidth = 2;
@@ -1116,6 +1155,18 @@ export class Game {
             ctx.beginPath();
             ctx.arc(x + w - pad, y + pad, dot, 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
+        }
+
+        if (locked) {
+            ctx.save();
+            setMonoType(ctx, Math.max(9, unit * 0.85));
+            ctx.fillStyle = color.signal;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            const price = getSkinPriceLabel(skin.id);
+            ctx.fillText(price || 'LOCKED', x + w - pad, y + pad);
+            resetType(ctx);
             ctx.restore();
         }
 
@@ -1134,17 +1185,77 @@ export class Game {
             ctx, skin.name.toUpperCase(), innerW, Math.max(11, unit * 1.15), 9,
             (px) => setLabelType(ctx, px)
         );
-        ctx.fillStyle = color.ink;
+        ctx.fillStyle = locked ? color.ink55 : color.ink;
         ctx.fillText(skin.name.toUpperCase(), cx, nameY);
         resetType(ctx);
 
         const blurbPx = Math.max(9.5, unit * 0.95);
         ctx.font = `500 ${blurbPx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
-        wrapLines(ctx, skin.blurb, innerW, 2).forEach((line, i) => {
+        const blurb = locked && isSkinPremium(skin.id)
+            ? 'Tap to unlock.'
+            : skin.blurb;
+        wrapLines(ctx, blurb, innerW, 2).forEach((line, i) => {
             ctx.fillText(line, cx, nameY + namePx * 0.7 + unit * 1.2 + i * blurbPx * 1.35);
         });
         ctx.restore();
+    }
+
+    setPurchaseStatus(message, ms = 3200) {
+        this.purchaseStatus = message;
+        clearTimeout(this._purchaseStatusTimer);
+        if (message && ms > 0) {
+            this._purchaseStatusTimer = setTimeout(() => {
+                if (this.purchaseStatus === message) this.purchaseStatus = null;
+            }, ms);
+        }
+    }
+
+    async handleShipTileClick(skinId) {
+        if (this.purchaseBusy) return;
+
+        if (isSkinOwned(skinId)) {
+            this.shipSkinId = saveShipSkinId(skinId);
+            this.setPurchaseStatus(null, 0);
+            return;
+        }
+
+        this.purchaseBusy = true;
+        this.setPurchaseStatus('Contacting store…', 0);
+        try {
+            const result = await purchaseSkin(skinId);
+            if (result.ok) {
+                this.shipSkinId = saveShipSkinId(skinId);
+                this.setPurchaseStatus('Unlocked.');
+                track('purchase_skin', { skin_id: skinId });
+            } else if (result.cancelled) {
+                this.setPurchaseStatus(null, 0);
+            } else {
+                this.setPurchaseStatus(result.message || 'Purchase unavailable.');
+            }
+        } finally {
+            this.purchaseBusy = false;
+        }
+    }
+
+    async handleRestorePurchases() {
+        if (this.purchaseBusy) return;
+        this.purchaseBusy = true;
+        this.setPurchaseStatus('Restoring…', 0);
+        try {
+            const result = await restorePurchases();
+            if (result.ok) {
+                // If the equipped skin was locked and is now owned, keep it;
+                // otherwise fall back through loadShipSkinId.
+                this.shipSkinId = loadShipSkinId();
+                this.setPurchaseStatus(result.message || 'Restored.');
+                track('restore_purchases', { count: result.count || 0 });
+            } else {
+                this.setPurchaseStatus(result.message || 'Restore unavailable.');
+            }
+        } finally {
+            this.purchaseBusy = false;
+        }
     }
 
     // The one entry point into a run. The profile is built first because the
@@ -1848,6 +1959,10 @@ export class Game {
                     this.appScreen = 'optionsSound';
                     return;
                 }
+                if (this.isClickInButton(x, y, this.optionsHubButtons.restore)) {
+                    await this.handleRestorePurchases();
+                    return;
+                }
                 return;
             }
 
@@ -1859,7 +1974,7 @@ export class Game {
                 for (const skin of SHIP_SKIN_LIST) {
                     const hit = this.optionsButtons.skins?.[skin.id];
                     if (this.isClickInButton(x, y, hit)) {
-                        this.shipSkinId = saveShipSkinId(skin.id);
+                        await this.handleShipTileClick(skin.id);
                         return;
                     }
                 }

@@ -111,6 +111,12 @@ different trail, so you can fly whichever wake you like best:
 | **Flicker** | Teardrop of light trailing one smooth, flowing ribbon. |
 | **Ember** | A sharp swept dart with a notched tail; its wake breaks into loose streaks that stretch out of hard turns. |
 | **Wisp** | The teardrop again, with a thin thread of a wake that sheds drifting sparks. |
+| **Pulse** | Focus's hull with a Signal-Blue dotted wake. *(optional unlock)* |
+| **Quill** | Flicker's tear with a fine Signal-Blue ribbon. *(optional unlock)* |
+
+Pulse and Quill are cosmetics you can unlock in the iOS and Android apps. They
+fly exactly like the free ships. Use **Options → Restore Purchases** if you
+reinstall and your unlocks don't show up.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
 along the path you actually flew.
