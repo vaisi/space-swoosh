@@ -93,7 +93,7 @@ Options opens a short list:
 | Item | Status |
 | --- | --- |
 | **Ship** | Pick one of four ships (saved automatically). |
-| **Controls** | Coming soon — touch schemes for mobile. |
+| **Controls** | How touch steering works (swipe + tap). |
 | **Sound** | Turn music and effects on or off (saved automatically). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
@@ -126,7 +126,7 @@ Pick one under **Options → Ship**. Your choice is remembered.
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
-| Steer left / right (arc) | Left / Right arrow keys | Tap the left / right side |
+| Steer left / right (arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
 | Pause | Spacebar, Escape, or the pause button (top-right) | Pause button (top-right) |
 
 You bank in smooth arcs and bounce off the side walls, so plan your turns a

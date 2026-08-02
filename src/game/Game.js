@@ -380,7 +380,10 @@ export class Game {
             return;
         }
         if (this.appScreen === 'optionsControls') {
-            this.renderOptionsStub('CONTROLS', 'Touch schemes. Coming soon.');
+            this.renderOptionsStub(
+                'CONTROLS',
+                'Swipe left or right to bank. A short tap on either half still works.'
+            );
             return;
         }
         if (this.appScreen === 'optionsSound') {
