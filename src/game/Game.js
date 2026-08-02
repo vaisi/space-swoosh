@@ -2,6 +2,10 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
+//   lock; closeNameInputModal() is shared by the modal close button and Android
+//   hardware back (game/BackNavigation.js). Analytics goes through
+//   services/Analytics.js instead of bare gtag (which threw when blocked).
 // - Clearing a Journey level runs a flyout (game/LevelClearSequence.js) instead of
 //   holding the world for a beat: the sequence owns the `gameover` update/render
 //   branches while `levelClear` is live, and drives `gameOverAlpha` itself. A tap
@@ -61,6 +65,8 @@ import { CollectibleManager } from '../managers/CollectibleManager.js';
 import { StyleSwooshManager } from '../managers/StyleSwooshManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
 import { ScoreService } from '../services/ScoreService.js';
+import { track } from '../services/Analytics.js';
+import { syncKeepAwake } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { color, font } from '../brand/tokens.js';
 import {
@@ -1562,16 +1568,14 @@ export class Game {
             }, TOTAL_LEVELS)),
         };
 
-        if (typeof gtag === 'function') {
-            gtag('event', 'journey_level_end', {
-                'level': descriptor.level,
-                'chapter': descriptor.chapterId,
-                'completed': completed,
-                'stars': result.stars.filter(Boolean).length,
-                'points': this.points,
-                'distance': Math.floor(this.score),
-            });
-        }
+        track('journey_level_end', {
+            'level': descriptor.level,
+            'chapter': descriptor.chapterId,
+            'completed': completed,
+            'stars': result.stars.filter(Boolean).length,
+            'points': this.points,
+            'distance': Math.floor(this.score),
+        });
     }
 
     // Open the map roughly at the level the player is on, rather than at the top
@@ -1659,8 +1663,7 @@ export class Game {
 
             this.endFlavor = pickCopy('crash');
 
-            // Send game over event to Google Analytics
-            gtag('event', 'game_over', {
+            track('game_over', {
                 'score': this.finalScore,
                 'obstacles_destroyed': this.obstaclesDestroyed,
                 'points': this.points,
@@ -1886,14 +1889,7 @@ export class Game {
             // Handle name input modal
             if (this.pendingHighScore?.shouldPromptName) {
                 if (this.isClickInButton(x, y, this.closeButton)) {
-                    // Clean up modal
-                    if (this.nameInput) {
-                        document.body.removeChild(this.nameInput);
-                        this.nameInput = null;
-                    }
-                    this.pendingHighScore = null;
-                    this.scoreSubmitted = false;
-                    this.gameOverScreen = 'main';
+                    this.closeNameInputModal();
                     return;
                 }
                 if (this.submitButton && this.isClickInButton(x, y, this.submitButton) && this.nameInput?.value.trim()) {
@@ -2075,6 +2071,23 @@ export class Game {
                 this.pauseButton.style.opacity = '0';
             }
         }
+
+        // Every screen change and pause toggle funnels through here, which makes
+        // it the one reliable place to tell the native shell whether a run is
+        // on screen and the display must stay awake. No-ops on the web.
+        syncKeepAwake(this);
+    }
+
+    // Tear down the submit-score modal. Shared by its close button and by
+    // hardware back, which must dismiss the same way.
+    closeNameInputModal() {
+        if (this.nameInput) {
+            this.nameInput.remove();
+            this.nameInput = null;
+        }
+        this.pendingHighScore = null;
+        this.scoreSubmitted = false;
+        this.gameOverScreen = 'main';
     }
 
     togglePause() {
@@ -2268,8 +2281,7 @@ export class Game {
                 this.obstaclesDestroyed
             );
             
-            // Send high score submission event to Google Analytics
-            gtag('event', 'submit_highscore', {
+            track('submit_highscore', {
                 'score': this.finalScore,
                 'player_name': name,
                 'obstacles_destroyed': this.obstaclesDestroyed,

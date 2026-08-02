@@ -3,6 +3,16 @@
   "appName": "Space Swoosh",
   "webDir": "dist",
   "backgroundColor": "#e1d9c1",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#e1d9c1",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": false,
+      "splashImmersive": false
+    }
+  },
   "android": {
     "backgroundColor": "#e1d9c1",
     "allowMixedContent": false,

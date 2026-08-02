@@ -18,26 +18,37 @@ There are **two play modes**, chosen from Play:
 | **Journey** | 40 finite levels, each with a distance goal and three stars. | No — progress is local |
 
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
-  Supabase for the online leaderboard, Google Analytics (`gtag`) for events.
+  Capacitor 8 for iOS/Android shells, Supabase for the online leaderboard,
+  Google Analytics (`gtag`) on web only.
 - **Entry:** `index.html` → `src/main.js` → `new Game(GameConfig)` → boots to
-  the **main menu** (`appScreen = 'menu'`).
+  the **main menu** (`appScreen = 'menu'`). On native, `initNative()` then wires
+  hardware back, lifecycle pause, keep-awake, status bar and splash dismissal.
 - **Rendering:** everything is drawn to `#gameCanvas` each frame; there is no DOM
   UI except the pause button and the name-input field.
+- **Native app id:** `gg.orbi.spaceswoosh` (see `capacitor.config.json`).
 
 ## 2. Run / build
 
 ```bash
 npm install
-npm run dev      # Vite dev server (usually http://localhost:5173)
-npm run build    # production build to dist/
-npm run preview  # preview the build
+npm run dev           # Vite dev server (usually http://localhost:5173)
+npm run build         # production build to dist/
+npm run preview       # preview the build
+npm run build:native  # vite build + cap sync (copies dist into android/ + ios/)
+npm run open:android  # open the Android Studio project
+npm run open:ios      # open the Xcode project (macOS / Codemagic)
 ```
+
+Credentials live in `.env` (`VITE_SUPABASE_*`). See `.env.example`.
 
 ## 3. Directory map (`src/`)
 
 | Path | Responsibility |
 | --- | --- |
-| `main.js` | Bootstraps: preloads brand fonts, starts the game (menu). |
+| `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
+| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash. |
+| `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
+| `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
 | `ships/skinDefs.js` | The four skins (Focus / Flicker / Ember / Wisp) composed from hulls + trails. |
