@@ -8,7 +8,7 @@
 //   KM from abs(Δcamera.y) * (100/60).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
-//   CSS pixels via this.width / this.height. Menu stamp is BUILD 21.
+//   CSS pixels via this.width / this.height. Menu stamp is BUILD 22.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -910,8 +910,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 21 · NATIVE'
-            : 'BUILD 21 · WEB';
+            ? 'BUILD 22 · NATIVE'
+            : 'BUILD 22 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;

@@ -3,6 +3,8 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - Snappier turns: shorter arcDuration; camera catch-up tightened so direction
+//   changes don't feel mushy under a lazy follower.
 // - Camera: slightly slower floor cruise than the ship + stronger catch-up so
 //   the follower accelerates when the ship leads high (smooth endless-runner feel).
 // - Dropped the dead `obstacles.types` unlock table. Nothing read it, and it had
@@ -34,7 +36,8 @@ export const GameConfig = {
         radius: 1,
         speed: 0.08,
         arcRadius: 0.2,
-        arcDuration: 800,
+        // Wall-clock ms for a full arc. Shorter = punchier direction changes.
+        arcDuration: 520,
         boostSpeed: 0.03,
         trailDotSize: 0.2,
         trailSpacing: 10
@@ -44,10 +47,10 @@ export const GameConfig = {
         // leads too high; ship speed is separate (spacecraft.speed).
         speed: 0.07,
         // How hard the camera pulls when the ship is off the ideal seat.
-        interpolation: 0.18,
+        interpolation: 0.28,
         deceleration: 2000,
         // Velocity ease — lower = snappier catch-up, higher = lazier.
-        smoothingFactor: 0.88
+        smoothingFactor: 0.78
     },
     obstacles: {
         minSize: 2.5,

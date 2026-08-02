@@ -1,11 +1,9 @@
 // Camera.js
 // Scroll position + world→screen mapping.
 // Changes:
-// - Catch-up camera (the smooth feel): ship and camera are separate. Camera
-//   cruises with the ship, and when the ship rides too high on screen the
-//   camera accelerates until the ship settles back toward the bottom. Uses
-//   `camera.speed` as a floor cruise (it was config-only / unused before).
-// - Still advances with `game.tickScale` so web and native share one pace.
+// - Catch-up camera: ship leads; camera cruises and accelerates when the ship
+//   rides too high. Stronger lag response so turns don't feel mushy.
+// - Advances with `game.tickScale` so web and native share one pace.
 
 export class Camera {
     constructor(game) {
@@ -36,9 +34,10 @@ export class Camera {
         const floorPerTick = this.speed * (1 / 60);
         const matchShip = -Math.max(shipPerTick, floorPerTick);
 
-        // Soft catch-up / ease toward the ideal seat. Positive lag pulls the
-        // camera forward; negative lag eases it so the ship can climb again.
-        const correction = -lag * this.interpolation;
+        // Soft catch-up / ease toward the ideal seat. Extra pull when the ship
+        // is well above ideal (common mid-turn) so direction changes stay crisp.
+        const lagBoost = 1 + Math.max(0, lag) / Math.max(1, this.game.height * 0.22);
+        const correction = -lag * this.interpolation * lagBoost;
         const targetVelocity = (matchShip + correction) * speedFactor;
 
         // Ease velocity — reads as "camera accelerates to catch up", not a snap.

@@ -3,9 +3,8 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **BUILD 21:** catch-up camera — ship leads; camera cruises and accelerates when
-> the ship rides too high so it settles back toward the bottom of the frame.
-> Still one paint update with `tickScale = dt * 120`. KM from `abs(Δcamera.y)`.
+> **BUILD 22:** snappier turns — shorter arcs, milder apex, faster reverse
+> redirect, tighter catch-up camera. KM from `abs(Δcamera.y)`.
 
 ## 1. Overview
 
@@ -410,7 +409,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
 - Native caps canvas DPR at 2× (web at 3×) for WebView fill-rate; mobile layout
-  stays full-bleed (not letterboxed). Menu stamp: `BUILD 21 · NATIVE` / `WEB`.
+  stays full-bleed (not letterboxed). Menu stamp: `BUILD 22 · NATIVE` / `WEB`.
 
 ## 7. Scoring model
 

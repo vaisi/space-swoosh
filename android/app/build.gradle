@@ -1,4 +1,4 @@
-// Updated: default versionCode → 21 (BUILD 21 catch-up camera).
+// Updated: default versionCode → 22 (BUILD 22 snappy turns).
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -17,8 +17,8 @@ android {
         applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "21")
-        versionName System.getenv("VERSION_NAME") ?: "1.0.21"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "22")
+        versionName System.getenv("VERSION_NAME") ?: "1.0.22"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

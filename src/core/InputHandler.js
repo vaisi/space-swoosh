@@ -6,8 +6,9 @@
 // - Mobile: swipe/drag left-right steers. A short tap with no drag still uses
 //   the old half-screen rule, so both muscle memories work. touchstart only
 //   arms the gesture — the arc fires on swipe (touchmove) or tap (touchend).
+// - Lower swipe threshold so direction changes commit sooner.
 
-const SWIPE_PX = 18;       // horizontal travel before a swipe commits
+const SWIPE_PX = 12;       // horizontal travel before a swipe commits
 const TAP_SLOP_PX = 12;    // max movement still counted as a tap
 const VERTICAL_BIAS = 1.15; // |dx| must beat |dy| * this to count as horizontal
 

@@ -1,9 +1,9 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
-// - Forward motion is one smooth step per frame: classic `*(1/60)` scaled by
-//   `game.tickScale` (snappy 120 Hz reference). Same speed as multi-step 120 Hz
-//   catch-up, without the stutter from a varying step count per paint.
+// - Forward motion is one smooth step per frame via `game.tickScale`.
+// - Direction changes: reversing mid-arc uses a shorter redirect duration so
+//   turns don't feel stuck in the sine-arc apex dead zone. Bank eases faster.
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
 //   1; the Journey level-clear flyout ramps it to send the ship off the top.
 // - Forward speed is scaled by `game.profile.speedMultiplier`, which is the dial
@@ -27,7 +27,7 @@ import { SHIELD_BLUE_RGB } from '../utils/DrawUtils.js';
 import { getSkin } from '../ships/skins.js';
 import { MAX_BANK } from '../ships/hulls.js';
 
-const BANK_SMOOTHING = 0.18;
+const BANK_SMOOTHING = 0.34; // snappier hull lean on direction changes
 const MIN_HEADING_SPEED = 0.01;
 const TAIL_OFFSET = 0.6; // multiples of radius, behind the hull centre
 const SHIELD_HITBOX_SCALE = 1.5; // matches the drawn bubble
@@ -129,10 +129,13 @@ export class Spacecraft {
 
         // Handle arc movement if active
         if (this.moveState) {
+            const duration = this.moveState.duration ?? this.arcDuration;
             const elapsed = currentTime - this.moveState.startTime;
-            const progress = Math.min(1, elapsed / this.arcDuration);
-            
-            const angle = (this.moveState.direction === 'left' ? -1 : 1) * Math.PI * progress;
+            const progress = Math.min(1, elapsed / duration);
+            // Slightly less than a full half-turn so the mid-arc lateral stall
+            // is milder (full π parks horizontal speed at zero at the apex).
+            const angle = (this.moveState.direction === 'left' ? -1 : 1)
+                * Math.PI * 0.85 * progress;
             const newX = this.moveState.startX + Math.sin(angle) * this.arcRadius;
             
             // Wall collision check
@@ -148,6 +151,7 @@ export class Spacecraft {
                     startY: this.y,
                     startTime: currentTime,
                     direction: newDirection,
+                    duration: this.arcDuration * 0.7,
                 };
                 
                 this.x = bounceX;
@@ -195,13 +199,20 @@ export class Spacecraft {
 
         // Play turn sound when starting a new movement
         this.game.soundManager.playTurn();
+
+        // Reversing mid-arc: cut the redirect short so the ship doesn't feel
+        // stuck finishing the old turn before it can commit the new one.
+        const reversing = this.moveState
+            && this.moveState.direction
+            && this.moveState.direction !== direction;
         
-        // Always start fresh movement
+        // Always start fresh movement from the current seat
         this.moveState = {
             startX: this.x,
             startY: this.y,
             startTime: performance.now(),
-            direction
+            direction,
+            duration: reversing ? this.arcDuration * 0.55 : this.arcDuration,
         };
         this.game.soundManager.playMove();
     }
