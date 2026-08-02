@@ -2,9 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Native pacing: `tickScale = dt * 60` scales the original per-frame ship/
-//   camera steps so wall-clock speed matches 60 FPS web without rewriting
-//   score units. Native DPR 1×; JS forces a 2:3 playfield. Menu shows build id.
+// - Native pacing: `tickScale = dt * 60` scales per-frame ship/camera steps.
+//   Native DPR restored to 2× (1× made the app look pixelated). JS forces 2:3.
+//   Menu shows a hard-to-miss BUILD stamp so Internal installs can be verified.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 1 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height.
@@ -262,9 +262,9 @@ export class Game {
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
-        // Web can afford 3×. Native: 1× CSS pixels — sharp enough for flat ink,
-        // and the only reliable way to keep the WebView near 60 FPS on phones.
-        const maxDpr = Capacitor.isNativePlatform() ? 1 : 3;
+        // Web 3×; native 2× — 1× looked badly pixelated on phones and did not
+        // fix pacing by itself. tickScale handles low FPS instead.
+        const maxDpr = Capacitor.isNativePlatform() ? 2 : 3;
         const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
         this.width = cssWidth;
@@ -918,18 +918,22 @@ export class Game {
         ctx.fillText(this.menuFlavor || pickCopy('menu'), L.centerX, y + taglinePx * 0.6);
         ctx.restore();
 
-        // Build stamp (bottom) — confirms which AAB is installed vs a stale one.
+        // Build stamp — high contrast so we can verify the Internal AAB.
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        const buildPx = Math.max(9, unit * 0.85);
-        ctx.font = `500 ${buildPx}px ${font.mono}`;
-        ctx.fillStyle = color.ink30;
-        ctx.fillText(
-            Capacitor.isNativePlatform() ? 'BUILD 10 · NATIVE' : 'BUILD 10 · WEB',
-            L.centerX,
-            this.height - L.bottom - buildPx
-        );
+        const buildLabel = Capacitor.isNativePlatform()
+            ? 'BUILD 11 · NATIVE'
+            : 'BUILD 11 · WEB';
+        const buildPx = Math.max(11, unit * 1.05);
+        ctx.font = `700 ${buildPx}px ${font.mono}`;
+        const buildW = ctx.measureText(buildLabel).width + unit * 1.6;
+        const buildH = buildPx * 1.8;
+        const buildY = L.top + buildH * 0.55;
+        ctx.fillStyle = color.ink;
+        ctx.fillRect(L.centerX - buildW / 2, buildY - buildH / 2, buildW, buildH);
+        ctx.fillStyle = color.paper;
+        ctx.fillText(buildLabel, L.centerX, buildY);
         ctx.restore();
 
         y += taglinePx * 1.3 + L.section;
