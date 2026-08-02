@@ -1,9 +1,9 @@
 // Camera.js
 // Scroll position + world→screen mapping.
 // Changes:
-// - Back to the classic per-tick step (`y += velocity` once per sim tick).
-//   Snappy global pacing is owned by Game's 120 Hz catch-up loop, which runs
-//   these ticks at the same rate on web and native.
+// - One smooth step per rendered frame via `game.tickScale` (snappy 120 Hz
+//   reference). Avoids multi-step catch-up stutter while keeping the same
+//   travel-per-second as classic paint-ticks at ~120 Hz.
 
 export class Camera {
     constructor(game) {
@@ -19,16 +19,17 @@ export class Camera {
     }
 
     update(speedFactor = 1) {
+        const tickScale = this.game.tickScale ?? 1;
+
         // Calculate target position based on ship position
         const targetY = this.game.spacecraft.y - this.idealOffset;
 
-        // Use velocity-based smoothing instead of direct interpolation
+        // Velocity is in classic paint-tick units; scale apply + smoothing.
         const targetVelocity = (targetY - this.y) * this.interpolation * speedFactor;
-        this.velocity = this.velocity * this.game.config.camera.smoothingFactor +
-                       targetVelocity * (1 - this.game.config.camera.smoothingFactor);
+        const keep = Math.pow(this.game.config.camera.smoothingFactor, tickScale);
+        this.velocity = this.velocity * keep + targetVelocity * (1 - keep);
 
-        // Apply velocity (one classic paint-tick)
-        this.y += this.velocity;
+        this.y += this.velocity * tickScale;
 
         // Track total distance
         this.totalDistance = Math.abs(this.y);

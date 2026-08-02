@@ -2,14 +2,13 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Snappy global pacing (web + native): fixed 120 Hz sim catch-up. Each step
-//   runs one classic paint-tick of ship/camera (`*(1/60)` / `y += velocity`) —
-//   the feel of BUILD 16 web on a ~120 Hz display — on every device. KM from
-//   abs(Δcamera.y) * (100/60) so HUD stays locked to world travel. No web/native
-//   feel fork.
+// - Snappy + smooth pacing (web + native): one update per paint. `tickScale =
+//   dt * 120` scales classic paint-tick motion to the snappy ~120 Hz reference
+//   without multi-step catch-up (which stuttered / felt saccadic). KM from
+//   abs(Δcamera.y) * (100/60). No web/native feel fork.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
-//   CSS pixels via this.width / this.height. Menu stamp is BUILD 19.
+//   CSS pixels via this.width / this.height. Menu stamp is BUILD 20.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -173,9 +172,10 @@ export class Game {
         this.hasWon = false; // Track if player has won
         this.lastTime = performance.now();
         this.accumulatedTime = 0; // Track time between pauses
-        // Each sim step is one classic paint-tick; obstacles read this.dt.
-        this.dt = 1 / 60;
-        this.simAccumulator = 0;
+        // Snappy reference: classic paint-ticks per second (BUILD 16 web @ ~120Hz).
+        this.snappyHz = 120;
+        this.tickScale = 1; // classic paint-ticks covered this frame
+        this.dt = 1 / 60; // motion dt for obstacle `* dt` paths (= tick/60)
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -311,30 +311,15 @@ export class Game {
             const currentTime = performance.now();
             
             if (!this.isPaused || this.appScreen !== 'playing') {
-                // Snappy target = classic paint-tick physics at 120 Hz on every
-                // device (matches BUILD 16 web on a ~120 Hz monitor).
-                const SNAPPY_HZ = 120;
-                const STEP = 1 / SNAPPY_HZ;
-                const MAX_STEPS = 24; // up to ~200ms catch-up; never wipe the rest
-                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.2);
+                // One update per paint — smooth with the display. tickScale maps
+                // wall time onto the snappy ~120 Hz classic-tick reference.
+                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.05);
                 this.lastTime = currentTime;
-                this.simAccumulator += frameTime;
-
-                let steps = 0;
-                while (this.simAccumulator >= STEP && steps < MAX_STEPS) {
-                    // Integrators use classic *(1/60) per step; dt feeds obstacles.
-                    this.dt = 1 / 60;
-                    this.update(STEP);
-                    this.simAccumulator -= STEP;
-                    steps += 1;
-                }
-                // Soft-cap leftover so a long hitch doesn't spiral, but keep debt.
-                if (this.simAccumulator > STEP * 4) {
-                    this.simAccumulator = STEP * 4;
-                }
+                this.tickScale = frameTime * this.snappyHz;
+                this.dt = (1 / 60) * this.tickScale;
+                this.update(frameTime);
             } else {
                 this.lastTime = currentTime;
-                this.simAccumulator = 0;
             }
             
             this.render();
@@ -343,8 +328,6 @@ export class Game {
     }
 
     update(deltaTime) {
-        // this.dt is the classic paint-tick (1/60) during snappy catch-up;
-        // deltaTime is the wall slice (1/120) for cinematics / clocks.
         const currentTime = performance.now();
 
         if (this.appScreen === 'gameover' && this.isGameOver) {
@@ -371,7 +354,7 @@ export class Game {
             this.camera.update(1);
             this.spacecraft.update();
 
-            // KM from world travel only — locked to camera motion this tick.
+            // KM from world travel only — locked to camera motion this frame.
             this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
 
             this.obstacleManager.update();
@@ -926,8 +909,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 19 · NATIVE'
-            : 'BUILD 19 · WEB';
+            ? 'BUILD 20 · NATIVE'
+            : 'BUILD 20 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;

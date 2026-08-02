@@ -1,9 +1,9 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
-// - Forward motion is one classic paint-tick per sim step: `*(1/60)` and the
-//   0.95/0.05 ease. Snappy feel on every device comes from Game running these
-//   steps at 120 Hz (web + native), not from wall-clock dt here.
+// - Forward motion is one smooth step per frame: classic `*(1/60)` scaled by
+//   `game.tickScale` (snappy 120 Hz reference). Same speed as multi-step 120 Hz
+//   catch-up, without the stutter from a varying step count per paint.
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
 //   1; the Journey level-clear flyout ramps it to send the ship off the top.
 // - Forward speed is scaled by `game.profile.speedMultiplier`, which is the dial
@@ -120,10 +120,12 @@ export class Spacecraft {
             this.pausedTime = 0;
         }
 
-        // Smooth vertical movement — one classic paint-tick per sim step.
+        // Smooth vertical movement — one frame, snappy tickScale (see Game).
+        const tickScale = this.game.tickScale ?? 1;
         const targetVerticalSpeed = this.baseSpeed * this.boost;
-        this.verticalVelocity = this.verticalVelocity * 0.95 + targetVerticalSpeed * 0.05;
-        this.y -= this.verticalVelocity * (1 / 60);
+        const keep = Math.pow(0.95, tickScale);
+        this.verticalVelocity = this.verticalVelocity * keep + targetVerticalSpeed * (1 - keep);
+        this.y -= this.verticalVelocity * (1 / 60) * tickScale;
 
         // Handle arc movement if active
         if (this.moveState) {
@@ -168,8 +170,8 @@ export class Spacecraft {
 
         // Update shield
         if (this.shieldActive) {
-            this.shieldTimer -= (1000 / 60);
-            this.shieldPulse += 0.1;
+            this.shieldTimer -= (1000 / 60) * tickScale;
+            this.shieldPulse += 0.1 * tickScale;
 
             // Start warning animation when shield is about to end (last 1.5 seconds)
             if (this.shieldTimer < 1500 && !this.shieldWarningStarted) {
