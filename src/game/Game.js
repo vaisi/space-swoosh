@@ -3,8 +3,8 @@
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
 // - Native pacing: `tickScale = dt * 60` scales per-frame ship/camera steps.
-//   Native DPR restored to 2× (1× made the app look pixelated). JS forces 2:3.
-//   Menu shows a hard-to-miss BUILD stamp so Internal installs can be verified.
+//   Native DPR 2× (Build 10's 1× looked pixelated). Ship updates before camera.
+//   Menu BUILD stamp verifies Internal installs (Play often lags a version).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 1 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height.
@@ -366,8 +366,10 @@ export class Game {
         }
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
-            this.camera.update(1);
+            // Ship first so the camera follows this frame's movement (matters when
+            // tickScale > 1 on slow native paints).
             this.spacecraft.update();
+            this.camera.update(1);
 
             this.score += Math.abs(this.camera.velocity) * deltaTime * 100;
 
@@ -923,8 +925,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 11 · NATIVE'
-            : 'BUILD 11 · WEB';
+            ? 'BUILD 12 · NATIVE'
+            : 'BUILD 12 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;
