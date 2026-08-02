@@ -1,3 +1,8 @@
+// Camera.js
+// Changes: Apply the per-frame follow step scaled by `game.tickScale` so camera
+// travel stays locked to wall-clock time on low-FPS native WebViews. At 60 FPS
+// tickScale=1 and behaviour matches the original unscaled code.
+
 export class Camera {
     constructor(game) {
         this.game = game;
@@ -14,15 +19,22 @@ export class Camera {
     update(speedFactor = 1) {
         // Calculate target position based on ship position
         const targetY = this.game.spacecraft.y - this.idealOffset;
-        
-        // Use velocity-based smoothing instead of direct interpolation
+        const tick = this.game.tickScale || 1;
+
+        // Same per-frame target as before; easing stretched across `tick` frames.
         const targetVelocity = (targetY - this.y) * this.interpolation * speedFactor;
-        this.velocity = this.velocity * this.game.config.camera.smoothingFactor + 
-                       targetVelocity * (1 - this.game.config.camera.smoothingFactor);
-        
-        // Apply velocity
-        this.y += this.velocity;
-        
+        const smoothKeep = Math.pow(
+            this.game.config.camera.smoothingFactor,
+            tick
+        );
+        this.velocity =
+            this.velocity * smoothKeep +
+            targetVelocity * (1 - smoothKeep);
+
+        // Original code did `y += velocity` once per paint (= once per 1/60s).
+        // Multiply by tick so a slow paint covers the missed 60Hz steps.
+        this.y += this.velocity * tick;
+
         // Track total distance
         this.totalDistance = Math.abs(this.y);
     }
@@ -30,4 +42,4 @@ export class Camera {
     getRelativeY(absoluteY) {
         return absoluteY - this.y;
     }
-} 
+}

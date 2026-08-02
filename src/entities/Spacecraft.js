@@ -1,6 +1,9 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - Forward step and speed easing honour `game.tickScale` (dt*60) so low-FPS
+//   native paints advance the same wall-clock distance as 60 FPS web. Arc timing
+//   stays on performance.now() (already wall-clock).
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
 //   1; the Journey level-clear flyout ramps it to send the ship off the top.
 // - Forward speed is scaled by `game.profile.speedMultiplier`, which is the dial
@@ -119,9 +122,13 @@ export class Spacecraft {
 
         // Smooth vertical movement. The 0.95/0.05 easing means a cinematic boost
         // reads as acceleration rather than a jump, and stretches the wake for free.
+        // tickScale=1 at 60 FPS (unchanged); at 30 FPS it's ~2 so we cover the gap.
+        const tick = this.game.tickScale || 1;
         const targetVerticalSpeed = this.baseSpeed * this.boost;
-        this.verticalVelocity = this.verticalVelocity * 0.95 + targetVerticalSpeed * 0.05;
-        this.y -= this.verticalVelocity * (1/60);
+        const easeKeep = Math.pow(0.95, tick);
+        this.verticalVelocity =
+            this.verticalVelocity * easeKeep + targetVerticalSpeed * (1 - easeKeep);
+        this.y -= this.verticalVelocity * (1 / 60) * tick;
 
         // Handle arc movement if active
         if (this.moveState) {
@@ -166,8 +173,8 @@ export class Spacecraft {
 
         // Update shield
         if (this.shieldActive) {
-            this.shieldTimer -= (1000/60);
-            this.shieldPulse += 0.1;
+            this.shieldTimer -= (1000 / 60) * tick;
+            this.shieldPulse += 0.1 * tick;
 
             // Start warning animation when shield is about to end (last 1.5 seconds)
             if (this.shieldTimer < 1500 && !this.shieldWarningStarted) {

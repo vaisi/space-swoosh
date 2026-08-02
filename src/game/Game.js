@@ -2,9 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Native pacing (no ship/camera math rewrite): fixed 1/60s sim catch-up,
-//   native DPR capped at 1× for WebView fill-rate, and the HTML shell keeps a
-//   2:3 playfield on phones so arcs match desktop tuning.
+// - Native pacing: `tickScale = dt * 60` scales the original per-frame ship/
+//   camera steps so wall-clock speed matches 60 FPS web without rewriting
+//   score units. Native DPR 1×; JS forces a 2:3 playfield. Menu shows build id.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 1 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height.
@@ -170,7 +170,8 @@ export class Game {
         this.hasWon = false; // Track if player has won
         this.lastTime = performance.now();
         this.accumulatedTime = 0; // Track time between pauses
-        this.simAccumulator = 0; // fixed 60 Hz catch-up (native low-FPS)
+        // How many "60Hz frames" this paint represents. 1 on a 60 FPS display.
+        this.tickScale = 1;
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -241,6 +242,23 @@ export class Game {
 
     setupCanvas() {
         const container = this.canvas.parentElement;
+        // Native WebViews sometimes ignore CSS aspect-ratio; pin 2:3 in JS so
+        // the playfield matches the desktop tuning the game was balanced for.
+        if (Capacitor.isNativePlatform() && container) {
+            const maxW = window.innerWidth;
+            const maxH = window.innerHeight;
+            let w = maxW;
+            let h = w * 1.5;
+            if (h > maxH) {
+                h = maxH;
+                w = h * (2 / 3);
+            }
+            container.style.width = `${Math.floor(w)}px`;
+            container.style.height = `${Math.floor(h)}px`;
+            container.style.maxWidth = 'none';
+            container.style.aspectRatio = 'auto';
+        }
+
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
@@ -307,28 +325,17 @@ export class Game {
             const currentTime = performance.now();
             
             if (!this.isPaused || this.appScreen !== 'playing') {
-                // Ship/camera still assume one tick ≈ 1/60s. On a 30 FPS phone,
-                // run two ticks per paint so wall-clock speed matches web @ 60.
-                // Pass dt=1/60 into update so KM (|v_frame| * dt * 100) stays
-                // locked to those same ticks — do not use raw frame dt here.
-                const SIM_STEP = 1 / 60;
-                const MAX_STEPS = 8;
-                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
+                // Cap deltaTime to prevent huge jumps after a stall.
+                const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
+                // Original ship/camera steps assume one paint = 1/60s. Scale them
+                // by dt*60 so a 30 FPS phone advances 2× per paint (same as two
+                // 60Hz ticks). At 60 FPS tickScale=1 → bit-identical to before.
+                this.tickScale = Math.max(0, deltaTime * 60);
+                this.update(deltaTime);
                 this.lastTime = currentTime;
-                this.simAccumulator += frameTime;
-
-                let steps = 0;
-                while (this.simAccumulator >= SIM_STEP && steps < MAX_STEPS) {
-                    this.update(SIM_STEP);
-                    this.simAccumulator -= SIM_STEP;
-                    steps += 1;
-                }
-                if (this.simAccumulator > SIM_STEP * 2) {
-                    this.simAccumulator = 0;
-                }
             } else {
                 this.lastTime = currentTime;
-                this.simAccumulator = 0;
+                this.tickScale = 1;
             }
             
             this.render();
@@ -909,6 +916,20 @@ export class Game {
         ctx.font = `500 ${taglinePx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
         ctx.fillText(this.menuFlavor || pickCopy('menu'), L.centerX, y + taglinePx * 0.6);
+        ctx.restore();
+
+        // Build stamp (bottom) — confirms which AAB is installed vs a stale one.
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const buildPx = Math.max(9, unit * 0.85);
+        ctx.font = `500 ${buildPx}px ${font.mono}`;
+        ctx.fillStyle = color.ink30;
+        ctx.fillText(
+            Capacitor.isNativePlatform() ? 'BUILD 10 · NATIVE' : 'BUILD 10 · WEB',
+            L.centerX,
+            this.height - L.bottom - buildPx
+        );
         ctx.restore();
 
         y += taglinePx * 1.3 + L.section;
