@@ -2,12 +2,11 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Android-only pacing: keep the original per-frame ship/camera/KM math, but
-//   run fixed 1/60s simulation catch-up in gameLoop and cap native DPR at 2×.
-//   Phone WebViews under 60 FPS were advancing one physics tick per paint, so
-//   the ship crawled while KM (wall-clock) raced. Web is unchanged at ~60 FPS.
+// - Native pacing (no ship/camera math rewrite): fixed 1/60s sim catch-up,
+//   native DPR capped at 1× for WebView fill-rate, and the HTML shell keeps a
+//   2:3 playfield on phones so arcs match desktop tuning.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
-//   3 on web / 2 on native) and scales the context so all game math stays in
+//   3 on web / 1 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height.
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -245,9 +244,9 @@ export class Game {
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
-        // Web can afford 3×. Native WebViews on tall phones often can't — a 3×
-        // buffer drops FPS and (with per-frame physics) makes the run feel slow.
-        const maxDpr = Capacitor.isNativePlatform() ? 2 : 3;
+        // Web can afford 3×. Native: 1× CSS pixels — sharp enough for flat ink,
+        // and the only reliable way to keep the WebView near 60 FPS on phones.
+        const maxDpr = Capacitor.isNativePlatform() ? 1 : 3;
         const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
         this.width = cssWidth;
@@ -313,7 +312,7 @@ export class Game {
                 // Pass dt=1/60 into update so KM (|v_frame| * dt * 100) stays
                 // locked to those same ticks — do not use raw frame dt here.
                 const SIM_STEP = 1 / 60;
-                const MAX_STEPS = 5;
+                const MAX_STEPS = 8;
                 const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
                 this.lastTime = currentTime;
                 this.simAccumulator += frameTime;

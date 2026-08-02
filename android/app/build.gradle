@@ -1,4 +1,4 @@
-// Updated: default versionCode → 8 (fixed 60Hz catch-up for native FPS).
+// Updated: default versionCode → 9 (2:3 playfield + native DPR 1×).
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -17,7 +17,7 @@ android {
         applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "8")
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "9")
         versionName System.getenv("VERSION_NAME") ?: "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

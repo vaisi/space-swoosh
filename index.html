@@ -55,10 +55,10 @@
             touch-action: none;
         }
 
-        /* Mobile / packaged app: fill the screen, but keep the drawn surface
-           clear of the notch, the status bar and the home indicator. The body
-           padding is invisible because its background is the same paper the
-           canvas draws, so the ground still reaches every edge. */
+        /* Mobile / packaged app: keep the designed 2:3 playfield (same as
+           desktop). Full-bleed tall phones made width-based arcs feel short
+           vs height-scaled speed. Paper letterboxing fills the unused edges.
+           Safe-area padding keeps HUD clear of notch / home indicator. */
         @media (max-width: 768px) {
             body {
                 box-sizing: border-box;
@@ -69,9 +69,11 @@
                     env(safe-area-inset-left);
             }
             #gameContainer {
-                max-width: 100%;
-                aspect-ratio: auto;
-                height: 100%;
+                width: min(100%, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 2 / 3));
+                max-width: 500px;
+                aspect-ratio: 2/3;
+                height: auto;
+                max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
             }
         }
 
