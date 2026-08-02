@@ -2,11 +2,11 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Pacing fix: ship/camera use real `dt`; KM is derived only from camera Δy
-//   (never from a separate clock). Stops Journey "2km, no rocks" when the HUD
-//   outran world travel. Native DPR 2×; BUILD stamp for install verification.
+// - Web keeps the original per-frame physics path (known-good feel). Native
+//   only: fixed 1/60s sim catch-up in gameLoop + DPR 2× + BUILD stamp. Do not
+//   rewrite ship/camera/KM math for web — that repeatedly broke desktop feel.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
-//   3 on web / 1 on native) and scales the context so all game math stays in
+//   3 on web / 2 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height.
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -170,6 +170,7 @@ export class Game {
         this.hasWon = false; // Track if player has won
         this.lastTime = performance.now();
         this.accumulatedTime = 0; // Track time between pauses
+        this.simAccumulator = 0; // native-only 60 Hz catch-up
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -240,28 +241,10 @@ export class Game {
 
     setupCanvas() {
         const container = this.canvas.parentElement;
-        // Native WebViews sometimes ignore CSS aspect-ratio; pin 2:3 in JS so
-        // the playfield matches the desktop tuning the game was balanced for.
-        if (Capacitor.isNativePlatform() && container) {
-            const maxW = window.innerWidth;
-            const maxH = window.innerHeight;
-            let w = maxW;
-            let h = w * 1.5;
-            if (h > maxH) {
-                h = maxH;
-                w = h * (2 / 3);
-            }
-            container.style.width = `${Math.floor(w)}px`;
-            container.style.height = `${Math.floor(h)}px`;
-            container.style.maxWidth = 'none';
-            container.style.aspectRatio = 'auto';
-        }
-
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
-        // Web 3×; native 2× — 1× looked badly pixelated on phones and did not
-        // fix pacing by itself. tickScale handles low FPS instead.
+        // Web 3×; native 2× (1× looked pixelated and did not fix pacing).
         const maxDpr = Capacitor.isNativePlatform() ? 2 : 3;
         const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
@@ -323,12 +306,32 @@ export class Game {
             const currentTime = performance.now();
             
             if (!this.isPaused || this.appScreen !== 'playing') {
-                // Cap deltaTime to prevent huge jumps after a stall.
-                const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
-                this.update(deltaTime);
+                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
                 this.lastTime = currentTime;
+
+                // Web: exact original path (one update with wall-clock dt).
+                // Native: run N × (1/60) sim steps so low FPS can't starve the
+                // per-frame ship/camera math. Score uses dt=1/60 per step.
+                if (Capacitor.isNativePlatform()) {
+                    const SIM_STEP = 1 / 60;
+                    const MAX_STEPS = 8;
+                    this.simAccumulator += frameTime;
+                    let steps = 0;
+                    while (this.simAccumulator >= SIM_STEP && steps < MAX_STEPS) {
+                        this.update(SIM_STEP);
+                        this.simAccumulator -= SIM_STEP;
+                        steps += 1;
+                    }
+                    if (this.simAccumulator > SIM_STEP * 2) {
+                        this.simAccumulator = 0;
+                    }
+                } else {
+                    this.simAccumulator = 0;
+                    this.update(frameTime);
+                }
             } else {
                 this.lastTime = currentTime;
+                this.simAccumulator = 0;
             }
             
             this.render();
@@ -352,20 +355,17 @@ export class Game {
             
             if (timeSinceGameOver < deceleration) {
                 const slowdownFactor = 1 - (timeSinceGameOver / deceleration);
-                this.camera.update(deltaTime, slowdownFactor);
+                this.camera.update(slowdownFactor);
             }
             this.updateExplosion();
             return;
         }
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
-            const prevCameraY = this.camera.y;
-            this.spacecraft.update(deltaTime);
-            this.camera.update(deltaTime, 1);
+            this.camera.update(1);
+            this.spacecraft.update();
 
-            // KM locked to world travel (1 km ≈ 0.6 world units). Tutorial /
-            // spawns key off camera.totalDistance — they must stay in sync.
-            this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
+            this.score += Math.abs(this.camera.velocity) * deltaTime * 100;
 
             this.obstacleManager.update();
             this.milestoneManager.update();
@@ -914,13 +914,13 @@ export class Game {
         ctx.fillText(this.menuFlavor || pickCopy('menu'), L.centerX, y + taglinePx * 0.6);
         ctx.restore();
 
-        // Build stamp — high contrast so we can verify the Internal AAB.
+        // Install stamp — Play Internal often lags; verify before judging feel.
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 13 · NATIVE'
-            : 'BUILD 13 · WEB';
+            ? 'BUILD 15 · NATIVE'
+            : 'BUILD 15 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;

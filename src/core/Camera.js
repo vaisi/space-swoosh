@@ -1,8 +1,3 @@
-// Camera.js
-// Changes: Integrate in world-units/sec with real `dt`. Paired with score from
-// camera Δy so KM can never outrun the world (Journey tutorial / spawns use
-// camera.totalDistance). At 60 FPS this matches the old per-frame step.
-
 export class Camera {
     constructor(game) {
         this.game = game;
@@ -12,31 +7,27 @@ export class Camera {
         this.speed = game.config.camera.speed * game.height;
         this.interpolation = game.config.camera.interpolation;
         this.idealOffset = game.height * 0.75;
-        /** World-units per second (not per-frame). */
         this.velocity = 0;
         this.shake = { x: 0, y: 0 };
     }
 
-    update(dt = 1 / 60, speedFactor = 1) {
-        const REF_FPS = 60;
+    update(speedFactor = 1) {
+        // Calculate target position based on ship position
         const targetY = this.game.spacecraft.y - this.idealOffset;
-
-        // Old per-frame step was `error * interpolation`. Same step at 60 FPS
-        // equals integrating units/sec = that * 60.
-        const targetVelocity =
-            (targetY - this.y) * this.interpolation * speedFactor * REF_FPS;
-        const smooth = Math.pow(
-            this.game.config.camera.smoothingFactor,
-            dt * REF_FPS
-        );
-        this.velocity =
-            this.velocity * smooth + targetVelocity * (1 - smooth);
-
-        this.y += this.velocity * dt;
+        
+        // Use velocity-based smoothing instead of direct interpolation
+        const targetVelocity = (targetY - this.y) * this.interpolation * speedFactor;
+        this.velocity = this.velocity * this.game.config.camera.smoothingFactor + 
+                       targetVelocity * (1 - this.game.config.camera.smoothingFactor);
+        
+        // Apply velocity
+        this.y += this.velocity;
+        
+        // Track total distance
         this.totalDistance = Math.abs(this.y);
     }
 
     getRelativeY(absoluteY) {
         return absoluteY - this.y;
     }
-}
+} 

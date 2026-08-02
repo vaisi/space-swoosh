@@ -47,9 +47,11 @@ export class LevelClearSequence {
         // The camera tracks the ship, so left alone it would follow the boost and
         // the ship would never leave its screen position. From here the sequence
         // scrolls it by hand, at the speed the run was already travelling.
-        // `camera.velocity` is already world-units/sec from gameplay Camera.update.
-        this.cameraSpeed = game.camera.velocity
-            || -Math.abs(game.spacecraft.verticalVelocity);
+        // `camera.velocity` is a per-frame delta from the normal update path; we
+        // convert it to units/sec so wall-clock integration stays honest.
+        const perFrame = game.camera.velocity
+            || -Math.abs(game.spacecraft.verticalVelocity) / REF_FPS;
+        this.cameraSpeed = perFrame * REF_FPS;
 
         game.obstacleManager.pauseSpawning = true;
         game.obstacleManager.createMotionLines();
