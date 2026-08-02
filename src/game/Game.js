@@ -2,13 +2,13 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Frame-rate independent ship/camera: pass real `deltaTime` into update so
-//   Android WebView FPS under 60 no longer slows travel, shortens turn arcs, or
-//   inflates KM vs distance. Score advances from camera world Δy.
-// - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
-//   3) and scales the context so all game math stays in CSS pixels via
-//   this.width / this.height. Without this, retina phones upscale a 1× buffer
-//   and the ink looks soft / "cheap".
+// - Fixed 60 Hz simulation steps in gameLoop (catch-up) so low Android FPS can't
+//   desync ship speed, turn-arc height, or KM. Ship/camera also take real `dt`.
+// - Native HiDPI capped at 2× (was 3×) — full-bleed phone canvases were too
+//   heavy for the WebView and tanked FPS, which made the old per-frame motion
+//   feel slow. Desktop still allows up to 3×.
+// - HiDPI: setupCanvas renders the backing store at devicePixelRatio and scales
+//   the context so all game math stays in CSS pixels via this.width / height.
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
 //   hardware back (game/BackNavigation.js). Analytics goes through
@@ -62,6 +62,7 @@
 //   (+1) and collecting Signal-Blue sparkles (+10, via CollectibleManager). It
 //   shows in the HUD (with a sparkle glyph) and on the game-over screen.
 
+import { Capacitor } from '@capacitor/core';
 import { Spacecraft } from '../entities/Spacecraft.js';
 import { ObstacleManager } from '../managers/ObstacleManager.js';
 import { Camera } from '../core/Camera.js';
@@ -169,7 +170,8 @@ export class Game {
         this.TOTAL_DISTANCE = 50000; // Total distance to win
         this.hasWon = false; // Track if player has won
         this.lastTime = performance.now();
-        this.accumulatedTime = 0; // Track time between pauses
+        this.accumulatedTime = 0; // unused legacy field
+        this.simAccumulator = 0; // fixed-timestep catch-up (see gameLoop)
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -243,9 +245,10 @@ export class Game {
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
-        // Cap at 3×: Pixel-class phones are ~2.6–3; going past 3 burns fill-rate
-        // for no visible gain on a solid-ink paper aesthetic.
-        const dpr = Math.min(window.devicePixelRatio || 1, 3);
+        // Desktop can afford 3×. Capacitor WebViews on tall phones choke near 3×
+        // (~8–9M pixels) and drop well below 60 FPS — which used to warp gameplay.
+        const maxDpr = Capacitor.isNativePlatform() ? 2 : 3;
+        const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
         this.width = cssWidth;
         this.height = cssHeight;
@@ -305,12 +308,27 @@ export class Game {
             const currentTime = performance.now();
             
             if (!this.isPaused || this.appScreen !== 'playing') {
-                // Cap deltaTime to prevent huge jumps
-                const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
-                this.update(deltaTime);
+                // Fixed 60 Hz sim steps. A 30 FPS phone runs two steps per paint so
+                // travel, arcs, and KM match a 60 FPS desktop. Cap catch-up so a
+                // long stall can't freeze the UI in a death spiral.
+                const SIM_STEP = 1 / 60;
+                const MAX_STEPS = 5;
+                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
                 this.lastTime = currentTime;
+                this.simAccumulator += frameTime;
+
+                let steps = 0;
+                while (this.simAccumulator >= SIM_STEP && steps < MAX_STEPS) {
+                    this.update(SIM_STEP);
+                    this.simAccumulator -= SIM_STEP;
+                    steps += 1;
+                }
+                if (this.simAccumulator > SIM_STEP * 2) {
+                    this.simAccumulator = 0;
+                }
             } else {
                 this.lastTime = currentTime;
+                this.simAccumulator = 0;
             }
             
             this.render();

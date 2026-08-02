@@ -1,4 +1,4 @@
-// Updated: default versionCode → 5 (Play rejects reuse of uploaded codes).
+// Updated: default versionCode → 6 (Play rejects reuse of uploaded codes).
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -17,7 +17,7 @@ android {
         applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "5")
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "6")
         versionName System.getenv("VERSION_NAME") ?: "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
