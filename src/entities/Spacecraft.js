@@ -201,9 +201,10 @@ export class Spacecraft {
     /** Straight diagonal cruise at ±zigzagAngleDeg from straight up. */
     updateZigzag(tickScale) {
         this.moveState = null;
-        const deg = this.game.config.spacecraft.zigzagAngleDeg ?? 37;
+        const cfg = this.game.config.spacecraft;
+        const deg = cfg.zigzagAngleDeg ?? 52;
         const rad = (deg * Math.PI) / 180;
-        const speed = this.baseSpeed * this.boost;
+        const speed = this.baseSpeed * this.boost * (cfg.zigzagSpeedScale ?? 1.45);
         const dist = speed * (1 / 60) * tickScale;
 
         this.x += Math.sin(rad) * this.zigzagSign * dist;
@@ -247,21 +248,12 @@ export class Spacecraft {
         this.game.soundManager.playMove();
     }
 
-    /** Zigzag: set lean from left/right input. No-op if already that way. */
-    setZigzagDirection(direction) {
-        if (this.game.isPaused || !this.isZigzag()) return;
-        const sign = direction === 'left' ? -1 : 1;
-        if (this.zigzagSign === sign) return;
-        this.zigzagSign = sign;
-        this.game.soundManager.playTurn();
-        this.game.soundManager.playMove();
-    }
-
-    startMovement(direction) {
+    startMovement(_direction) {
         if (this.game.isPaused) return;
 
+        // Zigzag: every press/swipe flips — no absolute left/right aim.
         if (this.isZigzag()) {
-            this.setZigzagDirection(direction);
+            this.flipZigzag();
             return;
         }
 

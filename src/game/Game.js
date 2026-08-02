@@ -10,7 +10,7 @@
 //   3 on web / 2 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height. Menu stamp is BUILD 23.
 // - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is a
-//   straight ±37° lean, tap-to-flip try-out alongside classic arcs.
+//   straight ±52° lean (flatter/faster), any tap/key/swipe flips.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -1145,7 +1145,7 @@ export class Game {
         ctx.restore();
     }
 
-    // Controls: pick Arc (classic swoosh) or Zigzag (straight ±37°, tap flips).
+    // Controls: pick Arc (classic swoosh) or Zigzag (straight ±52°, any tap flips).
     renderOptionsControls() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -1193,7 +1193,7 @@ export class Game {
         setLabelType(ctx, footnotePx);
         ctx.fillStyle = color.ink30;
         ctx.fillText(
-            zigzag ? 'TAP FLIPS · STRAIGHT ±37°' : 'CLASSIC SWOOSH ARCS',
+            zigzag ? 'ANY TAP FLIPS · STRAIGHT ±52°' : 'CLASSIC SWOOSH ARCS',
             L.centerX,
             L.bottom - footnotePx / 2
         );

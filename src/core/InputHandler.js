@@ -7,8 +7,8 @@
 //   the old half-screen rule, so both muscle memories work. touchstart only
 //   arms the gesture — the arc fires on swipe (touchmove) or tap (touchend).
 // - Lower swipe threshold so direction changes commit sooner.
-// - Zigzag flight: tap flips lean; swipe/keys set absolute left/right lean.
-//   Same-direction swipe must not re-fire (would chatter-flip).
+// - Zigzag flight: any tap / key / swipe flips lean. Same-direction swipe
+//   must not re-fire (would chatter-flip).
 
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
 
@@ -65,6 +65,8 @@ export class InputHandler {
 
         if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
             e.preventDefault();
+            // Ignore OS key-repeat so zigzag doesn't chatter-flip while held.
+            if (e.repeat) return;
             this.keys[e.code] = true;
 
             if (e.code === 'ArrowLeft') {

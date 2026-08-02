@@ -38,8 +38,10 @@ export const GameConfig = {
         arcRadius: 0.2,
         // Wall-clock ms for a full arc. Shorter = punchier direction changes.
         arcDuration: 520,
-        // Zigzag try-out: degrees from straight up; tap/swipe flips lean.
-        zigzagAngleDeg: 37,
+        // Zigzag try-out: degrees from straight up (higher = flatter lean).
+        zigzagAngleDeg: 52,
+        // Along-path speed vs arc cruise (zigzag wants to feel quicker).
+        zigzagSpeedScale: 1.45,
         boostSpeed: 0.03,
         trailDotSize: 0.2,
         trailSpacing: 10

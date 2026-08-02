@@ -3,8 +3,8 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **BUILD 23:** Zigzag flight try-out (`Options → Controls`) — straight ±37°
-> lean, tap flips; Arc remains default. KM from `abs(Δcamera.y)`.
+> **BUILD 23:** Zigzag flight try-out (`Options → Controls`) — straight ±52°
+> lean at 1.45× speed, any input flips; Arc remains default. KM from `abs(Δcamera.y)`.
 
 ## 1. Overview
 
@@ -411,8 +411,9 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - Native caps canvas DPR at 2× (web at 3×) for WebView fill-rate; mobile layout
   stays full-bleed (not letterboxed). Menu stamp: `BUILD 23 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
-  Zigzag integrates a constant heading at `spacecraft.zigzagAngleDeg` from up;
-  input flips/sets `spacecraft.zigzagSign`. Persisted in localStorage.
+  Zigzag integrates a constant heading at `spacecraft.zigzagAngleDeg` from up
+  at `zigzagSpeedScale` × cruise; any steer input flips `zigzagSign`.
+  Persisted in localStorage.
 
 ## 7. Scoring model
 

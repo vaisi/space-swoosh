@@ -196,8 +196,9 @@ pulses faster right before it runs out — pick your moment.
 Under **Options → Controls** you can pick how the ship steers:
 
 - **Arc** — the classic swoosh turn (default).
-- **Zigzag** — the ship always flies straight at a fixed angle; **tap to flip**
-  the other way (walls bounce you too). No arcs — just a clean zig-zag.
+- **Zigzag** — the ship always flies straight at a flatter fixed angle, a bit
+  faster than Arc; **any tap** (or key / swipe) flips the other way. Walls
+  bounce you too. No arcs — just a clean zig-zag.
 
 ## Tips
 
