@@ -4,6 +4,8 @@
 // - Forward motion is one smooth step per frame via `game.tickScale`.
 // - Direction changes: reversing mid-arc uses a shorter redirect duration so
 //   turns don't feel stuck in the sine-arc apex dead zone. Bank eases faster.
+// - Zigzag flight style: constant straight lean at ±zigzagAngleDeg from up;
+//   input sets/flips lean — no arcs.
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
 //   1; the Journey level-clear flyout ramps it to send the ship off the top.
 // - Forward speed is scaled by `game.profile.speedMultiplier`, which is the dial
@@ -26,6 +28,7 @@
 import { SHIELD_BLUE_RGB } from '../utils/DrawUtils.js';
 import { getSkin } from '../ships/skins.js';
 import { MAX_BANK } from '../ships/hulls.js';
+import { FLIGHT_STYLE } from '../config/flightStyle.js';
 
 const BANK_SMOOTHING = 0.34; // snappier hull lean on direction changes
 const MIN_HEADING_SPEED = 0.01;
@@ -57,6 +60,8 @@ export class Spacecraft {
 
         this.trail = [];
         this.moveState = null;
+        // Zigzag: +1 = lean right, -1 = lean left (straight at zigzagAngleDeg).
+        this.zigzagSign = 1;
         this.verticalSpeed = this.baseSpeed;
         this.isVisible = true;
         this.verticalVelocity = this.baseSpeed;
@@ -86,6 +91,7 @@ export class Spacecraft {
         this.y = this.game.height * 0.85;
         this.trail = [];
         this.moveState = null;
+        this.zigzagSign = 1;
         this.boost = 1;
         this.isVisible = true;
         this.tangent = 0;
@@ -94,6 +100,10 @@ export class Spacecraft {
         this.prevX = this.x;
         this.prevY = this.y;
         this.updateHitCircles();
+    }
+
+    isZigzag() {
+        return this.game.flightStyle === FLIGHT_STYLE.zigzag;
     }
 
     update() {
@@ -120,8 +130,18 @@ export class Spacecraft {
             this.pausedTime = 0;
         }
 
-        // Smooth vertical movement — one frame, snappy tickScale (see Game).
         const tickScale = this.game.tickScale ?? 1;
+
+        if (this.isZigzag()) {
+            this.updateZigzag(tickScale);
+            this.updateHeading(prevX, prevY);
+            this.updateTrail();
+            this.updateShield(tickScale);
+            this.updateHitCircles();
+            return;
+        }
+
+        // Smooth vertical movement — one frame, snappy tickScale (see Game).
         const targetVerticalSpeed = this.baseSpeed * this.boost;
         const keep = Math.pow(0.95, tickScale);
         this.verticalVelocity = this.verticalVelocity * keep + targetVerticalSpeed * (1 - keep);
@@ -171,31 +191,79 @@ export class Spacecraft {
 
         this.updateHeading(prevX, prevY);
         this.updateTrail();
-
-        // Update shield
-        if (this.shieldActive) {
-            this.shieldTimer -= (1000 / 60) * tickScale;
-            this.shieldPulse += 0.1 * tickScale;
-
-            // Start warning animation when shield is about to end (last 1.5 seconds)
-            if (this.shieldTimer < 1500 && !this.shieldWarningStarted) {
-                this.shieldWarningStarted = true;
-                this.shieldPulse = 0; // Reset pulse for warning animation
-            }
-
-            if (this.shieldTimer <= 0) {
-                this.shieldActive = false;
-                this.shieldWarningStarted = false;
-            }
-        }
+        this.updateShield(tickScale);
 
         // Last, so the circles reflect this frame's final position, bank and
         // shield state before ObstacleManager tests them.
         this.updateHitCircles();
     }
 
+    /** Straight diagonal cruise at ±zigzagAngleDeg from straight up. */
+    updateZigzag(tickScale) {
+        this.moveState = null;
+        const deg = this.game.config.spacecraft.zigzagAngleDeg ?? 37;
+        const rad = (deg * Math.PI) / 180;
+        const speed = this.baseSpeed * this.boost;
+        const dist = speed * (1 / 60) * tickScale;
+
+        this.x += Math.sin(rad) * this.zigzagSign * dist;
+        this.y -= Math.cos(rad) * dist;
+        // Camera catch-up keys off verticalVelocity (px/sec-style).
+        this.verticalVelocity = speed * Math.cos(rad);
+
+        // Walls bounce — flip lean and clamp.
+        if (this.x < this.radius) {
+            this.x = this.radius;
+            this.zigzagSign = 1;
+            this.game.soundManager.playTurn();
+        } else if (this.x > this.game.width - this.radius) {
+            this.x = this.game.width - this.radius;
+            this.zigzagSign = -1;
+            this.game.soundManager.playTurn();
+        }
+    }
+
+    updateShield(tickScale) {
+        if (!this.shieldActive) return;
+        this.shieldTimer -= (1000 / 60) * tickScale;
+        this.shieldPulse += 0.1 * tickScale;
+
+        if (this.shieldTimer < 1500 && !this.shieldWarningStarted) {
+            this.shieldWarningStarted = true;
+            this.shieldPulse = 0;
+        }
+
+        if (this.shieldTimer <= 0) {
+            this.shieldActive = false;
+            this.shieldWarningStarted = false;
+        }
+    }
+
+    /** Zigzag: flip lean. Arc mode ignores this. */
+    flipZigzag() {
+        if (this.game.isPaused || !this.isZigzag()) return;
+        this.zigzagSign *= -1;
+        this.game.soundManager.playTurn();
+        this.game.soundManager.playMove();
+    }
+
+    /** Zigzag: set lean from left/right input. No-op if already that way. */
+    setZigzagDirection(direction) {
+        if (this.game.isPaused || !this.isZigzag()) return;
+        const sign = direction === 'left' ? -1 : 1;
+        if (this.zigzagSign === sign) return;
+        this.zigzagSign = sign;
+        this.game.soundManager.playTurn();
+        this.game.soundManager.playMove();
+    }
+
     startMovement(direction) {
         if (this.game.isPaused) return;
+
+        if (this.isZigzag()) {
+            this.setZigzagDirection(direction);
+            return;
+        }
 
         // Play turn sound when starting a new movement
         this.game.soundManager.playTurn();

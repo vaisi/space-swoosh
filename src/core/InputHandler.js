@@ -7,6 +7,10 @@
 //   the old half-screen rule, so both muscle memories work. touchstart only
 //   arms the gesture — the arc fires on swipe (touchmove) or tap (touchend).
 // - Lower swipe threshold so direction changes commit sooner.
+// - Zigzag flight: tap flips lean; swipe/keys set absolute left/right lean.
+//   Same-direction swipe must not re-fire (would chatter-flip).
+
+import { FLIGHT_STYLE } from '../config/flightStyle.js';
 
 const SWIPE_PX = 12;       // horizontal travel before a swipe commits
 const TAP_SLOP_PX = 12;    // max movement still counted as a tap
@@ -119,6 +123,9 @@ export class InputHandler {
             return;
         }
 
+        // Zigzag has no arc end — never re-steer the same lean.
+        if (this.game.flightStyle === FLIGHT_STYLE.zigzag) return;
+
         // Finger held past the end of an arc in the same direction — keep banking.
         if (!this.game.spacecraft?.moveState) {
             this.steer(dir);
@@ -135,12 +142,18 @@ export class InputHandler {
 
         if (!t || !this.game.isPlaying()) return;
 
-        // No swipe committed → classic half-screen tap.
+        // No swipe committed → tap.
         if (gesture.lastDir) return;
 
         const dx = t.clientX - gesture.startX;
         const dy = t.clientY - gesture.startY;
         if (Math.hypot(dx, dy) > TAP_SLOP_PX) return;
+
+        // Zigzag: any tap flips. Arc: classic half-screen left/right.
+        if (this.game.flightStyle === FLIGHT_STYLE.zigzag) {
+            this.game.spacecraft.flipZigzag();
+            return;
+        }
 
         const rect = this.game.canvas.getBoundingClientRect();
         const touchX = t.clientX - rect.left;

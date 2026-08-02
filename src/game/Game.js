@@ -8,7 +8,9 @@
 //   KM from abs(Δcamera.y) * (100/60).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
-//   CSS pixels via this.width / this.height. Menu stamp is BUILD 22.
+//   CSS pixels via this.width / this.height. Menu stamp is BUILD 23.
+// - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is a
+//   straight ±37° lean, tap-to-flip try-out alongside classic arcs.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -135,6 +137,11 @@ import {
 import { LevelClearSequence } from './LevelClearSequence.js';
 import { clamp01 } from '../utils/math.js';
 import { pickCopy, journeyFlavorPool } from '../brand/CopyBank.js';
+import {
+    FLIGHT_STYLE,
+    loadFlightStyle,
+    saveFlightStyle,
+} from '../config/flightStyle.js';
 
 export class Game {
     constructor(config) {
@@ -156,6 +163,7 @@ export class Game {
         this.endFlavor = null; // Open World game-over subtitle
         this.highScoresReturnScreen = 'menu';
         this.shipSkinId = loadShipSkinId();
+        this.flightStyle = loadFlightStyle();
         this.menuButtons = {};
         this.optionsButtons = {};
         this.optionsHubButtons = {};
@@ -405,10 +413,7 @@ export class Game {
             return;
         }
         if (this.appScreen === 'optionsControls') {
-            this.renderOptionsStub(
-                'CONTROLS',
-                'Swipe left or right to bank. A short tap on either half still works.'
-            );
+            this.renderOptionsControls();
             return;
         }
         if (this.appScreen === 'optionsSound') {
@@ -910,8 +915,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 22 · NATIVE'
-            : 'BUILD 22 · WEB';
+            ? 'BUILD 23 · NATIVE'
+            : 'BUILD 23 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;
@@ -1140,27 +1145,64 @@ export class Game {
         ctx.restore();
     }
 
-    // Stub sub-screen for Controls — no fake interactive toggles.
-    renderOptionsStub(title, message) {
+    // Controls: pick Arc (classic swoosh) or Zigzag (straight ±37°, tap flips).
+    renderOptionsControls() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
 
         this.drawScreenFrame();
 
-        const header = this.drawScreenHeader(title, { back: true });
+        const header = this.drawScreenHeader('CONTROLS', { back: true });
         this.optionsButtons = { back: header.backRect };
 
-        const msgPx = L.isMobile ? Math.min(unit * 1.5, 17) : unit * 1.35;
-        const midY = (header.contentTop + L.bottom) / 2;
+        const descPx = L.isMobile ? Math.min(unit * 1.3, 15) : unit * 1.2;
+        const buttonWidth = Math.min(unit * 30, L.width);
+        const buttonHeight = L.isMobile ? unit * 6 : unit * 5.4;
+        const footnotePx = Math.max(9, unit * 0.9);
+        const zigzag = this.flightStyle === FLIGHT_STYLE.zigzag;
+
+        const blockH = descPx * 2.2 + L.section + buttonHeight * 2 + L.block;
+        const available = L.bottom - header.contentTop - footnotePx - L.block;
+        let y = header.contentTop + Math.max(0, (available - blockH) / 2);
 
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = `500 ${msgPx}px ${font.ui}`;
+        ctx.font = `500 ${descPx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
-        ctx.fillText(message, L.centerX, midY);
+        ctx.fillText('How the ship steers.', L.centerX, y + descPx * 0.6);
         ctx.restore();
+
+        y += descPx * 1.6 + L.section;
+
+        this.optionsButtons.flightArc = this.drawBrandButton(
+            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Arc',
+            { primary: !zigzag, tag: zigzag ? '' : 'ON' }
+        );
+        y += buttonHeight + L.block;
+
+        this.optionsButtons.flightZigzag = this.drawBrandButton(
+            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Zigzag',
+            { primary: zigzag, tag: zigzag ? 'ON' : 'TRY' }
+        );
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        setLabelType(ctx, footnotePx);
+        ctx.fillStyle = color.ink30;
+        ctx.fillText(
+            zigzag ? 'TAP FLIPS · STRAIGHT ±37°' : 'CLASSIC SWOOSH ARCS',
+            L.centerX,
+            L.bottom - footnotePx / 2
+        );
+        resetType(ctx);
+        ctx.restore();
+    }
+
+    setFlightStyle(style) {
+        this.flightStyle = saveFlightStyle(style);
     }
 
     // One selectable ship card: preview, name, blurb. Selected cards take the
@@ -2014,8 +2056,18 @@ export class Game {
                 return;
             }
 
-            if ((this.appScreen === 'optionsControls' || this.appScreen === 'optionsSound')
-                && this.optionsButtons) {
+            if (this.appScreen === 'optionsControls' && this.optionsButtons) {
+                if (this.isClickInButton(x, y, this.optionsButtons.back)) {
+                    this.appScreen = 'options';
+                } else if (this.isClickInButton(x, y, this.optionsButtons.flightArc)) {
+                    this.setFlightStyle(FLIGHT_STYLE.arc);
+                } else if (this.isClickInButton(x, y, this.optionsButtons.flightZigzag)) {
+                    this.setFlightStyle(FLIGHT_STYLE.zigzag);
+                }
+                return;
+            }
+
+            if (this.appScreen === 'optionsSound' && this.optionsButtons) {
                 if (this.isClickInButton(x, y, this.optionsButtons.back)) {
                     this.appScreen = 'options';
                 } else if (this.isClickInButton(x, y, this.optionsButtons.sound)) {
