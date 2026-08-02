@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+  privacy.html — Privacy policy for Space Swoosh / orbi.gg.
+  Changes: Created for App Store / Play listing requirements. Hosted at
+  https://orbi.gg/privacy.html (copied into dist/ via Vite public/).
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy — Space Swoosh</title>
+  <style>
+    @font-face {
+      font-family: 'Space Grotesk';
+      font-weight: 300 700;
+      font-display: swap;
+      src: url('/fonts/SpaceGrotesk-latin-var.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Space Mono';
+      font-weight: 400;
+      font-display: swap;
+      src: url('/fonts/SpaceMono-latin-400.woff2') format('woff2');
+    }
+    body {
+      margin: 0;
+      padding: 48px 24px 80px;
+      background: #E1D9C1;
+      color: #1A1A1A;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      line-height: 1.55;
+    }
+    main { max-width: 40rem; margin: 0 auto; }
+    h1 { font-size: 1.75rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    h2 { font-size: 1rem; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2.5rem; }
+    p, li { color: rgba(26,26,26,0.8); }
+    a { color: #0000FF; }
+    .meta { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: rgba(26,26,26,0.55); }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="meta">SPACE SWOOSH · ORBI.GG</p>
+    <h1>Privacy</h1>
+    <p class="meta">Last updated: 2 August 2026</p>
+
+    <p>Space Swoosh (“the game”) is a one-thumb dodge game published at orbi.gg and as native apps for iOS and Android. This page explains what data we collect and why.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>Leaderboard call sign and score.</strong> If you choose to submit a high score, we store the name you enter, your distance, and obstacles destroyed. This is optional.</li>
+      <li><strong>Purchase history.</strong> Optional cosmetic ship unlocks are processed by Apple, Google, and RevenueCat. We receive entitlement status so the app can unlock what you bought — not your full payment card details.</li>
+      <li><strong>Local settings.</strong> Ship choice, sound mute, Journey progress, and owned skins are stored on your device (localStorage / app preferences).</li>
+      <li><strong>Analytics (web only).</strong> The browser version may use Google Analytics to count visits and basic events (for example game over). The native apps do not load that script.</li>
+    </ul>
+
+    <h2>What we do not do</h2>
+    <ul>
+      <li>We do not create accounts or require email login to play.</li>
+      <li>We do not sell your personal information.</li>
+      <li>We do not use your data for cross-app tracking advertising.</li>
+    </ul>
+
+    <h2>Third parties</h2>
+    <ul>
+      <li><a href="https://supabase.com/privacy">Supabase</a> — leaderboard database.</li>
+      <li><a href="https://www.revenuecat.com/privacy">RevenueCat</a> — in-app purchase receipt validation (native apps).</li>
+      <li><a href="https://policies.google.com/privacy">Google Analytics</a> — web analytics only.</li>
+      <li>Apple App Store / Google Play — billing when you unlock a cosmetic ship.</li>
+    </ul>
+
+    <h2>Children</h2>
+    <p>The game is a simple skill game with no chat. Leaderboard names are filtered for obvious abuse. If you believe a name violates our rules, email us.</p>
+
+    <h2>Your choices</h2>
+    <ul>
+      <li>Do not submit a score if you prefer not to share a call sign.</li>
+      <li>Clearing app data / site storage removes local settings and cached unlocks (store purchases can be restored via Options → Restore Purchases).</li>
+      <li>To request deletion of a leaderboard entry that contains your call sign, contact us with the name and approximate score.</li>
+    </ul>
+
+    <h2>Contact</h2>
+    <p><a href="mailto:hello@orbi.gg">hello@orbi.gg</a> · <a href="/support.html">Support</a></p>
+  </main>
+</body>
+</html>

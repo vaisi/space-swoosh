@@ -68,7 +68,7 @@ import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { CollectibleManager } from '../managers/CollectibleManager.js';
 import { StyleSwooshManager } from '../managers/StyleSwooshManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
-import { ScoreService } from '../services/ScoreService.js';
+import { CallSignRejectedError, ScoreService } from '../services/ScoreService.js';
 import { track } from '../services/Analytics.js';
 import {
     getSkinPriceLabel,
@@ -2408,37 +2408,54 @@ export class Game {
             modalX + padding, currentY, inputWidth, buttonHeight, 'Submit', { primary: true, tag: '\u2191' }
         );
         this.submitButton.enabled = this.nameInput && this.nameInput.value.trim().length > 0;
+
+        if (this.submitError) {
+            ctx.save();
+            setLabelType(ctx, 10);
+            ctx.fillStyle = color.signal;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText(this.submitError.toUpperCase(), modalX + padding, currentY + buttonHeight + 18);
+            resetType(ctx);
+            ctx.restore();
+        }
     }
 
     async submitHighScore(name) {
         if (!name.trim()) return;
-        
+        this.submitError = null;
+
         try {
             await ScoreService.saveScore(
                 this.finalScore,
                 name,
                 this.obstaclesDestroyed
             );
-            
+
             track('submit_highscore', {
                 'score': this.finalScore,
                 'player_name': name,
                 'obstacles_destroyed': this.obstaclesDestroyed,
                 'rank': this.currentRank
             });
-            
-            // Clean up
+
             if (this.nameInput) {
-                document.body.removeChild(this.nameInput);
+                this.nameInput.remove();
                 this.nameInput = null;
             }
-            
+
             this.pendingHighScore = null;
             this.scoreSubmitted = true;
             await this.loadHighScores();
             this.gameOverScreen = 'highscores';
         } catch (error) {
             console.error('Error saving score:', error);
+            this.submitError = error instanceof CallSignRejectedError
+                ? error.message
+                : 'Could not submit. Try again.';
+            if (this.nameInput) {
+                this.nameInput.style.borderBottomColor = '#0000FF';
+            }
         }
     }
 

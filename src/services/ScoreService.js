@@ -5,10 +5,13 @@
 //   every network path guards on it. Reads degrade to an empty board; writes and
 //   rank lookups throw a labelled error the callers in Game.js already catch and
 //   render as "unavailable" / rank "?".
+// - Call signs pass through NameFilter before insert (UGC moderation for Apple
+//   1.2). Invalid names throw CallSignRejectedError with a player-facing message.
 // - `formatScore` stays pure — it is called from the HUD every frame and must
 //   never depend on the backend being configured.
 
 import { supabase, isLeaderboardConfigured } from '../config/supabase.js'
+import { validateCallSign } from './NameFilter.js'
 
 const TABLE = 'high_scores';
 
@@ -16,6 +19,13 @@ export class LeaderboardUnavailableError extends Error {
     constructor() {
         super('Leaderboard is not configured for this build.');
         this.name = 'LeaderboardUnavailableError';
+    }
+}
+
+export class CallSignRejectedError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'CallSignRejectedError';
     }
 }
 
@@ -31,6 +41,9 @@ export class ScoreService {
     }
 
     static async saveScore(score, playerName, obstaclesDestroyed) {
+        const check = validateCallSign(playerName);
+        if (!check.ok) throw new CallSignRejectedError(check.message);
+
         const client = ScoreService.requireClient();
 
         try {
@@ -39,7 +52,7 @@ export class ScoreService {
                 .insert([
                     {
                         score: Math.floor(score),
-                        player_name: playerName,
+                        player_name: check.name,
                         obstacles_destroyed: obstaclesDestroyed,
                         created_at: new Date()
                     }
