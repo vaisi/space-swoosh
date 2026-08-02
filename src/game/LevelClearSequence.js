@@ -149,7 +149,7 @@ export class LevelClearSequence {
         camera.y += this.cameraSpeed * cameraFactor * dt;
         camera.totalDistance = Math.abs(camera.y);
 
-        // Obstacles still tick on their fixed 1/60 path — smash VFX only.
+        // Obstacles tick on game.dt (set by Game.update) — smash VFX only.
         obstacleManager.update();
         obstacleManager.updateMotionLines();
         milestoneManager.update();

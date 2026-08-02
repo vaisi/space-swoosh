@@ -154,12 +154,18 @@ Pausing freezes the run and opens a menu showing how far you've got:
 
 Top-left, you'll see:
 
-- **KM** — how far you've flown (your distance score).
+- **KM** — how far you've flown (your distance score). It tracks the ship's
+  actual travel through the world, so the number stays honest on phone and
+  desktop alike.
 - **DESTROYED** — how many asteroids you've broken apart.
 - **★ POINTS** — your reward points (see below).
 
 In Journey the readout is led by **LEVEL n** and the KM figure gets a **goal
 bar** underneath, filling as you close on the level's target distance.
+
+On phones the game fills the whole screen. Turn arcs and cruise speed are meant
+to feel the same as on a computer — if a build ever feels half-speed with KM
+racing ahead, that build is wrong; report the menu stamp (e.g. `BUILD 17 · NATIVE`).
 
 ## Points
 

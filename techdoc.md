@@ -2,6 +2,9 @@
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
+>
+> **BUILD 17:** ship / camera / obstacles share `game.dt`; KM is `abs(Δcamera.y) *
+> (100/60)` so phone WebView FPS can never desync HUD distance from the world.
 
 ## 1. Overview
 
@@ -183,6 +186,8 @@ Two things worth knowing about the existing engine that this surfaced:
 
 - **`Camera.speed` is vestigial.** `Camera.update()` derives its velocity from
   the ship's position, so pace is scaled on `Spacecraft.baseSpeed` instead.
+  KM must never be computed as `|velocity| * wallClockDt * 100` — that desyncs
+  HUD distance from world travel when paint rate ≠ 60 FPS.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
   (`ObstacleManager.countAhead()`), because the full list also holds everything
   already passed. Open World's profile returns `Infinity`: the old `length < 7`
@@ -391,10 +396,19 @@ with a linear gradient along the wake's chord for the length-wise fade.
 
 - `gameLoop()` runs on `requestAnimationFrame`, skips work when the tab is hidden,
   and freezes gameplay updates while paused **during** `playing`.
+- **One pacing path for web and native.** Each visible tick clamps wall-clock
+  `frameTime` to ≤ 50 ms, sets `game.dt`, and calls `update(dt)` once. There is
+  no native-only fixed-timestep catch-up fork.
+- Ship, camera, and obstacle/projectile/particle motion integrate with `game.dt`
+  (constants calibrated so `dt = 1/60` matches the original 60 FPS feel). Camera
+  velocity is still stored in “pixels per 1/60s tick” units and applied as
+  `y += velocity * (dt * 60)`.
 - The world scrolls: entities store an absolute `y`; `camera.getRelativeY(y)`
   converts to on-screen Y for rendering and off-screen culling.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
+- Native caps canvas DPR at 2× (web at 3×) for WebView fill-rate; mobile layout
+  stays full-bleed (not letterboxed). Menu stamp: `BUILD 17 · NATIVE` / `WEB`.
 
 ## 7. Scoring model
 
@@ -402,7 +416,7 @@ There are **three independent metrics** on the `Game` instance:
 
 | Field | Meaning | Source | Where shown |
 | --- | --- | --- | --- |
-| `score` | Distance in "KM" | `+= |camera.velocity| * dt * 100`; also `+10` per shield-destroyed asteroid | HUD, end screen, leaderboard (`distance` tab) |
+| `score` | Distance in "KM" | `+= abs(Δcamera.y) * (100/60)` after each camera step (locked to world travel); also `+10` per shield-destroyed asteroid | HUD, end screen, leaderboard (`distance` tab) |
 | `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD, end screen, leaderboard (`obstacles` tab), Journey's third star vs `smashTarget` |
 | `points` | **Reward points** | `+perAsteroid` destroy, `+perCollectible` sparkle, `+perSwoosh` near-miss style | HUD, end screen, Journey's second star |
 

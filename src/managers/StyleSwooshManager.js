@@ -2,6 +2,7 @@
 // Awards "style" points when the ship threads a very narrow gap between two
 // obstacles (a near-miss swoosh past both), with Signal-Blue screen feedback.
 // Changes:
+// - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
 // - Popup alpha multiplies into the caller's `globalAlpha` instead of replacing
 //   it, so popups fade with the world during the level-clear flyout.
 // - Created file: pair near-miss detection, style points, swoosh VFX + popup.
@@ -192,11 +193,13 @@ export class StyleSwooshManager {
             })
             .filter(e => e.life > 0);
 
+        const dt = this.game.dt ?? (1 / 60);
+        const tickScale = dt * 60;
         this.popups = this.popups
             .map(p => ({
                 ...p,
-                y: p.y + p.vy * (1 / 60),
-                opacity: p.opacity - 0.018,
+                y: p.y + p.vy * dt,
+                opacity: p.opacity - 0.018 * tickScale,
             }))
             .filter(p => p.opacity > 0);
 

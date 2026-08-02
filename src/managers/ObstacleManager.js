@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Obstacle / projectile / particle motion uses `game.dt` (not hardcoded 1/60)
+//   so movers stay locked to the ship on any refresh rate.
 // - Every difficulty dial now comes from `game.profile` (see modes/RunProfile.js)
 //   instead of being read off `game.score` here: density, the on-screen cap, row
 //   spacing, cluster size, the set-piece/plain mix and which types may spawn at
@@ -408,7 +410,8 @@ class PulsatingAsteroid extends BaseObstacle {
 
     update() {
         super.update();
-        this.currentSize += this.growthRate * (1/60);
+        const dt = this.game.dt ?? (1 / 60);
+        this.currentSize += this.growthRate * dt;
         if (this.currentSize > this.maxSize) {
             this.currentSize = this.baseSize;
         }
@@ -481,7 +484,8 @@ class MovingAsteroid extends BaseObstacle {
 
     update() {
         super.update();
-        this.x += this.speed * this.direction * (1/60);
+        const dt = this.game.dt ?? (1 / 60);
+        this.x += this.speed * this.direction * dt;
         
         // Reverse direction at boundaries
         if (Math.abs(this.x - this.originalX) > this.amplitude) {
@@ -598,10 +602,11 @@ class ShootingAsteroid extends BaseObstacle {
         }
 
         // Update projectiles
+        const dt = this.game.dt ?? (1 / 60);
         this.projectiles = this.projectiles.map(p => ({
             ...p,
-            x: p.x + p.vx * (1/60),
-            y: p.y + p.vy * (1/60)
+            x: p.x + p.vx * dt,
+            y: p.y + p.vy * dt
         })).filter(p => {
             const relativeY = this.game.camera.getRelativeY(p.y);
             return relativeY > -this.size && relativeY < this.game.height + this.size;
@@ -624,8 +629,9 @@ class CometObstacle extends BaseObstacle {
 
     update() {
         super.update();
+        const dt = this.game.dt ?? (1 / 60);
         // Move comet
-        this.x += this.speed * this.direction * (1/60);
+        this.x += this.speed * this.direction * dt;
         
         // Add trail particles
         this.trailParticles.push({
@@ -636,11 +642,12 @@ class CometObstacle extends BaseObstacle {
         });
         
         // Update trail
+        const tickScale = dt * 60;
         this.trailParticles = this.trailParticles
             .map(p => ({
                 ...p,
-                opacity: p.opacity - 0.05,
-                size: p.size * 0.95
+                opacity: p.opacity - 0.05 * tickScale,
+                size: p.size * Math.pow(0.95, tickScale)
             }))
             .filter(p => p.opacity > 0);
         
@@ -1162,13 +1169,15 @@ export class ObstacleManager {
         );
 
         // Update destruction particles
+        const dt = this.game.dt ?? (1 / 60);
+        const tickScale = dt * 60;
         this.destructionParticles = this.destructionParticles
             .map(particle => ({
                 ...particle,
-                x: particle.x + particle.vx * (1/60),
-                y: particle.y + particle.vy * (1/60),
-                opacity: particle.opacity - 0.02,
-                size: particle.size * 0.98
+                x: particle.x + particle.vx * dt,
+                y: particle.y + particle.vy * dt,
+                opacity: particle.opacity - 0.02 * tickScale,
+                size: particle.size * Math.pow(0.98, tickScale)
             }))
             .filter(particle => particle.opacity > 0);
 

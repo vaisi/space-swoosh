@@ -1,6 +1,9 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - Forward motion and shield countdown integrate with real `game.dt` so travel
+//   per second matches the original 60 FPS feel on any refresh rate. Vertical
+//   velocity easing uses Math.pow(0.95, tickScale) (identical at dt=1/60).
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
 //   1; the Journey level-clear flyout ramps it to send the ship off the top.
 // - Forward speed is scaled by `game.profile.speedMultiplier`, which is the dial
@@ -117,11 +120,14 @@ export class Spacecraft {
             this.pausedTime = 0;
         }
 
-        // Smooth vertical movement. The 0.95/0.05 easing means a cinematic boost
-        // reads as acceleration rather than a jump, and stretches the wake for free.
+        // Smooth vertical movement. Real dt: at 60 FPS this matches the old
+        // 0.95/0.05 ease and `* (1/60)` step exactly.
+        const dt = this.game.dt ?? (1 / 60);
+        const tickScale = dt * 60;
         const targetVerticalSpeed = this.baseSpeed * this.boost;
-        this.verticalVelocity = this.verticalVelocity * 0.95 + targetVerticalSpeed * 0.05;
-        this.y -= this.verticalVelocity * (1/60);
+        const keep = Math.pow(0.95, tickScale);
+        this.verticalVelocity = this.verticalVelocity * keep + targetVerticalSpeed * (1 - keep);
+        this.y -= this.verticalVelocity * dt;
 
         // Handle arc movement if active
         if (this.moveState) {
@@ -164,10 +170,10 @@ export class Spacecraft {
         this.updateHeading(prevX, prevY);
         this.updateTrail();
 
-        // Update shield
+        // Update shield (timer is ms; pulse is visual only)
         if (this.shieldActive) {
-            this.shieldTimer -= (1000/60);
-            this.shieldPulse += 0.1;
+            this.shieldTimer -= dt * 1000;
+            this.shieldPulse += 0.1 * tickScale;
 
             // Start warning animation when shield is about to end (last 1.5 seconds)
             if (this.shieldTimer < 1500 && !this.shieldWarningStarted) {

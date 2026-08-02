@@ -3,6 +3,7 @@
 // gameplay, updates them, and awards points on pickup with a floating "+N"
 // popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
+// - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
 // - The distance sparkles start appearing at now comes from `game.profile`, so a
 //   short Journey level isn't half over before the first one shows up.
 // - Collect now plays SoundManager.playCollect() (sparkle chime) instead of the
@@ -53,8 +54,14 @@ export class CollectibleManager {
         });
 
         // Float popups upward and fade them out.
+        const dt = this.game.dt ?? (1 / 60);
+        const tickScale = dt * 60;
         this.popups = this.popups
-            .map(p => ({ ...p, y: p.y + p.vy * (1 / 60), opacity: p.opacity - 0.02 }))
+            .map(p => ({
+                ...p,
+                y: p.y + p.vy * dt,
+                opacity: p.opacity - 0.02 * tickScale,
+            }))
             .filter(p => p.opacity > 0);
     }
 

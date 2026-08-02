@@ -2,12 +2,13 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Web keeps the original per-frame physics path (known-good feel). Native
-//   only: fixed 1/60s sim catch-up in gameLoop + DPR 2× + BUILD stamp. Do not
-//   rewrite ship/camera/KM math for web — that repeatedly broke desktop feel.
+// - Single pacing model for web + native: clamp wall-clock `dt` (cap 50ms),
+//   set `this.dt`, integrate ship/camera/obstacles with real time, and score KM
+//   from camera world travel: abs(Δy) * (100/60). No native-only catch-up fork.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
-//   CSS pixels via this.width / this.height.
+//   CSS pixels via this.width / this.height. Menu stamp is BUILD 17.
+
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
 //   hardware back (game/BackNavigation.js). Analytics goes through
@@ -170,7 +171,7 @@ export class Game {
         this.hasWon = false; // Track if player has won
         this.lastTime = performance.now();
         this.accumulatedTime = 0; // Track time between pauses
-        this.simAccumulator = 0; // native-only 60 Hz catch-up
+        this.dt = 1 / 60; // seconds; set each gameLoop tick for integrators
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -306,32 +307,13 @@ export class Game {
             const currentTime = performance.now();
             
             if (!this.isPaused || this.appScreen !== 'playing') {
-                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
+                // One path for web + native. Cap hits so a hitch can't teleport.
+                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.05);
                 this.lastTime = currentTime;
-
-                // Web: exact original path (one update with wall-clock dt).
-                // Native: run N × (1/60) sim steps so low FPS can't starve the
-                // per-frame ship/camera math. Score uses dt=1/60 per step.
-                if (Capacitor.isNativePlatform()) {
-                    const SIM_STEP = 1 / 60;
-                    const MAX_STEPS = 8;
-                    this.simAccumulator += frameTime;
-                    let steps = 0;
-                    while (this.simAccumulator >= SIM_STEP && steps < MAX_STEPS) {
-                        this.update(SIM_STEP);
-                        this.simAccumulator -= SIM_STEP;
-                        steps += 1;
-                    }
-                    if (this.simAccumulator > SIM_STEP * 2) {
-                        this.simAccumulator = 0;
-                    }
-                } else {
-                    this.simAccumulator = 0;
-                    this.update(frameTime);
-                }
+                this.dt = frameTime;
+                this.update(frameTime);
             } else {
                 this.lastTime = currentTime;
-                this.simAccumulator = 0;
             }
             
             this.render();
@@ -340,6 +322,7 @@ export class Game {
     }
 
     update(deltaTime) {
+        this.dt = deltaTime;
         const currentTime = performance.now();
 
         if (this.appScreen === 'gameover' && this.isGameOver) {
@@ -362,10 +345,14 @@ export class Game {
         }
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
+            const prevCameraY = this.camera.y;
             this.camera.update(1);
             this.spacecraft.update();
 
-            this.score += Math.abs(this.camera.velocity) * deltaTime * 100;
+            // KM from world travel only — never velocity * wall-clock (desync).
+            // At 60 FPS: Δy ≈ velocity_tick, score += |Δy| * (100/60) matches
+            // the old |velocity| * (1/60) * 100 formula.
+            this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
 
             this.obstacleManager.update();
             this.milestoneManager.update();
@@ -919,8 +906,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 16 · NATIVE'
-            : 'BUILD 16 · WEB';
+            ? 'BUILD 17 · NATIVE'
+            : 'BUILD 17 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;
