@@ -919,8 +919,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 15 · NATIVE'
-            : 'BUILD 15 · WEB';
+            ? 'BUILD 16 · NATIVE'
+            : 'BUILD 16 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;
