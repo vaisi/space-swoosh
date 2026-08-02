@@ -19,7 +19,7 @@ workflows:
         # Capacitor 8 uses SPM (CapApp-SPM), so there is no .xcworkspace.
         XCODE_PROJECT: ios/App/App.xcodeproj
         XCODE_SCHEME: App
-        BUNDLE_ID: gg.orbi.spaceswoosh
+        BUNDLE_ID: com.orbi.spaceswoosh
         APP_STORE_APPLE_ID: $APP_STORE_APPLE_ID
       node: 22.13.0
       xcode: latest
@@ -81,7 +81,7 @@ workflows:
       groups:
         - spaceswoosh
       vars:
-        PACKAGE_NAME: gg.orbi.spaceswoosh
+        PACKAGE_NAME: com.orbi.spaceswoosh
       node: 22.13.0
       java: 17
     triggering:

@@ -3,6 +3,7 @@
   Changes:
   - Created: store / RevenueCat setup checklist for the Pulse and Quill
     premium ship skins. Fill in dashboard products before sandbox testing.
+  - App / product IDs renamed gg.orbi.spaceswoosh → com.orbi.spaceswoosh.
 -->
 
 # In-app purchases — Space Swoosh
@@ -14,8 +15,8 @@ Cosmetic ship skins only. No gameplay paywall. The four free ships
 
 | Skin | Store product ID | RevenueCat entitlement |
 | --- | --- | --- |
-| Pulse | `gg.orbi.spaceswoosh.skin.pulse` | `skin_pulse` |
-| Quill | `gg.orbi.spaceswoosh.skin.quill` | `skin_quill` |
+| Pulse | `com.orbi.spaceswoosh.skin.pulse` | `skin_pulse` |
+| Quill | `com.orbi.spaceswoosh.skin.quill` | `skin_quill` |
 
 Type: **non-consumable** on both App Store Connect and Google Play Console.
 
@@ -24,8 +25,8 @@ Suggested price tier: the cheapest meaningful cosmetic tier in your market
 
 ## RevenueCat
 
-1. Create a project, add iOS app (`gg.orbi.spaceswoosh`) and Android app
-   (`gg.orbi.spaceswoosh`).
+1. Create a project, add iOS app (`com.orbi.spaceswoosh`) and Android app
+   (`com.orbi.spaceswoosh`).
 2. Copy the **public** SDK keys into `.env`:
 
 ```

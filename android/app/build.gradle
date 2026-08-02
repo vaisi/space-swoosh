@@ -10,10 +10,10 @@ def keyPassword = System.getenv("CM_KEY_PASSWORD") ?: System.getenv("KEY_PASSWOR
 def hasReleaseKeystore = keystorePath != null && file(keystorePath).exists()
 
 android {
-    namespace = "gg.orbi.spaceswoosh"
+    namespace = "com.orbi.spaceswoosh"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "gg.orbi.spaceswoosh"
+        applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")

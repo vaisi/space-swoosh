@@ -15,6 +15,7 @@
 // - Added two premium skins (Pulse, Quill): Signal-Blue wakes, same physics.
 //   Each carries `productId` + `entitlementId` for RevenueCat; the four
 //   originals stay free (no productId).
+// - Product IDs renamed to com.orbi.spaceswoosh.skin.* (app id gg→com).
 // - Shaped hulls rotate with `ship.bank` and lean/stretch into turns.
 // - Replaced the old ~3-4 Hz hull strobe with two slow layered sines so the
 //   light breathes instead of flickering.
@@ -165,7 +166,7 @@ const pulse = {
     name: 'Pulse',
     blurb: 'Signal wake. Instrumental, lit.',
     hitbox: CIRCLE_HITBOX,
-    productId: 'gg.orbi.spaceswoosh.skin.pulse',
+    productId: 'com.orbi.spaceswoosh.skin.pulse',
     entitlementId: 'skin_pulse',
 
     drawHull(ctx, ship, screenY) {
@@ -183,7 +184,7 @@ const quill = {
     name: 'Quill',
     blurb: 'A fine blue line of travel.',
     hitbox: TEAR_HITBOX,
-    productId: 'gg.orbi.spaceswoosh.skin.quill',
+    productId: 'com.orbi.spaceswoosh.skin.quill',
     entitlementId: 'skin_quill',
 
     drawHull: drawTearHull,

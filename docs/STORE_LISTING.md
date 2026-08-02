@@ -12,7 +12,7 @@
 | --- | --- |
 | Name | Space Swoosh |
 | Subtitle / short | One-thumb space dodge on paper |
-| Bundle / package | `gg.orbi.spaceswoosh` |
+| Bundle / package | `com.orbi.spaceswoosh` |
 | Category | Games → Action (or Arcade) |
 | Privacy | https://orbi.gg/privacy.html |
 | Support | https://orbi.gg/support.html |

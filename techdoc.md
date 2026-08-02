@@ -25,7 +25,7 @@ There are **two play modes**, chosen from Play:
   hardware back, lifecycle pause, keep-awake, status bar and splash dismissal.
 - **Rendering:** everything is drawn to `#gameCanvas` each frame; there is no DOM
   UI except the pause button and the name-input field.
-- **Native app id:** `gg.orbi.spaceswoosh` (see `capacitor.config.json`).
+- **Native app id:** `com.orbi.spaceswoosh` (see `capacitor.config.json`).
 
 ## 2. Run / build
 

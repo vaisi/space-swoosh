@@ -38,7 +38,7 @@ Team settings → Environment variables → group **spaceswoosh**. Mark secrets 
 2. Create a key with **App Manager** access; download the `.p8` once.
 3. In Codemagic → Teams → Integrations → Developer Portal → add the key.
 4. Name the integration **SpaceSwoosh** (matches `codemagic.yaml`).
-5. Create the iOS app record with bundle id `gg.orbi.spaceswoosh` if it does not exist yet, then put its numeric Apple ID into `APP_STORE_APPLE_ID`.
+5. Create the iOS app record with bundle id `com.orbi.spaceswoosh` if it does not exist yet, then put its numeric Apple ID into `APP_STORE_APPLE_ID`.
 
 ## 4. Android upload keystore (generate once, back up forever)
 
@@ -63,7 +63,7 @@ Paste into `CM_KEYSTORE`. Set the three password/alias variables to match.
 1. Play Console → Setup → API access → create/link a Cloud project.
 2. Create a service account with **Release to production, exclude devices, and use Play App Signing** (or at least release to testing tracks).
 3. Download JSON → paste entire contents into `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`.
-4. Create the app with package `gg.orbi.spaceswoosh` and complete the first store listing draft so the internal track exists.
+4. Create the app with package `com.orbi.spaceswoosh` and complete the first store listing draft so the internal track exists.
 
 ## 6. First builds
 
