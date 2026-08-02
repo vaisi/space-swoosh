@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "assets:generate": "node scripts/generate-brand-assets.mjs",
+    "assets:iap": "node scripts/generate-iap-icons.mjs",
     "assets:sync": "npm run assets:generate && capacitor-assets generate --iconBackgroundColor \"#E1D9C1\" --iconBackgroundColorDark \"#1A1A1A\" --splashBackgroundColor \"#E1D9C1\" --splashBackgroundColorDark \"#1A1A1A\"",
     "build:native": "vite build && cap sync",
     "sync": "cap sync",

@@ -26,6 +26,7 @@ There are **two play modes**, chosen from Play:
 - **Rendering:** everything is drawn to `#gameCanvas` each frame; there is no DOM
   UI except the pause button and the name-input field.
 - **Native app id:** `com.orbi.spaceswoosh` (see `capacitor.config.json`).
+- **Site / privacy:** `https://spaceswoosh.app` (GitHub Pages custom domain; see `public/CNAME`).
 
 ## 2. Run / build
 

@@ -63,6 +63,6 @@ export function validateCallSign(raw) {
     return { ok: true, name };
 }
 
-export const SUPPORT_EMAIL = 'hello@orbi.gg';
-export const PRIVACY_URL = 'https://orbi.gg/privacy.html';
-export const SUPPORT_URL = 'https://orbi.gg/support.html';
+export const SUPPORT_EMAIL = 'heregoesvlad@protonmail.com';
+export const PRIVACY_URL = 'https://spaceswoosh.app/privacy.html';
+export const SUPPORT_URL = 'https://spaceswoosh.app/support.html';

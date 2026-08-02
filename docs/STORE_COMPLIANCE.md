@@ -10,9 +10,9 @@
 
 | Field | URL |
 | --- | --- |
-| Privacy policy | https://orbi.gg/privacy.html |
-| Support | https://orbi.gg/support.html |
-| Support email | hello@orbi.gg |
+| Privacy policy | https://spaceswoosh.app/privacy.html |
+| Support | https://spaceswoosh.app/support.html |
+| Support email | heregoesvlad@protonmail.com |
 
 ## Supabase
 

@@ -14,8 +14,8 @@
 | Subtitle / short | One-thumb space dodge on paper |
 | Bundle / package | `com.orbi.spaceswoosh` |
 | Category | Games → Action (or Arcade) |
-| Privacy | https://orbi.gg/privacy.html |
-| Support | https://orbi.gg/support.html |
+| Privacy | https://spaceswoosh.app/privacy.html |
+| Support | https://spaceswoosh.app/support.html |
 
 ## Short description (Play, ≤80 chars)
 
