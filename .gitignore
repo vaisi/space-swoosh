@@ -28,6 +28,8 @@ dist/
 key.properties
 google-services.json
 GoogleService-Info.plist
+signing/
+*.base64.txt
 
 # --- Capacitor: generated web assets inside the native projects --------------
 ios/App/App/public/

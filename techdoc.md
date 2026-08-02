@@ -39,7 +39,9 @@ npm run open:android  # open the Android Studio project
 npm run open:ios      # open the Xcode project (macOS / Codemagic)
 ```
 
-Credentials live in `.env` (`VITE_SUPABASE_*`). See `.env.example`.
+Credentials live in `.env` (`VITE_SUPABASE_*`, `VITE_REVENUECAT_*`). See `.env.example`.
+
+Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md). Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
 
 ## 3. Directory map (`src/`)
 
