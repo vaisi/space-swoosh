@@ -3,9 +3,9 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **BUILD 20:** snappy + smooth — one update per paint; `tickScale = dt * 120`
-> scales classic paint-tick motion to the snappy reference without multi-step
-> catch-up stutter. KM is `abs(Δcamera.y) * (100/60)`.
+> **BUILD 21:** catch-up camera — ship leads; camera cruises and accelerates when
+> the ship rides too high so it settles back toward the bottom of the frame.
+> Still one paint update with `tickScale = dt * 120`. KM from `abs(Δcamera.y)`.
 
 ## 1. Overview
 
@@ -185,10 +185,12 @@ privately — and which had already drifted from the dead copy in `GameConfig`.
 
 Two things worth knowing about the existing engine that this surfaced:
 
-- **`Camera.speed` is vestigial.** `Camera.update()` derives its velocity from
-  the ship's position, so pace is scaled on `Spacecraft.baseSpeed` instead.
+- **Catch-up camera.** Ship and camera are separate: camera matches ship travel
+  (with `camera.speed` as a floor), then corrects when the ship is above its
+  ideal seat (`height * 0.75`) so it accelerates back until the ship sits lower
+  on screen. Ship updates before camera each frame.
   KM must never be computed as `|velocity| * wallClockDt * 100` — that desyncs
-  HUD distance from world travel when paint rate ≠ 60 FPS.
+  HUD distance from world travel; use `abs(Δcamera.y) * (100/60)`.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
   (`ObstacleManager.countAhead()`), because the full list also holds everything
   already passed. Open World's profile returns `Infinity`: the old `length < 7`
@@ -408,7 +410,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
 - Native caps canvas DPR at 2× (web at 3×) for WebView fill-rate; mobile layout
-  stays full-bleed (not letterboxed). Menu stamp: `BUILD 20 · NATIVE` / `WEB`.
+  stays full-bleed (not letterboxed). Menu stamp: `BUILD 21 · NATIVE` / `WEB`.
 
 ## 7. Scoring model
 

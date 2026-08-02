@@ -2,13 +2,13 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Snappy + smooth pacing (web + native): one update per paint. `tickScale =
-//   dt * 120` scales classic paint-tick motion to the snappy ~120 Hz reference
-//   without multi-step catch-up (which stuttered / felt saccadic). KM from
-//   abs(Δcamera.y) * (100/60). No web/native feel fork.
+// - Snappy pacing (web + native): one update per paint, `tickScale = dt * 120`.
+//   Ship updates before camera. Camera is a catch-up follower (cruise + accelerate
+//   when the ship rides too high) so climb feels smooth, not spring-sluggish.
+//   KM from abs(Δcamera.y) * (100/60).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
-//   CSS pixels via this.width / this.height. Menu stamp is BUILD 20.
+//   CSS pixels via this.width / this.height. Menu stamp is BUILD 21.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -350,9 +350,10 @@ export class Game {
         }
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
+            // Ship first so the catch-up camera reacts to this frame's lead.
+            this.spacecraft.update();
             const prevCameraY = this.camera.y;
             this.camera.update(1);
-            this.spacecraft.update();
 
             // KM from world travel only — locked to camera motion this frame.
             this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
@@ -909,8 +910,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 20 · NATIVE'
-            : 'BUILD 20 · WEB';
+            ? 'BUILD 21 · NATIVE'
+            : 'BUILD 21 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;

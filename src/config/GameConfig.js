@@ -3,6 +3,8 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - Camera: slightly slower floor cruise than the ship + stronger catch-up so
+//   the follower accelerates when the ship leads high (smooth endless-runner feel).
 // - Dropped the dead `obstacles.types` unlock table. Nothing read it, and it had
 //   drifted from the copy ObstacleManager was actually using; the schedule now
 //   lives once, in `OPEN_WORLD_UNLOCKS` (modes/RunProfile.js).
@@ -38,10 +40,14 @@ export const GameConfig = {
         trailSpacing: 10
     },
     camera: {
-        speed: 0.08,
-        interpolation: 0.15,
+        // Floor cruise (× height). Catch-up accelerates above this when the ship
+        // leads too high; ship speed is separate (spacecraft.speed).
+        speed: 0.07,
+        // How hard the camera pulls when the ship is off the ideal seat.
+        interpolation: 0.18,
         deceleration: 2000,
-        smoothingFactor: 0.92
+        // Velocity ease — lower = snappier catch-up, higher = lazier.
+        smoothingFactor: 0.88
     },
     obstacles: {
         minSize: 2.5,
