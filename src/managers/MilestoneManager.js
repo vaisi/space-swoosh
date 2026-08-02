@@ -59,8 +59,8 @@ export class MilestoneManager {
         const sizeAdjust = messageLength > 30 ? 0.8 : 1;
         const fontSize = (isMobile ? 1.4 : 1.7) * unit * sizeAdjust;
 
-        const cx = this.game.canvas.width / 2;
-        const cy = isMobile ? this.game.canvas.height * 0.3 : this.game.canvas.height / 2;
+        const cx = this.game.width / 2;
+        const cy = isMobile ? this.game.height * 0.3 : this.game.height / 2;
 
         ctx.save();
         // Multiplied, not set: the level-clear flyout fades the whole world out

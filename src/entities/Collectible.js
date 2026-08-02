@@ -31,7 +31,7 @@ export class Collectible {
         const relativeY = this.game.camera.getRelativeY(this.y);
 
         // Cull when fully off-screen (glow can extend ~2x the sparkle radius).
-        if (relativeY + this.size * 2 < 0 || relativeY - this.size * 2 > this.game.canvas.height) {
+        if (relativeY + this.size * 2 < 0 || relativeY - this.size * 2 > this.game.height) {
             return;
         }
 

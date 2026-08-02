@@ -5,6 +5,8 @@
 // Changes:
 // - Created file: extracted screen chrome/metrics out of Game.js so every
 //   screen shares the same margins, gaps and label treatments.
+// - screenLayout reads logical width/height (game.width / game.height) so the
+//   HiDPI backing store on canvas.width never inflates the layout grid.
 
 import { color } from '../brand/tokens.js';
 import { dottedLine } from '../utils/DrawUtils.js';
@@ -12,12 +14,13 @@ import { setLabelType, resetType } from '../utils/BrandDraw.js';
 
 // The content grid every screen draws inside: the framed border plus a gutter,
 // with a named vertical rhythm so gaps stay consistent across screens.
-export function screenLayout(canvas, unit) {
+// `surface` is anything with `.width` / `.height` in CSS pixels (the Game).
+export function screenLayout(surface, unit) {
     const isMobile = window.innerWidth <= 768;
     const frame = unit * 2.4;
     const gutter = isMobile ? unit * 2.4 : unit * 3;
     const left = frame + gutter;
-    const right = canvas.width - frame - gutter;
+    const right = surface.width - frame - gutter;
 
     return {
         isMobile,
@@ -26,10 +29,10 @@ export function screenLayout(canvas, unit) {
         left,
         right,
         width: right - left,
-        centerX: canvas.width / 2,
+        centerX: surface.width / 2,
         top: frame + gutter,
-        bottom: canvas.height - frame - gutter,
-        height: canvas.height - (frame + gutter) * 2,
+        bottom: surface.height - frame - gutter,
+        height: surface.height - (frame + gutter) * 2,
 
         // Vertical rhythm — use these instead of ad-hoc multipliers.
         section: unit * 3.4, // between major sections

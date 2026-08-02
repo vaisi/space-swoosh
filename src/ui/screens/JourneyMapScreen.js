@@ -37,7 +37,7 @@ import {
 export function renderJourneyMap(game) {
     const ctx = game.ctx;
     const unit = game.baseUnit;
-    const L = screenLayout(game.canvas, unit);
+    const L = screenLayout(game, unit);
 
     game.drawScreenFrame();
     const header = game.drawScreenHeader('JOURNEY', { back: true });

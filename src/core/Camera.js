@@ -4,9 +4,9 @@ export class Camera {
         this.y = 0;
         this.targetY = 0;
         this.totalDistance = 0;
-        this.speed = game.config.camera.speed * game.canvas.height;
+        this.speed = game.config.camera.speed * game.height;
         this.interpolation = game.config.camera.interpolation;
-        this.idealOffset = game.canvas.height * 0.75;
+        this.idealOffset = game.height * 0.75;
         this.velocity = 0;
         this.shake = { x: 0, y: 0 };
     }

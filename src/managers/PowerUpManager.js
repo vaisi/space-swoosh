@@ -25,7 +25,7 @@ class ShieldPowerUp {
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
 
-        if (relativeY + this.size < 0 || relativeY - this.size > this.game.canvas.height) {
+        if (relativeY + this.size < 0 || relativeY - this.size > this.game.height) {
             return;
         }
 
@@ -107,15 +107,15 @@ export class PowerUpManager {
                 this.game.spacecraft.activateShield();
                 return false;
             }
-            return powerUp.y > this.game.camera.y - this.game.canvas.height * 1.5;
+            return powerUp.y > this.game.camera.y - this.game.height * 1.5;
         });
     }
 
     spawnPowerUp() {
         const margin = this.game.baseUnit * 4;
-        const availableWidth = this.game.canvas.width - (margin * 2);
+        const availableWidth = this.game.width - (margin * 2);
         const x = margin + (Math.random() * availableWidth);
-        const y = this.game.camera.y - this.game.canvas.height;
+        const y = this.game.camera.y - this.game.height;
         
         // Always spawn shield powerup since it's the only type now
         this.powerUps.push(new ShieldPowerUp(this.game, x, y));

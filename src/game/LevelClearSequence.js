@@ -92,7 +92,7 @@ export class LevelClearSequence {
         ship.moveState = null;
         // Frame-rate independent ease toward centre.
         const centreT = 1 - Math.exp(-CENTRE_EASE_PER_SEC * dt);
-        ship.x += (this.game.canvas.width / 2 - ship.x) * centreT;
+        ship.x += (this.game.width / 2 - ship.x) * centreT;
 
         this.streamWorld(lerp(1, CAMERA_BOOST, clamp01(elapsed / RAMP_MS)), dt);
 

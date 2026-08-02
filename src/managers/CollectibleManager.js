@@ -49,7 +49,7 @@ export class CollectibleManager {
                 this.collect(c);
                 return false;
             }
-            return c.y > this.game.camera.y - this.game.canvas.height * 1.5;
+            return c.y > this.game.camera.y - this.game.height * 1.5;
         });
 
         // Float popups upward and fade them out.
@@ -72,8 +72,8 @@ export class CollectibleManager {
 
     spawn() {
         const margin = this.game.baseUnit * 4;
-        const x = margin + Math.random() * (this.game.canvas.width - margin * 2);
-        const y = this.game.camera.y - this.game.canvas.height;
+        const x = margin + Math.random() * (this.game.width - margin * 2);
+        const y = this.game.camera.y - this.game.height;
         this.collectibles.push(new Collectible(this.game, x, y));
     }
 

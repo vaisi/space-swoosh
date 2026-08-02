@@ -108,7 +108,7 @@ class SimpleAsteroid extends BaseObstacle {
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
         
-        if (relativeY + this.size < 0 || relativeY - this.size > this.game.canvas.height) {
+        if (relativeY + this.size < 0 || relativeY - this.size > this.game.height) {
             return;
         }
 
@@ -241,9 +241,9 @@ function distanceToLine(px, py, x1, y1, x2, y2) {
 
 class AsteroidBelt extends BaseObstacle {
     constructor(game, y) {
-        const width = game.canvas.width * 0.5; // Reduced from 0.7 to 0.5 (50% of screen width)
+        const width = game.width * 0.5; // Reduced from 0.7 to 0.5 (50% of screen width)
         const height = game.baseUnit * 2;      // Reduced from 3 to 2
-        super(game, game.canvas.width / 2, y, Math.max(width, height) / 2);
+        super(game, game.width / 2, y, Math.max(width, height) / 2);
         
         this.width = width;
         this.height = height;
@@ -252,7 +252,7 @@ class AsteroidBelt extends BaseObstacle {
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
         
-        if (relativeY + this.height < 0 || relativeY - this.height > this.game.canvas.height) {
+        if (relativeY + this.height < 0 || relativeY - this.height > this.game.height) {
             return;
         }
 
@@ -311,7 +311,7 @@ class ComplexAsteroid extends BaseObstacle {
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
         
-        if (relativeY + this.size < 0 || relativeY - this.size > this.game.canvas.height) {
+        if (relativeY + this.size < 0 || relativeY - this.size > this.game.height) {
             return;
         }
 
@@ -383,7 +383,7 @@ class PulsatingAsteroid extends BaseObstacle {
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
         
-        if (relativeY + this.currentSize < 0 || relativeY - this.currentSize > this.game.canvas.height) {
+        if (relativeY + this.currentSize < 0 || relativeY - this.currentSize > this.game.height) {
             return;
         }
 
@@ -421,13 +421,13 @@ class MovingAsteroid extends BaseObstacle {
         this.speed = game.baseUnit * 2;
         this.direction = Math.random() < 0.5 ? -1 : 1;
         this.originalX = x;
-        this.amplitude = game.canvas.width * 0.3;
+        this.amplitude = game.width * 0.3;
     }
 
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
         
-        if (relativeY + this.size < 0 || relativeY - this.size > this.game.canvas.height) {
+        if (relativeY + this.size < 0 || relativeY - this.size > this.game.height) {
             return;
         }
 
@@ -534,7 +534,7 @@ class ShootingAsteroid extends BaseObstacle {
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
         
-        if (relativeY + this.size < 0 || relativeY - this.size > this.game.canvas.height) {
+        if (relativeY + this.size < 0 || relativeY - this.size > this.game.height) {
             return;
         }
 
@@ -604,7 +604,7 @@ class ShootingAsteroid extends BaseObstacle {
             y: p.y + p.vy * (1/60)
         })).filter(p => {
             const relativeY = this.game.camera.getRelativeY(p.y);
-            return relativeY > -this.size && relativeY < this.game.canvas.height + this.size;
+            return relativeY > -this.size && relativeY < this.game.height + this.size;
         });
     }
 }
@@ -614,7 +614,7 @@ class CometObstacle extends BaseObstacle {
         const size = game.baseUnit * 1.2;
         // Start from outside the screen
         const fromLeft = Math.random() < 0.5;
-        const x = fromLeft ? -size : game.canvas.width + size;
+        const x = fromLeft ? -size : game.width + size;
         super(game, x, y, size);
         
         this.speed = game.baseUnit * 15; // Fast!
@@ -648,7 +648,7 @@ class CometObstacle extends BaseObstacle {
     }
 
     isOffScreen() {
-        return (this.direction > 0 && this.x > this.game.canvas.width + this.size * 2) ||
+        return (this.direction > 0 && this.x > this.game.width + this.size * 2) ||
                (this.direction < 0 && this.x < -this.size * 2);
     }
 
@@ -888,7 +888,7 @@ class WormholeGate extends BaseObstacle {
 class SideBarrier extends BaseObstacle {
     constructor(game, isLeft, y, height) {
         const width = game.baseUnit * 2;
-        const x = isLeft ? width/2 : game.canvas.width - width/2;
+        const x = isLeft ? width/2 : game.width - width/2;
         super(game, x, y, width);
         this.isLeft = isLeft;
         this.height = height;
@@ -898,7 +898,7 @@ class SideBarrier extends BaseObstacle {
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
         
-        if (relativeY + this.height < 0 || relativeY > this.game.canvas.height) {
+        if (relativeY + this.height < 0 || relativeY > this.game.height) {
             return;
         }
 
@@ -943,7 +943,7 @@ export class ObstacleManager {
         // off-screen, so do it here instead and open every run with clear sky.
         this.nextSpawnY = this.tutorialPhase
             ? 0
-            : game.camera.y - game.canvas.height * 1.5;
+            : game.camera.y - game.height * 1.5;
 
         this.tutorialMessages = [
             {
@@ -976,7 +976,7 @@ export class ObstacleManager {
         this.pauseSpawning = false;
         this.lastCinematicCrash = 0;
 
-        const gaps = game.profile.gapRange(game.canvas.height);
+        const gaps = game.profile.gapRange(game.height);
         this.minVerticalGap = gaps.min;
         this.maxVerticalGap = gaps.max;
 
@@ -991,7 +991,7 @@ export class ObstacleManager {
     // what happened once the gap range became per-run rather than the fixed
     // 0.25-0.4 of screen height this constant used to assume.
     get despawnAhead() {
-        return this.game.canvas.height + this.maxVerticalGap + this.game.baseUnit * 4;
+        return this.game.height + this.maxVerticalGap + this.game.baseUnit * 4;
     }
 
     // Obstacles the player still has to fly through. The full list also holds
@@ -1071,7 +1071,7 @@ export class ObstacleManager {
                 this.game.camera.shake = { x: 0, y: 0 }; // Reset shake
                 this.motionLines = []; // Clear motion lines
                 this.tutorialPhase = false;
-                this.nextSpawnY = this.game.camera.y - this.game.canvas.height * 1.5;
+                this.nextSpawnY = this.game.camera.y - this.game.height * 1.5;
             }
 
             // Don't spawn obstacles during tutorial or cutscene
@@ -1082,13 +1082,13 @@ export class ObstacleManager {
         if (this.tutorialPhase) {
             this.tutorialPhase = false;
             // Start spawning obstacles just above the screen
-            this.nextSpawnY = this.game.camera.y - this.game.canvas.height * 1.5;
+            this.nextSpawnY = this.game.camera.y - this.game.height * 1.5;
         }
 
         // Regular obstacle spawning logic. A row is skipped rather than delayed
         // when the field ahead is already full, so the gap the player flies
         // through stays where the spacing put it.
-        while (this.nextSpawnY > this.game.camera.y - this.game.canvas.height) {
+        while (this.nextSpawnY > this.game.camera.y - this.game.height) {
             const spacing = this.minVerticalGap + Math.random() * (this.maxVerticalGap - this.minVerticalGap);
             this.nextSpawnY -= spacing;
             if (!this.pauseSpawning && this.countAhead() < this.game.profile.maxOnScreen) {
@@ -1175,7 +1175,7 @@ export class ObstacleManager {
         // Spawn new obstacles
         if (!this.inCutscene && !this.pauseSpawning
             && this.countAhead() < this.game.profile.maxOnScreen) {
-            const minSpawnInterval = this.game.canvas.height * 0.35; // Reduced from 0.4
+            const minSpawnInterval = this.game.height * 0.35; // Reduced from 0.4
             
             if (!this.lastSpawnY || 
                 this.nextSpawnY - this.lastSpawnY >= minSpawnInterval) {
@@ -1287,8 +1287,8 @@ export class ObstacleManager {
     }
 
     spawnObstacleByType(type, startX = 0, endX = 1) {
-        const x = startX * this.game.canvas.width;
-        const width = (endX - startX) * this.game.canvas.width;
+        const x = startX * this.game.width;
+        const width = (endX - startX) * this.game.width;
         
         switch(type) {
             case 'simple':
@@ -1335,7 +1335,7 @@ export class ObstacleManager {
         const position = this.findValidPosition(
             size * 2.5, // Increased collision check radius for satellites
             margin,
-            this.game.canvas.width - margin,
+            this.game.width - margin,
             this.nextSpawnY,
             15 // Increased max attempts to find valid position
         );
@@ -1360,7 +1360,7 @@ export class ObstacleManager {
         
         // Slightly tighter spacing for more challenge
         const sections = count + 1.2; // Reduced from 1.5
-        const sectionWidth = this.game.canvas.width / sections;
+        const sectionWidth = this.game.width / sections;
         
         for (let i = 0; i < count; i++) {
             const size = this.game.baseUnit * (0.9 + Math.random() * 0.5);
@@ -1417,7 +1417,7 @@ export class ObstacleManager {
 
     spawnComet(x, width) {
         // Spawn comet at random height near the player
-        const y = this.game.camera.y - (Math.random() * this.game.canvas.height * 0.5);
+        const y = this.game.camera.y - (Math.random() * this.game.height * 0.5);
         this.obstacles.push(new CometObstacle(this.game, y));
     }
 
@@ -1426,7 +1426,7 @@ export class ObstacleManager {
         const margin = size * 4;
         // Use the passed x parameter or calculate a position if score is low
         const finalX = this.game.score < 100 ? 
-            this.game.canvas.width / 2 : 
+            this.game.width / 2 : 
             x;
         
         const blackHole = new BlackHoleObstacle(
@@ -1446,7 +1446,7 @@ export class ObstacleManager {
         const margin = size * 4;
         
         // Entry gate in bottom half of screen with obstacles around it
-        const entryX = margin + Math.random() * (this.game.canvas.width - margin * 2);
+        const entryX = margin + Math.random() * (this.game.width - margin * 2);
         const entry = new WormholeGate(this.game, entryX, this.nextSpawnY, size, false);
         
         // Spawn obstacles around the entry gate, but respect safe zone
@@ -1459,7 +1459,7 @@ export class ObstacleManager {
             
             // Only spawn if within screen bounds and outside safe zone
             if (obstacleX > margin && 
-                obstacleX < this.game.canvas.width - margin) {
+                obstacleX < this.game.width - margin) {
                 const obstacle = new SimpleAsteroid(
                     this.game,
                     obstacleX,
@@ -1471,8 +1471,8 @@ export class ObstacleManager {
         }
         
         // Exit gate higher up
-        const exitY = this.nextSpawnY - this.game.canvas.height * 0.8;
-        const exitX = margin + Math.random() * (this.game.canvas.width - margin * 2);
+        const exitY = this.nextSpawnY - this.game.height * 0.8;
+        const exitX = margin + Math.random() * (this.game.width - margin * 2);
         const exit = new WormholeGate(this.game, exitX, exitY, size, true);
         
         // Link the gates
@@ -1585,8 +1585,8 @@ export class ObstacleManager {
         const lineCount = 20;
         for (let i = 0; i < lineCount; i++) {
             this.motionLines.push({
-                x: Math.random() * this.game.canvas.width,
-                y: Math.random() * this.game.canvas.height,
+                x: Math.random() * this.game.width,
+                y: Math.random() * this.game.height,
                 length: 20 + Math.random() * 30,
                 speed: 15 + Math.random() * 10
             });
@@ -1597,9 +1597,9 @@ export class ObstacleManager {
         // Update existing lines
         this.motionLines.forEach(line => {
             line.y += line.speed;
-            if (line.y > this.game.canvas.height) {
+            if (line.y > this.game.height) {
                 line.y = -line.length;
-                line.x = Math.random() * this.game.canvas.width;
+                line.x = Math.random() * this.game.width;
             }
         });
     }
@@ -1621,7 +1621,7 @@ export class ObstacleManager {
     findValidPosition(size, minX, maxX, baseY, maxAttempts = 5) {
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             const x = minX + Math.random() * (maxX - minX);
-            const verticalOffset = (Math.random() - 0.5) * this.game.canvas.height * 0.15;
+            const verticalOffset = (Math.random() - 0.5) * this.game.height * 0.15;
             const y = baseY + verticalOffset;
             
             if (!this.checkOverlap(x, y, size, this.obstacles)) {
@@ -1630,7 +1630,7 @@ export class ObstacleManager {
         }
         // If we can't find a non-overlapping position, just return the last attempted position
         const x = minX + Math.random() * (maxX - minX);
-        const verticalOffset = (Math.random() - 0.5) * this.game.canvas.height * 0.15;
+        const verticalOffset = (Math.random() - 0.5) * this.game.height * 0.15;
         const y = baseY + verticalOffset;
         return { x, y };
     }

@@ -17,7 +17,7 @@ import { nextPlayableLevel, totalStars } from '../../services/JourneyProgress.js
 export function renderModeSelect(game) {
     const ctx = game.ctx;
     const unit = game.baseUnit;
-    const L = screenLayout(game.canvas, unit);
+    const L = screenLayout(game, unit);
 
     game.drawScreenFrame();
     const header = game.drawScreenHeader('PLAY', { back: true });

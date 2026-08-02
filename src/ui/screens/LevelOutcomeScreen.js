@@ -59,7 +59,7 @@ function metrics(unit, { isMobile, actionRows: rowCount }) {
 
 export function renderLevelOutcome(game) {
     const ctx = game.ctx;
-    const L = screenLayout(game.canvas, game.baseUnit);
+    const L = screenLayout(game, game.baseUnit);
     const outcome = game.levelOutcome;
     if (!outcome) return {};
 
@@ -78,7 +78,7 @@ export function renderLevelOutcome(game) {
     const { titlePx, subPx, tallyPx, buttonGap, buttonHeight } = m;
     const buttonWidth = Math.min(unit * 30, L.width);
 
-    let y = Math.max(L.top + unit * 0.5, (game.canvas.height - m.totalH) / 2);
+    let y = Math.max(L.top + unit * 0.5, (game.height - m.totalH) / 2);
 
     // --- Verdict -------------------------------------------------------------
     ctx.save();

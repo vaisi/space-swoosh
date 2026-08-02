@@ -2,6 +2,10 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
+//   3) and scales the context so all game math stays in CSS pixels via
+//   this.width / this.height. Without this, retina phones upscale a 1× buffer
+//   and the ink looks soft / "cheap".
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
 //   hardware back (game/BackNavigation.js). Analytics goes through
@@ -223,22 +227,38 @@ export class Game {
 
     setupCanvas() {
         const container = this.canvas.parentElement;
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
-        
-        this.canvas.width = containerWidth;
-        this.canvas.height = containerHeight;
-        
-        // Adjust base unit based on screen size with better scaling
-        const isMobile = window.innerWidth <= 768;
-        this.baseUnit = isMobile ? 
-            Math.min(containerWidth / 45, containerHeight / 75) : // More zoomed out for mobile (changed from 35,60)
-            containerWidth / 50; // Desktop remains the same
+        // Logical (CSS) size — all game math and hit-testing stay in these units.
+        const cssWidth = container.clientWidth;
+        const cssHeight = container.clientHeight;
+        // Cap at 3×: Pixel-class phones are ~2.6–3; going past 3 burns fill-rate
+        // for no visible gain on a solid-ink paper aesthetic.
+        const dpr = Math.min(window.devicePixelRatio || 1, 3);
 
-        // Update game components if they exist
+        this.width = cssWidth;
+        this.height = cssHeight;
+        this.dpr = dpr;
+
+        // Backing store in device pixels so ink edges stay sharp on retina.
+        // Setting width/height resets the context, so the transform must follow.
+        this.canvas.width = Math.round(cssWidth * dpr);
+        this.canvas.height = Math.round(cssHeight * dpr);
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const isMobile = window.innerWidth <= 768;
+        this.baseUnit = isMobile
+            ? Math.min(cssWidth / 45, cssHeight / 75)
+            : cssWidth / 50;
+
         if (this.spacecraft) {
             this.spacecraft.radius = this.baseUnit;
         }
+    }
+
+    // Re-assert the HiDPI transform each frame. Assigning canvas.width resets
+    // the CTM; nothing else should, but one call per frame is cheap insurance.
+    ensureHiDpiTransform() {
+        const dpr = this.dpr || 1;
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     initializeGame() {
@@ -330,7 +350,8 @@ export class Game {
     }
 
     render() {
-        drawPaper(this.ctx, this.canvas.width, this.canvas.height);
+        this.ensureHiDpiTransform();
+        drawPaper(this.ctx, this.width, this.height);
 
         if (this.appScreen === 'menu') {
             this.renderMainMenu();
@@ -461,12 +482,12 @@ export class Game {
             const remaining = Math.max(0, this.profile.goalScore - this.score);
             // Don't bother until it's within a couple of screens — far-away
             // geometry just costs a draw for nothing you can see.
-            if (remaining * SCORE_TO_WORLD > this.canvas.height * 2.2) return;
+            if (remaining * SCORE_TO_WORLD > this.height * 2.2) return;
             worldY = this.spacecraft.y - remaining * SCORE_TO_WORLD;
         }
 
         const screenY = this.camera.getRelativeY(worldY);
-        if (screenY < -this.baseUnit * 4 || screenY > this.canvas.height + this.baseUnit * 2) {
+        if (screenY < -this.baseUnit * 4 || screenY > this.height + this.baseUnit * 2) {
             return;
         }
 
@@ -474,10 +495,10 @@ export class Game {
         const unit = this.baseUnit;
         const margin = unit * 2.4;
         const left = margin;
-        const right = this.canvas.width - margin;
+        const right = this.width - margin;
 
         // Fade in over the last screen-and-a-half of approach.
-        const approach = clamp01(1 - screenY / (this.canvas.height * 1.35));
+        const approach = clamp01(1 - screenY / (this.height * 1.35));
         const alpha = 0.35 + approach * 0.65;
 
         ctx.save();
@@ -539,7 +560,7 @@ export class Game {
         let goalBarH = 0;
         if (journey) {
             goalBarH = unit * 1.8;
-            this.drawGoalBar(inset, distY + unit * 0.9, Math.min(unit * 16, this.canvas.width - inset * 2));
+            this.drawGoalBar(inset, distY + unit * 0.9, Math.min(unit * 16, this.width - inset * 2));
         }
 
         // Obstacles destroyed — in Journey, also the smash-star mission target.
@@ -617,11 +638,11 @@ export class Game {
     renderPauseOverlay() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
 
         ctx.save();
         ctx.fillStyle = 'rgba(225, 217, 193, 0.92)';
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.fillRect(0, 0, this.width, this.height);
         ctx.restore();
 
         this.drawScreenFrame();
@@ -642,7 +663,7 @@ export class Game {
 
         const headerH = barH + L.row + titlePx * 1.1;
         const totalH = headerH + L.section + statRowH + L.section + buttonsH;
-        let y = Math.max(L.top + unit, (this.canvas.height - totalH) / 2);
+        let y = Math.max(L.top + unit, (this.height - totalH) / 2);
 
         // --- Title: two-bar pause glyph (the brand's "Pause" primitive) ------
         ctx.save();
@@ -776,7 +797,7 @@ export class Game {
         this.ctx.save();
         this.ctx.strokeStyle = color.ink12;
         this.ctx.lineWidth = 1.5;
-        this.ctx.strokeRect(m + 0.75, m + 0.75, this.canvas.width - m * 2 - 1.5, this.canvas.height - m * 2 - 1.5);
+        this.ctx.strokeRect(m + 0.75, m + 0.75, this.width - m * 2 - 1.5, this.height - m * 2 - 1.5);
         this.ctx.restore();
     }
 
@@ -786,13 +807,13 @@ export class Game {
     drawScreenHeader(title, { back = false } = {}) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
         const barH = L.isMobile ? unit * 4.2 : unit * 3.8;
         const y = L.top;
 
         let backRect = null;
         if (back) {
-            const backW = Math.max(unit * 9, this.canvas.width * 0.19);
+            const backW = Math.max(unit * 9, this.width * 0.19);
             backRect = this.drawBrandButton(L.left, y, backW, barH, 'Back', { tag: '\u2190' });
         }
 
@@ -821,7 +842,7 @@ export class Game {
     renderMainMenu() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
 
         this.drawScreenFrame();
 
@@ -840,7 +861,7 @@ export class Game {
         const identityH = titlePx * 1.1 + L.row + taglinePx * 1.3;
         const shipH = previewH + L.row + namePx * 1.4;
         const totalH = identityH + L.section + shipH + L.section * 1.2 + buttonsH;
-        let y = Math.max(L.top + unit, (this.canvas.height - totalH) / 2);
+        let y = Math.max(L.top + unit, (this.height - totalH) / 2);
 
         ctx.save();
         ctx.textAlign = 'center';
@@ -891,7 +912,7 @@ export class Game {
     renderOptionsHub() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
 
         this.drawScreenFrame();
 
@@ -938,7 +959,7 @@ export class Game {
     renderOptionsShip() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
 
         this.drawScreenFrame();
 
@@ -1004,7 +1025,7 @@ export class Game {
     renderOptionsSound() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
 
         this.drawScreenFrame();
 
@@ -1050,7 +1071,7 @@ export class Game {
     renderOptionsStub(title, message) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
 
         this.drawScreenFrame();
 
@@ -1247,7 +1268,7 @@ export class Game {
     renderMainGameOver() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
 
         this.drawScreenFrame();
 
@@ -1272,7 +1293,7 @@ export class Game {
         const statsH = distH + L.block + statRowH;
         const totalH = verdictH + L.section + statsH + L.section + buttonsH;
 
-        let y = Math.max(L.top + unit, (this.canvas.height - totalH) / 2);
+        let y = Math.max(L.top + unit, (this.height - totalH) / 2);
 
         // --- Verdict ---------------------------------------------------------
         const titleText = this.hasWon ? 'MISSION COMPLETE' : 'MISSION FAILED';
@@ -1381,7 +1402,7 @@ export class Game {
     renderHighScores() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const L = screenLayout(this.canvas, unit);
+        const L = screenLayout(this, unit);
         const isMobile = L.isMobile;
         const padding = unit * 3;
 
@@ -1391,19 +1412,19 @@ export class Game {
         this.highScoresBackButton = header.backRect;
 
         // Tabs — uppercase labels; the active tab is marked by a dotted trail.
-        const tabWidth = this.canvas.width * (isMobile ? 0.4 : 0.3);
+        const tabWidth = this.width * (isMobile ? 0.4 : 0.3);
         const tabHeight = unit * 3.6;
         const tabY = header.contentTop - L.section / 2;
         const tabSpacing = unit * 2;
 
         this.distanceTab = {
-            x: this.canvas.width / 2 - tabWidth - tabSpacing / 2,
+            x: this.width / 2 - tabWidth - tabSpacing / 2,
             y: tabY,
             width: tabWidth,
             height: tabHeight
         };
         this.obstaclesTab = {
-            x: this.canvas.width / 2 + tabSpacing / 2,
+            x: this.width / 2 + tabSpacing / 2,
             y: tabY,
             width: tabWidth,
             height: tabHeight
@@ -1433,8 +1454,8 @@ export class Game {
         const scoreSpacing = unit * 1;
         const numPx = isMobile ? Math.min(unit * 1.8, 21) : unit * 1.6;
         const namePx = isMobile ? Math.min(unit * 1.8, 21) : unit * 1.6;
-        const leftX = this.canvas.width * 0.2;
-        const rightX = this.canvas.width * 0.8;
+        const leftX = this.width * 0.2;
+        const rightX = this.width * 0.8;
 
         if (!this.highScores || this.highScores.length === 0) {
             ctx.save();
@@ -1442,7 +1463,7 @@ export class Game {
             ctx.font = `500 ${namePx}px ${font.ui}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('No signals logged. Be the first.', this.canvas.width / 2, startY + scoreHeight);
+            ctx.fillText('No signals logged. Be the first.', this.width / 2, startY + scoreHeight);
             ctx.restore();
             return;
         }
@@ -1767,8 +1788,8 @@ export class Game {
     setupEventListeners() {
         const handleInteraction = async (clientX, clientY) => {
             const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width / rect.width;
-            const scaleY = this.canvas.height / rect.height;
+            const scaleX = this.width / rect.width;
+            const scaleY = this.height / rect.height;
             const x = (clientX - rect.left) * scaleX;
             const y = (clientY - rect.top) * scaleY;
 
@@ -2128,13 +2149,13 @@ export class Game {
 
         // Soft ink dim to focus attention while keeping the paper world visible.
         ctx.fillStyle = 'rgba(26, 26, 26, 0.42)';
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.fillRect(0, 0, this.width, this.height);
 
         // Framed motif-tile card, sized relative to the canvas.
-        const modalWidth = Math.min(384, this.canvas.width * 0.88);
+        const modalWidth = Math.min(384, this.width * 0.88);
         const modalHeight = 344;
-        const modalX = (this.canvas.width - modalWidth) / 2;
-        const modalY = (this.canvas.height - modalHeight) / 2;
+        const modalX = (this.width - modalWidth) / 2;
+        const modalY = (this.height - modalHeight) / 2;
         const padding = 32;
 
         drawFramedTile(ctx, modalX, modalY, modalWidth, modalHeight, { surface: color.paperTint });
@@ -2225,10 +2246,10 @@ export class Game {
             input.placeholder = 'ENTER CALL SIGN';
 
             const canvasRect = this.canvas.getBoundingClientRect();
-            const scaledX = canvasRect.left + (inputX * canvasRect.width / this.canvas.width);
-            const scaledY = canvasRect.top + (currentY * canvasRect.height / this.canvas.height);
-            const scaledWidth = inputWidth * canvasRect.width / this.canvas.width;
-            const scaledHeight = inputHeight * canvasRect.height / this.canvas.height;
+            const scaledX = canvasRect.left + (inputX * canvasRect.width / this.width);
+            const scaledY = canvasRect.top + (currentY * canvasRect.height / this.height);
+            const scaledWidth = inputWidth * canvasRect.width / this.width;
+            const scaledHeight = inputHeight * canvasRect.height / this.height;
 
             input.style.cssText = `
                 position: absolute;

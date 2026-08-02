@@ -40,12 +40,12 @@ export class Spacecraft {
         console.log('Creating spacecraft...');
         this.game = game;
         this.radius = this.game.baseUnit;
-        this.x = this.game.canvas.width / 2;
-        this.y = this.game.canvas.height * 0.8;
+        this.x = this.game.width / 2;
+        this.y = this.game.height * 0.8;
         this.baseSpeed = game.config.spacecraft.speed
-            * game.canvas.height
+            * game.height
             * game.profile.speedMultiplier;
-        this.arcRadius = game.config.spacecraft.arcRadius * game.canvas.width;
+        this.arcRadius = game.config.spacecraft.arcRadius * game.width;
         this.arcDuration = game.config.spacecraft.arcDuration;
         
         // Cinematic multiplier on forward speed — 1 in the player's hands, ramped
@@ -79,8 +79,8 @@ export class Spacecraft {
     }
 
     reset() {
-        this.x = this.game.canvas.width / 2;
-        this.y = this.game.canvas.height * 0.85;
+        this.x = this.game.width / 2;
+        this.y = this.game.height * 0.85;
         this.trail = [];
         this.moveState = null;
         this.boost = 1;
@@ -132,9 +132,9 @@ export class Spacecraft {
             const newX = this.moveState.startX + Math.sin(angle) * this.arcRadius;
             
             // Wall collision check
-            if (newX < this.radius || newX > this.game.canvas.width - this.radius) {
+            if (newX < this.radius || newX > this.game.width - this.radius) {
                 const newDirection = newX < this.radius ? 'right' : 'left';
-                const bounceX = newX < this.radius ? this.radius : this.game.canvas.width - this.radius;
+                const bounceX = newX < this.radius ? this.radius : this.game.width - this.radius;
                 
                 // Play turn sound when bouncing
                 this.game.soundManager.playTurn();
