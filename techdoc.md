@@ -299,13 +299,14 @@ carries enough bands to notice.
 The ship's arc gives a peak lateral speed of roughly `PI * arcRadius / arcDuration`
 — several times the vertical speed — so mid-turn the ship really is travelling
 almost sideways through the world. A circle hides that; any shaped hull doesn't.
-`Spacecraft.updateHeading(prevX, prevY)` therefore derives, from the frame's actual
-displacement:
+`Spacecraft.update(dt)` / `Camera.update(dt)` integrate with real frame time
+(reference 60 Hz), and KM scores from camera world Δy, so phone refresh rate
+doesn't change pace. `updateHeading(prevX, prevY, dt)` derives:
 
 | Field | Meaning |
 | --- | --- |
-| `tangent` | Raw direction of travel, `atan2(vx, -vy)` (0 = nose up, + = leaning right). Held at its last value below `MIN_HEADING_SPEED` so noise can't spin it. |
-| `bank` | `tangent` clamped to `MAX_BANK` (0.96 rad / 55 deg, in `ships/hulls.js`) and eased toward the target by `BANK_SMOOTHING` each frame. This is the hull's drawn rotation. |
+| `tangent` | Raw direction of travel, `atan2(vx, -vy)` (0 = nose up, + = leaning right). Held at its last value below a dt-scaled `MIN_HEADING_SPEED` so noise can't spin it. |
+| `bank` | `tangent` clamped to `MAX_BANK` (0.96 rad / 55 deg, in `ships/hulls.js`) and eased toward the target with a dt-aware lerp of `BANK_SMOOTHING`. This is the hull's drawn rotation. |
 | `speed` | Distance moved last frame; wakes use it to stretch their marks. |
 
 Skins rotate with `withHeading(ctx, x, y, ship.bank, draw)`, whose local `-Y` axis

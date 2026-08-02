@@ -1,6 +1,9 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - Gameplay motion now integrates with real `dt` (same idea as LevelClearSequence)
+//   so Android WebView FPS below 60 no longer slows the ship, shortens turn arcs,
+//   or desyncs KM from distance travelled. Still feels like the old 60 Hz target.
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
 //   1; the Journey level-clear flyout ramps it to send the ship off the top.
 // - Forward speed is scaled by `game.profile.speedMultiplier`, which is the dial
@@ -28,8 +31,14 @@ const BANK_SMOOTHING = 0.18;
 const MIN_HEADING_SPEED = 0.01;
 const TAIL_OFFSET = 0.6; // multiples of radius, behind the hull centre
 const SHIELD_HITBOX_SCALE = 1.5; // matches the drawn bubble
+const REF_FPS = 60;
 const DEBUG_HITBOX = typeof window !== 'undefined'
     && new URLSearchParams(window.location.search).has('hitbox');
+
+/** Map a legacy per-frame lerp factor to an equivalent step for `dt` seconds. */
+function frameLerp(factor, dt) {
+    return 1 - Math.pow(1 - factor, dt * REF_FPS);
+}
 
 function wrapAngle(angle) {
     return Math.atan2(Math.sin(angle), Math.cos(angle));
@@ -93,7 +102,7 @@ export class Spacecraft {
         this.updateHitCircles();
     }
 
-    update() {
+    update(dt = 1 / REF_FPS) {
         if (this.game.isPaused) return;
 
         const currentTime = performance.now();
@@ -117,11 +126,12 @@ export class Spacecraft {
             this.pausedTime = 0;
         }
 
-        // Smooth vertical movement. The 0.95/0.05 easing means a cinematic boost
-        // reads as acceleration rather than a jump, and stretches the wake for free.
+        // Smooth vertical movement (per-second form of the old 0.95/0.05 @ 60fps).
         const targetVerticalSpeed = this.baseSpeed * this.boost;
-        this.verticalVelocity = this.verticalVelocity * 0.95 + targetVerticalSpeed * 0.05;
-        this.y -= this.verticalVelocity * (1/60);
+        const speedSmooth = Math.pow(0.95, dt * REF_FPS);
+        this.verticalVelocity =
+            this.verticalVelocity * speedSmooth + targetVerticalSpeed * (1 - speedSmooth);
+        this.y -= this.verticalVelocity * dt;
 
         // Handle arc movement if active
         if (this.moveState) {
@@ -161,13 +171,13 @@ export class Spacecraft {
             }
         }
 
-        this.updateHeading(prevX, prevY);
-        this.updateTrail();
+        this.updateHeading(prevX, prevY, dt);
+        this.updateTrail(dt);
 
         // Update shield
         if (this.shieldActive) {
-            this.shieldTimer -= (1000/60);
-            this.shieldPulse += 0.1;
+            this.shieldTimer -= dt * 1000;
+            this.shieldPulse += dt * REF_FPS * 0.1;
 
             // Start warning animation when shield is about to end (last 1.5 seconds)
             if (this.shieldTimer < 1500 && !this.shieldWarningStarted) {
@@ -204,18 +214,18 @@ export class Spacecraft {
 
     // Direction of travel through the world, derived from the frame's actual
     // displacement so it stays correct for arcs, wall bounces and boosts alike.
-    updateHeading(prevX, prevY) {
+    updateHeading(prevX, prevY, dt = 1 / REF_FPS) {
         const vx = this.x - prevX;
         const vy = this.y - prevY;
         this.speed = Math.hypot(vx, vy);
 
-        // Below the threshold the delta is noise; keep the last good heading.
-        if (this.speed > MIN_HEADING_SPEED) {
+        // Threshold scales with frame length so low/high Hz don't silence heading.
+        if (this.speed > MIN_HEADING_SPEED * (dt * REF_FPS)) {
             this.tangent = Math.atan2(vx, -vy);
         }
 
         const target = Math.max(-MAX_BANK, Math.min(MAX_BANK, this.tangent));
-        this.bank += wrapAngle(target - this.bank) * BANK_SMOOTHING;
+        this.bank += wrapAngle(target - this.bank) * frameLerp(BANK_SMOOTHING, dt);
     }
 
     // The active skin's hitbox, rotated by the bank into world space. Obstacles
@@ -266,7 +276,7 @@ export class Spacecraft {
         };
     }
 
-    updateTrail() {
+    updateTrail(dt = 1 / REF_FPS) {
         const tail = this.tailPoint();
 
         // Only add new trail point if we've moved enough since the last one
@@ -282,11 +292,12 @@ export class Spacecraft {
             });
         }
 
-        // Update existing trail points
+        // Fade was 1/180 per frame at 60fps → ~3 seconds.
+        const fade = (dt * REF_FPS) / 180;
         this.trail = this.trail
             .map(point => ({
                 ...point,
-                opacity: point.opacity - (1 / 180)
+                opacity: point.opacity - fade
             }))
             .filter(point => point.opacity > 0)
             .slice(-80); // long enough that a hard turn isn't truncated early

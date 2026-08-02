@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Frame-rate independent ship/camera: pass real `deltaTime` into update so
+//   Android WebView FPS under 60 no longer slows travel, shortens turn arcs, or
+//   inflates KM vs distance. Score advances from camera world Δy.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3) and scales the context so all game math stays in CSS pixels via
 //   this.width / this.height. Without this, retina phones upscale a 1× buffer
@@ -331,17 +334,20 @@ export class Game {
             
             if (timeSinceGameOver < deceleration) {
                 const slowdownFactor = 1 - (timeSinceGameOver / deceleration);
-                this.camera.update(slowdownFactor);
+                this.camera.update(deltaTime, slowdownFactor);
             }
             this.updateExplosion();
             return;
         }
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
-            this.camera.update(1);
-            this.spacecraft.update();
+            const prevCameraY = this.camera.y;
+            this.spacecraft.update(deltaTime);
+            this.camera.update(deltaTime, 1);
 
-            this.score += Math.abs(this.camera.velocity) * deltaTime * 100;
+            // 1 km ≈ 0.6 world units (same ratio as the old |v_frame| * dt * 100
+            // at 60fps). Scoring from Δy keeps KM tied to distance at any FPS.
+            this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
 
             this.obstacleManager.update();
             this.milestoneManager.update();
@@ -484,8 +490,7 @@ export class Game {
     // in world space ahead of the ship and fades in as you approach. Locked in
     // place the moment the goal is crossed so the flyout can pass through it.
     //
-    // Score rises by |camera.velocity| * dt * 100 while the camera advances by
-    // roughly that velocity each frame at 60fps, so 1 km ≈ 0.6 world units.
+    // Score rises by |Δcamera.y| * (100/60), so 1 km ≈ 0.6 world units.
     renderFinishLine() {
         if (this.profile.isEndless) return;
 

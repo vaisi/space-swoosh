@@ -28,7 +28,7 @@ const BOOST_TARGET = 7.2;
 const CAMERA_BOOST = 1.25;  // the world streams a little faster, ship still pulls away
 const CENTRE_EASE_PER_SEC = 5.5; // autopilot pull toward mid-screen
 const EXIT_MARGIN = 2;      // ship radii past the top edge before it counts as gone
-const REF_FPS = 60;         // camera.velocity was captured as a per-frame value at ~60fps
+const REF_FPS = 60;         // ship easing reference (matches gameplay Spacecraft)
 
 function easeOut(t) {
     return 1 - (1 - t) * (1 - t);
@@ -47,11 +47,9 @@ export class LevelClearSequence {
         // The camera tracks the ship, so left alone it would follow the boost and
         // the ship would never leave its screen position. From here the sequence
         // scrolls it by hand, at the speed the run was already travelling.
-        // `camera.velocity` is a per-frame delta from the normal update path; we
-        // convert it to units/sec so wall-clock integration stays honest.
-        const perFrame = game.camera.velocity
-            || -Math.abs(game.spacecraft.verticalVelocity) / REF_FPS;
-        this.cameraSpeed = perFrame * REF_FPS;
+        // `camera.velocity` is world-units/sec from the gameplay Camera.update.
+        this.cameraSpeed = game.camera.velocity
+            || -Math.abs(game.spacecraft.verticalVelocity);
 
         game.obstacleManager.pauseSpawning = true;
         game.obstacleManager.createMotionLines();
