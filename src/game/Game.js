@@ -2,10 +2,13 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Android-only pacing: keep the original per-frame ship/camera/KM math, but
+//   run fixed 1/60s simulation catch-up in gameLoop and cap native DPR at 2×.
+//   Phone WebViews under 60 FPS were advancing one physics tick per paint, so
+//   the ship crawled while KM (wall-clock) raced. Web is unchanged at ~60 FPS.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
-//   3) and scales the context so all game math stays in CSS pixels via
-//   this.width / this.height. Without this, retina phones upscale a 1× buffer
-//   and the ink looks soft / "cheap".
+//   3 on web / 2 on native) and scales the context so all game math stays in
+//   CSS pixels via this.width / this.height.
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
 //   hardware back (game/BackNavigation.js). Analytics goes through
@@ -59,6 +62,7 @@
 //   (+1) and collecting Signal-Blue sparkles (+10, via CollectibleManager). It
 //   shows in the HUD (with a sparkle glyph) and on the game-over screen.
 
+import { Capacitor } from '@capacitor/core';
 import { Spacecraft } from '../entities/Spacecraft.js';
 import { ObstacleManager } from '../managers/ObstacleManager.js';
 import { Camera } from '../core/Camera.js';
@@ -167,6 +171,7 @@ export class Game {
         this.hasWon = false; // Track if player has won
         this.lastTime = performance.now();
         this.accumulatedTime = 0; // Track time between pauses
+        this.simAccumulator = 0; // fixed 60 Hz catch-up (native low-FPS)
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -240,9 +245,10 @@ export class Game {
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
-        // Cap at 3×: Pixel-class phones are ~2.6–3; going past 3 burns fill-rate
-        // for no visible gain on a solid-ink paper aesthetic.
-        const dpr = Math.min(window.devicePixelRatio || 1, 3);
+        // Web can afford 3×. Native WebViews on tall phones often can't — a 3×
+        // buffer drops FPS and (with per-frame physics) makes the run feel slow.
+        const maxDpr = Capacitor.isNativePlatform() ? 2 : 3;
+        const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
         this.width = cssWidth;
         this.height = cssHeight;
@@ -302,12 +308,28 @@ export class Game {
             const currentTime = performance.now();
             
             if (!this.isPaused || this.appScreen !== 'playing') {
-                // Cap deltaTime to prevent huge jumps
-                const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
-                this.update(deltaTime);
+                // Ship/camera still assume one tick ≈ 1/60s. On a 30 FPS phone,
+                // run two ticks per paint so wall-clock speed matches web @ 60.
+                // Pass dt=1/60 into update so KM (|v_frame| * dt * 100) stays
+                // locked to those same ticks — do not use raw frame dt here.
+                const SIM_STEP = 1 / 60;
+                const MAX_STEPS = 5;
+                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
                 this.lastTime = currentTime;
+                this.simAccumulator += frameTime;
+
+                let steps = 0;
+                while (this.simAccumulator >= SIM_STEP && steps < MAX_STEPS) {
+                    this.update(SIM_STEP);
+                    this.simAccumulator -= SIM_STEP;
+                    steps += 1;
+                }
+                if (this.simAccumulator > SIM_STEP * 2) {
+                    this.simAccumulator = 0;
+                }
             } else {
                 this.lastTime = currentTime;
+                this.simAccumulator = 0;
             }
             
             this.render();
