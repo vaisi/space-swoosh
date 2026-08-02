@@ -1,3 +1,7 @@
+# Deploy to GitHub Pages
+# Changes: Bumped Pages actions past deprecated upload-artifact@v3 so deploys
+# succeed again (needed for spaceswoosh.app/privacy.html + SSL for Play).
+
 name: Deploy to GitHub Pages
 
 on:
@@ -9,6 +13,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   deploy:
     environment:
@@ -17,39 +25,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+
       - name: Set up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
-      
+
       - name: Install dependencies
-        run: |
-          npm ci || npm install
-          npm install -g vite  # Install vite globally
-      
+        run: npm ci || npm install
+
       - name: Build
-        run: |
-          npm run build
+        run: npm run build
         env:
-          CI: false  # This prevents treating warnings as errors
-          # Supabase credentials moved out of src/config/supabase.js into env
-          # vars. Define these as repository secrets (Settings -> Secrets and
-          # variables -> Actions), otherwise the deployed build boots with the
-          # leaderboard disabled.
+          CI: false
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      
+
       - name: Setup Pages
-        uses: actions/configure-pages@v3
-      
+        uses: actions/configure-pages@v5
+
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
-      
+
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2 
+        uses: actions/deploy-pages@v4
