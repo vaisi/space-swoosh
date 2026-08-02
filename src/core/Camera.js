@@ -1,7 +1,7 @@
 // Camera.js
-// Changes: Apply the per-frame follow step scaled by `game.tickScale` so camera
-// travel stays locked to wall-clock time on low-FPS native WebViews. At 60 FPS
-// tickScale=1 and behaviour matches the original unscaled code.
+// Changes: Integrate in world-units/sec with real `dt`. Paired with score from
+// camera Δy so KM can never outrun the world (Journey tutorial / spawns use
+// camera.totalDistance). At 60 FPS this matches the old per-frame step.
 
 export class Camera {
     constructor(game) {
@@ -12,30 +12,27 @@ export class Camera {
         this.speed = game.config.camera.speed * game.height;
         this.interpolation = game.config.camera.interpolation;
         this.idealOffset = game.height * 0.75;
+        /** World-units per second (not per-frame). */
         this.velocity = 0;
         this.shake = { x: 0, y: 0 };
     }
 
-    update(speedFactor = 1) {
-        // Calculate target position based on ship position
+    update(dt = 1 / 60, speedFactor = 1) {
+        const REF_FPS = 60;
         const targetY = this.game.spacecraft.y - this.idealOffset;
-        const tick = this.game.tickScale || 1;
 
-        // Same per-frame target as before; easing stretched across `tick` frames.
-        const targetVelocity = (targetY - this.y) * this.interpolation * speedFactor;
-        const smoothKeep = Math.pow(
+        // Old per-frame step was `error * interpolation`. Same step at 60 FPS
+        // equals integrating units/sec = that * 60.
+        const targetVelocity =
+            (targetY - this.y) * this.interpolation * speedFactor * REF_FPS;
+        const smooth = Math.pow(
             this.game.config.camera.smoothingFactor,
-            tick
+            dt * REF_FPS
         );
         this.velocity =
-            this.velocity * smoothKeep +
-            targetVelocity * (1 - smoothKeep);
+            this.velocity * smooth + targetVelocity * (1 - smooth);
 
-        // Original code did `y += velocity` once per paint (= once per 1/60s).
-        // Multiply by tick so a slow paint covers the missed 60Hz steps.
-        this.y += this.velocity * tick;
-
-        // Track total distance
+        this.y += this.velocity * dt;
         this.totalDistance = Math.abs(this.y);
     }
 

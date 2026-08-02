@@ -2,9 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Native pacing: `tickScale = dt * 60` scales per-frame ship/camera steps.
-//   Native DPR 2× (Build 10's 1× looked pixelated). Ship updates before camera.
-//   Menu BUILD stamp verifies Internal installs (Play often lags a version).
+// - Pacing fix: ship/camera use real `dt`; KM is derived only from camera Δy
+//   (never from a separate clock). Stops Journey "2km, no rocks" when the HUD
+//   outran world travel. Native DPR 2×; BUILD stamp for install verification.
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 1 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height.
@@ -170,8 +170,6 @@ export class Game {
         this.hasWon = false; // Track if player has won
         this.lastTime = performance.now();
         this.accumulatedTime = 0; // Track time between pauses
-        // How many "60Hz frames" this paint represents. 1 on a 60 FPS display.
-        this.tickScale = 1;
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -327,15 +325,10 @@ export class Game {
             if (!this.isPaused || this.appScreen !== 'playing') {
                 // Cap deltaTime to prevent huge jumps after a stall.
                 const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
-                // Original ship/camera steps assume one paint = 1/60s. Scale them
-                // by dt*60 so a 30 FPS phone advances 2× per paint (same as two
-                // 60Hz ticks). At 60 FPS tickScale=1 → bit-identical to before.
-                this.tickScale = Math.max(0, deltaTime * 60);
                 this.update(deltaTime);
                 this.lastTime = currentTime;
             } else {
                 this.lastTime = currentTime;
-                this.tickScale = 1;
             }
             
             this.render();
@@ -359,19 +352,20 @@ export class Game {
             
             if (timeSinceGameOver < deceleration) {
                 const slowdownFactor = 1 - (timeSinceGameOver / deceleration);
-                this.camera.update(slowdownFactor);
+                this.camera.update(deltaTime, slowdownFactor);
             }
             this.updateExplosion();
             return;
         }
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
-            // Ship first so the camera follows this frame's movement (matters when
-            // tickScale > 1 on slow native paints).
-            this.spacecraft.update();
-            this.camera.update(1);
+            const prevCameraY = this.camera.y;
+            this.spacecraft.update(deltaTime);
+            this.camera.update(deltaTime, 1);
 
-            this.score += Math.abs(this.camera.velocity) * deltaTime * 100;
+            // KM locked to world travel (1 km ≈ 0.6 world units). Tutorial /
+            // spawns key off camera.totalDistance — they must stay in sync.
+            this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
 
             this.obstacleManager.update();
             this.milestoneManager.update();
@@ -925,8 +919,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 12 · NATIVE'
-            : 'BUILD 12 · WEB';
+            ? 'BUILD 13 · NATIVE'
+            : 'BUILD 13 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;

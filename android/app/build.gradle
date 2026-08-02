@@ -1,4 +1,4 @@
-// Updated: default versionCode → 12 (skip Play lag: sharpness + tickScale).
+// Updated: default versionCode → 13 (KM locked to world Δy).
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -17,8 +17,8 @@ android {
         applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "12")
-        versionName System.getenv("VERSION_NAME") ?: "1.0.12"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "13")
+        versionName System.getenv("VERSION_NAME") ?: "1.0.13"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
