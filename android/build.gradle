@@ -7,7 +7,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        // Cap at 8.10.3: Android Studio Meerkat (2024.3.2) rejects AGP 8.13
+        // that Capacitor 8 scaffolds by default. Bump when Studio is upgraded.
+        classpath 'com.android.tools.build:gradle:8.10.3'
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
