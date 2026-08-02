@@ -1,7 +1,3 @@
-// Camera.js
-// Changes: Integrate with real `dt` so follow-speed matches the ship at any
-// refresh rate. `velocity` is stored as world-units/sec (was per-frame @ 60fps).
-
 export class Camera {
     constructor(game) {
         this.game = game;
@@ -15,24 +11,18 @@ export class Camera {
         this.shake = { x: 0, y: 0 };
     }
 
-    update(dt = 1 / 60, speedFactor = 1) {
+    update(speedFactor = 1) {
         // Calculate target position based on ship position
         const targetY = this.game.spacecraft.y - this.idealOffset;
-
-        // Legacy per-frame step was (targetY - y) * interpolation.
-        // At 60fps that equals integrating units/sec = that * 60.
-        const REF_FPS = 60;
-        const targetVelocity =
-            (targetY - this.y) * this.interpolation * speedFactor * REF_FPS;
-        const smooth = Math.pow(
-            this.game.config.camera.smoothingFactor,
-            dt * REF_FPS
-        );
-        this.velocity =
-            this.velocity * smooth + targetVelocity * (1 - smooth);
-
-        this.y += this.velocity * dt;
-
+        
+        // Use velocity-based smoothing instead of direct interpolation
+        const targetVelocity = (targetY - this.y) * this.interpolation * speedFactor;
+        this.velocity = this.velocity * this.game.config.camera.smoothingFactor + 
+                       targetVelocity * (1 - this.game.config.camera.smoothingFactor);
+        
+        // Apply velocity
+        this.y += this.velocity;
+        
         // Track total distance
         this.totalDistance = Math.abs(this.y);
     }
@@ -40,4 +30,4 @@ export class Camera {
     getRelativeY(absoluteY) {
         return absoluteY - this.y;
     }
-}
+} 
