@@ -9,7 +9,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "assets:generate": "node scripts/generate-brand-assets.mjs",
-    "assets:sync": "npm run assets:generate && capacitor-assets generate"
+    "assets:sync": "npm run assets:generate && capacitor-assets generate --iconBackgroundColor \"#E1D9C1\" --iconBackgroundColorDark \"#1A1A1A\" --splashBackgroundColor \"#E1D9C1\" --splashBackgroundColorDark \"#1A1A1A\"",
+    "build:native": "vite build && cap sync",
+    "sync": "cap sync",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios",
+    "run:android": "npm run build:native && cap run android"
   },
   "keywords": [
     "game",
@@ -19,11 +24,16 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "gh-pages": "^6.2.0",
     "sharp": "^0.34.5",
     "vite": "^5.4.11"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
     "@supabase/supabase-js": "^2.47.10"
   }
 }

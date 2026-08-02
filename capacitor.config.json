@@ -1,0 +1,17 @@
+{
+  "appId": "gg.orbi.spaceswoosh",
+  "appName": "Space Swoosh",
+  "webDir": "dist",
+  "backgroundColor": "#e1d9c1",
+  "android": {
+    "backgroundColor": "#e1d9c1",
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "ios": {
+    "backgroundColor": "#e1d9c1",
+    "contentInset": "never",
+    "scrollEnabled": false
+  }
+}
