@@ -1,11 +1,9 @@
 // Camera.js
 // Scroll position + world→screen mapping.
 // Changes:
-// - Motion integrates with real `dt` (via game.dt). Per-tick velocity is scaled
-//   by `dt * 60` so at 60 FPS behavior matches the original per-frame camera;
-//   lower/higher refresh rates travel the same world distance per second.
-// - Smoothing uses Math.pow(smoothingFactor, tickScale) so the blend rate is
-//   wall-clock consistent across frame rates.
+// - Back to the classic per-tick step (`y += velocity` once per sim tick).
+//   Snappy global pacing is owned by Game's 120 Hz catch-up loop, which runs
+//   these ticks at the same rate on web and native.
 
 export class Camera {
     constructor(game) {
@@ -21,19 +19,16 @@ export class Camera {
     }
 
     update(speedFactor = 1) {
-        const dt = this.game.dt ?? (1 / 60);
-        const tickScale = dt * 60;
-
         // Calculate target position based on ship position
         const targetY = this.game.spacecraft.y - this.idealOffset;
 
-        // Velocity is in "pixels per 1/60s tick" units (same as the original
-        // per-frame camera). Smoothing and apply both scale with tickScale.
+        // Use velocity-based smoothing instead of direct interpolation
         const targetVelocity = (targetY - this.y) * this.interpolation * speedFactor;
-        const keep = Math.pow(this.game.config.camera.smoothingFactor, tickScale);
-        this.velocity = this.velocity * keep + targetVelocity * (1 - keep);
+        this.velocity = this.velocity * this.game.config.camera.smoothingFactor +
+                       targetVelocity * (1 - this.game.config.camera.smoothingFactor);
 
-        this.y += this.velocity * tickScale;
+        // Apply velocity (one classic paint-tick)
+        this.y += this.velocity;
 
         // Track total distance
         this.totalDistance = Math.abs(this.y);

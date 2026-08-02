@@ -165,7 +165,7 @@ bar** underneath, filling as you close on the level's target distance.
 
 On phones the game fills the whole screen. Turn arcs and cruise speed are meant
 to feel the same as on a computer — if a build ever feels half-speed with KM
-racing ahead, that build is wrong; report the menu stamp (e.g. `BUILD 17 · NATIVE`).
+racing ahead, that build is wrong; report the menu stamp (e.g. `BUILD 19 · NATIVE`).
 
 ## Points
 

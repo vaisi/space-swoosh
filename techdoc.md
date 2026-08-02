@@ -3,8 +3,9 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **BUILD 17:** ship / camera / obstacles share `game.dt`; KM is `abs(Δcamera.y) *
-> (100/60)` so phone WebView FPS can never desync HUD distance from the world.
+> **BUILD 19:** snappy global pacing — classic paint-tick physics (`*(1/60)`)
+> advanced at a fixed **120 Hz** catch-up on web and native (the BUILD 16 web
+> feel on a ~120 Hz display). KM is `abs(Δcamera.y) * (100/60)`.
 
 ## 1. Overview
 
@@ -396,19 +397,19 @@ with a linear gradient along the wake's chord for the length-wise fade.
 
 - `gameLoop()` runs on `requestAnimationFrame`, skips work when the tab is hidden,
   and freezes gameplay updates while paused **during** `playing`.
-- **One pacing path for web and native.** Each visible tick clamps wall-clock
-  `frameTime` to ≤ 50 ms, sets `game.dt`, and calls `update(dt)` once. There is
-  no native-only fixed-timestep catch-up fork.
-- Ship, camera, and obstacle/projectile/particle motion integrate with `game.dt`
-  (constants calibrated so `dt = 1/60` matches the original 60 FPS feel). Camera
-  velocity is still stored in “pixels per 1/60s tick” units and applied as
-  `y += velocity * (dt * 60)`.
+- **One snappy pacing path for web and native.** `gameLoop` accumulates wall
+  time and runs classic paint-tick sim steps at **120 Hz** (`STEP = 1/120`, up
+  to 24 steps/frame; leftover is soft-capped, never wiped). Each step sets
+  `game.dt = 1/60` and runs ship/camera/obstacles once — same feel on a 30 FPS
+  phone and a 120 Hz desktop.
+- Ship uses `y -= verticalVelocity * (1/60)` per step; camera uses `y += velocity`
+  per step. KM is `abs(Δcamera.y) * (100/60)` so the HUD cannot desync from the world.
 - The world scrolls: entities store an absolute `y`; `camera.getRelativeY(y)`
   converts to on-screen Y for rendering and off-screen culling.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
 - Native caps canvas DPR at 2× (web at 3×) for WebView fill-rate; mobile layout
-  stays full-bleed (not letterboxed). Menu stamp: `BUILD 17 · NATIVE` / `WEB`.
+  stays full-bleed (not letterboxed). Menu stamp: `BUILD 19 · NATIVE` / `WEB`.
 
 ## 7. Scoring model
 
