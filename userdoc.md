@@ -11,20 +11,27 @@ There are two ways to play, and you pick one every time you hit Play.
 
 ## Two ways to play
 
+Play lists **Journey first** — it's the recommended path. Each visit, the short
+line under Journey and Open World is a fresh Spock-voice blurb (same idea, new
+wording).
+
+### Journey
+
+Deep space exploration starting from Day 1. **40 numbered levels**, each with a
+distance goal to reach. Level 1 is a short 2,000 km first flight; after that the
+runs lengthen. Levels get harder a step at a time and then hold there for a
+while, so you get room to master what just arrived before anything new does —
+and the further you go, the longer each of those stretches lasts.
+
+Flying Journey is also how you **unlock Logbook entries** — observe and interact
+with hazards and boosts to fill your field manual.
+
 ### Open World
 
 The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up. **This is the mode with the leaderboard** — submit your distance from
 the mission-end screen and see where you land.
-
-### Journey
-
-**40 numbered levels**, each with a distance goal to reach. Level 1 is a short
-2,000 km first flight; after that the runs lengthen. Levels get harder a step at
-a time and then hold there for a while, so you get room to master what just
-arrived before anything new does — and the further you go, the longer each of
-those stretches lasts.
 
 The levels are grouped into five chapters as you climb out of the atmosphere:
 **Troposphere → Stratosphere → Mesosphere → Thermosphere → Exosphere**. Each new

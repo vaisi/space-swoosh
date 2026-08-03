@@ -94,7 +94,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
-| `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear subtitles. |
+| `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear / Play mode-select blurbs. |
 | `ui/ScreenKit.js` | Screen layout grid + rhythm, dotted rules/ruled labels, text fitting & wrapping. |
 | `utils/BrandDraw.js` | Canvas brand primitives: paper, framed tiles/buttons, reticle, **sparkle**, type presets. |
 | `utils/DrawUtils.js` | Lower-level draw helpers (dotted lines, shield path, colors). |
@@ -105,7 +105,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | Screen | Role |
 | --- | --- |
 | `menu` | Title, selected-skin preview, Play / Logbook / Options / High Scores |
-| `modeSelect` | Play → Open World or Journey (two description cards) |
+| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
 | `options` | Options hub: Ship / Controls / Sound |

@@ -233,7 +233,7 @@ export function handleJourneyMapClick(game, x, y) {
     if (!map) return false;
 
     if (game.isClickInButton(x, y, map.back)) {
-        game.appScreen = 'modeSelect';
+        game.goToModeSelect();
         return true;
     }
 

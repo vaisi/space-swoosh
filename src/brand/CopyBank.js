@@ -2,6 +2,7 @@
 // Spock-voice flavor lines, pooled by screen. Screens pick once on enter so the
 // words change visit to visit without reshuffling every frame.
 // Changes:
+// - Added modeJourney / modeOpenWorld pools for Play mode-select card blurbs.
 // - Created file: menu / crash / victory / Journey fail & clear pools, plus
 //   pickCopy() with a one-deep last-used guard so the same line rarely lands
 //   twice in a row.
@@ -105,6 +106,27 @@ const POOLS = {
         'Forty levels. Zero patience for rocks.',
         'Away. As promised.',
         'The atmosphere is behind you. Stay that way.',
+    ],
+
+    // Play → mode select cards. Short. Punched. Same cadence for both modes.
+    modeJourney: [
+        'Deep space. Level by level.',
+        'Recommended. The Logbook opens here.',
+        'Chart the void. Fill the Logbook.',
+        'Forty levels outward. Catalogue as you go.',
+        'Ordered exploration. Logbook entries unlock here.',
+        'Climb the chapters. Write the field manual.',
+        'Deep space, structured. Your Logbook writes here.',
+    ],
+
+    modeOpenWorld: [
+        'One run, no finish line.',
+        'Fly until you crash.',
+        'Let your name echo through space.',
+        'Endless corridor. The leaderboard is listening.',
+        'No goal marker. Only distance, and how far your name travels.',
+        'One continuous flight. Crash ends it. Fame is optional, but recorded.',
+        'The void has no exit. Your score does.',
     ],
 };
 

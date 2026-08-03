@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Journey map back uses goToModeSelect() so Play card blurbs re-roll.
 // - Logbook screen retreats to the main menu.
 // - Level-clear flyout swallows back (no skip) until the outcome screen is up.
 // - Created file: the back target for each screen used to exist only inside the
@@ -81,6 +82,10 @@ export function goBack(game) {
 
     const parent = PARENT_SCREEN[game.appScreen];
     if (parent) {
+        if (parent === 'modeSelect') {
+            game.goToModeSelect();
+            return true;
+        }
         game.appScreen = parent;
         game.updatePauseButtonVisibility();
         return true;

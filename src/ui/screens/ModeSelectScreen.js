@@ -1,8 +1,10 @@
 // ModeSelectScreen.js
-// The screen behind Play: pick Open World (the endless run, with the
-// leaderboard) or Journey (levels). Two description cards rather than two bare
+// The screen behind Play: pick Journey (levels, Logbook unlocks) or Open World
+// (endless run + leaderboard). Two description cards rather than two bare
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
+// - Card blurbs come from CopyBank (modeJourney / modeOpenWorld), picked once
+//   on enter via game.goToModeSelect(). Journey stays first + RECOMMENDED.
 // - Created file. Kept out of Game.js, which is already long; it draws through
 //   the same ScreenKit grid and brand button as every other screen.
 
@@ -36,20 +38,20 @@ export function renderModeSelect(game) {
 
     const buttons = { back: header.backRect };
 
-    buttons.openWorld = drawModeCard(game, {
+    buttons.journey = drawModeCard(game, {
         x: cardX, y: top, w: cardW, h: cardH,
-        title: 'Open World',
-        blurb: 'One run, no finish line. Fly until you crash — the leaderboard is here.',
-        tag: 'ENDLESS',
+        title: 'Journey',
+        blurb: game.modeJourneyBlurb || 'Deep space. Level by level.',
+        tag: 'RECOMMENDED',
+        signal: true,
+        footer: `LEVEL ${level}  ·  ${stars} / ${TOTAL_LEVELS * STARS_PER_LEVEL} STARS`,
     });
 
-    buttons.journey = drawModeCard(game, {
+    buttons.openWorld = drawModeCard(game, {
         x: cardX, y: top + cardH + gap, w: cardW, h: cardH,
-        title: 'Journey',
-        blurb: `${TOTAL_LEVELS} levels that climb, then hold, then climb again. Three stars each.`,
-        tag: `LEVEL ${level}`,
-        signal: true,
-        footer: `${stars} / ${TOTAL_LEVELS * STARS_PER_LEVEL} STARS`,
+        title: 'Open World',
+        blurb: game.modeOpenWorldBlurb || 'One run, no finish line.',
+        tag: 'ENDLESS',
     });
 
     ctx.save();
@@ -99,7 +101,7 @@ function drawModeCard(game, { x, y, w, h, title, blurb, tag, signal = false, foo
     const blurbPx = Math.max(10, unit * 1.05);
     ctx.font = `500 ${blurbPx}px ${font.ui}`;
     ctx.fillStyle = color.ink55;
-    wrapLines(ctx, blurb, innerW, 3).forEach((line, i) => {
+    wrapLines(ctx, blurb, innerW, 4).forEach((line, i) => {
         ctx.fillText(line, x + pad, y + pad + titlePx * 1.5 + i * blurbPx * 1.4);
     });
 

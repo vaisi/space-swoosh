@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Play mode-select blurbs pick once on enter from CopyBank modeJourney /
+//   modeOpenWorld pools via goToModeSelect().
 // - Journey Logbook: main-menu entry, logbook screen, toast HUD, Journey-only
 //   discovery hooks via LogbookManager (observe / interact / instant).
 // - iOS native: cap update/render to ~60 Hz (skip rAF ticks under 16.5 ms) so
@@ -183,6 +185,8 @@ export class Game {
         // optionsControls | optionsSound | highscores | playing | gameover
         this.appScreen = 'menu';
         this.menuFlavor = pickCopy('menu');
+        this.modeJourneyBlurb = pickCopy('modeJourney');
+        this.modeOpenWorldBlurb = pickCopy('modeOpenWorld');
         this.endFlavor = null; // Open World game-over subtitle
         this.highScoresReturnScreen = 'menu';
         this.shipSkinId = loadShipSkinId();
@@ -1520,6 +1524,14 @@ export class Game {
         this.menuFlavor = pickCopy('menu');
     }
 
+    // Play → mode cards. Fresh blurbs each visit so the copy doesn't stick.
+    goToModeSelect() {
+        this.modeJourneyBlurb = pickCopy('modeJourney');
+        this.modeOpenWorldBlurb = pickCopy('modeOpenWorld');
+        this.appScreen = 'modeSelect';
+        this.updatePauseButtonVisibility();
+    }
+
     goToJourneyMap() {
         this.leaveRun('journeyMap');
         this.journeyMapNeedsScroll = true;
@@ -2151,8 +2163,7 @@ export class Game {
 
             if (this.appScreen === 'menu' && this.menuButtons) {
                 if (this.isClickInButton(x, y, this.menuButtons.play)) {
-                    this.appScreen = 'modeSelect';
-                    this.updatePauseButtonVisibility();
+                    this.goToModeSelect();
                 } else if (this.isClickInButton(x, y, this.menuButtons.logbook)) {
                     this.logbookCategory = 'obstacles';
                     this.logbookScroll = 0;
