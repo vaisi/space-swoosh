@@ -3,6 +3,8 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Added `ember` / `emberRgb` — warm trail-only accent for special ship wakes
+//   (Cinder). Still paper-universe; not a second UI accent.
 // - Added `inkRgb` so canvas VFX (e.g. wall BOOP) can build rgba() strings
 //   the same way Signal Blue does via `signalRgb`.
 // - Created file: the canonical brand kit for the game, distilled from the
@@ -44,6 +46,12 @@ export const color = {
     signal:       '#0000FF',
     signalSoft:   'rgba(0, 0, 255, 0.14)',
     signalRgb:    '0, 0, 255',
+
+    // Ember — warm trail heat for ship wakes only (never HUD / buttons).
+    // Muted copper that sits on paper without fighting Signal Blue.
+    ember:        '#A65D3F',
+    emberSoft:    'rgba(166, 93, 63, 0.18)',
+    emberRgb:     '166, 93, 63',
 };
 
 // Semantic aliases — reference these in code so intent stays readable.

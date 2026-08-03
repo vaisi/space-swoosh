@@ -131,7 +131,7 @@ Options opens a short list:
 
 | Item | Status |
 | --- | --- |
-| **Ship** | Pick one of four ships (saved automatically). |
+| **Ship** | Pick a ship from the roster (saved automatically). |
 | **Controls** | Flight style (Zigzag or Arc) and how steering works. |
 | **Sound** | Turn music and effects on or off (saved automatically). |
 
@@ -145,36 +145,45 @@ Every ship flies the same — same speed, same turns. They only look different
 
 | Ship | Look |
 | --- | --- |
-| **Focus** | Solid circle with a dotted ink trail — clean and instrumental. |
-| **Flicker** | Teardrop trailing one smooth, flowing ribbon. |
-| **Ember** | Swept dart; wake breaks into loose streaks out of hard turns. |
-| **Wisp** | Teardrop again, with a thin thread that sheds drifting sparks. |
-| **Pulse** | Focus's hull with a Signal-Blue dotted wake. |
+| **Focus** | Solid circle with a dotted ink trail — clean and instrumental. Wall hits pack the dots denser. |
+| **Flicker** | Teardrop trailing one smooth, flowing ribbon that springs on a wall hit. |
+| **Ember** | Swept dart; streaks scatter like sparks off flint on a wall boop, then realign. |
+| **Wisp** | Teardrop again, with a thin thread that sheds drifting sparks — they flare on impact. |
+| **Pulse** | Focus's hull with a Signal-Blue dotted wake (same dense pile on boop). |
 | **Quill** | Flicker's tear with a fine Signal-Blue ribbon. |
-| **Shard** | Faceted crystal diamond; paper-cut chevrons mark the path. |
-| **Halo** | Small orbital core with crawling ring-ticks; wake blooms into rings. |
-| **Needle** | Ultra-thin lance with a single hairline thread. Wall hits flex the tip and curl the old end of the wake. |
-| **Echo** | Open crescent; twin parallel lines trail behind. |
-| **Square Stamp** | Square hull; stamps little tiles along the path. |
-| **Square Tick** | Square hull; short lateral ticks. |
-| **Square Trace** | Square hull; one thin hairline. |
-| **Square Ring** | Square hull; blooming rings (same wake idea as Halo). |
+| **Shard** | Faceted crystal diamond; chevrons shatter into a fan against the wall, then restack. |
+| **Halo** | Small orbital core with crawling ring-ticks; young rings inflate like soap bubbles on a wall hit, then pop — the core wobbles in a tiny orbit. |
+| **Needle** | Ultra-thin lance with a single hairline thread. Wall hits flex the tip and ripple the old end of the wake. |
+| **Echo** | Open crescent; twin lines desync briefly on a boop (one sticks, one springs late), then snap back in phase. |
+| **Square Stamp** | Square hull; stamps little tiles — denser blot at the wall, then peels like a rubber stamp. |
+| **Square Tick** | Square hull; short lateral ticks that stretch toward the wall on impact. |
+| **Square Trace** | Square hull; one thin hairline that springs on a bounce. |
+| **Square Ring** | Square hull; blooming rings (squash only — not Halo’s bubble pop). |
+| **Fold** | Solid origami kite; a long dashed crease that leaves from the hull and zigzags harder when you bank. |
+| **Mote** | Soft ink disc; a messy organic cloud of micro-dots that drift and re-condense on a wall hit. |
+| **Spine** | Tall thin bar; ladder rungs compress toward the wall on a boop. |
+| **Orbit** | Small planetoid with a tilted ring and one satellite; a continuous orbital path lags behind with dense ellipse ticks. |
+| **Ink** | Quill’s dark twin — a fine ink ribbon whose tip whips backward on a wall boop while staying attached to the hull. |
+| **Flux** | Hex crystal; wake is alternating ink and Signal-Blue dashes that stretch on a wall hit. |
+| **Cinder** | Soft petal; a calm warm ember ribbon that cools into soft ash dots (blue glints mainly on a wall hit). |
 
-The Square ships collide as the box you see. On a side-wall bounce, **every**
-ship jelly-shakes — hard squish, then stretch, with a quick shake (animation
-only; the hitbox does not squash). Squares read as a cube against the wall;
-other hulls squash and shudder the same way.
+The Square ships collide as the box you see. **Orbit** collides on its solid
+planetoid body (the ring and satellite are looks only). On a side-wall bounce,
+**every** ship reacts —
+animation only; the hitbox does not squash. Each vessel has its own feel: some
+squash like jelly, Needle flexes, Halo wobbles in a tiny orbit, Shard cracks,
+Stamp plants like rubber.
 
-Every ship’s wake also reacts to a wall hit: some **pile** into the wall and peel
-off (dots, stamps, ticks, rings, streaks…), others **spring** down the trail
-(ribbons and thin lines). Needle’s hairline **whips** with curly tip waves.
-Same bounce clock, different feel per vessel.
+Every ship’s wake also reacts to a wall hit. Same bounce clock, different
+signature per vessel — pile, spring, whip, scatter, shatter, bubble, blot, and
+more.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
 to the wall, not on it) and a soft space-boop sound.
 
-Pulse and Quill can be store unlocks later; right now every ship in
-**Options → Ship** is available so you can try them all.
+Pulse and Quill can be store unlocks later; Ink and the rest of the roster are
+free. Right now every ship in **Options → Ship** is available so you can try
+them all.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
 along the path you actually flew. You only crash where the hull actually is —

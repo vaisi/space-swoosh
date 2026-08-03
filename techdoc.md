@@ -61,9 +61,9 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `services/Entitlements.js` | Skin ownership cache + purchase / restore. `UNLOCK_ALL_SKINS` (currently `true`) opens the whole roster without IAP for playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | Ship roster (Focus…Echo) composed from hulls + trails. |
-| `ships/hulls.js` | Hull geometry (`tearPath`, `dartPath`, `circlePath`), `withHeading`, `MAX_BANK`. |
-| `ships/trails.js` | Wake renderers: dots, tapered ribbon, oriented streaks, thread + embers. |
+| `ships/skinDefs.js` | Ship roster (Focus…Ink) composed from hulls + trails + boop signatures. |
+| `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes, `beginHullFrame`, `MAX_BANK`. |
+| `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, desync, shatter, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules. |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
@@ -407,44 +407,73 @@ Note: `Game.checkCollisions()` is dead code — it calls a nonexistent
 Skins are **visual only** for physics/speed — arcs, shield duration and scoring
 are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 
-| Id | Hull | Wake |
-| --- | --- | --- |
-| `focus` (default) | Solid ink circle | Hard ink dots |
-| `flicker` | Banking ink tear + soft halo | Tapered comet ribbon |
-| `ember` | Swept dart with a notched tail | Elongated tangent streaks |
-| `wisp` | Same tear as Flicker | Thin ribbon + drifting sparks |
-| `pulse` | Focus circle | Signal-Blue dots |
-| `quill` | Flicker tear | Thin Signal-Blue ribbon |
-| `shard` | Faceted diamond (`shardPath`) | Chevron / paper-cut V marks |
-| `halo` | Core disc + orbit ring with ticks | Expanding hollow rings |
-| `needle` | Thin lance (`needlePath`) | Single hairline stroke |
-| `echo` | Open crescent (`crescentPath`) | Twin parallel hairlines |
-| `squareStamp` | Square (`squarePath`) | Dense filled square stamps |
-| `squareTick` | Square | Lateral tick marks |
-| `squareTrace` | Square | Hairline stroke |
-| `squareRing` | Square | Expanding rings (shared with Halo) |
+| Id | Hull | Wake | Boop signature |
+| --- | --- | --- | --- |
+| `focus` (default) | Solid ink circle | Hard ink dots | Dense pile — dots pack harder near hull |
+| `flicker` | Banking ink tear + soft halo | Tapered comet ribbon | Spring whip down the ribbon |
+| `ember` | Swept dart with a notched tail | Elongated tangent streaks | Sparks scatter sideways, then realign |
+| `wisp` | Same tear as Flicker | Thin ribbon + drifting sparks | Sparks flare outward |
+| `pulse` | Focus circle | Signal-Blue dots | Same dense pile as Focus (blue) |
+| `quill` | Flicker tear | Thin Signal-Blue ribbon | Spring whip (blue) |
+| `shard` | Faceted diamond (`shardPath`) | Chevron / paper-cut V marks | Crystal fan shatter → restack; crack jelly |
+| `halo` | Core disc + orbit ring with ticks | Expanding hollow rings | Soap-bubble inflate/stack/pop; orbital wobble |
+| `needle` | Thin lance (`needlePath`) | Single hairline stroke | Whip flex + tip ripples |
+| `echo` | Open crescent (`crescentPath`) | Twin parallel hairlines | Twin desync (one sticks, one late), then snap |
+| `squareStamp` | Square (`squarePath`) | Dense filled square stamps | Rubber blot at contact, then peel |
+| `squareTick` | Square | Lateral tick marks | Ticks stretch toward the wall |
+| `squareTrace` | Square | Hairline stroke | Spring along the line |
+| `squareRing` | Square | Expanding rings | Ring squash only (no Halo bubble pop) |
+| `fold` | Solid origami kite (`foldPath` + crease) | Long dashed crease (hull-locked zig) | Crease amplifies; fold jelly |
+| `mote` | Soft ink disc | Organic radial micro-dot cloud | Cloud drifts then re-condenses |
+| `spine` | Vertical bar (`spinePath`) | Ladder rungs + thin spine | Rungs compress toward the wall |
+| `orbit` | Planetoid oval + tilted ring + satellite | Continuous lagging orbital ribbon + dense ellipse ticks | Soft lag shove; oval wobble |
+| `ink` | Flicker tear | Fine dark ribbon | Tip/mid reverse on boop; hull end stays attached |
+| `flux` | Hex crystal (`hexPath`) | Alternating ink / Signal-Blue dashes | Dashes stretch then snap (`flick`) |
+| `cinder` | Soft petal (`petalPath`) | Calm ember ribbon + cool ash dots + ink hairline | Soft burst on boop (`cinder`); Signal glints |
 
 Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circles
 filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
-squish→extend→shake on **every** hull via `beginHullFrame` in `hulls.js`
-(plant contact face + shake + local scale); the hitbox does not deform.
-**Needle** uses a `needle` jelly profile (length whip + tip shear) so the lance
-flexes instead of blobbing.
+response on **every** hull via `beginHullFrame` in `hulls.js` (plant + shake +
+local scale / shear); the hitbox does not deform.
 
-Every skin declares `wallTrailMode`: **`pile`**, **`spring`**, or **`whip`**
-(Needle). On a sidewall bounce, `wallTrailDeform` in `hulls.js` shoves the wake
-at render time — pile crushes toward the wall; spring compresses then whips;
-whip adds slow curly far-tip sway. Needle’s hairline also paints tip waves
-while jelly is live. Discrete marks squash via `sx`/`sy`.
-`Spacecraft.render` stamps `ship._wallTrailMode` from the active skin so
-`trails.js` never imports the roster.
+**Jelly profiles** (optional 7th arg to `beginHullFrame` / `wallJellyDeform`):
+`default`, `needle`, `halo`, `shard`, `stamp`, `fold`, `spine`, `mote`, `orbit`,
+`flux`, `cinder`.
 
-| pile | Focus, Pulse, Ember, Shard, Halo, Square Stamp / Tick / Ring |
-| spring | Flicker, Quill, Wisp, Echo, Square Trace |
-| whip | Needle |
+Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
+`hulls.js` shoves the wake at render time. Discrete marks also squash via
+`sx`/`sy`. Trail renderers may add opts extras (`tipRipple`, `bubbleBoop`,
+`desyncBoop`, `shatterBoop`, `sparkBoop`, `blotBoop`, `denseBoop`, `flareBoop`,
+`wallStretch`, `reverseBoop`). `Spacecraft.render` stamps
+`ship._wallTrailMode` from the active skin so `trails.js` never imports the roster.
 
-Shaped hulls mostly share `makeHullRenderer(pathFn)` in `skinDefs.js`; Needle
-has its own hull drawer for the whip profile.
+| Mode | Ships |
+| --- | --- |
+| `pile` | Halo, Square Tick / Ring |
+| `dense` | Focus, Pulse |
+| `blot` | Square Stamp |
+| `scatter` | Ember |
+| `shatter` | Shard |
+| `desync` | Echo |
+| `flare` | Wisp |
+| `spring` | Flicker, Quill, Square Trace |
+| `whip` | Needle |
+| `crease` | Fold |
+| `cloud` | Mote |
+| `ladder` | Spine |
+| `lag` | Orbit |
+| `script` | Ink |
+| `flick` | Flux |
+| `cinder` | Cinder |
+
+Trail color accents: Signal Blue (`color.signalRgb`) on Pulse / Quill / Flux
+dashes / Cinder glints; warm Ember (`color.emberRgb`) on Cinder wakes only —
+not used in HUD/UI.
+
+Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
+Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
+**Orbit** hitbox is the solid oval body only (ring/satellite decorative).
+**Spine** is stacked circles down the bar only.
 
 - Registry: `ships/skins.js` (`getSkin`, `drawSkinPreview`, `loadShipSkinId` / `saveShipSkinId`).
 - Roster: `ships/skinDefs.js`; geometry in `ships/hulls.js`; wakes in `ships/trails.js`.
@@ -561,11 +590,11 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
 ## 9. Extending
 
 - **New ship skin:** add an entry to `SKIN_DEFS` in `ships/skinDefs.js` with
-  `drawHull`, `drawTrail` and `hitbox`; the registry, picker grid and click
-  handling all read from it. Reuse a wake from `ships/trails.js` (or add one
-  there), and build a shaped hull from `makeHullRenderer(pathFn)` so it gets the
-  bank rotation and halo for free. Size the hitbox circles to sit inside the
-  outline and check the fit with `?hitbox`.
+  `drawHull`, `drawTrail`, `hitbox`, and `wallTrailMode`; the registry, picker
+  grid and click handling all read from it. Reuse a wake from `ships/trails.js`
+  (or add one there), and build a shaped hull from
+  `makeHullRenderer(pathFn, jellyProfile)` so it gets bank rotation, halo, and
+  a boop feel for free. Size hitbox circles inside the outline (`?hitbox`).
 - **New collectible behavior / value:** edit `CollectibleManager` (cadence,
   placement) and `GameConfig.points`.
 - **New obstacle:** add a `BaseObstacle` subclass in `ObstacleManager.js`, add a

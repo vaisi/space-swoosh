@@ -48,10 +48,11 @@ A monochrome palette plus a single electric signal. Restraint is the point.
 | Paper Deep | `#D3C9AC` | Wells, pressed/recessed states |
 | Ink | `#1A1A1A` | Shapes, text, structure (never pure black) |
 | Ink 80 / 55 / 30 / 12 | `#1A1A1A` @ opacity | Secondary text → dividers → faint grid |
-| **Signal Blue** | `#0000FF` | The **only** accent — shield, focus, "active" |
+| **Signal Blue** | `#0000FF` | The **only** UI accent — shield, focus, "active" |
 | Signal Soft | `#0000FF` @ 14% | Accent fills / glow |
+| Ember | `#A65D3F` | **Trail-only** warm heat (Cinder wake). Never HUD / buttons. |
 
-**Usage:** ~90% paper, ~9% ink, ≤1% signal. If blue appears, it must carry meaning.
+**Usage:** ~90% paper, ~9% ink, ≤1% signal in UI. If blue appears in chrome, it must carry meaning. Ship wakes may use Signal and Ember as path color — still geometric paper marks, not gradients or glow FX.
 
 ---
 

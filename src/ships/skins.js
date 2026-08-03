@@ -1,6 +1,8 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
+// - Preview fakeShip stamps `_wallTrailMode` so new crease/cloud/ladder/lag/
+//   script wakes still deform correctly in the Options picker.
 // - Slimmed to a registry; hull geometry moved to hulls.js, wake renderers to
 //   trails.js and the roster itself to skinDefs.js.
 // - `drawSkinPreview` now feeds the renderers a banked hull and a gently curved
