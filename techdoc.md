@@ -82,7 +82,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `managers/PowerUpManager.js` | Shield pickups (spawn + collect → activate shield). |
 | `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
-| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink popup + blot/kick VFX below the hull. |
+| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup below the hull. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()`. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`. |
@@ -484,9 +484,9 @@ it is included in the `game_over` GA event.
 4. **Wall boop (sidewall bounce):** When `Spacecraft` clamps against a screen
    edge (arc bounce or zigzag flip), it calls `WallBoopManager.triggerBoop(ship,
    side)`. That plays `SoundManager.playBoop()` (soft low sine + vacuum puff)
-   and spawns an ink `BOOP` label below the hull, inset from the wall so it
-   never overlaps ship or edge. Applies to every skin; Square skins still also
-   get `wallJelly` squash.
+   and spawns an ink-only `BOOP` label below the hull (no glow/blot), inset
+   from the wall so the full word stays on-screen. Applies to every skin;
+   Square skins still also get `wallJelly` squash.
 
 Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
 
