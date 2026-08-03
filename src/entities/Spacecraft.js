@@ -3,6 +3,8 @@
 // Changes:
 // - Render stamps `ship._wallTrailMode` from the active skin so wakes can pile
 //   or spring on wall hits without a trails↔skins import cycle.
+// - `startMovement(direction)` param name restored (was `_direction` while the
+//   body still used `direction`, which broke arc banks).
 // - Sidewall bounces (arc + zigzag) fire WallBoopManager + playBoop for every
 //   skin — ink "BOOP" popup below the hull beside the wall.
 // - Wall bounce sets `wallJelly` ({ t0, side }) so Square skins can squash like
@@ -15,7 +17,7 @@
 // - Direction changes: reversing mid-arc uses a shorter redirect duration so
 //   turns don't feel stuck in the sine-arc apex dead zone. Bank eases faster.
 // - Zigzag flight style: constant straight lean at ±zigzagAngleDeg from up;
-//   input sets/flips lean — no arcs.
+//   tap/key flips lean — no arcs; touch swipe ignored.
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
 //   1; the Journey level-clear flyout ramps it to send the ship off the top.
 // - Forward speed is scaled by `game.profile.speedMultiplier`, which is the dial
@@ -273,12 +275,14 @@ export class Spacecraft {
         this.zigzagSign *= -1;
         this.game.soundManager.playTurn();
         this.game.soundManager.playMove();
+        // Tutorial completion tracks flips the same way arc tracks banks.
+        this.game.obstacleManager?.trackMovement?.('flip');
     }
 
-    startMovement(_direction) {
+    startMovement(direction) {
         if (this.game.isPaused) return;
 
-        // Zigzag: every press/swipe flips — no absolute left/right aim.
+        // Zigzag: every press/tap flips — no absolute left/right aim.
         if (this.isZigzag()) {
             this.flipZigzag();
             return;

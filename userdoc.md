@@ -92,7 +92,7 @@ Options opens a short list:
 | Item | Status |
 | --- | --- |
 | **Ship** | Pick one of four ships (saved automatically). |
-| **Controls** | How touch steering works (swipe + tap). |
+| **Controls** | Flight style (Zigzag or Arc) and how steering works. |
 | **Sound** | Turn music and effects on or off (saved automatically). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
@@ -148,7 +148,8 @@ backing out to the menu.
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
-| Steer left / right (arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
+| Steer (Zigzag) | Left / Right arrow keys (either flips) | Tap anywhere to flip. Swipe does nothing. |
+| Steer (Arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
 | Pause | Spacebar, Escape, or the pause button (top-right) | Pause button (top-right) |
 
 You bank in smooth arcs and bounce off the side walls (with a **BOOP**), so plan
@@ -216,8 +217,9 @@ itself — aim for the blue.
 Under **Options → Controls** you can pick how the ship steers:
 
 - **Zigzag** (default) — the ship always flies straight at a flatter fixed
-  angle, a bit faster than Arc; **any tap** (or key / swipe) flips the other
-  way. Walls bounce you too. No arcs — just a clean zig-zag.
+  angle, a bit faster than Arc; **tap** (or an arrow key) flips the other way.
+  Swipe is off in this mode. Walls bounce you too. No arcs — just a clean
+  zig-zag.
 - **Arc** — the classic swoosh turn.
 
 ## Tips

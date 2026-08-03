@@ -458,8 +458,9 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
-  `zigzagSpeedScale` × cruise; any steer input flips `zigzagSign`.
-  Persisted in localStorage.
+  `zigzagSpeedScale` × cruise; tap or arrow key flips `zigzagSign` (touch
+  swipe is ignored). Arc still uses swipe + half-screen tap + arrows. The
+  intro tutorial hint matches the active style. Persisted in localStorage.
 
 ## 7. Scoring model
 

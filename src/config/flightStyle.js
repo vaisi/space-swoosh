@@ -1,5 +1,5 @@
 // flightStyle.js
-// Arc (classic swoosh) vs Zigzag (straight ±angle, tap/swipe to switch).
+// Arc (classic swoosh) vs Zigzag (straight ±angle, tap/key to flip — no swipe).
 // Changes:
 // - Default is now Zigzag when no preference is saved. Existing `arc` /
 //   `zigzag` localStorage values are still respected.

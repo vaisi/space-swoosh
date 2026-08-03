@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Intro control hint matches flight style (zigzag: tap to flip; arc: bank
+//   left/right). Zigzag flips count toward the tutorial movement requirement.
 // - Tightened hitboxes to match drawn ink: ComplexAsteroid satellites use the
 //   same body rotation as render (ghost moons were killing early); square rocks
 //   use circle-vs-AABB; shooting stars use the star polygon; black holes match
@@ -30,6 +32,8 @@
 //   never-fired tutorial cutscene are now also the flyout's speed lines.
 // - Row width and cluster size now respect `profile.maxRowSpawns()` /
 //   `maxClusterCount()`, so early Journey levels stay at one rock per line.
+
+import { FLIGHT_STYLE } from '../config/flightStyle.js';
 
 // How rarely the shielded-smash sound may repeat during the level-clear flyout.
 const CINEMATIC_CRASH_MS = 120;
@@ -965,10 +969,13 @@ export class ObstacleManager {
             ? 0
             : game.camera.y - game.height * 1.5;
 
+        const zigzag = game.flightStyle === FLIGHT_STYLE.zigzag;
         this.tutorialMessages = [
             {
                 distance: 25,  // Half of previous distance
-                message: "Use LEFT and RIGHT arrows to move in arcs",
+                message: zigzag
+                    ? 'Tap to flip direction'
+                    : 'Bank LEFT or RIGHT to move in arcs',
                 requirement: () => this.hasPlayerMoved(),
                 completed: false
             },
@@ -982,7 +989,8 @@ export class ObstacleManager {
         ];
         this.movementHistory = {
             left: false,
-            right: false
+            right: false,
+            flip: false,
         };
         this.destructionParticles = [];
         this.lastCometTime = 0;
@@ -1026,11 +1034,15 @@ export class ObstacleManager {
     }
 
     hasPlayerMoved() {
-        return this.movementHistory.left || this.movementHistory.right;
+        return this.movementHistory.left
+            || this.movementHistory.right
+            || this.movementHistory.flip;
     }
 
     trackMovement(direction) {
-        this.movementHistory[direction] = true;
+        if (direction in this.movementHistory) {
+            this.movementHistory[direction] = true;
+        }
     }
 
     update() {

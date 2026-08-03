@@ -16,7 +16,7 @@
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
 // - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is the
-//   default; straight ±52° lean (flatter/faster), any tap/key/swipe flips.
+//   default; straight ±52° lean (flatter/faster), tap/key flips (no swipe).
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -1273,7 +1273,7 @@ export class Game {
         setLabelType(ctx, footnotePx);
         ctx.fillStyle = color.ink30;
         ctx.fillText(
-            zigzag ? 'ANY TAP FLIPS · STRAIGHT ±52°' : 'CLASSIC SWOOSH ARCS',
+            zigzag ? 'TAP TO FLIP · STRAIGHT ±52°' : 'CLASSIC SWOOSH ARCS',
             L.centerX,
             L.bottom - footnotePx / 2
         );

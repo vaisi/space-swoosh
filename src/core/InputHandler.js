@@ -1,14 +1,15 @@
 // InputHandler.js
 // Keyboard / touch steering. Only active during an in-progress run.
 // Changes:
+// - Zigzag on touch: swipe/drag is ignored — only a clean tap (or key) flips.
+//   Arc mode still uses swipe + half-screen tap.
 // - Gate all gameplay input on game.isPlaying() so menu / options / high
 //   scores don't steer the ship or toggle pause.
 // - Mobile: swipe/drag left-right steers. A short tap with no drag still uses
 //   the old half-screen rule, so both muscle memories work. touchstart only
 //   arms the gesture — the arc fires on swipe (touchmove) or tap (touchend).
 // - Lower swipe threshold so direction changes commit sooner.
-// - Zigzag flight: any tap / key / swipe flips lean. Same-direction swipe
-//   must not re-fire (would chatter-flip).
+// - Zigzag flight: any tap / key flips lean (no swipe).
 
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
 
@@ -105,6 +106,10 @@ export class InputHandler {
         if (!this.touch) return;
         e.preventDefault();
 
+        // Zigzag is tap-only on touch — ignore swipe/drag so a restless thumb
+        // doesn't chatter-flip while the player means to tap.
+        if (this.game.flightStyle === FLIGHT_STYLE.zigzag) return;
+
         const t = this.findTouch(e.touches, this.touch.id);
         if (!t) return;
 
@@ -124,9 +129,6 @@ export class InputHandler {
             this.touch.originX = t.clientX;
             return;
         }
-
-        // Zigzag has no arc end — never re-steer the same lean.
-        if (this.game.flightStyle === FLIGHT_STYLE.zigzag) return;
 
         // Finger held past the end of an arc in the same direction — keep banking.
         if (!this.game.spacecraft?.moveState) {
