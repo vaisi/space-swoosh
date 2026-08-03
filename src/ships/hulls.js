@@ -1,6 +1,9 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Needle wall jelly: whip/flex profile (length pulse + tip shear) instead of
+//   chunky squash; `beginHullFrame` accepts a `profile` and applies shear.
+//   Trail mode `whip` adds slow curly far-tip sway for Needle's hairline.
 // - `beginHullFrame`: shared wall-jelly plant / shake / squash for every hull
 //   (not just Square). Hitbox stays undeformed.
 // - `wallTrailDeform`: per-skin pile vs spring wake physics on wall bounce
@@ -116,15 +119,31 @@ export const WALL_JELLY_MS = 420;
 /**
  * Squash/stretch for a live wall jelly along world X.
  * t=0 starts fully squished into the wall, then extends past rest and shakes.
- * @returns {{ sx: number, sy: number, side: number, shake: number } | null}
+ * @param {'default'|'needle'} [profile]
+ * @returns {{ sx: number, sy: number, side: number, shake: number, shear: number } | null}
  */
-export function wallJellyDeform(ship, time = performance.now()) {
+export function wallJellyDeform(ship, time = performance.now(), profile = 'default') {
     const j = ship.wallJelly;
     if (!j) return null;
     const elapsed = time - j.t0;
     if (elapsed < 0 || elapsed >= WALL_JELLY_MS) return null;
 
     const t = elapsed / WALL_JELLY_MS;
+
+    // Needle: stay thin — flex along its length, tip shears with a soft settle.
+    if (profile === 'needle') {
+        const damp = Math.exp(-1.85 * t);
+        const flex = Math.cos(t * Math.PI * 3.6) * damp;
+        const settle = Math.sin(t * Math.PI * 5.5) * Math.exp(-2.8 * t);
+        return {
+            sx: Math.max(0.8, 1 - 0.16 * flex + settle * 0.04),
+            sy: Math.min(1.9, Math.max(0.74, 1 + 0.58 * flex - settle * 0.1)),
+            side: j.side,
+            shake: settle * 0.12,
+            shear: flex * 0.4 + settle * 0.1,
+        };
+    }
+
     // cos: +1 at impact (squish) → −1 (extend) → settle. Damped oscillation.
     const damp = Math.exp(-2.4 * t);
     const primary = Math.cos(t * Math.PI * 2.8) * damp;
@@ -136,6 +155,7 @@ export function wallJellyDeform(ship, time = performance.now()) {
         sy: Math.min(1.65, 1 + 0.48 * primary - shake * 0.7),
         side: j.side,
         shake,
+        shear: 0,
     };
 }
 
@@ -144,7 +164,7 @@ const ZERO_TRAIL_DEFORM = Object.freeze({ dx: 0, dy: 0, sx: 1, sy: 1 });
 /**
  * Render-time wake shove while `ship.wallJelly` is live.
  * @param {number} along 0 = oldest wake, 1 = at the hull
- * @param {'pile'|'spring'} mode
+ * @param {'pile'|'spring'|'whip'} mode
  * @returns {{ dx: number, dy: number, sx: number, sy: number }}
  */
 export function wallTrailDeform(ship, time = performance.now(), {
@@ -178,17 +198,21 @@ export function wallTrailDeform(ship, time = performance.now(), {
     }
 
     // Spring / whip: compress into wall, overshoot away; phase lags down the trail.
-    const delay = (1 - a) * 0.35;
+    // Whip (Needle): longer lag + slow curly sway toward the old tip (string, not buzz).
+    const isWhip = mode === 'whip';
+    const delay = (1 - a) * (isWhip ? 0.5 : 0.35);
     const localT = Math.max(0, Math.min(1, t - delay));
-    const damp = Math.exp(-2.5 * localT);
-    const primary = Math.cos(localT * Math.PI * 2.8 + seedPhase * 0.15) * damp;
-    const whip = Math.sin(localT * Math.PI * 5.2 + seedPhase) * Math.exp(-3.2 * localT);
-    // primary +1 = into wall (same sign as side when side is the wall normal inward…):
-    // side −1 = left wall → into wall is negative X.
-    const intoWall = side; // displacement toward the wall face
-    const dx = intoWall * r * (0.62 * primary * (0.35 + 0.65 * a)
-        - 0.48 * whip * (0.25 + 0.75 * a));
-    const dy = r * 0.12 * whip * a;
+    const damp = Math.exp(-(isWhip ? 1.8 : 2.5) * localT);
+    const primary = Math.cos(localT * Math.PI * (isWhip ? 2.2 : 2.8) + seedPhase * 0.15) * damp;
+    const whip = Math.sin(localT * Math.PI * (isWhip ? 2.8 : 5.2) + seedPhase)
+        * Math.exp(-(isWhip ? 1.9 : 3.2) * localT);
+    const endBoost = isWhip ? (1 + 1.7 * Math.pow(1 - a, 1.4)) : 1;
+    const intoWall = side;
+    const dx = intoWall * r * endBoost * (
+        (isWhip ? 0.52 : 0.62) * primary * (0.25 + 0.75 * a)
+        - (isWhip ? 0.7 : 0.48) * whip * (isWhip ? (0.5 + 0.5 * (1 - a)) : (0.25 + 0.75 * a))
+    );
+    const dy = r * (isWhip ? 0.22 : 0.12) * whip * (isWhip ? (0.45 + 0.55 * (1 - a)) : a) * endBoost;
     const near = a * a;
     const sx = Math.max(0.55, 1 - 0.28 * primary * near);
     const sy = Math.min(1.4, 1 + 0.22 * primary * near);
@@ -207,6 +231,8 @@ export function wallJellyTrailNudge(ship, time = performance.now(), seed = 0.5, 
  * Open a hull draw frame at the ship with optional wall-jelly plant/shake/scale.
  * Caller must `ctx.restore()` after drawing.
  * Order: world plant + shake → bank → local squash (matches Square).
+ * Needle adds a tip shear after bank so the lance flexes instead of blobbing.
+ * @param {'default'|'needle'} [profile]
  * @returns {ReturnType<typeof wallJellyDeform>}
  */
 export function beginHullFrame(
@@ -216,17 +242,24 @@ export function beginHullFrame(
     bank = 0,
     time = performance.now(),
     halfScale = 0.75,
+    profile = 'default',
 ) {
-    const jelly = wallJellyDeform(ship, time);
+    const jelly = wallJellyDeform(ship, time, profile);
     ctx.save();
     ctx.translate(ship.x, screenY);
     if (jelly) {
         const half = (ship.radius ?? 10) * halfScale;
-        ctx.translate(jelly.side * (half - half * jelly.sx), 0);
-        ctx.translate(jelly.shake * (ship.radius ?? 10) * jelly.side * 0.35, 0);
+        const plant = profile === 'needle' ? 0.55 : 1;
+        ctx.translate(jelly.side * (half - half * jelly.sx) * plant, 0);
+        ctx.translate(jelly.shake * (ship.radius ?? 10) * jelly.side * (profile === 'needle' ? 0.55 : 0.35), 0);
     }
     if (bank) ctx.rotate(bank);
-    if (jelly) ctx.scale(jelly.sx, jelly.sy);
+    if (jelly) {
+        ctx.scale(jelly.sx, jelly.sy);
+        if (jelly.shear) {
+            ctx.transform(1, 0, jelly.shear * jelly.side, 1, 0, 0);
+        }
+    }
     return jelly;
 }
 

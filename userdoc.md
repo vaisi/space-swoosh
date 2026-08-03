@@ -153,7 +153,7 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Quill** | Flicker's tear with a fine Signal-Blue ribbon. |
 | **Shard** | Faceted crystal diamond; paper-cut chevrons mark the path. |
 | **Halo** | Small orbital core with crawling ring-ticks; wake blooms into rings. |
-| **Needle** | Ultra-thin lance with a single hairline thread of a wake. |
+| **Needle** | Ultra-thin lance with a single hairline thread. Wall hits flex the tip and curl the old end of the wake. |
 | **Echo** | Open crescent; twin parallel lines trail behind. |
 | **Square Stamp** | Square hull; stamps little tiles along the path. |
 | **Square Tick** | Square hull; short lateral ticks. |
@@ -166,9 +166,9 @@ only; the hitbox does not squash). Squares read as a cube against the wall;
 other hulls squash and shudder the same way.
 
 Every ship’s wake also reacts to a wall hit: some **pile** into the wall and peel
-off (dots, stamps, ticks, rings, streaks…), others **spring** — a whip that
-travels down the trail (ribbons and thin lines). Same bounce clock, different
-feel per vessel.
+off (dots, stamps, ticks, rings, streaks…), others **spring** down the trail
+(ribbons and thin lines). Needle’s hairline **whips** with curly tip waves.
+Same bounce clock, different feel per vessel.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
 to the wall, not on it) and a soft space-boop sound.

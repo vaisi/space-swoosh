@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Needle hairline: `whip` wall-trail mode + slow curly tip waves (thread /
+//   string) toward the old end of the wake on a wall boop.
 // - Wall-trail physics: every wake uses `wallTrailDeform` (pile vs spring from
 //   `ship._wallTrailMode`) with along-trail falloff; discrete marks also squash.
 // - Wall-jelly trail nudge: Square wakes squiggle in world X while the hull
@@ -24,7 +26,7 @@
 //   skins can paint a Signal-Blue wake without a second renderer.
 
 import { color } from '../brand/tokens.js';
-import { withHeading, wallTrailDeform } from './hulls.js';
+import { withHeading, wallTrailDeform, WALL_JELLY_MS } from './hulls.js';
 
 const INK_RGB = '26, 26, 26';
 
@@ -34,7 +36,10 @@ const ribbonLeft = [];
 const ribbonRight = [];
 
 function trailMode(ship) {
-    return ship._wallTrailMode === 'pile' ? 'pile' : 'spring';
+    const mode = ship._wallTrailMode;
+    if (mode === 'pile') return 'pile';
+    if (mode === 'whip') return 'whip';
+    return 'spring';
 }
 
 function scratchPoint(i) {
@@ -445,11 +450,48 @@ export function drawRingTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.restore();
 }
 
-/** Single stroked centreline — Needle. */
+/** Single stroked centreline — Needle. Optional tip ripples on wall boop. */
 export function drawHairlineTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { alpha = 0.9, widthScale = 1 } = opts;
+    const { alpha = 0.9, widthScale = 1, tipRipple = false } = opts;
     const pts = wakePoints(ship, trail, toScreenY);
     if (pts.length < 2) return;
+
+    // Slow curly thread waves on the old end while the hull is whipping —
+    // soft string loops, not a high-frequency electric buzz.
+    let drawPts = pts;
+    if (tipRipple && ship.wallJelly) {
+        const now = performance.now();
+        const elapsed = now - ship.wallJelly.t0;
+        if (elapsed >= 0 && elapsed < WALL_JELLY_MS) {
+            const t = elapsed / WALL_JELLY_MS;
+            const energy = Math.exp(-1.35 * t);
+            const side = ship.wallJelly.side < 0 ? -1 : 1;
+            const r = ship.radius ?? 10;
+            const n = pts.length;
+            const denom = Math.max(1, n - 1);
+            drawPts = [];
+            for (let i = 0; i < n; i++) {
+                const p = pts[i];
+                const along = i / denom; // 0 = oldest tip
+                const endW = Math.pow(1 - along, 1.35);
+                const seed = (p.seed ?? 0.5) * Math.PI;
+                const curl = Math.sin(along * Math.PI * 2.2 + t * Math.PI * 1.6 + seed * 0.4);
+                const soft = Math.sin(along * Math.PI * 3.6 + t * Math.PI * 2.1 + seed) * 0.38;
+                const wave = curl + soft;
+                const amp = r * 0.9 * endW * energy;
+                const angle = p.angle ?? 0;
+                const nx = Math.cos(angle);
+                const ny = Math.sin(angle);
+                drawPts.push({
+                    x: p.x + nx * wave * amp * side,
+                    y: p.y + ny * wave * amp * 0.55,
+                    opacity: p.opacity,
+                    angle: p.angle,
+                    seed: p.seed,
+                });
+            }
+        }
+    }
 
     ctx.save();
     const baseAlpha = ctx.globalAlpha;
@@ -459,7 +501,7 @@ export function drawHairlineTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.beginPath();
-    traceSmooth(ctx, pts, true);
+    traceSmooth(ctx, drawPts, true);
     ctx.stroke();
     ctx.restore();
 }

@@ -2,10 +2,13 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Needle: custom whip-flex wall jelly + `whip` trail with curly tip waves so
+//   the lance flexes instead of blobbing on a sidewall boop.
 // - Wall jelly (squish → extend → shake) applies to every hull via
 //   `beginHullFrame`, not only Square. Hitbox stays undeformed.
-// - Each skin declares `wallTrailMode` ('pile' | 'spring') so wall bounces shove
-//   the wake in a per-vessel way (dense wakes pile; ribbons/lines spring).
+// - Each skin declares `wallTrailMode` ('pile' | 'spring' | 'whip') so wall
+//   bounces shove the wake differently (dense pile; spring ribbons; Needle tip
+//   ripples on whip).
 // - Square hulls: no soft halo at all; hitbox is a 3×3 fill of the box.
 //   Wall jelly is visual-only (hitbox stays the rest pose).
 // - Square family (Stamp / Tick / Trace / Ring): same square hull, four wakes,
@@ -169,8 +172,38 @@ function makeHullRenderer(pathFn) {
 const drawTearHull = makeHullRenderer(tearPath);
 const drawDartHull = makeHullRenderer(dartPath);
 const drawShardHull = makeHullRenderer(shardPath);
-const drawNeedleHull = makeHullRenderer(needlePath);
 const drawCrescentHull = makeHullRenderer(crescentPath);
+
+/** Needle: thin lance uses whip/flex jelly (shear + length pulse), not fat squash. */
+function drawNeedleHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.9 + 0.06 * Math.sin(time * 0.0056) + 0.04 * Math.sin(time * 0.0088);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.2 * turn;
+
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.55, 'needle');
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    ctx.beginPath();
+    ctx.arc(0, r * 0.12, r * 1.15, 0, Math.PI * 2);
+    ctx.fillStyle = color.ink12;
+    ctx.fill();
+
+    needlePath(ctx, 0, 0, r, stretch);
+    ctx.fillStyle = color.ink;
+    ctx.fill();
+
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.4 : breath * 0.35);
+    needlePath(ctx, 0, -r * 0.15, r * 0.38, stretch * 1.05);
+    ctx.fillStyle = color.ink55;
+    ctx.fill();
+
+    ctx.restore();
+}
 
 /** Square hull: hard ink only (no soft halo). Jelly via shared beginHullFrame. */
 function drawSquareHull(ctx, ship, screenY, time = performance.now()) {
@@ -382,12 +415,12 @@ const needle = {
     name: 'Needle',
     blurb: 'Linear. One thin thread.',
     hitbox: NEEDLE_HITBOX,
-    wallTrailMode: 'spring',
+    wallTrailMode: 'whip',
 
     drawHull: drawNeedleHull,
 
     drawTrail(ctx, ship, trail, toScreenY) {
-        drawHairlineTrail(ctx, ship, trail, toScreenY);
+        drawHairlineTrail(ctx, ship, trail, toScreenY, { tipRipple: true });
     },
 };
 

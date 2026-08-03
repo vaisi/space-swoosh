@@ -428,20 +428,23 @@ Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circl
 filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
 squish→extend→shake on **every** hull via `beginHullFrame` in `hulls.js`
 (plant contact face + shake + local scale); the hitbox does not deform.
+**Needle** uses a `needle` jelly profile (length whip + tip shear) so the lance
+flexes instead of blobbing.
 
-Every skin declares `wallTrailMode`: **`pile`** (dense / discrete wakes) or
-**`spring`** (ribbons / hairlines). On a sidewall bounce, `wallTrailDeform` in
-`hulls.js` shoves the wake at render time — pile crushes toward the wall and
-bunches near the hull; spring compresses then whips past with a phase delay
-down the trail. Discrete marks also squash via `sx`/`sy`.
+Every skin declares `wallTrailMode`: **`pile`**, **`spring`**, or **`whip`**
+(Needle). On a sidewall bounce, `wallTrailDeform` in `hulls.js` shoves the wake
+at render time — pile crushes toward the wall; spring compresses then whips;
+whip adds slow curly far-tip sway. Needle’s hairline also paints tip waves
+while jelly is live. Discrete marks squash via `sx`/`sy`.
 `Spacecraft.render` stamps `ship._wallTrailMode` from the active skin so
 `trails.js` never imports the roster.
 
 | pile | Focus, Pulse, Ember, Shard, Halo, Square Stamp / Tick / Ring |
-| spring | Flicker, Quill, Wisp, Needle, Echo, Square Trace |
+| spring | Flicker, Quill, Wisp, Echo, Square Trace |
+| whip | Needle |
 
-Shaped hulls share `makeHullRenderer(pathFn)` in `skinDefs.js` — halo, breathing
-pulse, bank rotation and inner highlight are identical, only the outline differs.
+Shaped hulls mostly share `makeHullRenderer(pathFn)` in `skinDefs.js`; Needle
+has its own hull drawer for the whip profile.
 
 - Registry: `ships/skins.js` (`getSkin`, `drawSkinPreview`, `loadShipSkinId` / `saveShipSkinId`).
 - Roster: `ships/skinDefs.js`; geometry in `ships/hulls.js`; wakes in `ships/trails.js`.
