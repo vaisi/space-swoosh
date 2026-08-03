@@ -133,8 +133,8 @@ Pick one under **Options → Ship**. Your choice is remembered.
 | Steer left / right (arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
 | Pause | Spacebar, Escape, or the pause button (top-right) | Pause button (top-right) |
 
-You bank in smooth arcs and bounce off the side walls, so plan your turns a
-little ahead.
+You bank in smooth arcs and bounce off the side walls (with a **BOOP**), so plan
+your turns a little ahead.
 
 ## Pausing and quitting
 

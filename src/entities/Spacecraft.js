@@ -1,6 +1,10 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - Sidewall bounces (arc + zigzag) fire WallBoopManager + playBoop for every
+//   skin — ink "BOOP" popup below the hull beside the wall.
+// - Wall bounce sets `wallJelly` ({ t0, side }) so Square skins can squash like
+//   jelly against the wall — visual only; hitbox stays undeformed.
 // - `wormholeTransit` freezes motion + marks invuln during portal hops so the
 //   ship cannot drift into gate rocks while faded out.
 // - updateTrail mutates opacities in place (no map/filter/slice per frame) to
@@ -90,6 +94,8 @@ export class Spacecraft {
         this.pausedTime = 0;  // Store time when paused
         // True while a WormholeGate hop is in flight (frozen + invulnerable).
         this.wormholeTransit = false;
+        // Square-family wall jelly: { t0, side: -1 left | +1 right } or null.
+        this.wallJelly = null;
     }
 
     reset() {
@@ -101,6 +107,7 @@ export class Spacecraft {
         this.boost = 1;
         this.isVisible = true;
         this.wormholeTransit = false;
+        this.wallJelly = null;
         this.tangent = 0;
         this.bank = 0;
         this.speed = 0;
@@ -169,12 +176,14 @@ export class Spacecraft {
             
             // Wall collision check
             if (newX < this.radius || newX > this.game.width - this.radius) {
-                const newDirection = newX < this.radius ? 'right' : 'left';
-                const bounceX = newX < this.radius ? this.radius : this.game.width - this.radius;
-                
-                // Play turn sound when bouncing
-                this.game.soundManager.playTurn();
-                
+                const hitLeft = newX < this.radius;
+                const newDirection = hitLeft ? 'right' : 'left';
+                const bounceX = hitLeft ? this.radius : this.game.width - this.radius;
+
+                const wallSide = hitLeft ? -1 : 1;
+                this.triggerWallJelly(wallSide);
+                this.game.wallBoopManager?.triggerBoop(this, wallSide);
+
                 this.moveState = {
                     startX: bounceX,
                     startY: this.y,
@@ -182,7 +191,7 @@ export class Spacecraft {
                     direction: newDirection,
                     duration: this.arcDuration * 0.7,
                 };
-                
+
                 this.x = bounceX;
             } else {
                 this.x = newX;
@@ -225,12 +234,19 @@ export class Spacecraft {
         if (this.x < this.radius) {
             this.x = this.radius;
             this.zigzagSign = 1;
-            this.game.soundManager.playTurn();
+            this.triggerWallJelly(-1);
+            this.game.wallBoopManager?.triggerBoop(this, -1);
         } else if (this.x > this.game.width - this.radius) {
             this.x = this.game.width - this.radius;
             this.zigzagSign = -1;
-            this.game.soundManager.playTurn();
+            this.triggerWallJelly(1);
+            this.game.wallBoopManager?.triggerBoop(this, 1);
         }
+    }
+
+    /** Kick a short jelly squash for Square skins (and harmlessly ignored by others). */
+    triggerWallJelly(side) {
+        this.wallJelly = { t0: performance.now(), side };
     }
 
     updateShield(tickScale) {

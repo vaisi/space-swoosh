@@ -82,8 +82,9 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `managers/PowerUpManager.js` | Shield pickups (spawn + collect → activate shield). |
 | `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
+| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink popup + blot/kick VFX below the hull. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()`. |
+| `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()`. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -472,6 +473,11 @@ it is included in the `game_over` GA event.
    `config.points.perSwoosh`, plays `playSwoosh()`, and renders a Signal-Blue
    ring / streak / gap-dot burst plus a floating `SWOOSH +N` popup. Each pair
    awards once (cooldown + pair key).
+4. **Wall boop (sidewall bounce):** When `Spacecraft` clamps against a screen
+   edge (arc bounce or zigzag flip), it calls `WallBoopManager.triggerBoop(ship,
+   side)`. That plays `SoundManager.playBoop()` (soft low sine + vacuum puff)
+   and spawns an ink `BOOP` label below the hull, inset from the wall so the
+   full word stays on-screen. Applies to every skin.
 
 Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
 

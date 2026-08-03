@@ -1,7 +1,8 @@
 // SoundManager.js
 // Loads looping BGM + SFX from public/sounds/, and synthesizes short Web Audio
-// cues for sparkle pickups and style-swoosh near-misses.
+// cues for sparkle pickups, style-swoosh near-misses, and sidewall wall-boops.
 // Changes:
+// - Added playBoop(): a soft low "space rubber" blip for screen-edge wall hits.
 // - Added a persisted mute switch (setMuted / toggleMuted / isMuted) driving both
 //   the <audio> elements and the synthesized cues, so the pause menu's Sound
 //   control is a real toggle rather than a stub.
@@ -246,6 +247,61 @@ export class SoundManager {
             });
         } catch (error) {
             console.error('Error in playCollect:', error);
+        }
+    }
+
+    // Soft "space rubber" blip when the ship kisses a screen sidewall.
+    // Low sine thump + a tiny filtered noise puff — distinct from turn / swoosh.
+    playBoop() {
+        if (!this.initialized || this.muted) return;
+
+        try {
+            const ctx = this.ensureAudioContext();
+            if (!ctx) return;
+
+            const now = ctx.currentTime;
+            const duration = 0.16;
+
+            // Round low body — the "boop".
+            const osc = ctx.createOscillator();
+            const oscGain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(185, now);
+            osc.frequency.exponentialRampToValueAtTime(92, now + 0.12);
+            oscGain.gain.setValueAtTime(0.0001, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.28, now + 0.01);
+            oscGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+            // Quiet vacuum puff on top so it reads as space, not a UI click.
+            const sampleCount = Math.floor(ctx.sampleRate * 0.08);
+            const buffer = ctx.createBuffer(1, sampleCount, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < sampleCount; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
+            }
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(420, now);
+            filter.Q.value = 0.7;
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.0001, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.09, now + 0.008);
+            noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+            osc.connect(oscGain);
+            oscGain.connect(ctx.destination);
+            noise.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + duration);
+            noise.start(now);
+            noise.stop(now + 0.08);
+        } catch (error) {
+            console.error('Error in playBoop:', error);
         }
     }
 

@@ -56,6 +56,8 @@
 // - Added appScreen flow (menu / options / highscores / playing / gameover),
 //   ship skin persistence, Options picker, and Menu on
 //   game-over. Boots to main menu instead of straight into a run.
+// - Wired WallBoopManager: ink "BOOP" popup + space-boop SFX on sidewall hits
+//   (every skin, arc + zigzag).
 // - Wired StyleSwooshManager: near-miss twin-obstacle threading awards style
 //   points with Signal-Blue screen feedback.
 // - Removed the reticle/"bullseye" badge from the Mission Failed / Complete
@@ -79,6 +81,7 @@ import { MilestoneManager } from '../managers/MilestoneManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { CollectibleManager } from '../managers/CollectibleManager.js';
 import { StyleSwooshManager } from '../managers/StyleSwooshManager.js';
+import { WallBoopManager } from '../managers/WallBoopManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
 import { CallSignRejectedError, ScoreService } from '../services/ScoreService.js';
 import { track } from '../services/Analytics.js';
@@ -224,6 +227,7 @@ export class Game {
         this.powerUpManager = new PowerUpManager(this);
         this.collectibleManager = new CollectibleManager(this);
         this.styleSwooshManager = new StyleSwooshManager(this);
+        this.wallBoopManager = new WallBoopManager(this);
         this.soundManager = new SoundManager();
         this.soundInitialized = false;
         
@@ -393,6 +397,7 @@ export class Game {
             this.powerUpManager.update();
             this.collectibleManager.update();
             this.styleSwooshManager.update();
+            this.wallBoopManager.update();
 
             if (this.profile.isRunComplete(this.score)) {
                 this.completeRun();
@@ -514,6 +519,7 @@ export class Game {
         this.powerUpManager.render(this.ctx);
         this.collectibleManager.render(this.ctx);
         this.styleSwooshManager.render(this.ctx);
+        this.wallBoopManager.render(this.ctx);
 
         if (hudAlpha <= 0) return;
         this.ctx.save();
@@ -1467,6 +1473,7 @@ export class Game {
         this.milestoneManager = new MilestoneManager(this);
         this.collectibleManager = new CollectibleManager(this);
         this.styleSwooshManager = new StyleSwooshManager(this);
+        this.wallBoopManager = new WallBoopManager(this);
         this.powerUpManager = new PowerUpManager(this);
         this.explosionParticles = [];
     }

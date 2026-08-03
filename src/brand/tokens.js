@@ -3,6 +3,8 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Added `inkRgb` so canvas VFX (e.g. wall BOOP) can build rgba() strings
+//   the same way Signal Blue does via `signalRgb`.
 // - Created file: the canonical brand kit for the game, distilled from the
 //   in-game aesthetic (warm paper, ink shapes, blue shield, dotted trail,
 //   geometric obstacles, crosshair reticle). Replaces the ad-hoc constants that
@@ -36,6 +38,7 @@ export const color = {
     ink30:        'rgba(26, 26, 26, 0.30)', // dotted trails / dividers
     ink12:        'rgba(26, 26, 26, 0.12)', // grid lines / fills
     ink06:        'rgba(26, 26, 26, 0.06)', // faint pattern wash
+    inkRgb:       '26, 26, 26',
 
     // Signal — the one accent. Reserved for meaning: shield, focus, "active".
     signal:       '#0000FF',
