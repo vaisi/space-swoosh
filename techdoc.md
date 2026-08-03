@@ -57,7 +57,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership cache + purchase / restore. |
+| `services/Entitlements.js` | Skin ownership cache + purchase / restore. `UNLOCK_ALL_SKINS` (currently `true`) opens the whole roster without IAP for playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
 | `ships/skinDefs.js` | The four skins (Focus / Flicker / Ember / Wisp) composed from hulls + trails. |
@@ -274,10 +274,9 @@ Two things make it work:
   read until now) stops new rows appearing mid-flyout.
 
 The sequence owns `gameOverAlpha`, so the existing fade-in render path and the
-`gameOverAlpha < 0.6` click guard need no changes. A tap or any key calls `skip()`,
-which jumps to `screenIn` with the alpha back at 0 — so the click that skipped
-cannot also press a button. The crash path is untouched: explosion, 2s
-deceleration, same screen.
+`gameOverAlpha < 0.6` click guard need no changes. Tap / key / hardware back are
+swallowed while `levelClear.active` — the flyout is not skippable. The crash path
+is untouched: explosion, 2s deceleration, same screen.
 
 `renderWorld({ hudAlpha })` and the world fade compose through `ctx.globalAlpha`,
 which is why the wake, hull, milestone log and swoosh popups now *multiply* into
@@ -360,6 +359,18 @@ Scope: obstacles only. `CollectibleManager` and `PowerUpManager` still test the
 generous `radius` circle so pickups stay easy to grab, and wall bounce plus
 `StyleSwooshManager` clearance also still use `radius`. Add `?hitbox` to the URL
 to stroke the live circles in Signal Blue over the ship.
+
+Obstacle probes are meant to hug the drawn ink:
+
+| Type | Hit shape |
+| --- | --- |
+| Simple circle / pulsating | Exact drawn radius |
+| Simple square | Circle-vs-AABB (not an expanded box) |
+| Simple triangle / moving pentagon | Edges + interior |
+| Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render) |
+| Shooting star | 8-point star polygon + projectile circles |
+| Black hole | Core radius only (glow/pulse are VFX) |
+| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop |
 
 Note: `Game.checkCollisions()` is dead code — it calls a nonexistent
 `obstacleManager.checkCollisions()` and nothing invokes it.

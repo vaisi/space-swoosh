@@ -77,8 +77,7 @@ Cross the goal and the game takes over. A shield snaps on, there's a short beat
 to take it in, then the ship straightens up and boosts off the top of the
 screen, the world fades out behind it, and the level screen fades in. Anything
 you plough through on the way out is scenery — your points and hits were locked
-in the moment you crossed the line. Tap or press a key if you'd rather skip to
-the screen.
+in the moment you crossed the line. Sit tight for the flyout; it isn't skippable.
 
 The level screen lists the three objectives, each with the number it was measured
 against: your distance against the goal, your points against the target, and
@@ -111,12 +110,12 @@ different trail, so you can fly whichever wake you like best:
 | **Flicker** | Teardrop of light trailing one smooth, flowing ribbon. |
 | **Ember** | A sharp swept dart with a notched tail; its wake breaks into loose streaks that stretch out of hard turns. |
 | **Wisp** | The teardrop again, with a thin thread of a wake that sheds drifting sparks. |
-| **Pulse** | Focus's hull with a Signal-Blue dotted wake. *(optional unlock)* |
-| **Quill** | Flicker's tear with a fine Signal-Blue ribbon. *(optional unlock)* |
+| **Pulse** | Focus's hull with a Signal-Blue dotted wake. |
+| **Quill** | Flicker's tear with a fine Signal-Blue ribbon. |
 
-Pulse and Quill are cosmetics you can unlock in the iOS and Android apps. They
-fly exactly like the free ships. Use **Options → Restore Purchases** if you
-reinstall and your unlocks don't show up.
+Pulse and Quill are cosmetics that fly exactly like the free ships. Right now
+every ship in Options → Ship is unlocked so you can try them all; store
+purchases can be switched back on later.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
 along the path you actually flew.
@@ -190,6 +189,10 @@ total points are shown live in the HUD and again on the mission-end screen.
 Blue shield pickups give you a temporary shield. While it's up you can plow
 through asteroids (destroying them for points) instead of crashing. The shield
 pulses faster right before it runs out — pick your moment.
+
+Blue **portal** rings are also safe: fly into one and you hop ahead, then get a
+fresh shield. The rocks around a portal can still crash you if you miss the ring
+itself — aim for the blue.
 
 ## Flight style
 

@@ -21,10 +21,11 @@
 //   services/Analytics.js instead of bare gtag (which threw when blocked).
 // - Clearing a Journey level runs a flyout (game/LevelClearSequence.js) instead of
 //   holding the world for a beat: the sequence owns the `gameover` update/render
-//   branches while `levelClear` is live, and drives `gameOverAlpha` itself. A tap
-//   or key skips it. `renderWorld()` takes `{ hudAlpha }` so the readout can fade
-//   ahead of the world, and `drawBrandButton()` accepts a `labelPx` override for
-//   buttons too narrow for the default label size.
+//   branches while `levelClear` is live, and drives `gameOverAlpha` itself. Input
+//   is swallowed until it finishes (not skippable). `renderWorld()` takes
+//   `{ hudAlpha }` so the readout can fade ahead of the world, and
+//   `drawBrandButton()` accepts a `labelPx` override for buttons too narrow for
+//   the default label size.
 // - Journey draws a world-space finish line (dotted rule + Signal-Blue end ticks)
 //   that fades in on approach and locks when the goal is crossed so the flyout
 //   can pass through it.
@@ -2116,10 +2117,8 @@ export class Game {
 
             if (this.appScreen !== 'gameover' && !this.isGameOver) return;
 
-            // Mid-flyout, a tap means "get on with it" — and since skipping still
-            // fades the screen in from zero, it can't also press a button.
+            // Mid-flyout: eat the tap so it cannot press outcome buttons early.
             if (this.levelClear?.active) {
-                this.levelClear.skip();
                 return;
             }
 
@@ -2284,12 +2283,11 @@ export class Game {
         this.canvas.parentElement.appendChild(button);
         this.pauseButton = button;
 
-        // Space or Escape toggles the pause menu during a run; any key skips the
-        // level-clear flyout.
+        // Space or Escape toggles the pause menu during a run. Keys are ignored
+        // for the whole level-clear flyout (it is not skippable).
         window.addEventListener('keydown', (e) => {
             if (this.levelClear?.active) {
                 e.preventDefault();
-                this.levelClear.skip();
                 return;
             }
             if (this.isPlaying() && (e.code === 'Space' || e.code === 'Escape')) {

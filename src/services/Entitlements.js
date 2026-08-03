@@ -2,6 +2,8 @@
 // Which ship skins the player owns. Free skins are always owned; premium skins
 // unlock via RevenueCat and are cached in localStorage for offline play.
 // Changes:
+// - UNLOCK_ALL_SKINS: every roster ship is playable without IAP (playtest). Flip
+//   to false before store release to restore premium gating.
 // - Created file: ownership is separate from "selected skin" (ships/skins.js).
 //   Selecting a locked skin starts a purchase; Restore Purchases refreshes the
 //   cache from the store. On the web (no IAP), premium skins stay locked.
@@ -19,12 +21,16 @@ import {
 const CACHE_KEY = 'ownedSkinIds';
 const SIGNAL_RGB = '0, 0, 255';
 
+/** Playtest unlock — set false to re-enable RevenueCat premium gating. */
+export const UNLOCK_ALL_SKINS = true;
+
 /** @type {Set<string>} */
 let owned = new Set(loadCache());
 /** @type {Map<string, string>} productId -> priceString */
 const priceCache = new Map();
 
 function freeSkinIds() {
+    if (UNLOCK_ALL_SKINS) return SKIN_DEFS.map((s) => s.id);
     return SKIN_DEFS.filter((s) => !s.productId).map((s) => s.id);
 }
 
@@ -66,7 +72,7 @@ function applyEntitlementIds(entitlementIds) {
 export function isSkinOwned(id) {
     const skin = skinById(id);
     if (!skin) return false;
-    if (!skin.productId) return true;
+    if (UNLOCK_ALL_SKINS || !skin.productId) return true;
     return owned.has(id);
 }
 

@@ -1,6 +1,8 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - `wormholeTransit` freezes motion + marks invuln during portal hops so the
+//   ship cannot drift into gate rocks while faded out.
 // - updateTrail mutates opacities in place (no map/filter/slice per frame) to
 //   cut GC pressure on iOS WKWebView.
 // - Forward motion is one smooth step per frame via `game.tickScale`.
@@ -86,6 +88,8 @@ export class Spacecraft {
         console.log('Spacecraft position:', this.x, this.y);
         this.pausedState = null; // Store movement state during pause
         this.pausedTime = 0;  // Store time when paused
+        // True while a WormholeGate hop is in flight (frozen + invulnerable).
+        this.wormholeTransit = false;
     }
 
     reset() {
@@ -96,6 +100,7 @@ export class Spacecraft {
         this.zigzagSign = 1;
         this.boost = 1;
         this.isVisible = true;
+        this.wormholeTransit = false;
         this.tangent = 0;
         this.bank = 0;
         this.speed = 0;
@@ -110,6 +115,8 @@ export class Spacecraft {
 
     update() {
         if (this.game.isPaused) return;
+        // Portal hop owns position until the exit snap — do not keep flying.
+        if (this.wormholeTransit) return;
 
         const currentTime = performance.now();
         const prevX = this.x;

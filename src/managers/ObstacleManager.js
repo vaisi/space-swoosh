@@ -1,6 +1,12 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Tightened hitboxes to match drawn ink: ComplexAsteroid satellites use the
+//   same body rotation as render (ghost moons were killing early); square rocks
+//   use circle-vs-AABB; shooting stars use the star polygon; black holes match
+//   the core radius. Portals expand the safe zone to the stroked ring + ship,
+//   teleport on ring overlap, and freeze/invuln the ship during the hop so it
+//   cannot drift into nearby rocks while invisible.
 // - Obstacle / projectile / particle motion uses `game.dt` (not hardcoded 1/60)
 //   so movers stay locked to the ship on any refresh rate.
 // - Every difficulty dial now comes from `game.profile` (see modes/RunProfile.js)
@@ -162,10 +168,15 @@ class SimpleAsteroid extends BaseObstacle {
         const rotY = dx * sinR + dy * cosR;
 
         if (this.shapeType === 'square') {
-            // Square collision
+            // Circle vs AABB: clamp to the square, then test distance (expanded
+            // AABB corners used to kill before the ship touched the ink).
             const halfSize = this.size * 0.7;
-            return Math.abs(rotX) <= halfSize + spacecraft.radius && 
-                   Math.abs(rotY) <= halfSize + spacecraft.radius;
+            const r = spacecraft.radius;
+            const closestX = Math.max(-halfSize, Math.min(halfSize, rotX));
+            const closestY = Math.max(-halfSize, Math.min(halfSize, rotY));
+            const cx = rotX - closestX;
+            const cy = rotY - closestY;
+            return cx * cx + cy * cy <= r * r;
         } else {
             // Triangle collision (using existing logic)
             const vertices = [
@@ -271,19 +282,18 @@ class AsteroidBelt extends BaseObstacle {
     }
 
     checkCollision(spacecraft) {
-        // Transform spacecraft position relative to rotated ellipse
+        // World Δy (camera cancels); inflate ellipse by probe radius for a tight
+        // circle-vs-ellipse approximation that still accounts for ship size.
         const dx = spacecraft.x - this.x;
-        const dy = this.game.camera.getRelativeY(spacecraft.y) - this.game.camera.getRelativeY(this.y);
-        
+        const dy = spacecraft.y - this.y;
         const cosR = Math.cos(-this.rotation);
         const sinR = Math.sin(-this.rotation);
-        
         const xRot = dx * cosR - dy * sinR;
         const yRot = dx * sinR + dy * cosR;
-        
-        // Check if point is inside ellipse
-        return (Math.pow(xRot, 2) / Math.pow(this.width/2, 2) + 
-                Math.pow(yRot, 2) / Math.pow(this.height/2, 2)) <= 1;
+        const r = spacecraft.radius;
+        const hx = this.width / 2 + r;
+        const hy = this.height / 2 + r;
+        return (xRot * xRot) / (hx * hx) + (yRot * yRot) / (hy * hy) <= 1;
     }
 
     update() {
@@ -341,26 +351,26 @@ class ComplexAsteroid extends BaseObstacle {
     }
 
     checkCollision(spacecraft) {
-        // Check main asteroid collision with proper radius
+        const r = spacecraft.radius;
         const dxMain = spacecraft.x - this.x;
         const dyMain = spacecraft.y - this.y;
-        const distanceMain = Math.sqrt(dxMain * dxMain + dyMain * dyMain);
-        
-        // More precise collision for main body (now using circle)
-        if (distanceMain < (this.size + spacecraft.radius) * 0.9) { // Slightly smaller hitbox
+        if (dxMain * dxMain + dyMain * dyMain < (this.size + r) * (this.size + r)) {
             return true;
         }
 
-        // Check satellite collisions with proper positions
-        return this.satellites.some(satellite => {
-            const satX = this.x + Math.cos(satellite.angle) * satellite.distance;
-            const satY = this.y + Math.sin(satellite.angle) * satellite.distance;
-            
+        // Sats are drawn under ctx.rotate(this.rotation) — world positions must
+        // apply the same transform or the hit moons drift off the ink.
+        const cosR = Math.cos(this.rotation);
+        const sinR = Math.sin(this.rotation);
+        return this.satellites.some((satellite) => {
+            const lx = Math.cos(satellite.angle) * satellite.distance;
+            const ly = Math.sin(satellite.angle) * satellite.distance;
+            const satX = this.x + lx * cosR - ly * sinR;
+            const satY = this.y + lx * sinR + ly * cosR;
             const dx = satX - spacecraft.x;
             const dy = satY - spacecraft.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            return distance < (satellite.size + spacecraft.radius) * 0.9; // Slightly smaller hitbox
+            const hitR = satellite.size + r;
+            return dx * dx + dy * dy < hitR * hitR;
         });
     }
 
@@ -571,17 +581,27 @@ class ShootingAsteroid extends BaseObstacle {
     }
 
     checkCollision(spacecraft) {
-        // Check main asteroid collision
-        if (super.checkCollision(spacecraft)) {
+        // Star outline (outer/inner radii), not the circumcircle that filled notches.
+        const vertices = [];
+        for (let i = 0; i < 8; i++) {
+            const radius = i % 2 === 0 ? this.size : this.size * 0.5;
+            const angle = (i * Math.PI / 4) + this.rotation;
+            vertices.push({
+                x: this.x + radius * Math.cos(angle),
+                y: this.y + radius * Math.sin(angle),
+            });
+        }
+        if (pointInPolygonOrNearEdge(
+            spacecraft.x, spacecraft.y, vertices, spacecraft.radius
+        )) {
             return true;
         }
 
-        // Check projectile collisions
-        return this.projectiles.some(p => {
+        return this.projectiles.some((p) => {
             const dx = p.x - spacecraft.x;
             const dy = p.y - spacecraft.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            return distance < (this.projectileSize + spacecraft.radius);
+            const hitR = this.projectileSize + spacecraft.radius;
+            return dx * dx + dy * dy < hitR * hitR;
         });
     }
 
@@ -698,23 +718,20 @@ class BlackHoleObstacle extends BaseObstacle {
         // Update pulse animation
         this.pulsePhase += 0.05;
 
-        // Calculate distance to spacecraft
-        const dx = this.x - this.game.spacecraft.x;
-        const dy = this.y - this.game.spacecraft.y;
+        const ship = this.game.spacecraft;
+        if (ship.wormholeTransit) return;
+
+        const dx = this.x - ship.x;
+        const dy = this.y - ship.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Increased pull radius by 10%
-        const pullRadius = this.size * 11; // Was size * 10
+        const pullRadius = this.size * 11;
 
-        if (distance < pullRadius) {
-            // Calculate pull force (increased by 10%)
+        if (distance > 0 && distance < pullRadius) {
             const force = (1 - (distance / pullRadius)) * this.pullStrength;
-            
-            // Apply gravitational pull
-            this.game.spacecraft.x += (dx / distance) * force;
-            // Optionally pull in Y direction too for advanced black holes
+            ship.x += (dx / distance) * force;
             if (this.isAdvanced) {
-                this.game.spacecraft.y += (dy / distance) * force;
+                ship.y += (dy / distance) * force;
             }
         }
     }
@@ -773,10 +790,8 @@ class BlackHoleObstacle extends BaseObstacle {
     checkCollision(spacecraft) {
         const dx = this.x - spacecraft.x;
         const dy = this.y - spacecraft.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Increased collision radius by 10%
-        return distance < (this.size + spacecraft.radius) * 1.1;
+        const hitR = this.size + spacecraft.radius;
+        return dx * dx + dy * dy < hitR * hitR;
     }
 }
 
@@ -791,8 +806,11 @@ class WormholeGate extends BaseObstacle {
         this.active = true;
         this.paired = false;
         this.partner = null;
-        // Add safe zone radius
-        this.safeZoneRadius = size * 1.2;
+        // Cover pulsed ring (≤1.1×size) + stroke half-width + ship radius so
+        // grazing the blue ink cannot leave you open to the rocks around the gate.
+        this.safeZoneRadius = size * 1.2 + game.baseUnit;
+        // Teleport when the ship centre reaches the ring (was 0.8× — too deep).
+        this.teleportRadius = size;
     }
 
     // Override collision check to always return false
@@ -804,8 +822,7 @@ class WormholeGate extends BaseObstacle {
     isInSafeZone(x, y) {
         const dx = x - this.x;
         const dy = y - this.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < this.safeZoneRadius;
+        return dx * dx + dy * dy < this.safeZoneRadius * this.safeZoneRadius;
     }
 
     update() {
@@ -816,12 +833,11 @@ class WormholeGate extends BaseObstacle {
 
     checkTeleport(spacecraft) {
         if (this.isExit || !this.active || this.paired) return;
+        if (spacecraft.wormholeTransit) return;
 
         const dx = spacecraft.x - this.x;
         const dy = spacecraft.y - this.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < this.size * 0.8) {
+        if (dx * dx + dy * dy < this.teleportRadius * this.teleportRadius) {
             this.transportSpacecraft(spacecraft);
         }
     }
@@ -837,28 +853,25 @@ class WormholeGate extends BaseObstacle {
         }
 
         if (this.partner) {
-            console.log('Transporting through wormhole');
             this.paired = true;
             this.partner.paired = true;
-            
-            spacecraft.isVisible = false;
             this.active = false;
-            
-            setTimeout(() => {
-                spacecraft.x = this.partner.x;
-                spacecraft.y = this.partner.y;
-                spacecraft.isVisible = true;
-                this.partner.pulsePhase = 0;
 
-                // Debug log
-                console.log('Attempting to activate shield on spacecraft:', spacecraft);
-                
-                // Try to activate shield directly on the game's spacecraft instance
-                this.game.spacecraft.activateShield();
+            // Freeze + invuln for the hop so zigzag/arc cannot drift out of the
+            // entry safe zone into the surrounding asteroids while faded out.
+            spacecraft.wormholeTransit = true;
+            spacecraft.isVisible = false;
+            spacecraft.moveState = null;
+
+            setTimeout(() => {
+                const ship = this.game.spacecraft;
+                ship.x = this.partner.x;
+                ship.y = this.partner.y;
+                ship.isVisible = true;
+                ship.wormholeTransit = false;
+                this.partner.pulsePhase = 0;
+                ship.activateShield();
                 this.game.soundManager?.playShield?.();
-                
-                // Debug log
-                console.log('Shield activation attempted');
             }, 300);
         }
     }
@@ -1105,15 +1118,10 @@ export class ObstacleManager {
 
         // First check for wormhole teleports
         const wormholes = this.obstacles.filter(obs => obs instanceof WormholeGate);
-        wormholes.forEach(wormhole => {
+        const ship = this.game.spacecraft;
+        wormholes.forEach((wormhole) => {
             if (!wormhole.isExit && !wormhole.paired) {
-                const dx = this.game.spacecraft.x - wormhole.x;
-                const dy = this.game.spacecraft.y - wormhole.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < wormhole.size * 0.8) {
-                    wormhole.transportSpacecraft(this.game.spacecraft);
-                }
+                wormhole.checkTeleport(ship);
             }
         });
 
@@ -1121,15 +1129,14 @@ export class ObstacleManager {
         this.obstacles = this.obstacles.filter(obstacle => {
             if (obstacle instanceof WormholeGate) return true;
 
-            // Check if spacecraft is in any wormhole's safe zone
-            const inSafeZone = wormholes.some(wormhole => 
-                wormhole.isInSafeZone(this.game.spacecraft.x, this.game.spacecraft.y)
+            // Hopping through a gate, or standing in its ring + ship-radius bubble.
+            if (ship.wormholeTransit) return true;
+            const inSafeZone = wormholes.some((wormhole) =>
+                wormhole.isInSafeZone(ship.x, ship.y)
             );
-
-            // If in safe zone, ignore collisions
             if (inSafeZone) return true;
 
-            if (this.game.spacecraft.collidesWith(obstacle)) {
+            if (ship.collidesWith(obstacle)) {
                 if (this.game.spacecraft.shieldActive) {
                     // The level-clear flyout is a shielded ram through whatever is
                     // left: it keeps the smash, but the run is already scored, so

@@ -5,6 +5,8 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
+// - Flyout is no longer skippable — tap / key / back are swallowed until the
+//   outcome screen finishes fading in.
 // - Timings tightened ~30% after the slower pass felt a touch long; boost target
 //   scaled up with them so the ship still clears the top inside the shorter window.
 // - Hold beat before the boost; motion integrated with real `deltaTime` so a
@@ -162,15 +164,6 @@ export class LevelClearSequence {
         if (phase === 'screenIn') {
             this.game.obstacleManager.motionLines = [];
         }
-    }
-
-    /** A tap or a key skips straight to the screen fading in. */
-    skip() {
-        if (!this.active || this.phase === 'screenIn') return;
-        this.worldAlpha = 0;
-        this.hudAlpha = 0;
-        this.game.gameOverAlpha = 0; // still a fade, so the skip can't also press a button
-        this.enter('screenIn');
     }
 
     finish() {

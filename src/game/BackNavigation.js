@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Level-clear flyout swallows back (no skip) until the outcome screen is up.
 // - Created file: the back target for each screen used to exist only inside the
 //   click handlers in Game.js, spread across a dozen branches. Android's
 //   hardware back needs the same map, and duplicating it there would guarantee
@@ -29,10 +30,8 @@ const PARENT_SCREEN = {
  *   decides what that means (on Android, exiting the app).
  */
 export function goBack(game) {
-    // The level-clear flyout swallows input: back means "skip the cinematic",
-    // matching what a tap or any key already does.
+    // Flyout is not skippable — consume back so it cannot leave the run early.
     if (game.levelClear?.active) {
-        game.levelClear.skip();
         return true;
     }
 
