@@ -1,6 +1,8 @@
 // MilestoneManager.js
 // Shows the timed milestone log lines during flight.
 // Changes:
+// - Tutorial / log lines can embed `{space}` — rendered as a bold SPACE keycap
+//   so Zigzag's "tap or press Space" hint matches the real control.
 // - The message alpha multiplies into the caller's `globalAlpha` rather than
 //   replacing it, so a log line fades with the world during the level-clear flyout.
 // - Re-skinned the notification to the brand kit: ink-on-paper Space Grotesk
@@ -8,6 +10,8 @@
 //   backing plate so the science-officer log reads clearly over the math paper.
 
 import { color, font } from '../brand/tokens.js';
+
+const SPACE_TOKEN = '{space}';
 
 export class MilestoneManager {
     constructor(game) {
@@ -48,15 +52,83 @@ export class MilestoneManager {
         }
     }
 
+    /** Measure width of a message that may contain `{space}` keycaps. */
+    measureRichWidth(ctx, text, fontSize) {
+        const parts = String(text).split(SPACE_TOKEN);
+        let width = 0;
+        ctx.font = `500 ${fontSize}px ${font.ui}`;
+        for (let i = 0; i < parts.length; i++) {
+            width += ctx.measureText(parts[i]).width;
+            if (i < parts.length - 1) {
+                width += this.spaceKeyWidth(ctx, fontSize);
+            }
+        }
+        return width;
+    }
+
+    spaceKeyWidth(ctx, fontSize) {
+        const label = 'SPACE';
+        ctx.font = `700 ${fontSize * 0.72}px ${font.ui}`;
+        const labelW = ctx.measureText(label).width;
+        return labelW + fontSize * 0.7;
+    }
+
+    drawSpaceKey(ctx, x, y, fontSize) {
+        const label = 'SPACE';
+        const keyH = fontSize * 1.05;
+        const padX = fontSize * 0.28;
+        ctx.font = `700 ${fontSize * 0.72}px ${font.ui}`;
+        const labelW = ctx.measureText(label).width;
+        const keyW = labelW + padX * 2;
+
+        ctx.save();
+        ctx.fillStyle = color.ink;
+        ctx.strokeStyle = color.ink;
+        ctx.lineWidth = Math.max(1.5, fontSize * 0.08);
+        ctx.beginPath();
+        ctx.rect(x, y - keyH / 2, keyW, keyH);
+        ctx.stroke();
+
+        ctx.fillStyle = color.ink;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, x + keyW / 2, y + fontSize * 0.02);
+        ctx.restore();
+
+        return keyW;
+    }
+
+    drawRichText(ctx, text, cx, cy, fontSize) {
+        const parts = String(text).split(SPACE_TOKEN);
+        const totalW = this.measureRichWidth(ctx, text, fontSize);
+        let x = cx - totalW / 2;
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = color.ink;
+
+        for (let i = 0; i < parts.length; i++) {
+            ctx.font = `500 ${fontSize}px ${font.ui}`;
+            if (parts[i]) {
+                ctx.fillText(parts[i], x, cy);
+                x += ctx.measureText(parts[i]).width;
+            }
+            if (i < parts.length - 1) {
+                x += this.drawSpaceKey(ctx, x, cy, fontSize);
+            }
+        }
+    }
+
     render(ctx) {
         if (!this.currentMessage) return;
 
         const isMobile = window.innerWidth <= 768;
         const unit = this.game.baseUnit;
         const opacity = this.currentMessage.opacity;
+        const text = this.currentMessage.text;
 
-        const messageLength = this.currentMessage.text.length;
-        const sizeAdjust = messageLength > 30 ? 0.8 : 1;
+        const plainLen = String(text).split(SPACE_TOKEN).join('SPACE').length;
+        const sizeAdjust = plainLen > 30 ? 0.8 : 1;
         const fontSize = (isMobile ? 1.4 : 1.7) * unit * sizeAdjust;
 
         const cx = this.game.width / 2;
@@ -67,13 +139,7 @@ export class MilestoneManager {
         // through the context alpha, and a log line must fade with it.
         ctx.globalAlpha *= Math.max(0, Math.min(1, opacity));
 
-        // Space Grotesk medium — the UI/label voice of the brand.
-        ctx.font = `500 ${fontSize}px ${font.ui}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        // Soft paper backing plate so the log line reads over any obstacles/grid.
-        const textWidth = ctx.measureText(this.currentMessage.text).width;
+        const textWidth = this.measureRichWidth(ctx, text, fontSize);
         const padX = unit * 1.4;
         const padY = unit * 0.9;
         ctx.fillStyle = 'rgba(234, 228, 210, 0.82)';
@@ -87,9 +153,8 @@ export class MilestoneManager {
             ctx.fill();
         }
 
-        ctx.fillStyle = color.ink;
-        ctx.fillText(this.currentMessage.text, cx, cy);
+        this.drawRichText(ctx, text, cx, cy, fontSize);
 
         ctx.restore();
     }
-} 
+}

@@ -2,6 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Wall jelly (squish → extend → shake) applies to every hull via
+//   `beginHullFrame`, not only Square. Hitbox stays undeformed.
 // - Each skin declares `wallTrailMode` ('pile' | 'spring') so wall bounces shove
 //   the wake in a per-vessel way (dense wakes pile; ribbons/lines spring).
 // - Square hulls: no soft halo at all; hitbox is a 3×3 fill of the box.
@@ -39,8 +41,7 @@ import {
     shardPath,
     needlePath,
     crescentPath,
-    wallJellyDeform,
-    withHeading,
+    beginHullFrame,
     drawCircleHull,
 } from './hulls.js';
 import {
@@ -142,26 +143,24 @@ function makeHullRenderer(pathFn) {
         const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
         const stretch = 1 + 0.2 * turn; // leaner nose the harder it banks
 
-        ctx.save();
-        // Relative to the caller's alpha, so a world fade takes the hull with it.
+        const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.85);
         const baseAlpha = ctx.globalAlpha;
-        ctx.globalAlpha = baseAlpha * breath;
+        // Hold breath while jellying so the bounce reads cleanly.
+        ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
 
-        withHeading(ctx, ship.x, screenY, bank, (c) => {
-            c.beginPath();
-            c.arc(0, r * 0.12, r * 1.35, 0, Math.PI * 2);
-            c.fillStyle = color.ink12;
-            c.fill();
+        ctx.beginPath();
+        ctx.arc(0, r * 0.12, r * 1.35, 0, Math.PI * 2);
+        ctx.fillStyle = color.ink12;
+        ctx.fill();
 
-            pathFn(c, 0, 0, r, stretch);
-            c.fillStyle = color.ink;
-            c.fill();
+        pathFn(ctx, 0, 0, r, stretch);
+        ctx.fillStyle = color.ink;
+        ctx.fill();
 
-            c.globalAlpha = baseAlpha * breath * 0.35;
-            pathFn(c, 0, r * 0.08, r * 0.42, stretch);
-            c.fillStyle = color.ink55;
-            c.fill();
-        });
+        ctx.globalAlpha = baseAlpha * (jelly ? 0.28 : breath * 0.35);
+        pathFn(ctx, 0, r * 0.08, r * 0.42, stretch);
+        ctx.fillStyle = color.ink55;
+        ctx.fill();
 
         ctx.restore();
     };
@@ -173,7 +172,7 @@ const drawShardHull = makeHullRenderer(shardPath);
 const drawNeedleHull = makeHullRenderer(needlePath);
 const drawCrescentHull = makeHullRenderer(crescentPath);
 
-/** Square hull: hard ink only (no soft halo). Jelly is vertex sizing, not hitbox. */
+/** Square hull: hard ink only (no soft halo). Jelly via shared beginHullFrame. */
 function drawSquareHull(ctx, ship, screenY, time = performance.now()) {
     const breath = 0.9 + 0.06 * Math.sin(time * 0.0056) + 0.04 * Math.sin(time * 0.0088);
     const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
@@ -181,27 +180,16 @@ function drawSquareHull(ctx, ship, screenY, time = performance.now()) {
     const bank = ship.bank ?? 0;
     const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
     const stretch = 1 + 0.2 * turn;
-    const jelly = wallJellyDeform(ship, time);
-    const sx = jelly?.sx ?? 1;
-    const sy = jelly?.sy ?? 1;
 
-    ctx.save();
+    // Scale is applied by beginHullFrame; draw the rest-pose box in local units.
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.82);
     const baseAlpha = ctx.globalAlpha;
     ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
 
-    ctx.translate(ship.x, screenY);
-    if (jelly) {
-        // Plant the contact face on the wall; deform by sizing the rect.
-        const half = r * 0.82;
-        ctx.translate(jelly.side * (half - half * sx), 0);
-        ctx.translate(jelly.shake * ship.radius * jelly.side * 0.35, 0);
-    }
-    ctx.rotate(bank);
-
-    const halfX = r * 0.82 * sx;
-    const halfY = r * 0.82 * stretch * sy;
+    const half = r * 0.82;
+    const halfY = half * stretch;
     ctx.beginPath();
-    ctx.rect(-halfX, -halfY, halfX * 2, halfY * 2);
+    ctx.rect(-half, -halfY, half * 2, halfY * 2);
     ctx.fillStyle = color.ink;
     ctx.fill();
 
@@ -209,9 +197,9 @@ function drawSquareHull(ctx, ship, screenY, time = performance.now()) {
     ctx.globalAlpha = baseAlpha * (jelly ? 0.28 : breath * 0.35);
     ctx.beginPath();
     ctx.rect(
-        -halfX * inset,
+        -half * inset,
         -halfY * inset + r * 0.06,
-        halfX * inset * 2,
+        half * inset * 2,
         halfY * inset * 2
     );
     ctx.fillStyle = color.ink55;
@@ -229,36 +217,34 @@ function drawHaloHull(ctx, ship, screenY, time = performance.now()) {
     const orbit = r * 1.22;
     const phase = time * 0.0028;
 
-    ctx.save();
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.9);
     const baseAlpha = ctx.globalAlpha;
-    ctx.globalAlpha = baseAlpha * breath;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
 
-    withHeading(ctx, ship.x, screenY, bank, (c) => {
-        c.beginPath();
-        c.arc(0, 0, orbit, 0, Math.PI * 2);
-        c.strokeStyle = color.ink30;
-        c.lineWidth = r * 0.07;
-        c.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, orbit, 0, Math.PI * 2);
+    ctx.strokeStyle = color.ink30;
+    ctx.lineWidth = r * 0.07;
+    ctx.stroke();
 
-        for (let i = 0; i < 2; i++) {
-            const a = phase + i * Math.PI;
-            c.beginPath();
-            c.arc(Math.cos(a) * orbit, Math.sin(a) * orbit, r * 0.13, 0, Math.PI * 2);
-            c.fillStyle = color.ink;
-            c.fill();
-        }
+    for (let i = 0; i < 2; i++) {
+        const a = phase + i * Math.PI;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * orbit, Math.sin(a) * orbit, r * 0.13, 0, Math.PI * 2);
+        ctx.fillStyle = color.ink;
+        ctx.fill();
+    }
 
-        c.beginPath();
-        c.arc(0, 0, core, 0, Math.PI * 2);
-        c.fillStyle = color.ink;
-        c.fill();
+    ctx.beginPath();
+    ctx.arc(0, 0, core, 0, Math.PI * 2);
+    ctx.fillStyle = color.ink;
+    ctx.fill();
 
-        c.globalAlpha = baseAlpha * breath * 0.35;
-        c.beginPath();
-        c.arc(0, r * 0.06, core * 0.42, 0, Math.PI * 2);
-        c.fillStyle = color.ink55;
-        c.fill();
-    });
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.28 : breath * 0.35);
+    ctx.beginPath();
+    ctx.arc(0, r * 0.06, core * 0.42, 0, Math.PI * 2);
+    ctx.fillStyle = color.ink55;
+    ctx.fill();
 
     ctx.restore();
 }
@@ -270,8 +256,8 @@ const focus = {
     hitbox: CIRCLE_HITBOX,
     wallTrailMode: 'pile',
 
-    drawHull(ctx, ship, screenY) {
-        drawCircleHull(ctx, ship, screenY);
+    drawHull(ctx, ship, screenY, time) {
+        drawCircleHull(ctx, ship, screenY, time);
     },
 
     drawTrail(ctx, ship, trail, toScreenY) {
@@ -332,8 +318,8 @@ const pulse = {
     productId: 'com.orbi.spaceswoosh.skin.pulse',
     entitlementId: 'skin_pulse',
 
-    drawHull(ctx, ship, screenY) {
-        drawCircleHull(ctx, ship, screenY);
+    drawHull(ctx, ship, screenY, time) {
+        drawCircleHull(ctx, ship, screenY, time);
     },
 
     drawTrail(ctx, ship, trail, toScreenY) {

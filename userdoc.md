@@ -120,9 +120,10 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Square Trace** | Square hull; one thin hairline. |
 | **Square Ring** | Square hull; blooming rings (same wake idea as Halo). |
 
-The Square ships collide as the box you see. On a side-wall bounce they jelly —
-hard squish, then stretch, with a quick shake (animation only; the hitbox does
-not squash).
+The Square ships collide as the box you see. On a side-wall bounce, **every**
+ship jelly-shakes — hard squish, then stretch, with a quick shake (animation
+only; the hitbox does not squash). Squares read as a cube against the wall;
+other hulls squash and shudder the same way.
 
 Every ship’s wake also reacts to a wall hit: some **pile** into the wall and peel
 off (dots, stamps, ticks, rings, streaks…), others **spring** — a whip that
@@ -148,9 +149,9 @@ backing out to the menu.
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
-| Steer (Zigzag) | Left / Right arrow keys (either flips) | Tap anywhere to flip. Swipe does nothing. |
+| Steer (Zigzag) | Space or Left / Right arrows (any flips) | Tap anywhere to flip. Swipe does nothing. |
 | Steer (Arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
-| Pause | Spacebar, Escape, or the pause button (top-right) | Pause button (top-right) |
+| Pause | Escape or the pause button (top-right). In Arc, Space also pauses. | Pause button (top-right) |
 
 You bank in smooth arcs and bounce off the side walls (with a **BOOP**), so plan
 your turns a little ahead.
@@ -217,9 +218,9 @@ itself — aim for the blue.
 Under **Options → Controls** you can pick how the ship steers:
 
 - **Zigzag** (default) — the ship always flies straight at a flatter fixed
-  angle, a bit faster than Arc; **tap** (or an arrow key) flips the other way.
-  Swipe is off in this mode. Walls bounce you too. No arcs — just a clean
-  zig-zag.
+  angle, a bit faster than Arc; **tap** or **Space** (or an arrow key) flips
+  the other way. Swipe is off in this mode. Pause with Escape or the pause
+  button. Walls bounce you too. No arcs — just a clean zig-zag.
 - **Arc** — the classic swoosh turn.
 
 ## Tips

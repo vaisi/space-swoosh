@@ -16,7 +16,8 @@
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
 // - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is the
-//   default; straight ±52° lean (flatter/faster), tap/key flips (no swipe).
+//   default; straight ±52° lean (flatter/faster), tap/Space/arrow flips (no
+//   swipe). Escape pauses in Zigzag; Space still pauses in Arc.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -1026,8 +1027,9 @@ export class Game {
         y += subH + L.section;
 
         const bx = L.centerX - buttonWidth / 2;
+        // Same framed style as the other hub rows (not primary/ink-filled).
         this.optionsHubButtons.ship = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Ship', { primary: true, tag: '\u25CF' }
+            bx, y, buttonWidth, buttonHeight, 'Ship', { tag: '\u25CF' }
         );
         y += buttonHeight + buttonGap;
         this.optionsHubButtons.controls = this.drawBrandButton(
@@ -1273,7 +1275,7 @@ export class Game {
         setLabelType(ctx, footnotePx);
         ctx.fillStyle = color.ink30;
         ctx.fillText(
-            zigzag ? 'TAP TO FLIP · STRAIGHT ±52°' : 'CLASSIC SWOOSH ARCS',
+            zigzag ? 'TAP OR SPACE · STRAIGHT ±52°' : 'CLASSIC SWOOSH ARCS',
             L.centerX,
             L.bottom - footnotePx / 2
         );
@@ -2373,16 +2375,30 @@ export class Game {
         this.canvas.parentElement.appendChild(button);
         this.pauseButton = button;
 
-        // Space or Escape toggles the pause menu during a run. Keys are ignored
+        // Escape always toggles pause. Space: Zigzag flips direction (same as
+        // tap); Arc still pauses. While paused, Space resumes. Keys are ignored
         // for the whole level-clear flyout (it is not skippable).
         window.addEventListener('keydown', (e) => {
             if (this.levelClear?.active) {
                 e.preventDefault();
                 return;
             }
-            if (this.isPlaying() && (e.code === 'Space' || e.code === 'Escape')) {
+            if (!this.isPlaying()) return;
+
+            if (e.code === 'Escape') {
                 e.preventDefault();
                 this.togglePause();
+                return;
+            }
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (this.isPaused) {
+                    this.togglePause();
+                } else if (this.flightStyle === FLIGHT_STYLE.zigzag) {
+                    if (!e.repeat) this.spacecraft.flipZigzag();
+                } else {
+                    this.togglePause();
+                }
             }
         });
 

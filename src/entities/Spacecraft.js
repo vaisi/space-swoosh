@@ -7,8 +7,8 @@
 //   body still used `direction`, which broke arc banks).
 // - Sidewall bounces (arc + zigzag) fire WallBoopManager + playBoop for every
 //   skin — ink "BOOP" popup below the hull beside the wall.
-// - Wall bounce sets `wallJelly` ({ t0, side }) so Square skins can squash like
-//   jelly against the wall — visual only; hitbox stays undeformed.
+// - Wall bounce sets `wallJelly` ({ t0, side }) so every hull can squash/shake
+//   against the wall via beginHullFrame — visual only; hitbox stays undeformed.
 // - `wormholeTransit` freezes motion + marks invuln during portal hops so the
 //   ship cannot drift into gate rocks while faded out.
 // - updateTrail mutates opacities in place (no map/filter/slice per frame) to

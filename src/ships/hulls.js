@@ -1,6 +1,8 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - `beginHullFrame`: shared wall-jelly plant / shake / squash for every hull
+//   (not just Square). Hitbox stays undeformed.
 // - `wallTrailDeform`: per-skin pile vs spring wake physics on wall bounce
 //   (dx/dy + mark sx/sy). `wallJellyTrailNudge` wraps it for simple X offsets.
 // - Wall-jelly: crisp squish → extend → shake (vertex deform, no soft halo
@@ -201,13 +203,44 @@ export function wallJellyTrailNudge(ship, time = performance.now(), seed = 0.5, 
     return wallTrailDeform(ship, time, { seed, along: 1, mode }).dx;
 }
 
+/**
+ * Open a hull draw frame at the ship with optional wall-jelly plant/shake/scale.
+ * Caller must `ctx.restore()` after drawing.
+ * Order: world plant + shake → bank → local squash (matches Square).
+ * @returns {ReturnType<typeof wallJellyDeform>}
+ */
+export function beginHullFrame(
+    ctx,
+    ship,
+    screenY,
+    bank = 0,
+    time = performance.now(),
+    halfScale = 0.75,
+) {
+    const jelly = wallJellyDeform(ship, time);
+    ctx.save();
+    ctx.translate(ship.x, screenY);
+    if (jelly) {
+        const half = (ship.radius ?? 10) * halfScale;
+        ctx.translate(jelly.side * (half - half * jelly.sx), 0);
+        ctx.translate(jelly.shake * (ship.radius ?? 10) * jelly.side * 0.35, 0);
+    }
+    if (bank) ctx.rotate(bank);
+    if (jelly) ctx.scale(jelly.sx, jelly.sy);
+    return jelly;
+}
+
 export function circlePath(ctx, cx, cy, r) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
 }
 
-export function drawCircleHull(ctx, ship, screenY) {
-    circlePath(ctx, ship.x, screenY, ship.radius);
+export function drawCircleHull(ctx, ship, screenY, time = performance.now()) {
+    const jelly = beginHullFrame(ctx, ship, screenY, ship.bank ?? 0, time, 0.9);
+    const baseAlpha = ctx.globalAlpha;
+    if (jelly) ctx.globalAlpha = baseAlpha;
+    circlePath(ctx, 0, 0, ship.radius);
     ctx.fillStyle = color.ink;
     ctx.fill();
+    ctx.restore();
 }

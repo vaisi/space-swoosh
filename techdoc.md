@@ -400,7 +400,8 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 
 Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circles
 filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
-squish→extend→shake (vertex sizing); the hitbox does not deform.
+squish→extend→shake on **every** hull via `beginHullFrame` in `hulls.js`
+(plant contact face + shake + local scale); the hitbox does not deform.
 
 Every skin declares `wallTrailMode`: **`pile`** (dense / discrete wakes) or
 **`spring`** (ribbons / hairlines). On a sidewall bounce, `wallTrailDeform` in
@@ -458,9 +459,11 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
-  `zigzagSpeedScale` × cruise; tap or arrow key flips `zigzagSign` (touch
-  swipe is ignored). Arc still uses swipe + half-screen tap + arrows. The
-  intro tutorial hint matches the active style. Persisted in localStorage.
+  `zigzagSpeedScale` × cruise; tap, **Space**, or an arrow key flips
+  `zigzagSign` (touch swipe is ignored; Escape still pauses). Arc still uses
+  swipe + half-screen tap + arrows (Space pauses). The intro tutorial hint
+  matches the active style (`{space}` renders as a bold SPACE keycap).
+  Persisted in localStorage.
 
 ## 7. Scoring model
 

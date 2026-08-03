@@ -76,7 +76,7 @@ export class InputHandler {
                 this.game.spacecraft.startMovement('right');
             }
         }
-        // Space / pause is handled once in Game.setupPauseButton.
+        // Space / Escape: Game.setupPauseButton (Zigzag Space flips; Escape pauses).
     }
 
     handleKeyUp(e) {

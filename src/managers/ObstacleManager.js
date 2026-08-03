@@ -974,7 +974,7 @@ export class ObstacleManager {
             {
                 distance: 25,  // Half of previous distance
                 message: zigzag
-                    ? 'Tap to flip direction'
+                    ? 'Tap or press {space} to change direction'
                     : 'Bank LEFT or RIGHT to move in arcs',
                 requirement: () => this.hasPlayerMoved(),
                 completed: false
