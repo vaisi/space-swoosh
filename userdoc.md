@@ -115,6 +115,17 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Halo** | Small orbital core with crawling ring-ticks; wake blooms into rings. |
 | **Needle** | Ultra-thin lance with a single hairline thread of a wake. |
 | **Echo** | Open crescent; twin parallel lines trail behind. |
+| **Square Stamp** | Square hull; stamps little tiles along the path. |
+| **Square Tick** | Square hull; short lateral ticks. |
+| **Square Trace** | Square hull; one thin hairline. |
+| **Square Ring** | Square hull; blooming rings (same wake idea as Halo). |
+
+The Square ships collide as the box you see. On a side-wall bounce they jelly —
+hard squish, then stretch, with a quick shake — and the wake squiggles with them
+for a beat (animation only; the hitbox does not squash).
+
+Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
+to the wall, not on it) and a soft space-boop sound.
 
 Pulse and Quill can be store unlocks later; right now every ship in
 **Options → Ship** is available so you can try them all.
@@ -124,7 +135,9 @@ along the path you actually flew. You only crash where the hull actually is —
 Needle's thin spine and Echo's open middle slip through gaps a full circle would
 catch. Sparkles and shields stay generous.
 
-Pick one under **Options → Ship**. Your choice is remembered.
+Pick one under **Options → Ship**. Your choice is remembered. After you tap a
+ship, **Play Endless** appears so you can jump straight into Open World without
+backing out to the menu.
 
 ## Controls
 

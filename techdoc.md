@@ -393,6 +393,14 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `halo` | Core disc + orbit ring with ticks | Expanding hollow rings |
 | `needle` | Thin lance (`needlePath`) | Single hairline stroke |
 | `echo` | Open crescent (`crescentPath`) | Twin parallel hairlines |
+| `squareStamp` | Square (`squarePath`) | Dense filled square stamps |
+| `squareTick` | Square | Lateral tick marks |
+| `squareTrace` | Square | Hairline stroke |
+| `squareRing` | Square | Expanding rings (shared with Halo) |
+
+Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circles
+filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
+squish→extend→shake (vertex sizing + trail nudge); the hitbox does not deform.
 
 Shaped hulls share `makeHullRenderer(pathFn)` in `skinDefs.js` — halo, breathing
 pulse, bank rotation and inner highlight are identical, only the outline differs.
@@ -476,8 +484,9 @@ it is included in the `game_over` GA event.
 4. **Wall boop (sidewall bounce):** When `Spacecraft` clamps against a screen
    edge (arc bounce or zigzag flip), it calls `WallBoopManager.triggerBoop(ship,
    side)`. That plays `SoundManager.playBoop()` (soft low sine + vacuum puff)
-   and spawns an ink `BOOP` label below the hull, inset from the wall so the
-   full word stays on-screen. Applies to every skin.
+   and spawns an ink `BOOP` label below the hull, inset from the wall so it
+   never overlaps ship or edge. Applies to every skin; Square skins still also
+   get `wallJelly` squash.
 
 Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
 

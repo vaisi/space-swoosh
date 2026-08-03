@@ -2,6 +2,12 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Wall-jelly trail nudge: Square wakes squiggle in world X while the hull
+//   is bouncing, so the path feels physical without blurring the ink.
+// - Added stamp (Bloc) and tick (Mark) wakes — dense filled squares and short
+//   lateral ticks along the path.
+// - Shard / Halo wakes sample every trail point plus midpoints so the path
+//   reads as a dense field of chevrons / blooming bubbles.
 // - Added chevron, expanding-ring, hairline, and twin-offset wakes for Shard /
 //   Halo / Needle / Echo.
 // - wakePoints / ribbonPath reuse module-level scratch arrays so ribbon and
@@ -16,7 +22,7 @@
 //   skins can paint a Signal-Blue wake without a second renderer.
 
 import { color } from '../brand/tokens.js';
-import { withHeading } from './hulls.js';
+import { withHeading, wallJellyTrailNudge } from './hulls.js';
 
 const INK_RGB = '26, 26, 26';
 
@@ -38,21 +44,24 @@ function scratchPoint(i) {
 // attached to the hull between samples (points are only recorded every
 // `trailSpacing` world units).
 function wakePoints(ship, trail, toScreenY) {
+    const now = performance.now();
     const n = trail.length;
     for (let i = 0; i < n; i++) {
         const src = trail[i];
         const p = scratchPoint(i);
-        p.x = src.x;
+        const seed = src.seed ?? 0.5;
+        p.x = src.x + wallJellyTrailNudge(ship, now, seed);
         p.y = toScreenY(src.y);
         p.opacity = src.opacity;
         p.angle = src.angle ?? 0;
-        p.seed = src.seed ?? 0.5;
+        p.seed = seed;
     }
 
     let count = n;
     const tail = ship.tailPoint?.();
     if (tail) {
-        const screenX = tail.x;
+        const nudge = wallJellyTrailNudge(ship, now, 0.5);
+        const screenX = tail.x + nudge;
         const screenY = toScreenY(tail.y);
         const last = count > 0 ? wakeScratch[count - 1] : null;
         const angle = ship.tangent ?? 0;
@@ -265,10 +274,43 @@ export function drawWispTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.restore();
 }
 
+/** Build denser sample list: every trail point + midpoint between neighbors. */
+function denseTrailMarks(ship, trail, toScreenY) {
+    const now = performance.now();
+    const marks = [];
+    for (let i = 0; i < trail.length; i++) {
+        const p = trail[i];
+        const seed = p.seed ?? (i * 0.17) % 1;
+        marks.push({
+            x: p.x + wallJellyTrailNudge(ship, now, seed),
+            y: toScreenY(p.y),
+            opacity: p.opacity,
+            angle: p.angle ?? 0,
+            scale: 1,
+        });
+        if (i < trail.length - 1) {
+            const n = trail[i + 1];
+            const midSeed = ((p.seed ?? seed) + (n.seed ?? seed)) * 0.5;
+            marks.push({
+                x: (p.x + n.x) * 0.5 + wallJellyTrailNudge(ship, now, midSeed),
+                y: (toScreenY(p.y) + toScreenY(n.y)) * 0.5,
+                opacity: (p.opacity + n.opacity) * 0.5,
+                angle: Math.atan2(
+                    Math.sin(p.angle ?? 0) + Math.sin(n.angle ?? 0),
+                    Math.cos(p.angle ?? 0) + Math.cos(n.angle ?? 0)
+                ),
+                scale: 0.82,
+            });
+        }
+    }
+    return marks;
+}
+
 /** Paper-cut V marks along the path — Shard. */
 export function drawChevronTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { step = 2, alpha = 0.85 } = opts;
+    const { alpha = 0.88 } = opts;
     const r = ship.radius;
+    const marks = denseTrailMarks(ship, trail, toScreenY);
 
     ctx.save();
     ctx.strokeStyle = color.ink;
@@ -276,14 +318,14 @@ export function drawChevronTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.lineJoin = 'round';
     const baseAlpha = ctx.globalAlpha;
 
-    for (let i = trail.length - 1; i >= 0; i -= step) {
-        const p = trail[i];
-        const arm = r * (0.28 + 0.45 * p.opacity);
-        const width = r * (0.06 + 0.1 * p.opacity);
+    for (let i = marks.length - 1; i >= 0; i--) {
+        const p = marks[i];
+        const arm = r * (0.22 + 0.38 * p.opacity) * p.scale;
+        const width = r * (0.05 + 0.08 * p.opacity) * p.scale;
 
         ctx.globalAlpha = baseAlpha * p.opacity * alpha;
         ctx.lineWidth = width;
-        withHeading(ctx, p.x, toScreenY(p.y), p.angle ?? 0, (c) => {
+        withHeading(ctx, p.x, p.y, p.angle, (c) => {
             // Open V pointing toward the hull (local -Y is forward).
             c.beginPath();
             c.moveTo(-arm * 0.7, arm * 0.55);
@@ -298,24 +340,35 @@ export function drawChevronTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
 /** Hollow rings that bloom as they age — Halo. */
 export function drawRingTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { step = 3, alpha = 0.7 } = opts;
+    const { alpha = 0.72 } = opts;
     const r = ship.radius;
+    const marks = denseTrailMarks(ship, trail, toScreenY);
 
     ctx.save();
     ctx.strokeStyle = color.ink;
+    ctx.fillStyle = color.ink;
     const baseAlpha = ctx.globalAlpha;
 
-    for (let i = trail.length - 1; i >= 0; i -= step) {
-        const p = trail[i];
+    for (let i = marks.length - 1; i >= 0; i--) {
+        const p = marks[i];
         const age = 1 - p.opacity;
-        const ringR = r * (0.22 + age * 1.15);
-        const width = r * (0.07 + 0.05 * p.opacity);
+        const ringR = r * (0.16 + age * 0.95) * p.scale;
+        const width = r * (0.055 + 0.04 * p.opacity) * p.scale;
+        const fade = baseAlpha * p.opacity * alpha * (0.4 + 0.6 * (1 - age));
 
-        ctx.globalAlpha = baseAlpha * p.opacity * alpha * (0.45 + 0.55 * (1 - age));
+        ctx.globalAlpha = fade;
         ctx.lineWidth = width;
         ctx.beginPath();
-        ctx.arc(p.x, toScreenY(p.y), ringR, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2);
         ctx.stroke();
+
+        // Fresh marks keep a soft filled bubble so the wake reads denser near the hull.
+        if (p.opacity > 0.55) {
+            ctx.globalAlpha = fade * 0.22;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, ringR * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
     ctx.restore();
@@ -375,6 +428,59 @@ export function drawTwinTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.beginPath();
     traceSmooth(ctx, right, true);
     ctx.stroke();
+
+    ctx.restore();
+}
+
+/** Filled squares stamped along the path — Bloc. */
+export function drawStampTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.82 } = opts;
+    const r = ship.radius;
+    const marks = denseTrailMarks(ship, trail, toScreenY);
+
+    ctx.save();
+    ctx.fillStyle = color.ink;
+    const baseAlpha = ctx.globalAlpha;
+
+    for (let i = marks.length - 1; i >= 0; i--) {
+        const p = marks[i];
+        const half = r * (0.14 + 0.22 * p.opacity) * p.scale;
+
+        ctx.globalAlpha = baseAlpha * p.opacity * alpha;
+        withHeading(ctx, p.x, p.y, p.angle, (c) => {
+            c.fillRect(-half, -half, half * 2, half * 2);
+        });
+    }
+
+    ctx.restore();
+}
+
+/** Short ticks perpendicular to travel — Mark. */
+export function drawTickTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.85 } = opts;
+    const r = ship.radius;
+    const marks = denseTrailMarks(ship, trail, toScreenY);
+
+    ctx.save();
+    ctx.strokeStyle = color.ink;
+    ctx.lineCap = 'round';
+    const baseAlpha = ctx.globalAlpha;
+
+    for (let i = marks.length - 1; i >= 0; i--) {
+        const p = marks[i];
+        const half = r * (0.22 + 0.4 * p.opacity) * p.scale;
+        const width = r * (0.055 + 0.07 * p.opacity) * p.scale;
+
+        ctx.globalAlpha = baseAlpha * p.opacity * alpha;
+        ctx.lineWidth = width;
+        withHeading(ctx, p.x, p.y, p.angle, (c) => {
+            // Lateral tick (local X) — reads as indexing marks on the course.
+            c.beginPath();
+            c.moveTo(-half, 0);
+            c.lineTo(half, 0);
+            c.stroke();
+        });
+    }
 
     ctx.restore();
 }

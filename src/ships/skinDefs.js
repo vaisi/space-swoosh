@@ -2,6 +2,12 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Square hulls: no soft halo at all; hitbox is a 3×3 fill of the box.
+//   Wall jelly is visual-only (hitbox stays the rest pose).
+// - Square family (Stamp / Tick / Trace / Ring): same square hull, four wakes,
+//   named so the trail is obvious. Removed the Mark cross hull.
+// - Shard / Halo wakes are denser (every sample + midpoints; Halo soft-fills
+//   young bubbles) so the path feels packed with arrows / rings.
 // - Added Shard, Halo, Needle, Echo: unique hulls + wakes (crystal chevrons,
 //   orbital core with blooming rings, thin lance + hairline, crescent + twin
 //   lines) so the picker has more than tear/dart/circle variants.
@@ -31,6 +37,7 @@ import {
     shardPath,
     needlePath,
     crescentPath,
+    wallJellyDeform,
     withHeading,
     drawCircleHull,
 } from './hulls.js';
@@ -43,6 +50,8 @@ import {
     drawRingTrail,
     drawHairlineTrail,
     drawTwinTrail,
+    drawStampTrail,
+    drawTickTrail,
 } from './trails.js';
 
 // Hitboxes are in local hull space (x right, y toward the tail, nose negative),
@@ -105,6 +114,20 @@ const CRESCENT_HITBOX = [
 // Halo's solid core only — the orbit ring and ticks are decoration.
 const HALO_HITBOX = [{ x: 0, y: 0, r: 0.72 }];
 
+// Square body — 3×3 inscribed circles filling the drawn box (half ≈ 0.78).
+// Jelly squash is visual-only; these stay the rest pose.
+const SQUARE_HITBOX = (() => {
+    const circles = [];
+    const step = 0.38;
+    const cr = 0.26;
+    for (let iy = -1; iy <= 1; iy++) {
+        for (let ix = -1; ix <= 1; ix++) {
+            circles.push({ x: ix * step, y: iy * step, r: cr });
+        }
+    }
+    return circles;
+})();
+
 // Shaped hulls share everything but their outline: an ink halo standing in for
 // glow, a slow breath, rotation into the bank and a softer inner highlight.
 function makeHullRenderer(pathFn) {
@@ -147,6 +170,53 @@ const drawDartHull = makeHullRenderer(dartPath);
 const drawShardHull = makeHullRenderer(shardPath);
 const drawNeedleHull = makeHullRenderer(needlePath);
 const drawCrescentHull = makeHullRenderer(crescentPath);
+
+/** Square hull: hard ink only (no soft halo). Jelly is vertex sizing, not hitbox. */
+function drawSquareHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.9 + 0.06 * Math.sin(time * 0.0056) + 0.04 * Math.sin(time * 0.0088);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.2 * turn;
+    const jelly = wallJellyDeform(ship, time);
+    const sx = jelly?.sx ?? 1;
+    const sy = jelly?.sy ?? 1;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    ctx.translate(ship.x, screenY);
+    if (jelly) {
+        // Plant the contact face on the wall; deform by sizing the rect.
+        const half = r * 0.82;
+        ctx.translate(jelly.side * (half - half * sx), 0);
+        ctx.translate(jelly.shake * ship.radius * jelly.side * 0.35, 0);
+    }
+    ctx.rotate(bank);
+
+    const halfX = r * 0.82 * sx;
+    const halfY = r * 0.82 * stretch * sy;
+    ctx.beginPath();
+    ctx.rect(-halfX, -halfY, halfX * 2, halfY * 2);
+    ctx.fillStyle = color.ink;
+    ctx.fill();
+
+    const inset = jelly ? 0.38 : 0.42;
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.28 : breath * 0.35);
+    ctx.beginPath();
+    ctx.rect(
+        -halfX * inset,
+        -halfY * inset + r * 0.06,
+        halfX * inset * 2,
+        halfY * inset * 2
+    );
+    ctx.fillStyle = color.ink55;
+    ctx.fill();
+
+    ctx.restore();
+}
 
 /** Orbital core: solid disc + a thin ring with two crawling ticks. */
 function drawHaloHull(ctx, ship, screenY, time = performance.now()) {
@@ -337,7 +407,53 @@ const echo = {
     },
 };
 
+// Same square hull; the name is the wake so the picker is self-explanatory.
+const squareStamp = {
+    id: 'squareStamp',
+    name: 'Square Stamp',
+    blurb: 'Square hull. Stamped tiles.',
+    hitbox: SQUARE_HITBOX,
+    drawHull: drawSquareHull,
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawStampTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
+const squareTick = {
+    id: 'squareTick',
+    name: 'Square Tick',
+    blurb: 'Square hull. Lateral ticks.',
+    hitbox: SQUARE_HITBOX,
+    drawHull: drawSquareHull,
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawTickTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
+const squareTrace = {
+    id: 'squareTrace',
+    name: 'Square Trace',
+    blurb: 'Square hull. One thin line.',
+    hitbox: SQUARE_HITBOX,
+    drawHull: drawSquareHull,
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawHairlineTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
+const squareRing = {
+    id: 'squareRing',
+    name: 'Square Ring',
+    blurb: 'Square hull. Blooming rings.',
+    hitbox: SQUARE_HITBOX,
+    drawHull: drawSquareHull,
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawRingTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
 export const SKIN_DEFS = [
     focus, flicker, ember, wisp, pulse, quill,
     shard, halo, needle, echo,
+    squareStamp, squareTick, squareTrace, squareRing,
 ];

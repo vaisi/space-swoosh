@@ -1,6 +1,9 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Wall-jelly: crisp squish → extend → shake (vertex deform, no soft halo
+//   scaling). Trail offsets via `wallJellyTrailNudge` for a physical squiggle.
+// - Added `squarePath` for the Square Stamp / Tick / Trace / Ring family.
 // - Added `shardPath` (faceted diamond), `needlePath` (thin lance), and
 //   `crescentPath` (open boomerang) for the Shard / Needle / Echo skins.
 // - Added `dartPath`: a hard-edged chevron with a notched tail, for Ember.
@@ -92,6 +95,59 @@ export function crescentPath(ctx, cx, cy, r, stretch = 1) {
     ctx.quadraticCurveTo(cx + r * 0.38, cy + ry * 0.12, cx, cy + ry * 0.02);
     ctx.quadraticCurveTo(cx - r * 0.38, cy + ry * 0.12, cx - r * 0.88, cy + ry * 0.62);
     ctx.closePath();
+}
+
+// Axis-aligned square in hull space (banks with the ship) — Square family.
+export function squarePath(ctx, cx, cy, r, stretch = 1) {
+    const half = r * 0.82;
+    const hy = half * stretch;
+    ctx.beginPath();
+    ctx.rect(cx - half, cy - hy, half * 2, hy * 2);
+    ctx.closePath();
+}
+
+/** How long the wall-bounce jelly lasts (ms). */
+export const WALL_JELLY_MS = 420;
+
+/**
+ * Squash/stretch for a live wall jelly along world X.
+ * t=0 starts fully squished into the wall, then extends past rest and shakes.
+ * @returns {{ sx: number, sy: number, side: number, shake: number } | null}
+ */
+export function wallJellyDeform(ship, time = performance.now()) {
+    const j = ship.wallJelly;
+    if (!j) return null;
+    const elapsed = time - j.t0;
+    if (elapsed < 0 || elapsed >= WALL_JELLY_MS) return null;
+
+    const t = elapsed / WALL_JELLY_MS;
+    // cos: +1 at impact (squish) → −1 (extend) → settle. Damped oscillation.
+    const damp = Math.exp(-2.4 * t);
+    const primary = Math.cos(t * Math.PI * 2.8) * damp;
+    // Extra high-freq shake once it's off the wall (reads physical, stays sharp).
+    const shake = Math.sin(t * Math.PI * 7.5) * Math.exp(-4.2 * t) * 0.06;
+
+    return {
+        sx: Math.max(0.42, 1 - 0.52 * primary + shake),
+        sy: Math.min(1.65, 1 + 0.48 * primary - shake * 0.7),
+        side: j.side,
+        shake,
+    };
+}
+
+/**
+ * Lateral trail nudge during wall jelly (world X). `seed` 0..1 varies the phase
+ * per mark so the wake squiggles instead of sliding as a rigid ribbon.
+ */
+export function wallJellyTrailNudge(ship, time = performance.now(), seed = 0.5) {
+    const jelly = wallJellyDeform(ship, time);
+    if (!jelly) return 0;
+    const j = ship.wallJelly;
+    const t = (time - j.t0) / WALL_JELLY_MS;
+    const damp = Math.exp(-2.6 * t);
+    const wave = Math.sin(t * Math.PI * 5.5 + seed * Math.PI * 2);
+    const r = ship.radius ?? 10;
+    return jelly.side * wave * damp * r * 0.55;
 }
 
 export function circlePath(ctx, cx, cy, r) {

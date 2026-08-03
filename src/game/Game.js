@@ -12,6 +12,8 @@
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height. Menu stamp is BUILD 23.
+// - Options → Ship: after picking a vessel, a Play Endless button jumps straight
+//   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
 // - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is the
 //   default; straight ±52° lean (flatter/faster), any tap/key/swipe flips.
@@ -209,6 +211,8 @@ export class Game {
         this.journeyLevel = nextPlayableLevel(this.journeyProgress);
         this.journeyMapScroll = 0;
         this.shipPickerScroll = 0;
+        // Ship picker: reveal Play Endless after the player taps a vessel.
+        this.shipPickerOfferPlay = false;
         this.journeyMapNeedsScroll = true;
         this.levelOutcome = null;
         this.runOutcome = null; // 'crashed' | 'completed' while on the end screen
@@ -1053,8 +1057,8 @@ export class Game {
     }
 
     // Ship picker — fixed-size cards in a 2-col grid. Longer rosters scroll
-    // inside the band between the blurb and the footnote (same gesture as the
-    // Journey map).
+    // inside the band between the blurb and the footer. After the player taps a
+    // vessel, a Play Endless CTA jumps straight into Open World.
     renderOptionsShip() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -1074,6 +1078,9 @@ export class Game {
         const tileW = Math.min(unit * 19, (L.width - gap) / columns);
         // Keep cards readable; scroll when the roster outgrows the viewport.
         const tileH = Math.min(unit * 16, L.isMobile ? unit * 15 : unit * 17);
+        const buttonWidth = Math.min(unit * 30, L.width);
+        const buttonHeight = L.isMobile ? unit * 5.6 : unit * 5.2;
+        const showQuickPlay = this.shipPickerOfferPlay;
 
         let y = header.contentTop;
 
@@ -1088,8 +1095,11 @@ export class Game {
         y += descPx * 1.4 + L.block;
 
         const footnoteY = L.bottom - footnotePx / 2;
+        const footerTop = showQuickPlay
+            ? footnoteY - footnotePx / 2 - L.block - buttonHeight - L.block
+            : footnoteY - footnotePx / 2 - L.block;
         const viewTop = y;
-        const viewBottom = footnoteY - footnotePx / 2 - L.block;
+        const viewBottom = footerTop;
         const viewportHeight = Math.max(0, viewBottom - viewTop);
         const contentHeight = tileH * rows + gap * Math.max(0, rows - 1);
         const maxScroll = Math.max(0, contentHeight - viewportHeight);
@@ -1131,6 +1141,20 @@ export class Game {
         });
         ctx.restore();
 
+        if (showQuickPlay) {
+            const btnY = footnoteY - footnotePx / 2 - L.block - buttonHeight;
+            this.optionsButtons.quickPlay = this.drawBrandButton(
+                L.centerX - buttonWidth / 2,
+                btnY,
+                buttonWidth,
+                buttonHeight,
+                'Play Endless',
+                { primary: true, tag: 'OPEN WORLD' }
+            );
+        } else {
+            this.optionsButtons.quickPlay = null;
+        }
+
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1138,7 +1162,9 @@ export class Game {
         ctx.fillStyle = color.ink30;
         const footnote = this.purchaseStatus
             ? this.purchaseStatus.toUpperCase()
-            : (maxScroll > 0 ? 'SCROLL · SAVED AUTOMATICALLY' : 'SAVED AUTOMATICALLY');
+            : showQuickPlay
+                ? 'EQUIPPED · TAP TO FLY'
+                : (maxScroll > 0 ? 'SCROLL · TAP A SHIP' : 'TAP A SHIP');
         ctx.fillText(footnote, L.centerX, footnoteY);
         resetType(ctx);
         ctx.restore();
@@ -1345,6 +1371,7 @@ export class Game {
 
         if (isSkinOwned(skinId)) {
             this.shipSkinId = saveShipSkinId(skinId);
+            this.shipPickerOfferPlay = true;
             this.setPurchaseStatus(null, 0);
             return;
         }
@@ -1355,6 +1382,7 @@ export class Game {
             const result = await purchaseSkin(skinId);
             if (result.ok) {
                 this.shipSkinId = saveShipSkinId(skinId);
+                this.shipPickerOfferPlay = true;
                 this.setPurchaseStatus('Unlocked.');
                 track('purchase_skin', { skin_id: skinId });
             } else if (result.cancelled) {
@@ -1365,6 +1393,13 @@ export class Game {
         } finally {
             this.purchaseBusy = false;
         }
+    }
+
+    /** Jump from the ship picker into Open World with the equipped vessel. */
+    quickPlayEndless() {
+        if (!isSkinOwned(this.shipSkinId)) return;
+        track('quick_play_endless', { skin_id: this.shipSkinId });
+        this.beginRun(PLAY_MODE.openWorld);
     }
 
     async handleRestorePurchases() {
@@ -2079,6 +2114,7 @@ export class Game {
                 }
                 if (this.isClickInButton(x, y, this.optionsHubButtons.ship)) {
                     this.shipPickerScroll = 0;
+                    this.shipPickerOfferPlay = false;
                     this.appScreen = 'optionsShip';
                     return;
                 }
@@ -2100,6 +2136,10 @@ export class Game {
             if (this.appScreen === 'optionsShip' && this.optionsButtons) {
                 if (this.isClickInButton(x, y, this.optionsButtons.back)) {
                     this.appScreen = 'options';
+                    return;
+                }
+                if (this.isClickInButton(x, y, this.optionsButtons.quickPlay)) {
+                    this.quickPlayEndless();
                     return;
                 }
                 for (const skin of SHIP_SKIN_LIST) {
