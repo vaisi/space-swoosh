@@ -100,30 +100,29 @@ main menu.
 
 ## Ships
 
-Every ship flies exactly the same — same speed, same turns, same hitbox. They
-only look different, and three of them are the same teardrop hull wearing a
-different trail, so you can fly whichever wake you like best:
+Every ship flies the same — same speed, same turns. They only look different
+(and their collision shape follows the drawn hull), so pick the wake you like:
 
 | Ship | Look |
 | --- | --- |
 | **Focus** | Solid circle with a dotted ink trail — clean and instrumental. |
-| **Flicker** | Teardrop of light trailing one smooth, flowing ribbon. |
-| **Ember** | A sharp swept dart with a notched tail; its wake breaks into loose streaks that stretch out of hard turns. |
-| **Wisp** | The teardrop again, with a thin thread of a wake that sheds drifting sparks. |
+| **Flicker** | Teardrop trailing one smooth, flowing ribbon. |
+| **Ember** | Swept dart; wake breaks into loose streaks out of hard turns. |
+| **Wisp** | Teardrop again, with a thin thread that sheds drifting sparks. |
 | **Pulse** | Focus's hull with a Signal-Blue dotted wake. |
 | **Quill** | Flicker's tear with a fine Signal-Blue ribbon. |
+| **Shard** | Faceted crystal diamond; paper-cut chevrons mark the path. |
+| **Halo** | Small orbital core with crawling ring-ticks; wake blooms into rings. |
+| **Needle** | Ultra-thin lance with a single hairline thread of a wake. |
+| **Echo** | Open crescent; twin parallel lines trail behind. |
 
-Pulse and Quill are cosmetics that fly exactly like the free ships. Right now
-every ship in Options → Ship is unlocked so you can try them all; store
-purchases can be switched back on later.
+Pulse and Quill can be store unlocks later; right now every ship in
+**Options → Ship** is available so you can try them all.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
-along the path you actually flew.
-
-Whatever you fly, you only crash where the ship actually is: the collision area
-follows each hull's outline, so a teardrop's narrow nose or a dart's swept wings
-slip through gaps a plain circle would have caught. Sparkles and shields stay
-generous — those you'll always grab if you look like you touched them.
+along the path you actually flew. You only crash where the hull actually is —
+Needle's thin spine and Echo's open middle slip through gaps a full circle would
+catch. Sparkles and shields stay generous.
 
 Pick one under **Options → Ship**. Your choice is remembered.
 

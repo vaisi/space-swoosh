@@ -2,6 +2,9 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Added Shard, Halo, Needle, Echo: unique hulls + wakes (crystal chevrons,
+//   orbital core with blooming rings, thin lance + hairline, crescent + twin
+//   lines) so the picker has more than tear/dart/circle variants.
 // - Hull alphas multiply into the caller's `globalAlpha`, so a world fade (the
 //   level-clear flyout) dims the hull along with everything else.
 // - Ember now flies a hard-edged dart hull instead of sharing Flicker's tear.
@@ -25,6 +28,9 @@ import {
     MAX_BANK,
     tearPath,
     dartPath,
+    shardPath,
+    needlePath,
+    crescentPath,
     withHeading,
     drawCircleHull,
 } from './hulls.js';
@@ -33,6 +39,10 @@ import {
     drawRibbonTrail,
     drawStreakTrail,
     drawWispTrail,
+    drawChevronTrail,
+    drawRingTrail,
+    drawHairlineTrail,
+    drawTwinTrail,
 } from './trails.js';
 
 // Hitboxes are in local hull space (x right, y toward the tail, nose negative),
@@ -64,6 +74,36 @@ const DART_HITBOX = [
     { x: -0.43, y: 0.29, r: 0.09 },
     { x: 0.44, y: 0.29, r: 0.08 },
 ];
+
+// Faceted diamond — nose / mid / tail facet, skip the thin wing tips.
+const SHARD_HITBOX = [
+    { x: 0, y: -0.72, r: 0.12 },
+    { x: 0, y: -0.28, r: 0.28 },
+    { x: 0, y: 0.12, r: 0.3 },
+    { x: -0.22, y: 0.35, r: 0.14 },
+    { x: 0.22, y: 0.35, r: 0.14 },
+];
+
+// Thin lance — stacked circles down the spine only.
+const NEEDLE_HITBOX = [
+    { x: 0, y: -0.85, r: 0.08 },
+    { x: 0, y: -0.45, r: 0.12 },
+    { x: 0, y: 0.0, r: 0.14 },
+    { x: 0, y: 0.45, r: 0.11 },
+    { x: 0, y: 0.78, r: 0.08 },
+];
+
+// Crescent arms + nose join; empty notch in the middle stays clear.
+const CRESCENT_HITBOX = [
+    { x: 0, y: -0.55, r: 0.18 },
+    { x: -0.42, y: -0.05, r: 0.2 },
+    { x: 0.42, y: -0.05, r: 0.2 },
+    { x: -0.55, y: 0.35, r: 0.16 },
+    { x: 0.55, y: 0.35, r: 0.16 },
+];
+
+// Halo's solid core only — the orbit ring and ticks are decoration.
+const HALO_HITBOX = [{ x: 0, y: 0, r: 0.72 }];
 
 // Shaped hulls share everything but their outline: an ink halo standing in for
 // glow, a slow breath, rotation into the bank and a softer inner highlight.
@@ -104,6 +144,52 @@ function makeHullRenderer(pathFn) {
 
 const drawTearHull = makeHullRenderer(tearPath);
 const drawDartHull = makeHullRenderer(dartPath);
+const drawShardHull = makeHullRenderer(shardPath);
+const drawNeedleHull = makeHullRenderer(needlePath);
+const drawCrescentHull = makeHullRenderer(crescentPath);
+
+/** Orbital core: solid disc + a thin ring with two crawling ticks. */
+function drawHaloHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.92 + 0.05 * Math.sin(time * 0.0048);
+    const bank = ship.bank ?? 0;
+    const r = ship.radius;
+    const core = r * 0.72;
+    const orbit = r * 1.22;
+    const phase = time * 0.0028;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = baseAlpha * breath;
+
+    withHeading(ctx, ship.x, screenY, bank, (c) => {
+        c.beginPath();
+        c.arc(0, 0, orbit, 0, Math.PI * 2);
+        c.strokeStyle = color.ink30;
+        c.lineWidth = r * 0.07;
+        c.stroke();
+
+        for (let i = 0; i < 2; i++) {
+            const a = phase + i * Math.PI;
+            c.beginPath();
+            c.arc(Math.cos(a) * orbit, Math.sin(a) * orbit, r * 0.13, 0, Math.PI * 2);
+            c.fillStyle = color.ink;
+            c.fill();
+        }
+
+        c.beginPath();
+        c.arc(0, 0, core, 0, Math.PI * 2);
+        c.fillStyle = color.ink;
+        c.fill();
+
+        c.globalAlpha = baseAlpha * breath * 0.35;
+        c.beginPath();
+        c.arc(0, r * 0.06, core * 0.42, 0, Math.PI * 2);
+        c.fillStyle = color.ink55;
+        c.fill();
+    });
+
+    ctx.restore();
+}
 
 const focus = {
     id: 'focus',
@@ -199,4 +285,59 @@ const quill = {
     },
 };
 
-export const SKIN_DEFS = [focus, flicker, ember, wisp, pulse, quill];
+const shard = {
+    id: 'shard',
+    name: 'Shard',
+    blurb: 'Faceted. A hard wake.',
+    hitbox: SHARD_HITBOX,
+
+    drawHull: drawShardHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawChevronTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
+const halo = {
+    id: 'halo',
+    name: 'Halo',
+    blurb: 'Orbital. Rings the path.',
+    hitbox: HALO_HITBOX,
+
+    drawHull: drawHaloHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawRingTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
+const needle = {
+    id: 'needle',
+    name: 'Needle',
+    blurb: 'Linear. One thin thread.',
+    hitbox: NEEDLE_HITBOX,
+
+    drawHull: drawNeedleHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawHairlineTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
+const echo = {
+    id: 'echo',
+    name: 'Echo',
+    blurb: 'Paired. Leaves a twin.',
+    hitbox: CRESCENT_HITBOX,
+
+    drawHull: drawCrescentHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawTwinTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
+export const SKIN_DEFS = [
+    focus, flicker, ember, wisp, pulse, quill,
+    shard, halo, needle, echo,
+];

@@ -60,7 +60,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `services/Entitlements.js` | Skin ownership cache + purchase / restore. `UNLOCK_ALL_SKINS` (currently `true`) opens the whole roster without IAP for playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | The four skins (Focus / Flicker / Ember / Wisp) composed from hulls + trails. |
+| `ships/skinDefs.js` | Ship roster (Focus…Echo) composed from hulls + trails. |
 | `ships/hulls.js` | Hull geometry (`tearPath`, `dartPath`, `circlePath`), `withHeading`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers: dots, tapered ribbon, oriented streaks, thread + embers. |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
@@ -377,15 +377,21 @@ Note: `Game.checkCollisions()` is dead code — it calls a nonexistent
 
 ## 5c. Ship skins
 
-Skins are **visual only** — hitbox (`radius`), arcs, shield, and scoring are identical.
-The three tear ships share one hull and differ *only* in their wake.
+Skins are **visual only** for physics/speed — arcs, shield duration and scoring
+are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 
 | Id | Hull | Wake |
 | --- | --- | --- |
 | `focus` (default) | Solid ink circle | Hard ink dots |
-| `flicker` | Banking ink tear + soft halo, slow breath | Tapered comet ribbon |
-| `ember` | Swept dart with a notched tail | Elongated marks rotated to the local tangent |
-| `wisp` | Same tear as Flicker | Thin ribbon thread + sparks drifting off sideways |
+| `flicker` | Banking ink tear + soft halo | Tapered comet ribbon |
+| `ember` | Swept dart with a notched tail | Elongated tangent streaks |
+| `wisp` | Same tear as Flicker | Thin ribbon + drifting sparks |
+| `pulse` | Focus circle | Signal-Blue dots |
+| `quill` | Flicker tear | Thin Signal-Blue ribbon |
+| `shard` | Faceted diamond (`shardPath`) | Chevron / paper-cut V marks |
+| `halo` | Core disc + orbit ring with ticks | Expanding hollow rings |
+| `needle` | Thin lance (`needlePath`) | Single hairline stroke |
+| `echo` | Open crescent (`crescentPath`) | Twin parallel hairlines |
 
 Shaped hulls share `makeHullRenderer(pathFn)` in `skinDefs.js` — halo, breathing
 pulse, bank rotation and inner highlight are identical, only the outline differs.

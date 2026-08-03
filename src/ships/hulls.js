@@ -1,6 +1,8 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Added `shardPath` (faceted diamond), `needlePath` (thin lance), and
+//   `crescentPath` (open boomerang) for the Shard / Needle / Echo skins.
 // - Added `dartPath`: a hard-edged chevron with a notched tail, for Ember.
 // - Created file: extracted `tearPath` out of skins.js and added `withHeading`
 //   so any shaped hull can be drawn rotated into its direction of travel.
@@ -53,6 +55,42 @@ export function dartPath(ctx, cx, cy, r, stretch = 1) {
     ctx.lineTo(cx + r * 0.72, cy + ry * 0.6);
     ctx.lineTo(cx, cy + ry * 0.15);
     ctx.lineTo(cx - r * 0.72, cy + ry * 0.6);
+    ctx.closePath();
+}
+
+// Faceted crystal: long diamond with a cut tail facet (Shard).
+export function shardPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.12);
+    ctx.lineTo(cx + r * 0.58, cy - ry * 0.02);
+    ctx.lineTo(cx + r * 0.4, cy + ry * 0.72);
+    ctx.lineTo(cx, cy + ry * 0.32);
+    ctx.lineTo(cx - r * 0.4, cy + ry * 0.72);
+    ctx.lineTo(cx - r * 0.58, cy - ry * 0.02);
+    ctx.closePath();
+}
+
+// Ultra-thin lance: long nose, almost no wings (Needle).
+export function needlePath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.28);
+    ctx.lineTo(cx + r * 0.2, cy + ry * 0.2);
+    ctx.lineTo(cx, cy + ry * 1.0);
+    ctx.lineTo(cx - r * 0.2, cy + ry * 0.2);
+    ctx.closePath();
+}
+
+// Open boomerang / crescent: twin tips aft, join at the nose (Echo).
+export function crescentPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.88, cy + ry * 0.62);
+    ctx.quadraticCurveTo(cx - r * 1.05, cy - ry * 0.05, cx, cy - ry * 1.02);
+    ctx.quadraticCurveTo(cx + r * 1.05, cy - ry * 0.05, cx + r * 0.88, cy + ry * 0.62);
+    ctx.quadraticCurveTo(cx + r * 0.38, cy + ry * 0.12, cx, cy + ry * 0.02);
+    ctx.quadraticCurveTo(cx - r * 0.38, cy + ry * 0.12, cx - r * 0.88, cy + ry * 0.62);
     ctx.closePath();
 }
 

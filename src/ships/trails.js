@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Added chevron, expanding-ring, hairline, and twin-offset wakes for Shard /
+//   Halo / Needle / Echo.
 // - wakePoints / ribbonPath reuse module-level scratch arrays so ribbon and
 //   wisp wakes do not allocate a mapped point list every paint (iOS GC).
 // - Wake alphas multiply into the caller's `globalAlpha` instead of overwriting
@@ -259,6 +261,120 @@ export function drawWispTrail(ctx, ship, trail, toScreenY, opts = {}) {
         );
         ctx.fill();
     }
+
+    ctx.restore();
+}
+
+/** Paper-cut V marks along the path — Shard. */
+export function drawChevronTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { step = 2, alpha = 0.85 } = opts;
+    const r = ship.radius;
+
+    ctx.save();
+    ctx.strokeStyle = color.ink;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const baseAlpha = ctx.globalAlpha;
+
+    for (let i = trail.length - 1; i >= 0; i -= step) {
+        const p = trail[i];
+        const arm = r * (0.28 + 0.45 * p.opacity);
+        const width = r * (0.06 + 0.1 * p.opacity);
+
+        ctx.globalAlpha = baseAlpha * p.opacity * alpha;
+        ctx.lineWidth = width;
+        withHeading(ctx, p.x, toScreenY(p.y), p.angle ?? 0, (c) => {
+            // Open V pointing toward the hull (local -Y is forward).
+            c.beginPath();
+            c.moveTo(-arm * 0.7, arm * 0.55);
+            c.lineTo(0, -arm * 0.15);
+            c.lineTo(arm * 0.7, arm * 0.55);
+            c.stroke();
+        });
+    }
+
+    ctx.restore();
+}
+
+/** Hollow rings that bloom as they age — Halo. */
+export function drawRingTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { step = 3, alpha = 0.7 } = opts;
+    const r = ship.radius;
+
+    ctx.save();
+    ctx.strokeStyle = color.ink;
+    const baseAlpha = ctx.globalAlpha;
+
+    for (let i = trail.length - 1; i >= 0; i -= step) {
+        const p = trail[i];
+        const age = 1 - p.opacity;
+        const ringR = r * (0.22 + age * 1.15);
+        const width = r * (0.07 + 0.05 * p.opacity);
+
+        ctx.globalAlpha = baseAlpha * p.opacity * alpha * (0.45 + 0.55 * (1 - age));
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.arc(p.x, toScreenY(p.y), ringR, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+/** Single stroked centreline — Needle. */
+export function drawHairlineTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.9, widthScale = 1 } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    if (pts.length < 2) return;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = baseAlpha * alpha;
+    ctx.strokeStyle = color.ink;
+    ctx.lineWidth = Math.max(1, ship.radius * 0.09 * widthScale);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    traceSmooth(ctx, pts, true);
+    ctx.stroke();
+    ctx.restore();
+}
+
+/** Two parallel hairlines offset along the path normal — Echo. */
+export function drawTwinTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.8, sepScale = 0.55 } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    if (pts.length < 2) return;
+
+    const sep = ship.radius * sepScale;
+    const left = [];
+    const right = [];
+
+    for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        const angle = p.angle ?? 0;
+        // Perpendicular to travel (angle 0 = nose up → lateral is ±X).
+        const nx = Math.cos(angle);
+        const ny = Math.sin(angle);
+        const fade = 0.35 + 0.65 * p.opacity;
+        left.push({ x: p.x - nx * sep * fade, y: p.y - ny * sep * fade });
+        right.push({ x: p.x + nx * sep * fade, y: p.y + ny * sep * fade });
+    }
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = baseAlpha * alpha;
+    ctx.strokeStyle = color.ink;
+    ctx.lineWidth = Math.max(1, ship.radius * 0.1);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    traceSmooth(ctx, left, true);
+    ctx.stroke();
+    ctx.beginPath();
+    traceSmooth(ctx, right, true);
+    ctx.stroke();
 
     ctx.restore();
 }

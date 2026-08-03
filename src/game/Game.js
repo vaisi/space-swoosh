@@ -12,6 +12,7 @@
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height. Menu stamp is BUILD 23.
+// - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
 // - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is the
 //   default; straight ±52° lean (flatter/faster), any tap/key/swipe flips.
 
@@ -204,6 +205,7 @@ export class Game {
         this.journeyProgress = loadJourneyProgress();
         this.journeyLevel = nextPlayableLevel(this.journeyProgress);
         this.journeyMapScroll = 0;
+        this.shipPickerScroll = 0;
         this.journeyMapNeedsScroll = true;
         this.levelOutcome = null;
         this.runOutcome = null; // 'crashed' | 'completed' while on the end screen
@@ -1044,8 +1046,9 @@ export class Game {
         }
     }
 
-    // Ship picker sub-screen — top-aligned under the header (no vertical
-    // centring; that was leaving a large empty band above the cards).
+    // Ship picker — fixed-size cards in a 2-col grid. Longer rosters scroll
+    // inside the band between the blurb and the footnote (same gesture as the
+    // Journey map).
     renderOptionsShip() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -1059,13 +1062,13 @@ export class Game {
 
         const descPx = L.isMobile ? Math.min(unit * 1.3, 15) : unit * 1.2;
         const footnotePx = Math.max(9, unit * 0.9);
-        const gap = unit * 1.8;
+        const gap = unit * 1.5;
         const columns = 2;
         const rows = Math.ceil(SHIP_SKIN_LIST.length / columns);
         const tileW = Math.min(unit * 19, (L.width - gap) / columns);
+        // Keep cards readable; scroll when the roster outgrows the viewport.
+        const tileH = Math.min(unit * 16, L.isMobile ? unit * 15 : unit * 17);
 
-        // Start immediately under the header rule — header already says SHIP,
-        // so no second "VESSEL" label (that was stacking two dotted rules).
         let y = header.contentTop;
 
         ctx.save();
@@ -1078,21 +1081,38 @@ export class Game {
 
         y += descPx * 1.4 + L.block;
 
-        // The footnote is pinned to the bottom rule and the grid is centred in
-        // what's left, so a short roster doesn't leave a void under the cards.
         const footnoteY = L.bottom - footnotePx / 2;
-        const gridArea = footnoteY - footnotePx / 2 - L.block - y;
-        const tileH = Math.min(unit * 20, (gridArea - gap * (rows - 1)) / rows);
-        const gridH = tileH * rows + gap * (rows - 1);
-        const gridTop = y + Math.max(0, (gridArea - gridH) / 2);
+        const viewTop = y;
+        const viewBottom = footnoteY - footnotePx / 2 - L.block;
+        const viewportHeight = Math.max(0, viewBottom - viewTop);
+        const contentHeight = tileH * rows + gap * Math.max(0, rows - 1);
+        const maxScroll = Math.max(0, contentHeight - viewportHeight);
+        this.shipPickerScroll = Math.min(maxScroll, Math.max(0, this.shipPickerScroll));
+        this.optionsButtons.shipPickerMetrics = {
+            viewTop,
+            viewportHeight,
+            contentHeight,
+        };
 
         const rowW = tileW * columns + gap * (columns - 1);
         const startX = L.centerX - rowW / 2;
         const time = performance.now();
+        const scroll = this.shipPickerScroll;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(L.left, viewTop, L.width, viewportHeight);
+        ctx.clip();
 
         SHIP_SKIN_LIST.forEach((skin, i) => {
             const x = startX + (i % columns) * (tileW + gap);
-            const tileY = gridTop + Math.floor(i / columns) * (tileH + gap);
+            const tileY = viewTop - scroll + Math.floor(i / columns) * (tileH + gap);
+            // Skip draw for far off-screen cards; hit rects still needed only
+            // when visible so clicks don't land on scrolled-away tiles.
+            if (tileY + tileH < viewTop || tileY > viewBottom) {
+                this.optionsButtons.skins[skin.id] = null;
+                return;
+            }
             this.optionsButtons.skins[skin.id] = {
                 x, y: tileY, width: tileW, height: tileH, skinId: skin.id,
             };
@@ -1103,6 +1123,7 @@ export class Game {
                 { locked: !isSkinOwned(skin.id) }
             );
         });
+        ctx.restore();
 
         ctx.save();
         ctx.textAlign = 'center';
@@ -1111,10 +1132,17 @@ export class Game {
         ctx.fillStyle = color.ink30;
         const footnote = this.purchaseStatus
             ? this.purchaseStatus.toUpperCase()
-            : 'SAVED AUTOMATICALLY';
+            : (maxScroll > 0 ? 'SCROLL · SAVED AUTOMATICALLY' : 'SAVED AUTOMATICALLY');
         ctx.fillText(footnote, L.centerX, footnoteY);
         resetType(ctx);
         ctx.restore();
+    }
+
+    clampShipPickerScroll(value) {
+        const metrics = this.optionsButtons?.shipPickerMetrics;
+        if (!metrics) return 0;
+        const max = Math.max(0, metrics.contentHeight - metrics.viewportHeight);
+        return Math.min(max, Math.max(0, value));
     }
 
     // Sound sub-screen: one real switch (the same one the pause menu shows), so
@@ -2043,6 +2071,7 @@ export class Game {
                     return;
                 }
                 if (this.isClickInButton(x, y, this.optionsHubButtons.ship)) {
+                    this.shipPickerScroll = 0;
                     this.appScreen = 'optionsShip';
                     return;
                 }
@@ -2187,8 +2216,9 @@ export class Game {
         // Touch events
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            // A drag on the level map scrolled the list; it wasn't aiming at a tile.
-            if (this.appScreen === 'journeyMap' && this.touchDragged) {
+            // A drag on a scrollable list wasn't aiming at a tile/button.
+            if ((this.appScreen === 'journeyMap' || this.appScreen === 'optionsShip')
+                && this.touchDragged) {
                 this.touchDragged = false;
                 this.touchStart = null;
                 return;
@@ -2197,40 +2227,53 @@ export class Game {
             handleInteraction(touch.clientX, touch.clientY);
         });
 
-        this.setupJourneyMapScrolling();
+        this.setupListScrolling();
     }
 
-    // The level list is taller than the screen, so it scrolls: wheel on desktop,
-    // drag on touch. Only the map screen consumes either.
-    setupJourneyMapScrolling() {
+    // Tall lists (Journey map, ship picker) scroll with wheel / touch-drag.
+    setupListScrolling() {
         this.touchStart = null;
         this.touchDragged = false;
 
         this.canvas.addEventListener('wheel', (e) => {
-            if (this.appScreen !== 'journeyMap') return;
-            e.preventDefault();
-            this.journeyMapScroll = this.clampJourneyScroll(this.journeyMapScroll + e.deltaY);
+            if (this.appScreen === 'journeyMap') {
+                e.preventDefault();
+                this.journeyMapScroll = this.clampJourneyScroll(this.journeyMapScroll + e.deltaY);
+                return;
+            }
+            if (this.appScreen === 'optionsShip') {
+                e.preventDefault();
+                this.shipPickerScroll = this.clampShipPickerScroll(this.shipPickerScroll + e.deltaY);
+            }
         }, { passive: false });
 
         this.canvas.addEventListener('touchstart', (e) => {
-            if (this.appScreen !== 'journeyMap') return;
+            if (this.appScreen !== 'journeyMap' && this.appScreen !== 'optionsShip') return;
             const touch = e.touches[0];
             this.touchStart = {
                 y: touch.clientY,
                 x: touch.clientX,
-                scroll: this.journeyMapScroll,
+                scroll: this.appScreen === 'journeyMap'
+                    ? this.journeyMapScroll
+                    : this.shipPickerScroll,
             };
             this.touchDragged = false;
         }, { passive: true });
 
         this.canvas.addEventListener('touchmove', (e) => {
-            if (this.appScreen !== 'journeyMap' || !this.touchStart) return;
+            if (!this.touchStart) return;
+            if (this.appScreen !== 'journeyMap' && this.appScreen !== 'optionsShip') return;
             const touch = e.touches[0];
             const dy = touch.clientY - this.touchStart.y;
             const dx = touch.clientX - this.touchStart.x;
 
             if (Math.hypot(dx, dy) > 8) this.touchDragged = true;
-            this.journeyMapScroll = this.clampJourneyScroll(this.touchStart.scroll - dy);
+            const next = this.touchStart.scroll - dy;
+            if (this.appScreen === 'journeyMap') {
+                this.journeyMapScroll = this.clampJourneyScroll(next);
+            } else {
+                this.shipPickerScroll = this.clampShipPickerScroll(next);
+            }
         }, { passive: true });
     }
 
