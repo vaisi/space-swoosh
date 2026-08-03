@@ -191,14 +191,14 @@ Blue shield pickups give you a temporary shield. While it's up you can plow
 through asteroids (destroying them for points) instead of crashing. The shield
 pulses faster right before it runs out — pick your moment.
 
-## Flight style (try-out)
+## Flight style
 
 Under **Options → Controls** you can pick how the ship steers:
 
-- **Arc** — the classic swoosh turn (default).
-- **Zigzag** — the ship always flies straight at a flatter fixed angle, a bit
-  faster than Arc; **any tap** (or key / swipe) flips the other way. Walls
-  bounce you too. No arcs — just a clean zig-zag.
+- **Zigzag** (default) — the ship always flies straight at a flatter fixed
+  angle, a bit faster than Arc; **any tap** (or key / swipe) flips the other
+  way. Walls bounce you too. No arcs — just a clean zig-zag.
+- **Arc** — the classic swoosh turn.
 
 ## Tips
 

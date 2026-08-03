@@ -1,6 +1,8 @@
 // flightStyle.js
 // Arc (classic swoosh) vs Zigzag (straight ±angle, tap/swipe to switch).
 // Changes:
+// - Default is now Zigzag when no preference is saved. Existing `arc` /
+//   `zigzag` localStorage values are still respected.
 // - Created so Options → Controls can persist a try-out flight style without
 //   burying localStorage keys inside Game.js.
 
@@ -14,17 +16,18 @@ const STORAGE_KEY = 'spaceswoosh.flightStyle';
 export function loadFlightStyle() {
     try {
         const v = localStorage.getItem(STORAGE_KEY);
+        if (v === FLIGHT_STYLE.arc) return FLIGHT_STYLE.arc;
         if (v === FLIGHT_STYLE.zigzag) return FLIGHT_STYLE.zigzag;
     } catch {
         // ignore quota / private mode
     }
-    return FLIGHT_STYLE.arc;
+    return FLIGHT_STYLE.zigzag;
 }
 
 export function saveFlightStyle(style) {
-    const next = style === FLIGHT_STYLE.zigzag
-        ? FLIGHT_STYLE.zigzag
-        : FLIGHT_STYLE.arc;
+    const next = style === FLIGHT_STYLE.arc
+        ? FLIGHT_STYLE.arc
+        : FLIGHT_STYLE.zigzag;
     try {
         localStorage.setItem(STORAGE_KEY, next);
     } catch {

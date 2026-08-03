@@ -3,6 +3,7 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - Zigzag angle/speed tunables are the default flight style (see flightStyle.js).
 // - Snappier turns: shorter arcDuration; camera catch-up tightened so direction
 //   changes don't feel mushy under a lazy follower.
 // - Camera: slightly slower floor cruise than the ship + stronger catch-up so
@@ -38,7 +39,7 @@ export const GameConfig = {
         arcRadius: 0.2,
         // Wall-clock ms for a full arc. Shorter = punchier direction changes.
         arcDuration: 520,
-        // Zigzag try-out: degrees from straight up (higher = flatter lean).
+        // Zigzag (default flight): degrees from straight up (higher = flatter lean).
         zigzagAngleDeg: 52,
         // Along-path speed vs arc cruise (zigzag wants to feel quicker).
         zigzagSpeedScale: 1.45,

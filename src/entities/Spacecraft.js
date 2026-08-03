@@ -1,6 +1,8 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - updateTrail mutates opacities in place (no map/filter/slice per frame) to
+//   cut GC pressure on iOS WKWebView.
 // - Forward motion is one smooth step per frame via `game.tickScale`.
 // - Direction changes: reversing mid-arc uses a shorter redirect duration so
 //   turns don't feel stuck in the sine-arc apex dead zone. Bank eases faster.
@@ -342,13 +344,29 @@ export class Spacecraft {
     }
 
     updateTrail() {
+        const trail = this.trail;
+        const fade = 1 / 180;
+        const maxPoints = 80;
+
+        // Fade in place; drop dead heads without allocating a new array.
+        let write = 0;
+        for (let i = 0; i < trail.length; i++) {
+            const point = trail[i];
+            point.opacity -= fade;
+            if (point.opacity > 0) {
+                if (write !== i) trail[write] = point;
+                write++;
+            }
+        }
+        trail.length = write;
+
         const tail = this.tailPoint();
 
-        // Only add new trail point if we've moved enough since the last one
-        const lastPoint = this.trail[this.trail.length - 1];
+        // Only add a new sample if we've moved enough since the last one.
+        const lastPoint = trail[trail.length - 1];
         if (!lastPoint ||
             Math.hypot(tail.x - lastPoint.x, tail.y - lastPoint.y) > this.game.config.spacecraft.trailSpacing) {
-            this.trail.push({
+            trail.push({
                 x: tail.x,
                 y: tail.y,
                 opacity: 1.0,
@@ -357,14 +375,10 @@ export class Spacecraft {
             });
         }
 
-        // Update existing trail points
-        this.trail = this.trail
-            .map(point => ({
-                ...point,
-                opacity: point.opacity - (1 / 180)
-            }))
-            .filter(point => point.opacity > 0)
-            .slice(-80); // long enough that a hard turn isn't truncated early
+        // Cap length from the oldest end (hard turns stay long enough).
+        if (trail.length > maxPoints) {
+            trail.splice(0, trail.length - maxPoints);
+        }
     }
 
     render(ctx) {

@@ -2,15 +2,18 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Snappy pacing (web + native): one update per paint, `tickScale = dt * 120`.
+// - iOS native: cap update/render to ~60 Hz (skip rAF ticks under 16.5 ms) so
+//   ProMotion 120 Hz does not double Canvas2D fill-rate; tickScale still uses
+//   wall-clock dt so travel speed stays snappy. Opaque 2D context on native.
+// - Snappy pacing (web + Android): one update per paint, `tickScale = dt * 120`.
 //   Ship updates before camera. Camera is a catch-up follower (cruise + accelerate
 //   when the ship rides too high) so climb feels smooth, not spring-sluggish.
 //   KM from abs(Δcamera.y) * (100/60).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height. Menu stamp is BUILD 23.
-// - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is a
-//   straight ±52° lean (flatter/faster), any tap/key/swipe flips.
+// - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is the
+//   default; straight ±52° lean (flatter/faster), any tap/key/swipe flips.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -148,7 +151,10 @@ export class Game {
         console.log('Game initializing...'); // Debug log
         this.config = config;
         this.canvas = document.getElementById('gameCanvas');
-        this.ctx = this.canvas.getContext('2d');
+        // Opaque buffer on native: we always paint paper first; WKWebView skips
+        // alpha compositing. Web keeps the default (transparent) context.
+        const ctxOpts = Capacitor.isNativePlatform() ? { alpha: false } : undefined;
+        this.ctx = this.canvas.getContext('2d', ctxOpts);
         this.baseUnit = 0;
         this.score = 0;
         this.points = 0; // Points system: +1 per asteroid destroyed, +10 per collectible
@@ -184,6 +190,11 @@ export class Game {
         this.snappyHz = 120;
         this.tickScale = 1; // classic paint-ticks covered this frame
         this.dt = 1 / 60; // motion dt for obstacle `* dt` paths (= tick/60)
+        // iOS ProMotion can fire rAF at 120 Hz; Canvas2D can't keep up in
+        // WKWebView. Cap worked frames to ~60 Hz; Android/web stay unlocked.
+        this.iosPaintCap =
+            Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+        this.minFrameMs = 1000 / 60;
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
@@ -317,11 +328,19 @@ export class Game {
         // Only run the game loop if the tab is visible
         if (!document.hidden) {
             const currentTime = performance.now();
-            
+            const elapsedMs = currentTime - this.lastTime;
+
+            // iOS: skip sub-16.5 ms rAF ticks so we paint ~60 Hz on ProMotion.
+            // lastTime stays put so the next worked frame gets the full wall dt.
+            if (this.iosPaintCap && elapsedMs < this.minFrameMs) {
+                requestAnimationFrame(() => this.gameLoop());
+                return;
+            }
+
             if (!this.isPaused || this.appScreen !== 'playing') {
                 // One update per paint — smooth with the display. tickScale maps
                 // wall time onto the snappy ~120 Hz classic-tick reference.
-                const frameTime = Math.min((currentTime - this.lastTime) / 1000, 0.05);
+                const frameTime = Math.min(elapsedMs / 1000, 0.05);
                 this.lastTime = currentTime;
                 this.tickScale = frameTime * this.snappyHz;
                 this.dt = (1 / 60) * this.tickScale;
@@ -329,7 +348,7 @@ export class Game {
             } else {
                 this.lastTime = currentTime;
             }
-            
+
             this.render();
         }
         requestAnimationFrame(() => this.gameLoop());
@@ -1176,15 +1195,15 @@ export class Game {
 
         y += descPx * 1.6 + L.section;
 
-        this.optionsButtons.flightArc = this.drawBrandButton(
-            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Arc',
-            { primary: !zigzag, tag: zigzag ? '' : 'ON' }
+        this.optionsButtons.flightZigzag = this.drawBrandButton(
+            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Zigzag',
+            { primary: zigzag, tag: zigzag ? 'ON' : '' }
         );
         y += buttonHeight + L.block;
 
-        this.optionsButtons.flightZigzag = this.drawBrandButton(
-            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Zigzag',
-            { primary: zigzag, tag: zigzag ? 'ON' : 'TRY' }
+        this.optionsButtons.flightArc = this.drawBrandButton(
+            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Arc',
+            { primary: !zigzag, tag: zigzag ? '' : 'ON' }
         );
 
         ctx.save();

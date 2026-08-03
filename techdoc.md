@@ -3,8 +3,9 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **BUILD 23:** Zigzag flight try-out (`Options → Controls`) — straight ±52°
-> lean at 1.45× speed, any input flips; Arc remains default. KM from `abs(Δcamera.y)`.
+> **BUILD 23:** Zigzag is the default flight style (`Options → Controls`) —
+> straight ±52° lean at 1.45× speed, any input flips; Arc remains selectable.
+> iOS native caps paint to ~60 Hz for WKWebView fill-rate. KM from `abs(Δcamera.y)`.
 
 ## 1. Overview
 
@@ -398,11 +399,17 @@ with a linear gradient along the wake's chord for the length-wise fade.
 
 - `gameLoop()` runs on `requestAnimationFrame`, skips work when the tab is hidden,
   and freezes gameplay updates while paused **during** `playing`.
-- **One snappy pacing path for web and native.** Each paint: clamp `dt` ≤ 50 ms,
-  set `tickScale = dt * 120` and `dt_motion = tickScale / 60`, then one
-  `update()`. Ship/camera advance classic paint-tick units × `tickScale` so
-  travel-per-second matches BUILD 16 web @ ~120 Hz, smoothly locked to the
-  display (no 1/2/3-step stutter).
+- **Snappy pacing** uses wall-clock `tickScale = dt * 120` and
+  `dt_motion = tickScale / 60` on each worked frame (clamp `dt` ≤ 50 ms).
+  Ship/camera advance classic paint-tick units × `tickScale` so travel-per-second
+  matches BUILD 16 web @ ~120 Hz.
+- **iOS native paint cap:** ProMotion can fire rAF at 120 Hz; the loop skips
+  update/render when elapsed < ~16.5 ms so Canvas2D paints ~60 Hz in WKWebView
+  while `tickScale` still covers the full wall gap (speed unchanged). Android and
+  web stay one-update-per-paint.
+- Native creates the 2D context with `{ alpha: false }` (opaque paper every
+  frame). Trail/wake paths mutate or reuse scratch arrays — no per-frame
+  `map`/`filter`/`slice` on the ship wake.
 - KM is `abs(Δcamera.y) * (100/60)` so the HUD cannot desync from the world.
 - The world scrolls: entities store an absolute `y`; `camera.getRelativeY(y)`
   converts to on-screen Y for rendering and off-screen culling.
@@ -411,8 +418,9 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - Native caps canvas DPR at 2× (web at 3×) for WebView fill-rate; mobile layout
   stays full-bleed (not letterboxed). Menu stamp: `BUILD 23 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
-  Zigzag integrates a constant heading at `spacecraft.zigzagAngleDeg` from up
-  at `zigzagSpeedScale` × cruise; any steer input flips `zigzagSign`.
+  Default is **zigzag** when unset; saved preferences are respected. Zigzag
+  integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
+  `zigzagSpeedScale` × cruise; any steer input flips `zigzagSign`.
   Persisted in localStorage.
 
 ## 7. Scoring model

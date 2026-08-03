@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - wakePoints / ribbonPath reuse module-level scratch arrays so ribbon and
+//   wisp wakes do not allocate a mapped point list every paint (iOS GC).
 // - Wake alphas multiply into the caller's `globalAlpha` instead of overwriting
 //   it, so a world-wide fade (the level-clear flyout) takes the wake with it.
 // - Created file: `drawDotTrail` (moved from skins.js) plus three wakes that
@@ -16,35 +18,61 @@ import { withHeading } from './hulls.js';
 
 const INK_RGB = '26, 26, 26';
 
+// Reused across paints — wakePoints / ribbonPath never retain these past return.
+const wakeScratch = [];
+const ribbonLeft = [];
+const ribbonRight = [];
+
+function scratchPoint(i) {
+    let p = wakeScratch[i];
+    if (!p) {
+        p = { x: 0, y: 0, opacity: 0, angle: 0, seed: 0.5 };
+        wakeScratch[i] = p;
+    }
+    return p;
+}
+
 // Trail order is oldest -> newest. The live tail is appended so the wake stays
 // attached to the hull between samples (points are only recorded every
 // `trailSpacing` world units).
 function wakePoints(ship, trail, toScreenY) {
-    const pts = trail.map((p) => ({
-        x: p.x,
-        y: toScreenY(p.y),
-        opacity: p.opacity,
-        angle: p.angle ?? 0,
-        seed: p.seed ?? 0.5,
-    }));
+    const n = trail.length;
+    for (let i = 0; i < n; i++) {
+        const src = trail[i];
+        const p = scratchPoint(i);
+        p.x = src.x;
+        p.y = toScreenY(src.y);
+        p.opacity = src.opacity;
+        p.angle = src.angle ?? 0;
+        p.seed = src.seed ?? 0.5;
+    }
 
+    let count = n;
     const tail = ship.tailPoint?.();
     if (tail) {
-        const screen = { x: tail.x, y: toScreenY(tail.y) };
-        const last = pts[pts.length - 1];
+        const screenX = tail.x;
+        const screenY = toScreenY(tail.y);
+        const last = count > 0 ? wakeScratch[count - 1] : null;
         const angle = ship.tangent ?? 0;
         // Only extend the wake if the live tail really is ahead of the last
         // sample; otherwise the ribbon would double back on itself.
         const ahead = last
-            ? (screen.x - last.x) * Math.sin(angle) - (screen.y - last.y) * Math.cos(angle)
+            ? (screenX - last.x) * Math.sin(angle) - (screenY - last.y) * Math.cos(angle)
             : 1;
 
         if (ahead > 0.5) {
-            pts.push({ ...screen, opacity: 1, angle, seed: 0.5 });
+            const live = scratchPoint(count);
+            live.x = screenX;
+            live.y = screenY;
+            live.opacity = 1;
+            live.angle = angle;
+            live.seed = 0.5;
+            count++;
         }
     }
 
-    return pts;
+    wakeScratch.length = count;
+    return wakeScratch;
 }
 
 // Quadratic smoothing through the midpoints of a polyline, so a wake sampled
@@ -65,15 +93,22 @@ function traceSmooth(ctx, pts, startNewSubpath) {
     ctx.lineTo(last.x, last.y);
 }
 
+function edgePoint(bucket, i) {
+    let p = bucket[i];
+    if (!p) {
+        p = { x: 0, y: 0 };
+        bucket[i] = p;
+    }
+    return p;
+}
+
 // Offset the centreline by +/- half-width along the local normal, then walk up
 // one edge and back down the other to close the ribbon.
 function ribbonPath(ctx, pts, widthAt) {
-    const left = [];
-    const right = [];
-
-    for (let i = 0; i < pts.length; i++) {
+    const n = pts.length;
+    for (let i = 0; i < n; i++) {
         const prev = pts[Math.max(0, i - 1)];
-        const next = pts[Math.min(pts.length - 1, i + 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
         const dx = next.x - prev.x;
         const dy = next.y - prev.y;
         const len = Math.hypot(dx, dy) || 1;
@@ -81,13 +116,28 @@ function ribbonPath(ctx, pts, widthAt) {
         const ny = dx / len;
         const w = widthAt(i);
 
-        left.push({ x: pts[i].x + nx * w, y: pts[i].y + ny * w });
-        right.push({ x: pts[i].x - nx * w, y: pts[i].y - ny * w });
+        const L = edgePoint(ribbonLeft, i);
+        const R = edgePoint(ribbonRight, i);
+        L.x = pts[i].x + nx * w;
+        L.y = pts[i].y + ny * w;
+        R.x = pts[i].x - nx * w;
+        R.y = pts[i].y - ny * w;
     }
+    ribbonLeft.length = n;
+    ribbonRight.length = n;
 
     ctx.beginPath();
-    traceSmooth(ctx, left, true);
-    traceSmooth(ctx, right.reverse(), false);
+    traceSmooth(ctx, ribbonLeft, true);
+    // Walk the right edge newest → oldest without reverse()-allocating.
+    if (n) {
+        ctx.lineTo(ribbonRight[n - 1].x, ribbonRight[n - 1].y);
+        for (let i = n - 2; i > 0; i--) {
+            const mx = (ribbonRight[i].x + ribbonRight[i - 1].x) / 2;
+            const my = (ribbonRight[i].y + ribbonRight[i - 1].y) / 2;
+            ctx.quadraticCurveTo(ribbonRight[i].x, ribbonRight[i].y, mx, my);
+        }
+        if (n > 1) ctx.lineTo(ribbonRight[0].x, ribbonRight[0].y);
+    }
     ctx.closePath();
 }
 
