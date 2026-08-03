@@ -51,10 +51,43 @@ changes each visit — dry science-officer commentary. Crash and level-clear
 screens do the same with their own lines.
 
 - **Play** — choose Open World or Journey.
+- **Logbook** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, and Sound (see below).
 - **High Scores** — browse the leaderboard.
 
 After a run, **Menu** on the end screen brings you back here.
+
+## The Logbook
+
+The Logbook is a field manual that fills in as you fly **Journey** levels (Open
+World does not write to it). Open it from the main menu any time — even when it's
+still blank.
+
+Entries unlock in two steps:
+
+1. **Observe** — you see it on screen. The picture and name light up; the page
+   notes that interaction is still needed for a full reading.
+2. **Interact** — you touch it (smash with a shield, collect a pickup, get pulled
+   by a black hole, cross the finish gate, and so on). Then the definition unlocks.
+
+A few events unlock both at once — Space BOOP on a sidewall, a Style Swoosh
+through a tight gap, a Deflector Smash, and the clear-flight boost after a level.
+
+During a Journey run, a short **Logbook updated** notice appears at the top center
+when something new is catalogued.
+
+Categories:
+
+| Tab | What it holds |
+| --- | --- |
+| Obstacles | Asteroids, barriers, wormholes, black holes, Space BOOP, … |
+| Boosts | Shield, point sparkles, style swoosh, finish gate, clear boost, … |
+| Levels | One flight report per Journey level (story placeholders for now) |
+| From the Void | Reserved for future transmissions — empty for now |
+
+Entries are tall cards: the real obstacle silhouette on the left, name and notes
+on the right. Scroll the list. Locked cards show as **Unknown contact**. Round,
+triangular, and square simple asteroids each get their own entry.
 
 ## The Journey map
 

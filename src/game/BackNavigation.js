@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Logbook screen retreats to the main menu.
 // - Level-clear flyout swallows back (no skip) until the outcome screen is up.
 // - Created file: the back target for each screen used to exist only inside the
 //   click handlers in Game.js, spread across a dozen branches. Android's
@@ -16,6 +17,7 @@
 const PARENT_SCREEN = {
     modeSelect: 'menu',
     journeyMap: 'modeSelect',
+    logbook: 'menu',
     options: 'menu',
     optionsShip: 'options',
     optionsControls: 'options',

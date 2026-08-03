@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Journey Logbook hooks: observe on-screen obstacles; interact on smash /
+//   fatal hit / black-hole pull / wormhole teleport.
 // - Intro control hint matches flight style (zigzag: tap to flip; arc: bank
 //   left/right). Zigzag flips count toward the tutorial movement requirement.
 // - Tightened hitboxes to match drawn ink: ComplexAsteroid satellites use the
@@ -737,6 +739,7 @@ class BlackHoleObstacle extends BaseObstacle {
             if (this.isAdvanced) {
                 ship.y += (dy / distance) * force;
             }
+            this.game.logbook?.onBlackHolePull?.();
         }
     }
 
@@ -866,6 +869,7 @@ class WormholeGate extends BaseObstacle {
             spacecraft.wormholeTransit = true;
             spacecraft.isVisible = false;
             spacecraft.moveState = null;
+            this.game.logbook?.onWormholeTeleport?.();
 
             setTimeout(() => {
                 const ship = this.game.spacecraft;
@@ -1173,8 +1177,12 @@ export class ObstacleManager {
                         this.game.score += 10;
                         this.game.obstaclesDestroyed++; // Journey's smash-star counter
                     }
+                    this.game.logbook?.onObstacleInteract?.(obstacle);
+                    this.game.logbook?.onDeflectorSmash?.();
                     return false; // Remove the obstacle
                 } else {
+                    // Fatal contact still counts as interaction for the logbook.
+                    this.game.logbook?.onObstacleInteract?.(obstacle);
                     // If no shield, game over
                     this.game.gameOver();
                 }
@@ -1186,6 +1194,8 @@ export class ObstacleManager {
         this.obstacles = this.obstacles.filter(obstacle => 
             obstacle.y > this.game.camera.y - this.despawnAhead
         );
+
+        this.game.logbook?.scanObstaclesVisible?.();
 
         // Update destruction particles
         const dt = this.game.dt ?? (1 / 60);

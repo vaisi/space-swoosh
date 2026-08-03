@@ -5,6 +5,7 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
+// - Journey Logbook: Space Travel Boost unlocks when the boost phase begins.
 // - Flyout is no longer skippable — tap / key / back are swallowed until the
 //   outcome screen finishes fading in.
 // - Timings tightened ~30% after the slower pass felt a touch long; boost target
@@ -160,6 +161,11 @@ export class LevelClearSequence {
     enter(phase) {
         this.phase = phase;
         this.phaseStart = performance.now();
+
+        if (phase === 'boost') {
+            this.game.logbook?.onSpaceTravelBoost?.();
+            this.game.logbook?.flushToast?.();
+        }
 
         if (phase === 'screenIn') {
             this.game.obstacleManager.motionLines = [];

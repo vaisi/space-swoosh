@@ -2,6 +2,7 @@
 // Loads looping BGM + SFX from public/sounds/, and synthesizes short Web Audio
 // cues for sparkle pickups, style-swoosh near-misses, and sidewall wall-boops.
 // Changes:
+// - Added playLogbook(): soft stylus/page tick for Journey logbook updates.
 // - Added playBoop(): a soft low "space rubber" blip for screen-edge wall hits.
 // - Added a persisted mute switch (setMuted / toggleMuted / isMuted) driving both
 //   the <audio> elements and the synthesized cues, so the pause menu's Sound
@@ -421,6 +422,35 @@ export class SoundManager {
             }
         } catch (error) {
             console.error("Error in playCrash:", error);
+        }
+    }
+
+    // Soft stylus / page tick when the Journey logbook gains an entry.
+    playLogbook() {
+        if (!this.initialized || this.muted) return;
+
+        try {
+            const ctx = this.ensureAudioContext();
+            if (!ctx) return;
+
+            const now = ctx.currentTime;
+            const duration = 0.12;
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(440, now + 0.09);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.11, now + 0.008);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+        } catch (error) {
+            console.error('Error in playLogbook:', error);
         }
     }
 }

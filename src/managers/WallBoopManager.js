@@ -3,6 +3,7 @@
 // StyleSwooshManager's popup lifecycle, but sits below the hull beside the
 // wall (never overlapping ship or edge) — label only, no glow / blot.
 // Changes:
+// - Journey Logbook: instant unlock for Space BOOP on trigger.
 // - Dropped the blooming blot + kick dashes; BOOP is solid ink text only.
 // - Label X is padded by measured "BOOP" half-width so left/right walls never
 //   clip to "BOO|" / "|OOP".
@@ -64,6 +65,7 @@ export class WallBoopManager {
         });
 
         this.game.soundManager?.playBoop?.();
+        this.game.logbook?.onSpaceBoop?.();
     }
 
     update() {

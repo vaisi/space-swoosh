@@ -6,6 +6,7 @@
 > **BUILD 23:** Zigzag is the default flight style (`Options → Controls`) —
 > straight ±52° lean at 1.45× speed, any input flips; Arc remains selectable.
 > iOS native caps paint to ~60 Hz for WKWebView fill-rate. KM from `abs(Δcamera.y)`.
+> Journey Logbook: observe → interact discovery journal (Journey-only writes).
 
 ## 1. Overview
 
@@ -69,6 +70,11 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points. |
+| `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, level placeholders, From the Void stub. |
+| `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
+| `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
+| `managers/LogbookToastManager.js` | Top-center "Logbook updated" chip (~2s). |
+| `ui/screens/LogbookScreen.js` | Logbook menu: category tabs, tall scrollable cards (1/3 icon, 2/3 text). |
 | `ui/screens/ModeSelectScreen.js` | Play → Open World / Journey. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles. |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
@@ -84,7 +90,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup below the hull. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()`. |
+| `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playLogbook()`. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -98,9 +104,10 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, selected-skin preview, Play / Options / High Scores |
+| `menu` | Title, selected-skin preview, Play / Logbook / Options / High Scores |
 | `modeSelect` | Play → Open World or Journey (two description cards) |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
+| `logbook` | Discovery journal (categories + entries); Back → menu |
 | `options` | Options hub: Ship / Controls / Sound |
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
@@ -240,6 +247,25 @@ bestPoints } } }` under `journeyProgress`, guarded in try/catch like
 `ships/skins.js`. Stars are **cumulative** across attempts, so a later run can add
 the points star without repeating a no-hit run, and only clearing the frontier
 level advances `unlocked`. Journey never writes to Supabase.
+
+### Journey Logbook
+
+A science-journal discovery system. **Writes only during Journey runs**
+(`game.isJourney()`). Open World never updates it. Menu item is always available.
+
+| Piece | Role |
+| --- | --- |
+| `config/LogbookEntries.js` | Catalog + copy. Categories: Obstacles, Boosts, Levels (lorem ipsum placeholders), From the Void (stub). |
+| `services/LogbookProgress.js` | Key `logbookProgress`: `{ version, entries: { [id]: 'observed' \| 'known' } }`. |
+| `managers/LogbookManager.js` | `observe` / `interact` / `revealInstant`; same-frame toast debounce via `flushToast()`. |
+| `managers/LogbookToastManager.js` | Top-center chip, independent of MilestoneManager. |
+| `SoundManager.playLogbook()` | Soft stylus tick on update. |
+
+**State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`spaceBoop`, `styleSwoosh`, `deflectorSmash`, `spaceTravelBoost`) jump straight to `known`.
+
+**Hooks (Journey only):** on-screen obstacles/power-ups/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash / clear-boost phase → instant.
+
+**Future:** From the Void will hold beta-tester messages picked up around 11 km in endless Journey — category shell only for now.
 
 ### The level-clear flyout
 

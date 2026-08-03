@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Journey Logbook: main-menu entry, logbook screen, toast HUD, Journey-only
+//   discovery hooks via LogbookManager (observe / interact / instant).
 // - iOS native: cap update/render to ~60 Hz (skip rAF ticks under 16.5 ms) so
 //   ProMotion 120 Hz does not double Canvas2D fill-rate; tickScale still uses
 //   wall-clock dt so travel speed stays snappy. Opaque 2D context on native.
@@ -85,6 +87,8 @@ import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { CollectibleManager } from '../managers/CollectibleManager.js';
 import { StyleSwooshManager } from '../managers/StyleSwooshManager.js';
 import { WallBoopManager } from '../managers/WallBoopManager.js';
+import { LogbookManager } from '../managers/LogbookManager.js';
+import { LogbookToastManager } from '../managers/LogbookToastManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
 import { CallSignRejectedError, ScoreService } from '../services/ScoreService.js';
 import { track } from '../services/Analytics.js';
@@ -145,6 +149,11 @@ import {
     renderLevelOutcome,
     handleLevelOutcomeClick,
 } from '../ui/screens/LevelOutcomeScreen.js';
+import {
+    renderLogbook,
+    handleLogbookClick,
+    clampLogbookScroll,
+} from '../ui/screens/LogbookScreen.js';
 import { LevelClearSequence } from './LevelClearSequence.js';
 import { clamp01 } from '../utils/math.js';
 import { pickCopy, journeyFlavorPool } from '../brand/CopyBank.js';
@@ -170,7 +179,7 @@ export class Game {
         this.gameOverAlpha = 0;
         this.explosionParticles = [];
         this.gameOverScreen = 'main'; // nested: 'main' or 'highscores' while appScreen is gameover
-        // menu | modeSelect | journeyMap | options | optionsShip |
+        // menu | modeSelect | journeyMap | logbook | options | optionsShip |
         // optionsControls | optionsSound | highscores | playing | gameover
         this.appScreen = 'menu';
         this.menuFlavor = pickCopy('menu');
@@ -185,6 +194,10 @@ export class Game {
         this.modeSelectButtons = null;
         this.journeyMapButtons = null;
         this.levelOutcomeButtons = null;
+        this.logbookButtons = null;
+        this.logbookCategory = 'obstacles';
+        this.logbookScroll = 0;
+        this.frameCount = 0;
         // Short status line on Options → Ship / hub after a purchase or restore.
         this.purchaseStatus = null;
         this.purchaseBusy = false;
@@ -235,6 +248,9 @@ export class Game {
         this.wallBoopManager = new WallBoopManager(this);
         this.soundManager = new SoundManager();
         this.soundInitialized = false;
+        // Logbook persists across runs; discoveries only write in Journey.
+        this.logbook = new LogbookManager(this);
+        this.logbookToast = new LogbookToastManager(this);
         
         // Initialize sound on first user interaction
         const initSound = async () => {
@@ -373,7 +389,10 @@ export class Game {
             // A cleared level flies out instead of exploding, and the sequence
             // owns everything that moves — including the screen's fade-in.
             if (this.levelClear) {
+                this.frameCount++;
                 this.levelClear.update(deltaTime);
+                this.logbookToast?.update();
+                this.logbook?.flushToast?.();
                 return;
             }
 
@@ -389,6 +408,7 @@ export class Game {
         }
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
+            this.frameCount++;
             // Ship first so the catch-up camera reacts to this frame's lead.
             this.spacecraft.update();
             const prevCameraY = this.camera.y;
@@ -403,6 +423,9 @@ export class Game {
             this.collectibleManager.update();
             this.styleSwooshManager.update();
             this.wallBoopManager.update();
+            this.logbook?.scanFinishGateVisible?.();
+            this.logbookToast?.update();
+            this.logbook?.flushToast?.();
 
             if (this.profile.isRunComplete(this.score)) {
                 this.completeRun();
@@ -434,6 +457,10 @@ export class Game {
                 this.journeyMapNeedsScroll = false;
                 this.scrollJourneyMapToLevel();
             }
+            return;
+        }
+        if (this.appScreen === 'logbook') {
+            this.logbookButtons = renderLogbook(this);
             return;
         }
         if (this.appScreen === 'options') {
@@ -530,6 +557,7 @@ export class Game {
         this.ctx.save();
         this.ctx.globalAlpha *= hudAlpha;
         this.renderHud();
+        this.logbookToast?.render(this.ctx);
         this.ctx.restore();
     }
 
@@ -912,10 +940,13 @@ export class Game {
 
         this.drawScreenFrame();
 
-        const buttonWidth = Math.min(unit * 30, L.width);
-        const buttonHeight = L.isMobile ? unit * 6 : unit * 5.4;
-        const buttonGap = unit * 1.6;
-        const buttonsH = buttonHeight * 3 + buttonGap * 2;
+        const buttonWidth = Math.min(unit * 32, L.width);
+        const buttonHeight = L.isMobile ? unit * 6.6 : unit * 6;
+        const buttonGap = unit * 1.5;
+        const buttonsH = buttonHeight * 4 + buttonGap * 3;
+        const menuLabelPx = L.isMobile
+            ? Math.min(unit * 2.35, 26)
+            : Math.min(unit * 2.15, 24);
 
         const titlePx = L.isMobile ? Math.min(unit * 3.6, 42) : unit * 3.4;
         const taglinePx = L.isMobile ? Math.min(unit * 1.45, 16) : unit * 1.3;
@@ -980,15 +1011,27 @@ export class Game {
         this.menuButtons = {};
 
         this.menuButtons.play = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Play', { primary: true, tag: '\u25B6' }
+            bx, y, buttonWidth, buttonHeight, 'Play', {
+                primary: true, tag: '\u25B6', labelPx: menuLabelPx,
+            }
+        );
+        y += buttonHeight + buttonGap;
+        this.menuButtons.logbook = this.drawBrandButton(
+            bx, y, buttonWidth, buttonHeight, 'Logbook', {
+                tag: '\u25A1', labelPx: menuLabelPx,
+            }
         );
         y += buttonHeight + buttonGap;
         this.menuButtons.options = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Options', { tag: '\u2699' }
+            bx, y, buttonWidth, buttonHeight, 'Options', {
+                tag: '\u2699', labelPx: menuLabelPx,
+            }
         );
         y += buttonHeight + buttonGap;
         this.menuButtons.highScores = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'High Scores', { tag: '#' }
+            bx, y, buttonWidth, buttonHeight, 'High Scores', {
+                tag: '#', labelPx: menuLabelPx,
+            }
         );
     }
 
@@ -1446,6 +1489,8 @@ export class Game {
 
     beginJourneyLevel(level) {
         this.beginRun(PLAY_MODE.journey, level);
+        this.logbook?.onLevelStarted?.(this.journeyLevel);
+        this.logbook?.flushToast?.();
     }
 
     // Tear down whatever the run left behind and land on `nextScreen`.
@@ -1831,9 +1876,11 @@ export class Game {
         // Snapshot the result first: the flyout that follows must not be able to
         // change what the outcome screen reports. Lock the finish line here so
         // the ship can fly through a fixed mark rather than dragging it along.
+        this.logbook?.onFinishGateCrossed?.();
         this.finishJourneyLevel(true);
         this.finishLineWorldY = this.spacecraft.y;
         this.levelClear = new LevelClearSequence(this);
+        this.logbook?.flushToast?.();
     }
 
     // Score the finished level, fold it into the saved progress, and build what
@@ -1853,6 +1900,10 @@ export class Game {
             completed,
         });
         this.journeyProgress = result.progress;
+
+        if (completed) {
+            this.logbook?.onLevelCleared?.(descriptor.level);
+        }
 
         this.levelOutcome = {
             descriptor,
@@ -2093,9 +2144,19 @@ export class Game {
                 return;
             }
 
+            if (this.appScreen === 'logbook') {
+                handleLogbookClick(this, x, y);
+                return;
+            }
+
             if (this.appScreen === 'menu' && this.menuButtons) {
                 if (this.isClickInButton(x, y, this.menuButtons.play)) {
                     this.appScreen = 'modeSelect';
+                    this.updatePauseButtonVisibility();
+                } else if (this.isClickInButton(x, y, this.menuButtons.logbook)) {
+                    this.logbookCategory = 'obstacles';
+                    this.logbookScroll = 0;
+                    this.appScreen = 'logbook';
                     this.updatePauseButtonVisibility();
                 } else if (this.isClickInButton(x, y, this.menuButtons.options)) {
                     this.appScreen = 'options';
@@ -2266,7 +2327,9 @@ export class Game {
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             // A drag on a scrollable list wasn't aiming at a tile/button.
-            if ((this.appScreen === 'journeyMap' || this.appScreen === 'optionsShip')
+            if ((this.appScreen === 'journeyMap'
+                || this.appScreen === 'optionsShip'
+                || this.appScreen === 'logbook')
                 && this.touchDragged) {
                 this.touchDragged = false;
                 this.touchStart = null;
@@ -2279,7 +2342,7 @@ export class Game {
         this.setupListScrolling();
     }
 
-    // Tall lists (Journey map, ship picker) scroll with wheel / touch-drag.
+    // Tall lists (Journey map, ship picker, logbook) scroll with wheel / touch-drag.
     setupListScrolling() {
         this.touchStart = null;
         this.touchDragged = false;
@@ -2290,6 +2353,11 @@ export class Game {
                 this.journeyMapScroll = this.clampJourneyScroll(this.journeyMapScroll + e.deltaY);
                 return;
             }
+            if (this.appScreen === 'logbook') {
+                e.preventDefault();
+                this.logbookScroll = clampLogbookScroll(this, this.logbookScroll + e.deltaY);
+                return;
+            }
             if (this.appScreen === 'optionsShip') {
                 e.preventDefault();
                 this.shipPickerScroll = this.clampShipPickerScroll(this.shipPickerScroll + e.deltaY);
@@ -2297,21 +2365,28 @@ export class Game {
         }, { passive: false });
 
         this.canvas.addEventListener('touchstart', (e) => {
-            if (this.appScreen !== 'journeyMap' && this.appScreen !== 'optionsShip') return;
+            const scrollable = this.appScreen === 'journeyMap'
+                || this.appScreen === 'optionsShip'
+                || this.appScreen === 'logbook';
+            if (!scrollable) return;
             const touch = e.touches[0];
             this.touchStart = {
                 y: touch.clientY,
                 x: touch.clientX,
                 scroll: this.appScreen === 'journeyMap'
                     ? this.journeyMapScroll
-                    : this.shipPickerScroll,
+                    : this.appScreen === 'logbook'
+                        ? this.logbookScroll
+                        : this.shipPickerScroll,
             };
             this.touchDragged = false;
         }, { passive: true });
 
         this.canvas.addEventListener('touchmove', (e) => {
             if (!this.touchStart) return;
-            if (this.appScreen !== 'journeyMap' && this.appScreen !== 'optionsShip') return;
+            if (this.appScreen !== 'journeyMap'
+                && this.appScreen !== 'optionsShip'
+                && this.appScreen !== 'logbook') return;
             const touch = e.touches[0];
             const dy = touch.clientY - this.touchStart.y;
             const dx = touch.clientX - this.touchStart.x;
@@ -2320,6 +2395,8 @@ export class Game {
             const next = this.touchStart.scroll - dy;
             if (this.appScreen === 'journeyMap') {
                 this.journeyMapScroll = this.clampJourneyScroll(next);
+            } else if (this.appScreen === 'logbook') {
+                this.logbookScroll = clampLogbookScroll(this, next);
             } else {
                 this.shipPickerScroll = this.clampShipPickerScroll(next);
             }
@@ -2338,7 +2415,11 @@ export class Game {
     // Play Again keeps you in the mode you were in — in Journey that means the
     // same level, not the next one.
     restart() {
-        this.beginRun(this.playMode, this.journeyLevel);
+        if (this.playMode === PLAY_MODE.journey) {
+            this.beginJourneyLevel(this.journeyLevel);
+        } else {
+            this.beginRun(this.playMode, this.journeyLevel);
+        }
     }
 
     setupPauseButton() {

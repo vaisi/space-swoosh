@@ -3,6 +3,7 @@
 // gameplay, updates them, and awards points on pickup with a floating "+N"
 // popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
+// - Journey Logbook: observe on-screen sparkles; interact on collect.
 // - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
 // - The distance sparkles start appearing at now comes from `game.profile`, so a
 //   short Journey level isn't half over before the first one shows up.
@@ -53,6 +54,8 @@ export class CollectibleManager {
             return c.y > this.game.camera.y - this.game.height * 1.5;
         });
 
+        this.game.logbook?.scanCollectiblesVisible?.();
+
         // Float popups upward and fade them out.
         const dt = this.game.dt ?? (1 / 60);
         const tickScale = dt * 60;
@@ -68,6 +71,7 @@ export class CollectibleManager {
     collect(collectible) {
         this.game.points += this.game.config.points.perCollectible;
         this.game.soundManager?.playCollect?.();
+        this.game.logbook?.onSparkleCollected?.();
         this.popups.push({
             x: collectible.x,
             y: collectible.y,

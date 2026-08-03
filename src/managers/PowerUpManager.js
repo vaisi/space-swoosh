@@ -1,6 +1,7 @@
 // PowerUpManager.js
 // Spawns/updates the shield power-up.
 // Changes:
+// - Journey Logbook: observe on-screen shields; interact on collect.
 // - The distance shields start appearing at now comes from `game.profile`, so a
 //   short Journey level gets them proportionally early instead of waiting for
 //   the endless run's fixed 500 KM.
@@ -105,10 +106,13 @@ export class PowerUpManager {
                 // Play shield sound before activating shield
                 this.game.soundManager.playShield();
                 this.game.spacecraft.activateShield();
+                this.game.logbook?.onShieldCollected?.();
                 return false;
             }
             return powerUp.y > this.game.camera.y - this.game.height * 1.5;
         });
+
+        this.game.logbook?.scanPowerUpsVisible?.();
     }
 
     spawnPowerUp() {

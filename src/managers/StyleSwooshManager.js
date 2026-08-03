@@ -2,6 +2,7 @@
 // Awards "style" points when the ship threads a very narrow gap between two
 // obstacles (a near-miss swoosh past both), with Signal-Blue screen feedback.
 // Changes:
+// - Journey Logbook: instant unlock for Style Swoosh on award.
 // - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
 // - Popup alpha multiplies into the caller's `globalAlpha` instead of replacing
 //   it, so popups fade with the world during the level-clear flyout.
@@ -118,6 +119,7 @@ export class StyleSwooshManager {
         this.game.points += pts;
 
         this.game.soundManager?.playSwoosh?.();
+        this.game.logbook?.onStyleSwoosh?.();
 
         const midX = ship.x;
         const midY = ship.y;
