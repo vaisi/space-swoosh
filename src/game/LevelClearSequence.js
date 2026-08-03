@@ -5,6 +5,8 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
+// - Flyout keeps the ship's lean (zigzag sign / captured arc heading) instead of
+//   easing to centre — hyperspeed exit via cinematicFlight.
 // - Journey Logbook: Space Travel Boost unlocks when the boost phase begins.
 // - Flyout is no longer skippable — tap / key / back are swallowed until the
 //   outcome screen finishes fading in.
@@ -17,6 +19,11 @@
 //   render path and its `gameOverAlpha < 0.6` click guard keep working unchanged.
 
 import { clamp01, lerp } from '../utils/math.js';
+import {
+    captureArcHeading,
+    streamCinematicFlight,
+    REF_FPS,
+} from './cinematicFlight.js';
 
 // Wall-clock timings. Keep these the single source of "how the exit feels".
 const HOLD_MS = 315;        // shield snap + beat of recognition before the boost
@@ -29,9 +36,7 @@ const SCREEN_IN_MS = 420;
 // Scaled with the shorter window so the ship still clears the top in time.
 const BOOST_TARGET = 7.2;
 const CAMERA_BOOST = 1.25;  // the world streams a little faster, ship still pulls away
-const CENTRE_EASE_PER_SEC = 5.5; // autopilot pull toward mid-screen
 const EXIT_MARGIN = 2;      // ship radii past the top edge before it counts as gone
-const REF_FPS = 60;         // camera.velocity was captured as a per-frame value at ~60fps
 
 function easeOut(t) {
     return 1 - (1 - t) * (1 - t);
@@ -64,6 +69,9 @@ export class LevelClearSequence {
         ship.boost = 1;
         ship.activateShield(); // 5s of shield covers the whole flyout
 
+        // Arc exits keep the bank you had at the gate; zigzag keeps zigzagSign.
+        this.arcState = ship.isZigzag() ? null : captureArcHeading(ship);
+
         game.soundManager?.playShield?.();
         game.soundManager?.playSwoosh?.();
     }
@@ -93,9 +101,6 @@ export class LevelClearSequence {
 
         ship.boost = lerp(1, BOOST_TARGET, easeOut(clamp01(elapsed / RAMP_MS)));
         ship.moveState = null;
-        // Frame-rate independent ease toward centre.
-        const centreT = 1 - Math.exp(-CENTRE_EASE_PER_SEC * dt);
-        ship.x += (this.game.width / 2 - ship.x) * centreT;
 
         this.streamWorld(lerp(1, CAMERA_BOOST, clamp01(elapsed / RAMP_MS)), dt);
 
@@ -126,28 +131,22 @@ export class LevelClearSequence {
         if (this.game.gameOverAlpha >= 1) this.finish();
     }
 
-    // Keep the world moving under the flyout. Ship + camera are integrated with
-    // real dt so the exit length is the same on a 60 Hz laptop and a 144 Hz monitor.
+    // Keep the world moving under the flyout. Ship flies at its lean; camera is
+    // scrolled by hand so the hull can pull away and leave the top of the frame.
     streamWorld(cameraFactor, dt) {
         const { camera, spacecraft, obstacleManager, milestoneManager } = this.game;
 
-        // Same easing the ship uses in gameplay, expressed per-second.
-        const smooth = Math.pow(0.95, dt * REF_FPS);
-        const target = spacecraft.baseSpeed * spacecraft.boost;
-        spacecraft.verticalVelocity = spacecraft.verticalVelocity * smooth + target * (1 - smooth);
-        spacecraft.moveState = null;
-        const prevX = spacecraft.x;
-        const prevY = spacecraft.y;
-        spacecraft.y -= spacecraft.verticalVelocity * dt;
-        spacecraft.updateHeading(prevX, prevY);
-        spacecraft.updateTrail();
+        streamCinematicFlight(this.game, spacecraft, dt, {
+            arcState: this.arcState,
+            bounceSfx: false,
+        });
+
         // Keep the shield up for the whole cinematic — no warning pulse mid-exit.
         if (spacecraft.shieldActive) {
             spacecraft.shieldTimer = Math.max(spacecraft.shieldTimer, 2000);
             spacecraft.shieldPulse += dt * 6;
             spacecraft.shieldWarningStarted = false;
         }
-        spacecraft.updateHitCircles();
 
         camera.y += this.cameraSpeed * cameraFactor * dt;
         camera.totalDistance = Math.abs(camera.y);
@@ -169,6 +168,8 @@ export class LevelClearSequence {
 
         if (phase === 'screenIn') {
             this.game.obstacleManager.motionLines = [];
+            this.game.obstacleManager.motionLineAlpha = 0.3;
+            this.game.obstacleManager.motionLineBand = null;
         }
     }
 
@@ -180,5 +181,7 @@ export class LevelClearSequence {
         this.game.gameOverAlpha = 1;
         this.game.spacecraft.boost = 1;
         this.game.obstacleManager.motionLines = [];
+        this.game.obstacleManager.motionLineAlpha = 0.3;
+        this.game.obstacleManager.motionLineBand = null;
     }
 }

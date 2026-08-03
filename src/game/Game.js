@@ -2,6 +2,11 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
+//   (ink fill, paler rest) spaced under the figure; aligned with pause.
+//   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
+// - Run-start LevelIntroSequence (~1s fly-in + fade) for Journey and Open World;
+//   steering locked until it finishes; intro milestone deferred to handoff.
 // - Play mode-select blurbs pick once on enter from CopyBank modeJourney /
 //   modeOpenWorld pools via goToModeSelect().
 // - Journey Logbook: main-menu entry, logbook screen, toast HUD, Journey-only
@@ -157,6 +162,7 @@ import {
     clampLogbookScroll,
 } from '../ui/screens/LogbookScreen.js';
 import { LevelClearSequence } from './LevelClearSequence.js';
+import { LevelIntroSequence } from './LevelIntroSequence.js';
 import { clamp01 } from '../utils/math.js';
 import { pickCopy, journeyFlavorPool } from '../brand/CopyBank.js';
 import {
@@ -235,6 +241,14 @@ export class Game {
         this.levelOutcome = null;
         this.runOutcome = null; // 'crashed' | 'completed' while on the end screen
         this.levelClear = null; // the flyout cinematic, while it's running
+        this.levelIntro = null; // short run-start fly-in, while it's running
+        this.pendingIntroMessage = null; // shown when the intro hands off control
+        // Post-intro HUD reveal: 'title' | 'wait' | 'chips' | null (done).
+        this.hudRevealPhase = null;
+        this.hudRevealStart = null; // performance.now() when chip fades begin
+        this.hudRevealWaitStart = null;
+        this.hudPointsRevealStart = null; // first sparkle collect → fade POINTS in
+        this.hudDestroyedRevealStart = null; // first smash → fade DESTROYED in
         this.finishLineWorldY = null; // locked when a Journey goal is crossed
 
         this.setupCanvas();
@@ -413,6 +427,19 @@ export class Game {
 
         if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
             this.frameCount++;
+
+            // Run-start cinematic owns motion until it hands off control.
+            if (this.levelIntro?.active) {
+                this.levelIntro.update(deltaTime);
+                this.milestoneManager.update();
+                this.logbookToast?.update();
+                this.logbook?.flushToast?.();
+                // Keep pause suppressed every frame (no flash if something else
+                // touched the DOM button).
+                this.updatePauseButtonVisibility();
+                return;
+            }
+
             // Ship first so the catch-up camera reacts to this frame's lead.
             this.spacecraft.update();
             const prevCameraY = this.camera.y;
@@ -430,10 +457,39 @@ export class Game {
             this.logbook?.scanFinishGateVisible?.();
             this.logbookToast?.update();
             this.logbook?.flushToast?.();
+            this.advanceHudReveal();
 
             if (this.profile.isRunComplete(this.score)) {
                 this.completeRun();
             }
+        }
+    }
+
+    // Title alone → wait 1s after it clears → chip fades (pause last).
+    advanceHudReveal() {
+        if (!this.hudRevealPhase) return;
+
+        if (this.hudRevealPhase === 'title') {
+            if (!this.milestoneManager?.currentMessage) {
+                this.hudRevealPhase = 'wait';
+                this.hudRevealWaitStart = performance.now();
+            }
+            this.updatePauseButtonVisibility();
+            return;
+        }
+
+        if (this.hudRevealPhase === 'wait') {
+            if (performance.now() - (this.hudRevealWaitStart ?? 0) >= 1000) {
+                this.hudRevealPhase = 'chips';
+                this.hudRevealStart = performance.now();
+                this.obstacleManager.pauseSpawning = false;
+            }
+            this.updatePauseButtonVisibility();
+            return;
+        }
+
+        if (this.hudRevealPhase === 'chips') {
+            this.updatePauseButtonVisibility();
         }
     }
 
@@ -531,7 +587,14 @@ export class Game {
             return;
         }
 
-        this.renderWorld();
+        if (this.levelIntro?.active) {
+            this.ctx.save();
+            this.ctx.globalAlpha = this.levelIntro.worldAlpha;
+            this.renderWorld({ hudAlpha: this.levelIntro.hudAlpha });
+            this.ctx.restore();
+        } else {
+            this.renderWorld();
+        }
 
         if (this.isPaused) {
             this.renderPauseOverlay();
@@ -616,115 +679,209 @@ export class Game {
         ctx.restore();
     }
 
+    // Called when a sparkle is collected — unlocks the POINTS HUD row.
+    noteHudPointsFromCollect() {
+        if (this.levelIntro?.active) return;
+        if (this.hudRevealPhase === 'title' || this.hudRevealPhase === 'wait') return;
+        if (this.hudPointsRevealStart == null) {
+            this.hudPointsRevealStart = performance.now();
+        }
+    }
+
+    // Called on the first scored asteroid smash — unlocks the DESTROYED row.
+    noteHudDestroyedFromSmash() {
+        if (this.levelIntro?.active) return;
+        if (this.hudRevealPhase === 'title' || this.hudRevealPhase === 'wait') return;
+        if (this.hudDestroyedRevealStart == null) {
+            this.hudDestroyedRevealStart = performance.now();
+        }
+    }
+
+    // Staggered post-intro HUD fade (after the centre title has cleared).
+    // Timed: KM → pause. Points / Destroyed fade in only after first collect /
+    // smash. Title/wait keeps everything at 0.
+    hudRevealAlpha(slot) {
+        if (this.hudRevealPhase === 'title' || this.hudRevealPhase === 'wait') {
+            return 0;
+        }
+
+        const fade = 1000;
+        const ease = (t) => {
+            const c = clamp01(t);
+            return 1 - (1 - c) * (1 - c);
+        };
+        const now = performance.now();
+
+        if (slot === 'points') {
+            if (this.hudPointsRevealStart == null) return 0;
+            return ease((now - this.hudPointsRevealStart) / fade);
+        }
+        if (slot === 'destroyed') {
+            if (this.hudDestroyedRevealStart == null) return 0;
+            return ease((now - this.hudDestroyedRevealStart) / fade);
+        }
+
+        // Reveal finished — distance / pause stay fully on.
+        if (this.hudRevealPhase == null || this.hudRevealStart == null) {
+            return 1;
+        }
+
+        // Slot times: 0–1 reserved (old points/destroyed), then distance, pause.
+        const at = slot === 'distance' ? 2 * fade
+            : slot === 'pause' ? 3 * fade
+            : 0;
+        if (slot !== 'distance' && slot !== 'pause') {
+            return 1;
+        }
+
+        const elapsed = now - this.hudRevealStart;
+        const alpha = ease((elapsed - at) / fade);
+
+        const lastAt = 3 * fade;
+        if (elapsed >= lastAt + fade + 80) {
+            this.hudRevealPhase = null;
+            this.hudRevealStart = null;
+            this.hudRevealWaitStart = null;
+            return 1;
+        }
+        return alpha;
+    }
+
     // Gameplay HUD — Space Mono tabular numerals with small uppercase Space
-    // Grotesk unit/label chips, so the readout stays rock-steady as it ticks.
+    // Grotesk unit/label chips. Compact top-left block aligned with pause.
     renderHud() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const inset = unit * 2;
         const journey = !this.profile.isEndless;
 
-        // Distance readout.
-        const distStr = ScoreService.formatScore(this.score);
-        const numSize = unit * 2.2;
+        const pointsA = this.hudRevealAlpha('points');
+        const destroyedA = this.hudRevealAlpha('destroyed');
+        const distanceA = this.hudRevealAlpha('distance');
+
+        // Match the DOM pause control (top 16 / height 48) so left and right
+        // read as one header row.
+        const pauseTop = 16;
+        const pauseH = 48;
+        const numSize = unit * 1.9;
+        const distY = pauseTop + pauseH * 0.62;
+
         ctx.save();
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = color.ink;
 
-        // In Journey the run has a finish line, so the readout is led by the
-        // level and closed by a bar showing how much of it is left.
-        let distY = inset + numSize;
-        if (journey) {
-            const chipPx = Math.max(9, unit * 0.85);
-            setLabelType(ctx, chipPx);
-            ctx.fillStyle = color.ink55;
-            ctx.fillText(`LEVEL ${this.profile.level}`, inset, inset + chipPx);
-            resetType(ctx);
-            distY += chipPx * 1.9;
-        }
-
-        setMonoType(ctx, numSize);
-        ctx.fillStyle = color.ink;
-        ctx.fillText(distStr, inset, distY);
-        const distW = ctx.measureText(distStr).width;
-
-        // KM unit label — small uppercase Space Grotesk beside the figure.
-        const unitSize = Math.max(10, unit * 0.9);
-        setLabelType(ctx, unitSize);
-        ctx.fillStyle = color.ink55;
-        ctx.fillText('KM', inset + distW + unit * 0.7, distY);
-
         let goalBarH = 0;
-        if (journey) {
-            goalBarH = unit * 1.8;
-            this.drawGoalBar(inset, distY + unit * 0.9, Math.min(unit * 16, this.width - inset * 2));
+        if (distanceA > 0.01) {
+            ctx.save();
+            ctx.globalAlpha *= distanceA;
+
+            const curStr = ScoreService.formatScore(this.score);
+            const unitSize = Math.max(9, unit * 0.82);
+
+            if (journey) {
+                // Bold current + tight, small "/goal KM" so the line sits on
+                // the progress track instead of spilling past it.
+                const goalStr = ScoreService.formatScore(this.profile.goalScore);
+                setMonoType(ctx, numSize);
+                ctx.fillStyle = color.ink;
+                ctx.fillText(curStr, inset, distY);
+                let x = inset + ctx.measureText(curStr).width;
+
+                const goalPx = Math.max(8.5, numSize * 0.46);
+                setMonoType(ctx, goalPx, 400);
+                ctx.fillStyle = color.ink55;
+                const mid = `/${goalStr}`;
+                const midGap = unit * 0.12;
+                ctx.fillText(mid, x + midGap, distY);
+                x += midGap + ctx.measureText(mid).width;
+
+                setLabelType(ctx, Math.max(7.5, goalPx * 0.9));
+                ctx.fillStyle = color.ink55;
+                const kmGap = unit * 0.1;
+                ctx.fillText('KM', x + kmGap, distY);
+                x += kmGap + ctx.measureText('KM').width;
+
+                const barW = Math.min(
+                    Math.max(x - inset, unit * 8),
+                    this.width - inset * 2,
+                );
+                goalBarH = unit * 1.15;
+                this.drawGoalBar(inset, distY + unit * 0.8, barW);
+            } else {
+                setMonoType(ctx, numSize);
+                ctx.fillStyle = color.ink;
+                ctx.fillText(curStr, inset, distY);
+                const distW = ctx.measureText(curStr).width;
+                setLabelType(ctx, unitSize);
+                ctx.fillStyle = color.ink55;
+                ctx.fillText('KM', inset + distW + unit * 0.55, distY);
+            }
+
+            ctx.restore();
+        } else if (journey) {
+            goalBarH = unit * 1.15;
         }
 
         // Obstacles destroyed — in Journey, also the smash-star mission target.
-        const rowY = distY + goalBarH + unit * 1.9;
+        const rowY = distY + goalBarH + unit * 1.55;
         const lblSize = Math.max(9, unit * 0.8);
-        setLabelType(ctx, lblSize);
-        ctx.fillStyle = color.ink55;
-        ctx.fillText('DESTROYED', inset, rowY);
-        const lblW = ctx.measureText('DESTROYED').width;
+        if (destroyedA > 0.01) {
+            ctx.save();
+            ctx.globalAlpha *= destroyedA;
+            setLabelType(ctx, lblSize);
+            ctx.fillStyle = color.ink55;
+            ctx.fillText('DESTROYED', inset, rowY);
+            const lblW = ctx.measureText('DESTROYED').width;
 
-        setMonoType(ctx, unit * 1.35);
-        ctx.fillStyle = color.ink;
-        const destroyedStr = journey && this.profile.smashTarget
-            ? `${this.obstaclesDestroyed} / ${this.profile.smashTarget}`
-            : `${this.obstaclesDestroyed}`;
-        ctx.fillText(destroyedStr, inset + lblW + unit * 0.9, rowY);
+            setMonoType(ctx, unit * 1.35);
+            ctx.fillStyle = color.ink;
+            const destroyedStr = journey && this.profile.smashTarget
+                ? `${this.obstaclesDestroyed} / ${this.profile.smashTarget}`
+                : `${this.obstaclesDestroyed}`;
+            ctx.fillText(destroyedStr, inset + lblW + unit * 0.9, rowY);
+            ctx.restore();
+        }
 
         // Points — the reward metric. A small Signal-Blue sparkle marks the row,
         // then a POINTS label + mono figure (matching the DESTROYED row above).
         const ptsRowY = rowY + unit * 1.8;
-        const spR = unit * 0.55;
-        drawSparkle(ctx, inset + spR, ptsRowY - lblSize * 0.35, spR, { fill: color.signal });
+        if (pointsA > 0.01) {
+            ctx.save();
+            ctx.globalAlpha *= pointsA;
+            const spR = unit * 0.55;
+            drawSparkle(ctx, inset + spR, ptsRowY - lblSize * 0.35, spR, { fill: color.signal });
 
-        setLabelType(ctx, lblSize);
-        ctx.fillStyle = color.ink55;
-        const ptsLblX = inset + spR * 2 + unit * 0.7;
-        ctx.fillText('POINTS', ptsLblX, ptsRowY);
-        const ptsLblW = ctx.measureText('POINTS').width;
+            setLabelType(ctx, lblSize);
+            ctx.fillStyle = color.ink55;
+            const ptsLblX = inset + spR * 2 + unit * 0.7;
+            ctx.fillText('POINTS', ptsLblX, ptsRowY);
+            const ptsLblW = ctx.measureText('POINTS').width;
 
-        setMonoType(ctx, unit * 1.35);
-        ctx.fillStyle = color.ink;
-        ctx.fillText(`${this.points}`, ptsLblX + ptsLblW + unit * 0.9, ptsRowY);
+            setMonoType(ctx, unit * 1.35);
+            ctx.fillStyle = color.ink;
+            ctx.fillText(`${this.points}`, ptsLblX + ptsLblW + unit * 0.9, ptsRowY);
+            ctx.restore();
+        }
 
         resetType(ctx);
         ctx.restore();
     }
 
-    // Journey's goal bar: a hairline track with an ink fill, closed by the
-    // target distance. Flat geometry, same idiom as the dotted rules.
+    // Journey progress track: soft fill only — no stroke, no GOAL caption.
+    // Goal distance lives in the "current / goal KM" line above.
     drawGoalBar(x, y, width) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const height = unit * 0.5;
+        const height = unit * 0.32;
         const filled = width * this.profile.progress(this.score);
 
         ctx.save();
-        ctx.fillStyle = color.ink12;
+        // Pale rest of the track; done portion in full ink.
+        ctx.fillStyle = 'rgba(26, 26, 26, 0.06)';
         ctx.fillRect(x, y, width, height);
         ctx.fillStyle = color.ink;
-        ctx.fillRect(x, y, filled, height);
-
-        ctx.strokeStyle = color.ink30;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
-
-        const labelPx = Math.max(8.5, unit * 0.78);
-        setLabelType(ctx, labelPx);
-        ctx.fillStyle = color.ink55;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText(
-            `GOAL ${ScoreService.formatScore(this.profile.goalScore)}`,
-            x,
-            y + height + labelPx * 1.35
-        );
-        resetType(ctx);
+        ctx.fillRect(x, y, Math.max(0, filled), height);
         ctx.restore();
     }
 
@@ -1481,11 +1638,14 @@ export class Game {
         this.resetRunState();
         this.appScreen = 'playing';
         this.isPaused = false;
+
+        // Defer the milestone line until the intro hands off the controls.
+        this.pendingIntroMessage = this.profile.introMessage || null;
+        // Create intro BEFORE pause visibility — otherwise the button flashes on
+        // for a playing run with no levelIntro yet.
+        this.levelIntro = new LevelIntroSequence(this);
         this.updatePauseButtonVisibility();
 
-        if (this.profile.introMessage) {
-            this.milestoneManager.showMessage(this.profile.introMessage);
-        }
         if (this.soundInitialized) {
             this.soundManager.playBGM();
         }
@@ -1513,6 +1673,13 @@ export class Game {
         this.levelOutcome = null;
         this.levelOutcomeButtons = null;
         this.levelClear = null;
+        this.levelIntro = null;
+        this.pendingIntroMessage = null;
+        this.hudRevealPhase = null;
+        this.hudRevealStart = null;
+        this.hudRevealWaitStart = null;
+        this.hudPointsRevealStart = null;
+        this.hudDestroyedRevealStart = null;
         this.finishLineWorldY = null;
         this.appScreen = nextScreen;
         this.soundManager?.stopBGM?.();
@@ -1548,6 +1715,13 @@ export class Game {
         this.runOutcome = null;
         this.levelOutcome = null;
         this.levelClear = null;
+        this.levelIntro = null;
+        this.pendingIntroMessage = null;
+        this.hudRevealPhase = null;
+        this.hudRevealStart = null;
+        this.hudRevealWaitStart = null;
+        this.hudPointsRevealStart = null;
+        this.hudDestroyedRevealStart = null;
         this.finishLineWorldY = null;
         this.endFlavor = null;
         // Dropped with the outcome itself: otherwise the previous level's button
@@ -2450,7 +2624,7 @@ export class Game {
             padding: 0;
             color: var(--ss-ink, #1A1A1A);
             opacity: 0.85;
-            transition: transform var(--ss-dur-fast, 120ms) var(--ss-ease-standard, ease), opacity 0.3s, visibility 0.3s;
+            transition: transform var(--ss-dur-fast, 120ms) var(--ss-ease-standard, ease), opacity 1s ease;
             font-family: var(--ss-font-ui, system-ui, sans-serif);
             width: 48px;
             height: 48px;
@@ -2458,18 +2632,31 @@ export class Game {
             align-items: center;
             justify-content: center;
             line-height: 1;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
         `;
-        
-        button.addEventListener('mouseover', () => { button.style.opacity = '1'; button.style.transform = 'translateY(-2px)'; });
-        button.addEventListener('mouseout', () => { button.style.opacity = '0.85'; button.style.transform = 'translateY(0)'; });
+
+        button.addEventListener('mouseover', () => {
+            if (button.style.visibility === 'hidden') return;
+            button.style.opacity = '1';
+            button.style.transform = 'translateY(-2px)';
+        });
+        button.addEventListener('mouseout', () => {
+            if (button.style.visibility === 'hidden') return;
+            // Match the in-run rest opacity used by updatePauseButtonVisibility.
+            button.style.opacity = '0.8';
+            button.style.transform = 'translateY(0)';
+        });
         button.addEventListener('click', () => this.togglePause());
-        
+
         this.canvas.parentElement.appendChild(button);
         this.pauseButton = button;
 
         // Escape always toggles pause. Space: Zigzag flips direction (same as
         // tap); Arc still pauses. While paused, Space resumes. Keys are ignored
-        // for the whole level-clear flyout (it is not skippable).
+        // for the whole level-clear flyout (it is not skippable). Run-start intro
+        // locks steering (and Space zigzag) but still allows Escape to pause.
         window.addEventListener('keydown', (e) => {
             if (this.levelClear?.active) {
                 e.preventDefault();
@@ -2480,6 +2667,10 @@ export class Game {
             if (e.code === 'Escape') {
                 e.preventDefault();
                 this.togglePause();
+                return;
+            }
+            if (this.levelIntro?.active) {
+                if (e.code === 'Space') e.preventDefault();
                 return;
             }
             if (e.code === 'Space') {
@@ -2499,15 +2690,32 @@ export class Game {
     }
 
     // Pause control only during an active run — and not while the pause menu is
-    // up, since that screen carries its own Resume control.
+    // up, since that screen carries its own Resume control. Hidden through the
+    // ship intro + title beat; fades in last during the HUD reveal.
     updatePauseButtonVisibility() {
         if (this.pauseButton) {
-            if (this.appScreen === 'playing' && !this.isGameOver && !this.isPaused) {
-                this.pauseButton.style.visibility = 'visible';
-                this.pauseButton.style.opacity = '0.8';
-            } else {
+            const playing = this.appScreen === 'playing'
+                && !this.isGameOver
+                && !this.isPaused;
+            const suppress = !playing
+                || this.levelIntro?.active
+                || this.hudRevealPhase === 'title'
+                || this.hudRevealPhase === 'wait';
+
+            if (suppress) {
+                // Drop transitions so visibility:hidden isn't delayed 300ms —
+                // that delay was letting the button linger into the title beat.
+                this.pauseButton.style.transition = 'none';
                 this.pauseButton.style.visibility = 'hidden';
                 this.pauseButton.style.opacity = '0';
+                this.pauseButton.style.pointerEvents = 'none';
+            } else {
+                const a = this.hudRevealAlpha('pause');
+                this.pauseButton.style.transition =
+                    'transform var(--ss-dur-fast, 120ms) var(--ss-ease-standard, ease), opacity 1s ease';
+                this.pauseButton.style.visibility = a > 0.01 ? 'visible' : 'hidden';
+                this.pauseButton.style.opacity = String(0.8 * a);
+                this.pauseButton.style.pointerEvents = a > 0.01 ? 'auto' : 'none';
             }
         }
 

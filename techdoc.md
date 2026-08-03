@@ -78,7 +78,9 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | `ui/screens/ModeSelectScreen.js` | Play → Open World / Journey. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles. |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
-| `game/LevelClearSequence.js` | The level-clear flyout: boost off the top, fade the world, fade the screen in. |
+| `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost off the top, fade world, fade screen in. |
+| `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
+| `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield; render delegates to active skin. |
@@ -259,7 +261,7 @@ A science-journal discovery system. **Writes only during Journey runs**
 | `services/LogbookProgress.js` | Key `logbookProgress`: `{ version, entries: { [id]: 'observed' \| 'known' } }`. |
 | `managers/LogbookManager.js` | `observe` / `interact` / `revealInstant`; same-frame toast debounce via `flushToast()`. |
 | `managers/LogbookToastManager.js` | Top-center chip, independent of MilestoneManager. |
-| `SoundManager.playLogbook()` | Soft stylus tick on update. |
+| `SoundManager.playLogbook()` | Soft Enterprise-style bridge chirp (two quiet filtered sines) on update. |
 
 **State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`spaceBoop`, `styleSwoosh`, `deflectorSmash`, `spaceTravelBoost`) jump straight to `known`.
 
@@ -267,17 +269,47 @@ A science-journal discovery system. **Writes only during Journey runs**
 
 **Future:** From the Void will hold beta-tester messages picked up around 11 km in endless Journey — category shell only for now.
 
-### The level-clear flyout
+### The run-start intro
 
-Crossing the goal used to freeze the ship and hold the world for 550ms, which read
-as a stall. `game/LevelClearSequence.js` replaces that beat with three phases,
-driven from the `gameover` branches of `Game.update()` / `Game.render()` while
-`game.levelClear` exists:
+Every run (Journey and Open World) opens with `game/LevelIntroSequence.js`, built
+from `Game.beginRun()` after `resetRunState()`. ~1s, not skippable, steering
+locked. Calm centre-lane roll — the angled hyperspeed language stays on the
+**exit** flyout only:
 
 | Phase | What happens | Ends when |
 | --- | --- | --- |
-| `hold` | Shield on, world keeps drifting at run pace — a beat to register the clear | 315ms |
-| `boost` | `moveState` cleared, `x` eased to centre, `Spacecraft.boost` ramped to 7.2, speed streaks on. Motion is integrated with real `deltaTime` so refresh rate doesn't change the feel | Off-screen *and* at least 1260ms, or a 2240ms safety cap |
+| `arrive` (720ms) | Ship starts below the frame at centre; gentle boost 1.35→1.08; camera seats Y into cruise; `worldAlpha` 0→1; top-band star shower (~38% of frame, 18 lines); spawning paused; score frozen | 720ms |
+| `settle` (280ms) | Boost → 1; `hudAlpha` 0→1; shower keeps easing out | 280ms |
+
+Shower fade is time-based over the whole intro (short hold, then ease-out): drives
+`motionLineAlpha`, pool size, and scroll speed. Lines wrap inside the top band via
+`ObstacleManager.motionLineBand`. On `finish()` camera velocity is reseeded,
+spawning resumes, deferred `pendingIntroMessage` shows, streaks clear, and
+After the ship intro, `hudRevealPhase` runs a calm onboarding beat (controls
+live; pause button and spawning stay off until chips):
+
+| Phase | What happens |
+| --- | --- |
+| `title` | Centre milestone title alone (fade in, short hold, **~3s fade out**). No HUD, no pause. |
+| `wait` | 1s empty beat after the title clears |
+| `chips` | Timed 1s fades: KM → **pause last**. Points / Destroyed stay dark until first sparkle collect / first smash, then each fades in ~1s. Journey distance reads `current / goal KM` with a borderless progress track (no LEVEL chip). |
+
+Open World with no intro line skips straight to `wait`. Spawning resumes when
+`chips` starts. `Game.hudRevealAlpha(slot)` drives HUD + pause opacity. Input
+locked during the ship intro itself except Escape→pause.
+
+### The level-clear flyout
+
+Crossing the goal used to freeze the ship and hold the world for 550ms, which read
+as a stall. `game/LevelClearSequence.js` replaces that beat with four phases,
+driven from the `gameover` branches of `Game.update()` / `Game.render()` while
+`game.levelClear` exists. The ship keeps its lean (zigzag sign, or a captured arc
+heading) and hyperspeeds off at that angle — no centre ease:
+
+| Phase | What happens | Ends when |
+| --- | --- | --- |
+| `hold` | Shield on, world keeps drifting at run pace along current lean — a beat to register the clear | 315ms |
+| `boost` | `moveState` cleared, `Spacecraft.boost` ramped to 7.2 along the lean (silent wall bounces OK), speed streaks on. Motion via `cinematicFlight` + real `deltaTime` | Off-screen *and* at least 1260ms, or a 2240ms safety cap |
 | `fadeOut` | `worldAlpha` 1→0 over 385ms; `hudAlpha` goes 1.6× faster | The fade completes |
 | `screenIn` | Drives `game.gameOverAlpha` 0→1 over 420ms | Alpha reaches 1 |
 
@@ -292,7 +324,7 @@ Two things make it work:
   however fast the ship goes the camera follows and it never leaves its screen
   position. During `boost` / `fadeOut` the sequence stops calling `camera.update()`
   and advances `camera.y` by hand at the velocity captured on completion, eased to
-  1.45×. The world keeps streaming; the ship (14×) pulls away and exits.
+  1.25×. The world keeps streaming; the ship (boost × lean) pulls away and exits.
 - **The run is already scored.** `completeRun()` calls `finishJourneyLevel()`
   *before* constructing the sequence, and `ObstacleManager`'s shielded-collision
   branch checks `game.levelClear?.active`: particles yes, but `score` / `points` /

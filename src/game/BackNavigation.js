@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Run-start intro does not skip on back — pause/resume like a normal run.
 // - Journey map back uses goToModeSelect() so Play card blurbs re-roll.
 // - Logbook screen retreats to the main menu.
 // - Level-clear flyout swallows back (no skip) until the outcome screen is up.

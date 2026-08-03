@@ -33,6 +33,13 @@ Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up. **This is the mode with the leaderboard** — submit your distance from
 the mission-end screen and see where you land.
 
+Every run — Journey or Open World — opens with a short **intro**: the ship rolls
+up from the bottom into place while a light shower of stars at the top fades
+out. Then just the level title sits on screen and slowly fades away; a moment
+later distance and pause ease in. Points appear when you collect your first
+sparkle; destroyed appears when you smash your first asteroid. The ship intro
+itself can't be skipped.
+
 The levels are grouped into five chapters as you climb out of the atmosphere:
 **Troposphere → Stratosphere → Mesosphere → Thermosphere → Exosphere**. Each new
 step of the climb introduces one new hazard, and the level that introduces it
@@ -81,7 +88,8 @@ A few events unlock both at once — Space BOOP on a sidewall, a Style Swoosh
 through a tight gap, a Deflector Smash, and the clear-flight boost after a level.
 
 During a Journey run, a short **Logbook updated** notice appears at the top center
-when something new is catalogued.
+when something new is catalogued, with a soft bridge chirp — like a quiet console
+ping that a new message arrived.
 
 Categories:
 
@@ -114,10 +122,11 @@ As you near the end of a Journey level a finish line fades in ahead of you —
 a dotted rule with blue end ticks. Fly through it.
 
 Cross the goal and the game takes over. A shield snaps on, there's a short beat
-to take it in, then the ship straightens up and boosts off the top of the
-screen, the world fades out behind it, and the level screen fades in. Anything
-you plough through on the way out is scenery — your points and hits were locked
-in the moment you crossed the line. Sit tight for the flyout; it isn't skippable.
+to take it in, then the ship keeps the lean you had and hyperspeeds off the top
+of the screen at that angle, the world fades out behind it, and the level screen
+fades in. Anything you plough through on the way out is scenery — your points
+and hits were locked in the moment you crossed the line. Sit tight for the
+flyout; it isn't skippable.
 
 The level screen lists the three objectives, each with the number it was measured
 against: your distance against the goal, your points against the target, and
@@ -227,8 +236,8 @@ Top-left, you'll see:
 - **DESTROYED** — how many asteroids you've broken apart.
 - **★ POINTS** — your reward points (see below).
 
-In Journey the readout is led by **LEVEL n** and the KM figure gets a **goal
-bar** underneath, filling as you close on the level's target distance.
+In Journey the distance line shows **current / goal KM**, with a soft progress
+track underneath (no border) that fills as you close on the target.
 
 On phones the game fills the whole screen. Turn arcs and cruise speed are meant
 to feel the same as on a computer — if a build ever feels half-speed with KM

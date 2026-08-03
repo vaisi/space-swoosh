@@ -1,6 +1,8 @@
 // MilestoneManager.js
 // Shows the timed milestone log lines during flight.
 // Changes:
+// - showMessage() accepts optional fadeIn / hold / fadeOut timings so the
+//   run-start level title can linger and fade out over ~3s.
 // - Tutorial / log lines can embed `{space}` — rendered as a bold SPACE keycap
 //   so Zigzag's "tap or press Space" hint matches the real control.
 // - The message alpha multiplies into the caller's `globalAlpha` rather than
@@ -13,6 +15,10 @@ import { color, font } from '../brand/tokens.js';
 
 const SPACE_TOKEN = '{space}';
 
+const DEFAULT_FADE_IN = 500;
+const DEFAULT_HOLD = 2000;
+const DEFAULT_FADE_OUT = 500;
+
 export class MilestoneManager {
     constructor(game) {
         this.game = game;
@@ -20,35 +26,40 @@ export class MilestoneManager {
         this.currentMessage = null;
     }
 
-    showMessage(message) {
+    /**
+     * @param {string} message
+     * @param {{ fadeIn?: number, hold?: number, fadeOut?: number }} [timing]
+     */
+    showMessage(message, timing = {}) {
         console.log("Showing milestone message:", message);
         this.currentMessage = {
             text: message,
-            opacity: 1,
-            startTime: performance.now()
+            opacity: 0,
+            startTime: performance.now(),
+            fadeIn: timing.fadeIn ?? DEFAULT_FADE_IN,
+            hold: timing.hold ?? DEFAULT_HOLD,
+            fadeOut: timing.fadeOut ?? DEFAULT_FADE_OUT,
         };
     }
 
     update() {
-        if (this.currentMessage) {
-            const elapsed = performance.now() - this.currentMessage.startTime;
-            const duration = 3000; // 3 seconds display time
-            
-            if (elapsed < duration) {
-                // Fade in and out
-                if (elapsed < 500) {
-                    // First 0.5s: fade in
-                    this.currentMessage.opacity = elapsed / 500;
-                } else if (elapsed > duration - 500) {
-                    // Last 0.5s: fade out
-                    this.currentMessage.opacity = (duration - elapsed) / 500;
-                } else {
-                    // Middle: full opacity
-                    this.currentMessage.opacity = 1;
-                }
-            } else {
-                this.currentMessage = null;
-            }
+        if (!this.currentMessage) return;
+
+        const m = this.currentMessage;
+        const elapsed = performance.now() - m.startTime;
+        const fadeIn = m.fadeIn ?? DEFAULT_FADE_IN;
+        const hold = m.hold ?? DEFAULT_HOLD;
+        const fadeOut = m.fadeOut ?? DEFAULT_FADE_OUT;
+        const duration = fadeIn + hold + fadeOut;
+
+        if (elapsed < fadeIn) {
+            m.opacity = elapsed / fadeIn;
+        } else if (elapsed < fadeIn + hold) {
+            m.opacity = 1;
+        } else if (elapsed < duration) {
+            m.opacity = 1 - (elapsed - fadeIn - hold) / fadeOut;
+        } else {
+            this.currentMessage = null;
         }
     }
 
@@ -80,22 +91,25 @@ export class MilestoneManager {
         ctx.font = `700 ${fontSize * 0.72}px ${font.ui}`;
         const labelW = ctx.measureText(label).width;
         const keyW = labelW + padX * 2;
+        const left = x;
+        const top = y - keyH / 2;
 
-        ctx.save();
         ctx.fillStyle = color.ink;
-        ctx.strokeStyle = color.ink;
-        ctx.lineWidth = Math.max(1.5, fontSize * 0.08);
         ctx.beginPath();
-        ctx.rect(x, y - keyH / 2, keyW, keyH);
-        ctx.stroke();
+        const r = fontSize * 0.18;
+        ctx.moveTo(left + r, top);
+        ctx.arcTo(left + keyW, top, left + keyW, top + keyH, r);
+        ctx.arcTo(left + keyW, top + keyH, left, top + keyH, r);
+        ctx.arcTo(left, top + keyH, left, top, r);
+        ctx.arcTo(left, top, left + keyW, top, r);
+        ctx.closePath();
+        ctx.fill();
 
-        ctx.fillStyle = color.ink;
+        ctx.fillStyle = color.paper;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(label, x + keyW / 2, y + fontSize * 0.02);
-        ctx.restore();
-
-        return keyW;
+        ctx.fillText(label, left + keyW / 2, y + fontSize * 0.04);
+        return keyW + fontSize * 0.15;
     }
 
     drawRichText(ctx, text, cx, cy, fontSize) {

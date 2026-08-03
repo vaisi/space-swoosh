@@ -1,6 +1,9 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - First scored smash unlocks the DESTROYED HUD row (Game.noteHudDestroyedFromSmash).
+// - Motion-line streaks support count / speedFactor / motionLineAlpha / optional
+//   y-band wrap so the run-start intro can keep a top-of-frame shower that fades.
 // - Journey Logbook hooks: observe on-screen obstacles; interact on smash /
 //   fatal hit / black-hole pull / wormhole teleport.
 // - Intro control hint matches flight style (zigzag: tap to flip; arc: bank
@@ -1005,6 +1008,8 @@ export class ObstacleManager {
         this.cutsceneStartTime = 0;
         this.cutsceneDuration = 1500; // 1.5 seconds
         this.motionLines = []; // Add motion lines array
+        this.motionLineAlpha = 0.3;
+        this.motionLineBand = null; // optional { yMin, yMax } wrap for intros
         this.pauseSpawning = false;
         this.lastCinematicCrash = 0;
 
@@ -1176,6 +1181,7 @@ export class ObstacleManager {
                         // Keep the existing distance bonus + destroyed counter.
                         this.game.score += 10;
                         this.game.obstaclesDestroyed++; // Journey's smash-star counter
+                        this.game.noteHudDestroyedFromSmash?.();
                     }
                     this.game.logbook?.onObstacleInteract?.(obstacle);
                     this.game.logbook?.onDeflectorSmash?.();
@@ -1551,16 +1557,19 @@ export class ObstacleManager {
         this.obstacles.forEach(obstacle => obstacle.render(ctx));
 
         // Speed streaks — whoever put lines in the pool wants them drawn: the
-        // tutorial cutscene, or the level-clear flyout.
+        // tutorial cutscene, level-clear flyout, or run-start intro.
         if (this.motionLines.length > 0) {
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.lineWidth = 2;
-            this.motionLines.forEach(line => {
-                ctx.moveTo(line.x, line.y);
-                ctx.lineTo(line.x, line.y + line.length);
-            });
-            ctx.stroke();
+            const a = this.motionLineAlpha ?? 0.3;
+            if (a > 0.01) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(0, 0, 0, ${a})`;
+                ctx.lineWidth = 2;
+                this.motionLines.forEach(line => {
+                    ctx.moveTo(line.x, line.y);
+                    ctx.lineTo(line.x, line.y + line.length);
+                });
+                ctx.stroke();
+            }
         }
 
         // Render destruction particles and score popups
@@ -1619,24 +1628,41 @@ export class ObstacleManager {
         return true;
     }
 
-    createMotionLines() {
-        const lineCount = 20;
+    /**
+     * @param {number} [count=20]
+     * @param {{ yMin?: number, yMax?: number }} [band] optional vertical band
+     *   (e.g. top-of-frame shower for the run-start intro)
+     */
+    createMotionLines(count = 20, band = {}) {
+        const lineCount = Math.max(0, Math.floor(count));
+        const yMin = band.yMin ?? 0;
+        const yMax = band.yMax ?? this.game.height;
+        const span = Math.max(1, yMax - yMin);
         for (let i = 0; i < lineCount; i++) {
             this.motionLines.push({
                 x: Math.random() * this.game.width,
-                y: Math.random() * this.game.height,
+                y: yMin + Math.random() * span,
                 length: 20 + Math.random() * 30,
-                speed: 15 + Math.random() * 10
+                speed: 15 + Math.random() * 10,
             });
         }
+        if (this.motionLineAlpha == null) this.motionLineAlpha = 0.3;
+        // Remember band so updates can wrap inside it when set.
+        this.motionLineBand = (band.yMin != null || band.yMax != null)
+            ? { yMin, yMax }
+            : null;
     }
 
-    updateMotionLines() {
-        // Update existing lines
+    /** @param {number} [speedFactor=1] scales streak scroll with cinematic boost */
+    updateMotionLines(speedFactor = 1) {
+        const factor = Math.max(0, speedFactor);
+        const band = this.motionLineBand;
+        const wrapMax = band ? band.yMax : this.game.height;
+        const wrapMin = band ? band.yMin : 0;
         this.motionLines.forEach(line => {
-            line.y += line.speed;
-            if (line.y > this.game.height) {
-                line.y = -line.length;
+            line.y += line.speed * factor;
+            if (line.y > wrapMax) {
+                line.y = wrapMin - line.length;
                 line.x = Math.random() * this.game.width;
             }
         });

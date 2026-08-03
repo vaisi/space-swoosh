@@ -2,7 +2,8 @@
 // Loads looping BGM + SFX from public/sounds/, and synthesizes short Web Audio
 // cues for sparkle pickups, style-swoosh near-misses, and sidewall wall-boops.
 // Changes:
-// - Added playLogbook(): soft stylus/page tick for Journey logbook updates.
+// - Softened playLogbook() into a gentle Enterprise-style bridge chirp
+//   (two quiet sine tones) instead of a sharp triangle stylus tick.
 // - Added playBoop(): a soft low "space rubber" blip for screen-edge wall hits.
 // - Added a persisted mute switch (setMuted / toggleMuted / isMuted) driving both
 //   the <audio> elements and the synthesized cues, so the pause menu's Sound
@@ -425,7 +426,8 @@ export class SoundManager {
         }
     }
 
-    // Soft stylus / page tick when the Journey logbook gains an entry.
+    // Soft bridge chirp when the Journey logbook gains an entry —
+    // quiet sine pair, like a starship console receiving a new message.
     playLogbook() {
         if (!this.initialized || this.muted) return;
 
@@ -434,21 +436,36 @@ export class SoundManager {
             if (!ctx) return;
 
             const now = ctx.currentTime;
-            const duration = 0.12;
+            // Gentle ascending pair (E5 → B5), rounded and low in the mix.
+            const tones = [
+                { freq: 659, start: 0, peak: 0.045, length: 0.22 },
+                { freq: 988, start: 0.12, peak: 0.038, length: 0.28 },
+            ];
 
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(880, now);
-            osc.frequency.exponentialRampToValueAtTime(440, now + 0.09);
-            gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.exponentialRampToValueAtTime(0.11, now + 0.008);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            tones.forEach(({ freq, start, peak, length }) => {
+                const t0 = now + start;
+                const osc = ctx.createOscillator();
+                const filter = ctx.createBiquadFilter();
+                const gain = ctx.createGain();
 
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + duration);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, t0);
+
+                // Soft low-pass keeps the cue warm, not piercing.
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1800, t0);
+                filter.Q.value = 0.5;
+
+                gain.gain.setValueAtTime(0.0001, t0);
+                gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.0001, t0 + length);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(t0);
+                osc.stop(t0 + length + 0.02);
+            });
         } catch (error) {
             console.error('Error in playLogbook:', error);
         }

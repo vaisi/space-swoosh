@@ -1,6 +1,7 @@
 // InputHandler.js
 // Keyboard / touch steering. Only active during an in-progress run.
 // Changes:
+// - Steering locked while LevelIntroSequence is active (run-start cinematic).
 // - Zigzag on touch: swipe/drag is ignored — only a clean tap (or key) flips.
 //   Arc mode still uses swipe + half-screen tap.
 // - Gate all gameplay input on game.isPlaying() so menu / options / high
@@ -41,28 +42,30 @@ export class InputHandler {
         const canvas = this.game.canvas;
 
         canvas.addEventListener('touchstart', e => {
-            if (!this.game.isPlaying()) return;
+            if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchStart(e);
         }, { passive: false });
 
         canvas.addEventListener('touchmove', e => {
-            if (!this.game.isPlaying()) return;
+            if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchMove(e);
         }, { passive: false });
 
         canvas.addEventListener('touchend', e => {
-            if (!this.game.isPlaying()) return;
+            if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchEnd(e);
         }, { passive: false });
 
         canvas.addEventListener('touchcancel', e => {
-            if (!this.game.isPlaying()) return;
+            if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchEnd(e);
         }, { passive: false });
     }
 
     handleKeyDown(e) {
         if (!this.game.isPlaying()) return;
+        // Run-start intro owns the ship — no steering until it hands off.
+        if (this.game.levelIntro?.active) return;
 
         if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
             e.preventDefault();
@@ -145,6 +148,7 @@ export class InputHandler {
         this.touch = null;
 
         if (!t || !this.game.isPlaying()) return;
+        if (this.game.levelIntro?.active) return;
 
         // No swipe committed → tap.
         if (gesture.lastDir) return;
@@ -166,6 +170,7 @@ export class InputHandler {
 
     steer(direction) {
         if (!this.game.isPlaying() || !this.game.spacecraft) return;
+        if (this.game.levelIntro?.active) return;
         this.game.spacecraft.startMovement(direction);
     }
 

@@ -3,6 +3,7 @@
 // gameplay, updates them, and awards points on pickup with a floating "+N"
 // popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
+// - First sparkle collect unlocks the POINTS HUD row (Game.noteHudPointsFromCollect).
 // - Journey Logbook: observe on-screen sparkles; interact on collect.
 // - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
 // - The distance sparkles start appearing at now comes from `game.profile`, so a
@@ -70,6 +71,7 @@ export class CollectibleManager {
 
     collect(collectible) {
         this.game.points += this.game.config.points.perCollectible;
+        this.game.noteHudPointsFromCollect?.();
         this.game.soundManager?.playCollect?.();
         this.game.logbook?.onSparkleCollected?.();
         this.popups.push({
