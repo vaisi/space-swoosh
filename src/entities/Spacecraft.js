@@ -1,6 +1,8 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - Render stamps `ship._wallTrailMode` from the active skin so wakes can pile
+//   or spring on wall hits without a trails↔skins import cycle.
 // - Sidewall bounces (arc + zigzag) fire WallBoopManager + playBoop for every
 //   skin — ink "BOOP" popup below the hull beside the wall.
 // - Wall bounce sets `wallJelly` ({ t0, side }) so Square skins can squash like
@@ -412,6 +414,8 @@ export class Spacecraft {
         const time = performance.now();
 
         ctx.save();
+        // Trails read this so wake physics can stay mode-aware without importing skins.
+        this._wallTrailMode = skin.wallTrailMode ?? 'spring';
         skin.drawTrail(ctx, this, this.trail, (wy) => this.game.camera.getRelativeY(wy));
         skin.drawHull(ctx, this, screenY, time);
         ctx.restore();

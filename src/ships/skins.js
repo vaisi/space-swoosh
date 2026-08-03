@@ -90,6 +90,7 @@ export function drawSkinPreview(ctx, skinId, cx, cy, radius, time = performance.
         bank,
         tangent: bank,
         speed: radius * 0.12,
+        _wallTrailMode: skin.wallTrailMode ?? 'spring',
         tailPoint: () => ({
             x: cx - Math.sin(bank) * radius * 0.6,
             y: cy + Math.cos(bank) * radius * 0.6,

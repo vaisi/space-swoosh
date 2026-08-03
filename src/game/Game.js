@@ -12,7 +12,7 @@
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on web / 2 on native) and scales the context so all game math stays in
 //   CSS pixels via this.width / this.height. Menu stamp is BUILD 23.
-// - Options → Ship: after picking a vessel, a Play Endless button jumps straight
+// - Options → Ship: after picking a vessel, a "Play now" button jumps straight
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
 // - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is the
@@ -211,7 +211,7 @@ export class Game {
         this.journeyLevel = nextPlayableLevel(this.journeyProgress);
         this.journeyMapScroll = 0;
         this.shipPickerScroll = 0;
-        // Ship picker: reveal Play Endless after the player taps a vessel.
+        // Ship picker: reveal Play now after the player taps a vessel.
         this.shipPickerOfferPlay = false;
         this.journeyMapNeedsScroll = true;
         this.levelOutcome = null;
@@ -1058,7 +1058,7 @@ export class Game {
 
     // Ship picker — fixed-size cards in a 2-col grid. Longer rosters scroll
     // inside the band between the blurb and the footer. After the player taps a
-    // vessel, a Play Endless CTA jumps straight into Open World.
+    // vessel, a Play now CTA jumps straight into Open World.
     renderOptionsShip() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -1148,8 +1148,8 @@ export class Game {
                 btnY,
                 buttonWidth,
                 buttonHeight,
-                'Play Endless',
-                { primary: true, tag: 'OPEN WORLD' }
+                'Play now',
+                { primary: true }
             );
         } else {
             this.optionsButtons.quickPlay = null;

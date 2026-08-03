@@ -121,8 +121,13 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Square Ring** | Square hull; blooming rings (same wake idea as Halo). |
 
 The Square ships collide as the box you see. On a side-wall bounce they jelly —
-hard squish, then stretch, with a quick shake — and the wake squiggles with them
-for a beat (animation only; the hitbox does not squash).
+hard squish, then stretch, with a quick shake (animation only; the hitbox does
+not squash).
+
+Every ship’s wake also reacts to a wall hit: some **pile** into the wall and peel
+off (dots, stamps, ticks, rings, streaks…), others **spring** — a whip that
+travels down the trail (ribbons and thin lines). Same bounce clock, different
+feel per vessel.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
 to the wall, not on it) and a soft space-boop sound.
@@ -136,7 +141,7 @@ Needle's thin spine and Echo's open middle slip through gaps a full circle would
 catch. Sparkles and shields stay generous.
 
 Pick one under **Options → Ship**. Your choice is remembered. After you tap a
-ship, **Play Endless** appears so you can jump straight into Open World without
+ship, **Play now** appears so you can jump straight into Open World without
 backing out to the menu.
 
 ## Controls

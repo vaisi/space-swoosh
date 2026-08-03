@@ -400,7 +400,18 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 
 Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circles
 filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
-squish→extend→shake (vertex sizing + trail nudge); the hitbox does not deform.
+squish→extend→shake (vertex sizing); the hitbox does not deform.
+
+Every skin declares `wallTrailMode`: **`pile`** (dense / discrete wakes) or
+**`spring`** (ribbons / hairlines). On a sidewall bounce, `wallTrailDeform` in
+`hulls.js` shoves the wake at render time — pile crushes toward the wall and
+bunches near the hull; spring compresses then whips past with a phase delay
+down the trail. Discrete marks also squash via `sx`/`sy`.
+`Spacecraft.render` stamps `ship._wallTrailMode` from the active skin so
+`trails.js` never imports the roster.
+
+| pile | Focus, Pulse, Ember, Shard, Halo, Square Stamp / Tick / Ring |
+| spring | Flicker, Quill, Wisp, Needle, Echo, Square Trace |
 
 Shaped hulls share `makeHullRenderer(pathFn)` in `skinDefs.js` — halo, breathing
 pulse, bank rotation and inner highlight are identical, only the outline differs.
@@ -413,7 +424,8 @@ pulse, bank rotation and inner highlight are identical, only the outline differs
 ### Wake rendering
 
 `trails.js` works in screen space via the `toScreenY` mapper. `wakePoints()`
-appends the live `tailPoint()` to the recorded trail (guarded by an "is it
+and `denseTrailMarks()` apply `wallTrailDeform` (along = 0 oldest → 1 at hull).
+`wakePoints()` appends the live `tailPoint()` to the recorded trail (guarded by an "is it
 actually ahead?" dot product) so the wake never lags a sample behind the hull.
 `drawRibbonTrail` offsets that centreline along its normals by a width that
 tapers to nothing at the old end, walks up one edge and back down the other with

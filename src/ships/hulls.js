@@ -1,6 +1,8 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - `wallTrailDeform`: per-skin pile vs spring wake physics on wall bounce
+//   (dx/dy + mark sx/sy). `wallJellyTrailNudge` wraps it for simple X offsets.
 // - Wall-jelly: crisp squish → extend → shake (vertex deform, no soft halo
 //   scaling). Trail offsets via `wallJellyTrailNudge` for a physical squiggle.
 // - Added `squarePath` for the Square Stamp / Tick / Trace / Ring family.
@@ -135,19 +137,68 @@ export function wallJellyDeform(ship, time = performance.now()) {
     };
 }
 
+const ZERO_TRAIL_DEFORM = Object.freeze({ dx: 0, dy: 0, sx: 1, sy: 1 });
+
 /**
- * Lateral trail nudge during wall jelly (world X). `seed` 0..1 varies the phase
- * per mark so the wake squiggles instead of sliding as a rigid ribbon.
+ * Render-time wake shove while `ship.wallJelly` is live.
+ * @param {number} along 0 = oldest wake, 1 = at the hull
+ * @param {'pile'|'spring'} mode
+ * @returns {{ dx: number, dy: number, sx: number, sy: number }}
  */
-export function wallJellyTrailNudge(ship, time = performance.now(), seed = 0.5) {
-    const jelly = wallJellyDeform(ship, time);
-    if (!jelly) return 0;
-    const j = ship.wallJelly;
-    const t = (time - j.t0) / WALL_JELLY_MS;
-    const damp = Math.exp(-2.6 * t);
-    const wave = Math.sin(t * Math.PI * 5.5 + seed * Math.PI * 2);
+export function wallTrailDeform(ship, time = performance.now(), {
+    seed = 0.5,
+    along = 1,
+    mode = 'spring',
+} = {}) {
+    const j = ship?.wallJelly;
+    if (!j) return ZERO_TRAIL_DEFORM;
+    const elapsed = time - j.t0;
+    if (elapsed < 0 || elapsed >= WALL_JELLY_MS) return ZERO_TRAIL_DEFORM;
+
+    const t = elapsed / WALL_JELLY_MS;
+    const a = Math.max(0, Math.min(1, along));
+    const side = j.side < 0 ? -1 : 1;
     const r = ship.radius ?? 10;
-    return jelly.side * wave * damp * r * 0.55;
+    const seedPhase = seed * Math.PI * 2;
+
+    if (mode === 'pile') {
+        // Crush into the wall near the hull, bunch toward the ship, peel slowly.
+        const damp = Math.exp(-1.8 * t);
+        const crush = Math.cos(t * Math.PI * 1.6) * damp; // + at impact
+        const peel = Math.sin(t * Math.PI * 2.2 + seedPhase * 0.3) * Math.exp(-2.8 * t);
+        const near = a * a; // strongest at hull
+        const dx = side * r * (0.85 * crush * near + 0.22 * peel * a);
+        // World Y: ship climbs (−Y); bunch recent marks up toward the hull.
+        const dy = -r * 0.35 * crush * near;
+        const sx = Math.max(0.38, 1 - 0.55 * crush * near);
+        const sy = Math.min(1.7, 1 + 0.5 * crush * near);
+        return { dx, dy, sx, sy };
+    }
+
+    // Spring / whip: compress into wall, overshoot away; phase lags down the trail.
+    const delay = (1 - a) * 0.35;
+    const localT = Math.max(0, Math.min(1, t - delay));
+    const damp = Math.exp(-2.5 * localT);
+    const primary = Math.cos(localT * Math.PI * 2.8 + seedPhase * 0.15) * damp;
+    const whip = Math.sin(localT * Math.PI * 5.2 + seedPhase) * Math.exp(-3.2 * localT);
+    // primary +1 = into wall (same sign as side when side is the wall normal inward…):
+    // side −1 = left wall → into wall is negative X.
+    const intoWall = side; // displacement toward the wall face
+    const dx = intoWall * r * (0.62 * primary * (0.35 + 0.65 * a)
+        - 0.48 * whip * (0.25 + 0.75 * a));
+    const dy = r * 0.12 * whip * a;
+    const near = a * a;
+    const sx = Math.max(0.55, 1 - 0.28 * primary * near);
+    const sy = Math.min(1.4, 1 + 0.22 * primary * near);
+    return { dx, dy, sx, sy };
+}
+
+/**
+ * Lateral trail nudge during wall jelly (world X). Thin wrapper over
+ * `wallTrailDeform` for call sites that only need dx.
+ */
+export function wallJellyTrailNudge(ship, time = performance.now(), seed = 0.5, mode = 'spring') {
+    return wallTrailDeform(ship, time, { seed, along: 1, mode }).dx;
 }
 
 export function circlePath(ctx, cx, cy, r) {

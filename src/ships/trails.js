@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Wall-trail physics: every wake uses `wallTrailDeform` (pile vs spring from
+//   `ship._wallTrailMode`) with along-trail falloff; discrete marks also squash.
 // - Wall-jelly trail nudge: Square wakes squiggle in world X while the hull
 //   is bouncing, so the path feels physical without blurring the ink.
 // - Added stamp (Bloc) and tick (Mark) wakes — dense filled squares and short
@@ -22,7 +24,7 @@
 //   skins can paint a Signal-Blue wake without a second renderer.
 
 import { color } from '../brand/tokens.js';
-import { withHeading, wallJellyTrailNudge } from './hulls.js';
+import { withHeading, wallTrailDeform } from './hulls.js';
 
 const INK_RGB = '26, 26, 26';
 
@@ -31,10 +33,14 @@ const wakeScratch = [];
 const ribbonLeft = [];
 const ribbonRight = [];
 
+function trailMode(ship) {
+    return ship._wallTrailMode === 'pile' ? 'pile' : 'spring';
+}
+
 function scratchPoint(i) {
     let p = wakeScratch[i];
     if (!p) {
-        p = { x: 0, y: 0, opacity: 0, angle: 0, seed: 0.5 };
+        p = { x: 0, y: 0, opacity: 0, angle: 0, seed: 0.5, sx: 1, sy: 1 };
         wakeScratch[i] = p;
     }
     return p;
@@ -45,24 +51,30 @@ function scratchPoint(i) {
 // `trailSpacing` world units).
 function wakePoints(ship, trail, toScreenY) {
     const now = performance.now();
+    const mode = trailMode(ship);
     const n = trail.length;
+    const denom = Math.max(1, n - 1);
     for (let i = 0; i < n; i++) {
         const src = trail[i];
         const p = scratchPoint(i);
         const seed = src.seed ?? 0.5;
-        p.x = src.x + wallJellyTrailNudge(ship, now, seed);
-        p.y = toScreenY(src.y);
+        const along = n <= 1 ? 1 : i / denom;
+        const d = wallTrailDeform(ship, now, { seed, along, mode });
+        p.x = src.x + d.dx;
+        p.y = toScreenY(src.y + d.dy);
         p.opacity = src.opacity;
         p.angle = src.angle ?? 0;
         p.seed = seed;
+        p.sx = d.sx;
+        p.sy = d.sy;
     }
 
     let count = n;
     const tail = ship.tailPoint?.();
     if (tail) {
-        const nudge = wallJellyTrailNudge(ship, now, 0.5);
-        const screenX = tail.x + nudge;
-        const screenY = toScreenY(tail.y);
+        const d = wallTrailDeform(ship, now, { seed: 0.5, along: 1, mode });
+        const screenX = tail.x + d.dx;
+        const screenY = toScreenY(tail.y + d.dy);
         const last = count > 0 ? wakeScratch[count - 1] : null;
         const angle = ship.tangent ?? 0;
         // Only extend the wake if the live tail really is ahead of the last
@@ -78,6 +90,8 @@ function wakePoints(ship, trail, toScreenY) {
             live.opacity = 1;
             live.angle = angle;
             live.seed = 0.5;
+            live.sx = d.sx;
+            live.sy = d.sy;
             count++;
         }
     }
@@ -154,12 +168,33 @@ function ribbonPath(ctx, pts, widthAt) {
 
 export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const { rgb = INK_RGB } = opts;
+    const now = performance.now();
+    const mode = trailMode(ship);
+    const n = trail.length;
+    const denom = Math.max(1, n - 1);
     const dotScale = ship.game?.config?.spacecraft?.trailDotSize ?? 0.2;
-    const dotSize = ship.radius * dotScale;
+    const baseSize = ship.radius * dotScale;
 
-    for (const point of trail) {
+    for (let i = 0; i < n; i++) {
+        const point = trail[i];
+        const along = n <= 1 ? 1 : i / denom;
+        const d = wallTrailDeform(ship, now, {
+            seed: point.seed ?? 0.5,
+            along,
+            mode,
+        });
+        const rx = baseSize * d.sx;
+        const ry = baseSize * d.sy;
         ctx.beginPath();
-        ctx.arc(point.x, toScreenY(point.y), dotSize, 0, Math.PI * 2);
+        ctx.ellipse(
+            point.x + d.dx,
+            toScreenY(point.y + d.dy),
+            rx,
+            ry,
+            0,
+            0,
+            Math.PI * 2
+        );
         ctx.fillStyle = `rgba(${rgb}, ${point.opacity})`;
         ctx.fill();
     }
@@ -212,6 +247,10 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
 export function drawStreakTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const { step = 2, alpha = 0.75 } = opts;
     const r = ship.radius;
+    const now = performance.now();
+    const mode = trailMode(ship);
+    const n = trail.length;
+    const denom = Math.max(1, n - 1);
     // Faster ship, longer marks — the wake stretches out of the turns.
     const stretch = Math.min(1.7, 0.65 + (ship.speed ?? 0) / (r * 0.75));
 
@@ -219,13 +258,19 @@ export function drawStreakTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.fillStyle = color.ink;
     const baseAlpha = ctx.globalAlpha;
 
-    for (let i = trail.length - 1; i >= 0; i -= step) {
+    for (let i = n - 1; i >= 0; i -= step) {
         const p = trail[i];
-        const length = r * (0.3 + 0.8 * p.opacity) * stretch;
-        const width = r * (0.09 + 0.24 * p.opacity);
+        const along = n <= 1 ? 1 : i / denom;
+        const d = wallTrailDeform(ship, now, {
+            seed: p.seed ?? 0.5,
+            along,
+            mode,
+        });
+        const length = r * (0.3 + 0.8 * p.opacity) * stretch * d.sy;
+        const width = r * (0.09 + 0.24 * p.opacity) * d.sx;
 
         ctx.globalAlpha = baseAlpha * p.opacity * alpha;
-        withHeading(ctx, p.x, toScreenY(p.y), p.angle ?? 0, (c) => {
+        withHeading(ctx, p.x + d.dx, toScreenY(p.y + d.dy), p.angle ?? 0, (c) => {
             c.beginPath();
             c.ellipse(0, 0, width, length, 0, 0, Math.PI * 2);
             c.fill();
@@ -252,8 +297,18 @@ export function drawWispTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
     // Embers peel off the wake sideways as they age, using the point's stable
     // seed so they drift steadily instead of re-randomising every frame.
-    for (let i = trail.length - 1; i >= 0; i -= emberStep) {
+    const now = performance.now();
+    const mode = trailMode(ship);
+    const n = trail.length;
+    const denom = Math.max(1, n - 1);
+    for (let i = n - 1; i >= 0; i -= emberStep) {
         const p = trail[i];
+        const along = n <= 1 ? 1 : i / denom;
+        const d = wallTrailDeform(ship, now, {
+            seed: p.seed ?? 0.5,
+            along,
+            mode,
+        });
         const age = 1 - p.opacity;
         const angle = p.angle ?? 0;
         const drift = ((p.seed ?? 0.5) * 2 - 1) * r * 1.6 * age;
@@ -262,8 +317,8 @@ export function drawWispTrail(ctx, ship, trail, toScreenY, opts = {}) {
         ctx.globalAlpha = baseAlpha * p.opacity * 0.55;
         ctx.beginPath();
         ctx.arc(
-            p.x + Math.cos(angle) * drift,
-            toScreenY(p.y) + Math.sin(angle) * drift,
+            p.x + d.dx + Math.cos(angle) * drift,
+            toScreenY(p.y + d.dy) + Math.sin(angle) * drift,
             size,
             0,
             Math.PI * 2
@@ -277,29 +332,40 @@ export function drawWispTrail(ctx, ship, trail, toScreenY, opts = {}) {
 /** Build denser sample list: every trail point + midpoint between neighbors. */
 function denseTrailMarks(ship, trail, toScreenY) {
     const now = performance.now();
+    const mode = trailMode(ship);
     const marks = [];
-    for (let i = 0; i < trail.length; i++) {
+    const len = trail.length;
+    const denom = Math.max(1, len - 1);
+    for (let i = 0; i < len; i++) {
         const p = trail[i];
         const seed = p.seed ?? (i * 0.17) % 1;
+        const along = len <= 1 ? 1 : i / denom;
+        const d = wallTrailDeform(ship, now, { seed, along, mode });
         marks.push({
-            x: p.x + wallJellyTrailNudge(ship, now, seed),
-            y: toScreenY(p.y),
+            x: p.x + d.dx,
+            y: toScreenY(p.y + d.dy),
             opacity: p.opacity,
             angle: p.angle ?? 0,
             scale: 1,
+            sx: d.sx,
+            sy: d.sy,
         });
-        if (i < trail.length - 1) {
-            const n = trail[i + 1];
-            const midSeed = ((p.seed ?? seed) + (n.seed ?? seed)) * 0.5;
+        if (i < len - 1) {
+            const nxt = trail[i + 1];
+            const midSeed = ((p.seed ?? seed) + (nxt.seed ?? seed)) * 0.5;
+            const midAlong = (along + (i + 1) / denom) * 0.5;
+            const md = wallTrailDeform(ship, now, { seed: midSeed, along: midAlong, mode });
             marks.push({
-                x: (p.x + n.x) * 0.5 + wallJellyTrailNudge(ship, now, midSeed),
-                y: (toScreenY(p.y) + toScreenY(n.y)) * 0.5,
-                opacity: (p.opacity + n.opacity) * 0.5,
+                x: (p.x + nxt.x) * 0.5 + md.dx,
+                y: toScreenY((p.y + nxt.y) * 0.5 + md.dy),
+                opacity: (p.opacity + nxt.opacity) * 0.5,
                 angle: Math.atan2(
-                    Math.sin(p.angle ?? 0) + Math.sin(n.angle ?? 0),
-                    Math.cos(p.angle ?? 0) + Math.cos(n.angle ?? 0)
+                    Math.sin(p.angle ?? 0) + Math.sin(nxt.angle ?? 0),
+                    Math.cos(p.angle ?? 0) + Math.cos(nxt.angle ?? 0)
                 ),
                 scale: 0.82,
+                sx: md.sx,
+                sy: md.sy,
             });
         }
     }
@@ -320,7 +386,10 @@ export function drawChevronTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
     for (let i = marks.length - 1; i >= 0; i--) {
         const p = marks[i];
-        const arm = r * (0.22 + 0.38 * p.opacity) * p.scale;
+        const sx = p.sx ?? 1;
+        const sy = p.sy ?? 1;
+        const armX = r * (0.22 + 0.38 * p.opacity) * p.scale * sx;
+        const armY = r * (0.22 + 0.38 * p.opacity) * p.scale * sy;
         const width = r * (0.05 + 0.08 * p.opacity) * p.scale;
 
         ctx.globalAlpha = baseAlpha * p.opacity * alpha;
@@ -328,9 +397,9 @@ export function drawChevronTrail(ctx, ship, trail, toScreenY, opts = {}) {
         withHeading(ctx, p.x, p.y, p.angle, (c) => {
             // Open V pointing toward the hull (local -Y is forward).
             c.beginPath();
-            c.moveTo(-arm * 0.7, arm * 0.55);
-            c.lineTo(0, -arm * 0.15);
-            c.lineTo(arm * 0.7, arm * 0.55);
+            c.moveTo(-armX * 0.7, armY * 0.55);
+            c.lineTo(0, -armY * 0.15);
+            c.lineTo(armX * 0.7, armY * 0.55);
             c.stroke();
         });
     }
@@ -355,18 +424,20 @@ export function drawRingTrail(ctx, ship, trail, toScreenY, opts = {}) {
         const ringR = r * (0.16 + age * 0.95) * p.scale;
         const width = r * (0.055 + 0.04 * p.opacity) * p.scale;
         const fade = baseAlpha * p.opacity * alpha * (0.4 + 0.6 * (1 - age));
+        const sx = p.sx ?? 1;
+        const sy = p.sy ?? 1;
 
         ctx.globalAlpha = fade;
         ctx.lineWidth = width;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2);
+        ctx.ellipse(p.x, p.y, ringR * sx, ringR * sy, 0, 0, Math.PI * 2);
         ctx.stroke();
 
         // Fresh marks keep a soft filled bubble so the wake reads denser near the hull.
         if (p.opacity > 0.55) {
             ctx.globalAlpha = fade * 0.22;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, ringR * 0.45, 0, Math.PI * 2);
+            ctx.ellipse(p.x, p.y, ringR * 0.45 * sx, ringR * 0.45 * sy, 0, 0, Math.PI * 2);
             ctx.fill();
         }
     }
@@ -445,10 +516,12 @@ export function drawStampTrail(ctx, ship, trail, toScreenY, opts = {}) {
     for (let i = marks.length - 1; i >= 0; i--) {
         const p = marks[i];
         const half = r * (0.14 + 0.22 * p.opacity) * p.scale;
+        const hx = half * (p.sx ?? 1);
+        const hy = half * (p.sy ?? 1);
 
         ctx.globalAlpha = baseAlpha * p.opacity * alpha;
         withHeading(ctx, p.x, p.y, p.angle, (c) => {
-            c.fillRect(-half, -half, half * 2, half * 2);
+            c.fillRect(-hx, -hy, hx * 2, hy * 2);
         });
     }
 
@@ -468,8 +541,8 @@ export function drawTickTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
     for (let i = marks.length - 1; i >= 0; i--) {
         const p = marks[i];
-        const half = r * (0.22 + 0.4 * p.opacity) * p.scale;
-        const width = r * (0.055 + 0.07 * p.opacity) * p.scale;
+        const half = r * (0.22 + 0.4 * p.opacity) * p.scale * (p.sx ?? 1);
+        const width = r * (0.055 + 0.07 * p.opacity) * p.scale * (p.sy ?? 1);
 
         ctx.globalAlpha = baseAlpha * p.opacity * alpha;
         ctx.lineWidth = width;

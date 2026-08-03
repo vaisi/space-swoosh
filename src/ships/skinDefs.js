@@ -2,6 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Each skin declares `wallTrailMode` ('pile' | 'spring') so wall bounces shove
+//   the wake in a per-vessel way (dense wakes pile; ribbons/lines spring).
 // - Square hulls: no soft halo at all; hitbox is a 3×3 fill of the box.
 //   Wall jelly is visual-only (hitbox stays the rest pose).
 // - Square family (Stamp / Tick / Trace / Ring): same square hull, four wakes,
@@ -266,6 +268,7 @@ const focus = {
     name: 'Focus',
     blurb: 'Precise. Instrumental.',
     hitbox: CIRCLE_HITBOX,
+    wallTrailMode: 'pile',
 
     drawHull(ctx, ship, screenY) {
         drawCircleHull(ctx, ship, screenY);
@@ -281,6 +284,7 @@ const flicker = {
     name: 'Flicker',
     blurb: 'Organic. One flowing wake.',
     hitbox: TEAR_HITBOX,
+    wallTrailMode: 'spring',
 
     drawHull: drawTearHull,
 
@@ -294,6 +298,7 @@ const ember = {
     name: 'Ember',
     blurb: 'Restless. A wake of streaks.',
     hitbox: DART_HITBOX,
+    wallTrailMode: 'pile',
 
     drawHull: drawDartHull,
 
@@ -307,6 +312,7 @@ const wisp = {
     name: 'Wisp',
     blurb: 'Weightless. Sheds sparks.',
     hitbox: TEAR_HITBOX,
+    wallTrailMode: 'spring',
 
     drawHull: drawTearHull,
 
@@ -322,6 +328,7 @@ const pulse = {
     name: 'Pulse',
     blurb: 'Signal wake. Instrumental, lit.',
     hitbox: CIRCLE_HITBOX,
+    wallTrailMode: 'pile',
     productId: 'com.orbi.spaceswoosh.skin.pulse',
     entitlementId: 'skin_pulse',
 
@@ -340,6 +347,7 @@ const quill = {
     name: 'Quill',
     blurb: 'A fine blue line of travel.',
     hitbox: TEAR_HITBOX,
+    wallTrailMode: 'spring',
     productId: 'com.orbi.spaceswoosh.skin.quill',
     entitlementId: 'skin_quill',
 
@@ -360,6 +368,7 @@ const shard = {
     name: 'Shard',
     blurb: 'Faceted. A hard wake.',
     hitbox: SHARD_HITBOX,
+    wallTrailMode: 'pile',
 
     drawHull: drawShardHull,
 
@@ -373,6 +382,7 @@ const halo = {
     name: 'Halo',
     blurb: 'Orbital. Rings the path.',
     hitbox: HALO_HITBOX,
+    wallTrailMode: 'pile',
 
     drawHull: drawHaloHull,
 
@@ -386,6 +396,7 @@ const needle = {
     name: 'Needle',
     blurb: 'Linear. One thin thread.',
     hitbox: NEEDLE_HITBOX,
+    wallTrailMode: 'spring',
 
     drawHull: drawNeedleHull,
 
@@ -399,6 +410,7 @@ const echo = {
     name: 'Echo',
     blurb: 'Paired. Leaves a twin.',
     hitbox: CRESCENT_HITBOX,
+    wallTrailMode: 'spring',
 
     drawHull: drawCrescentHull,
 
@@ -413,6 +425,7 @@ const squareStamp = {
     name: 'Square Stamp',
     blurb: 'Square hull. Stamped tiles.',
     hitbox: SQUARE_HITBOX,
+    wallTrailMode: 'pile',
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawStampTrail(ctx, ship, trail, toScreenY);
@@ -424,6 +437,7 @@ const squareTick = {
     name: 'Square Tick',
     blurb: 'Square hull. Lateral ticks.',
     hitbox: SQUARE_HITBOX,
+    wallTrailMode: 'pile',
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawTickTrail(ctx, ship, trail, toScreenY);
@@ -435,6 +449,7 @@ const squareTrace = {
     name: 'Square Trace',
     blurb: 'Square hull. One thin line.',
     hitbox: SQUARE_HITBOX,
+    wallTrailMode: 'spring',
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawHairlineTrail(ctx, ship, trail, toScreenY);
@@ -446,6 +461,7 @@ const squareRing = {
     name: 'Square Ring',
     blurb: 'Square hull. Blooming rings.',
     hitbox: SQUARE_HITBOX,
+    wallTrailMode: 'pile',
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawRingTrail(ctx, ship, trail, toScreenY);
