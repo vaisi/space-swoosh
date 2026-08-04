@@ -239,9 +239,11 @@ Top-left, you'll see:
 In Journey the distance line shows **current / goal KM**, with a soft progress
 track underneath (no border) that fills as you close on the target.
 
-On phones the game fills the whole screen. Turn arcs and cruise speed are meant
-to feel the same as on a computer — if a build ever feels half-speed with KM
-racing ahead, that build is wrong; report the menu stamp (e.g. `BUILD 23 · WEB`).
+On a computer, the cream playfield sits centered on a dark ink page so you can
+see its edges. On phones the cream stage fills the safe area (ink may show in
+the notch / home-indicator strips). Turn arcs and cruise speed are meant to feel
+the same as on a computer — if a build ever feels half-speed with KM racing
+ahead, that build is wrong; report the menu stamp (e.g. `BUILD 23 · WEB`).
 
 **iPhone / iPad (Safari or Chrome):** the game targets a steadier ~60 frames per
 second and a slightly lighter retina resolution so motion stays cool and playable

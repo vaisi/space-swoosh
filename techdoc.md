@@ -556,8 +556,11 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
 - Canvas DPR: iOS (web + native) and all Capicitor ≤ 2×; Android/desktop web ≤ 3×.
-  Mobile layout stays full-bleed (not letterboxed). Menu stamp:
-  `BUILD 23 · NATIVE` / `WEB`.
+  **Page shell:** `html`/`body` are brand **ink** (`#1A1A1A`); only
+  `#gameContainer` / canvas are **paper** cream, so the playfield edges read on
+  desktop (centered, max-width 500px, 2:3). Mobile fills the safe area with the
+  cream stage; ink shows in notch / home-indicator insets. `theme-color` is ink.
+  Menu stamp: `BUILD 23 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
