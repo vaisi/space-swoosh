@@ -10,6 +10,10 @@
 > ≤1/30 s, DPR ≤ 2, opaque context, lighter wakes/VFX. Goal: playable steadiness
 > (“cool, not crap”), not Android-butter. Zigzag flips on touchstart; boop is
 > phone-audible. KM from `abs(Δcamera.y)`. Journey Logbook: observe → interact.
+>
+> **Supabase:** Open World leaderboard uses **vaisi's Project**
+> (`ptzaxgslzjefaxdkrvyr`). Table `public.high_scores` + RLS (SELECT/INSERT only
+> for anon). Schema in `supabase/migrations/`. No auth / no Journey cloud sync yet.
 
 ## 1. Overview
 
@@ -49,8 +53,27 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 ```
 
 Credentials live in `.env` (`VITE_SUPABASE_*`, `VITE_REVENUECAT_*`). See `.env.example`.
+For a working leaderboard locally, copy `.env.example` → `.env` and set the
+vaisi's Project URL + anon key (Project Settings → API). Restart Vite after
+changing env vars.
 
 Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md). Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
+
+### Open World leaderboard (Supabase)
+
+| Piece | Role |
+| --- | --- |
+| Project | vaisi's Project — ref `ptzaxgslzjefaxdkrvyr` |
+| Table | `public.high_scores` (`player_name`, `score` = KM, `obstacles_destroyed`, `created_at`) |
+| Client | `src/config/supabase.js` + `src/services/ScoreService.js` |
+| Access | Anonymous call signs (no Supabase Auth). `NameFilter` validates before insert. |
+| RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated` |
+| Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql` |
+| CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions + Codemagic env group |
+
+GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
+branch deploys. It does not replace putting the publishable URL/key into the
+game build env. Journey progress stays in `localStorage` only.
 
 ## 3. Directory map (`src/`)
 

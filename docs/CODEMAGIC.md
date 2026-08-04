@@ -1,7 +1,6 @@
 <!--
   docs/CODEMAGIC.md
-  Changes: Created — how to connect Codemagic and store signing secrets for
-  iOS TestFlight and Play internal builds.
+  Changes: VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
 -->
 
 # Codemagic setup
@@ -20,8 +19,8 @@ Team settings → Environment variables → group **spaceswoosh**. Mark secrets 
 
 | Variable | Notes |
 | --- | --- |
-| `VITE_SUPABASE_URL` | Same as local `.env` |
-| `VITE_SUPABASE_ANON_KEY` | Same as local `.env` |
+| `VITE_SUPABASE_URL` | vaisi's Project URL (same as local `.env`) |
+| `VITE_SUPABASE_ANON_KEY` | vaisi's Project anon / publishable key |
 | `VITE_REVENUECAT_IOS_KEY` | `appl_…` public key |
 | `VITE_REVENUECAT_ANDROID_KEY` | `goog_…` public key |
 | `NOTIFY_EMAIL` | Where build emails go |

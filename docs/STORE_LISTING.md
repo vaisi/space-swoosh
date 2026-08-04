@@ -65,8 +65,8 @@ Tip: after `npm run build:native`, run on the Pixel and take system screenshots;
 
 ## Submission order
 
-1. Run `supabase/rls.sql` in the Supabase SQL editor.
-2. Finish Codemagic secrets ([CODEMAGIC.md](./CODEMAGIC.md)).
+1. Confirm vaisi's Project has `high_scores` + RLS (migration already applied; see [STORE_COMPLIANCE.md](./STORE_COMPLIANCE.md)).
+2. Finish Codemagic secrets ([CODEMAGIC.md](./CODEMAGIC.md)) — use vaisi's Project `VITE_SUPABASE_*`.
 3. Create App Store Connect + Play app records; paste privacy/support URLs.
 4. Ship internal / TestFlight builds; smoke-test swipe, pause, restore purchases.
 5. Fill Data safety / App Privacy / age ratings ([STORE_COMPLIANCE.md](./STORE_COMPLIANCE.md)).

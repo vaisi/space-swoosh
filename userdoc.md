@@ -1,6 +1,9 @@
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
+>
+> Open World high scores are online (call sign + distance). Journey progress
+> stays on your device.
 
 ## The goal
 
@@ -30,8 +33,10 @@ with hazards and boosts to fill your field manual.
 
 The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
-turning up. **This is the mode with the leaderboard** — submit your distance from
-the mission-end screen and see where you land.
+turning up. **This is the mode with the leaderboard** — if your run makes the
+board, pick a short call sign on the mission-end screen and submit your
+distance. **High Scores** on the main menu shows the top runs (distance or
+obstacles smashed). No account required.
 
 Every run — Journey or Open World — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades

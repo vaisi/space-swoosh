@@ -1,8 +1,9 @@
 -- supabase/rls.sql
 -- Changes:
--- - Created: Row Level Security for high_scores. Run in the Supabase SQL editor
---   before / as part of the store launch. The anon key is public; RLS is what
---   stops anyone from updating or wiping the board.
+-- - Documented as a re-runnable policy patch; the canonical schema now lives in
+--   migrations/20260804200000_create_high_scores_leaderboard.sql (already applied
+--   to vaisi's Project). Keep this file for store-compliance checklists that
+--   point at it.
 --
 -- Goal: anyone can read the leaderboard and insert a new row; nobody can
 -- update or delete via the anon key. (Cleanup of abusive names is a dashboard

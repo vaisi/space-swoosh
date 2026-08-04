@@ -1,7 +1,7 @@
 <!--
   docs/STORE_COMPLIANCE.md
-  Changes: Created checklist for App Store / Play Console forms that cannot be
-  automated from this repo. Complete before first submission.
+  Changes: Supabase checklist now points at vaisi's Project + the high_scores
+  migration (already applied). Complete store forms before first submission.
 -->
 
 # Store compliance checklist
@@ -16,9 +16,13 @@
 
 ## Supabase
 
-1. Open the SQL editor on the Space Swoosh project.
-2. Run [`supabase/rls.sql`](../supabase/rls.sql).
-3. Confirm in Authentication → Policies that `high_scores` has SELECT + INSERT only.
+Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
+[`supabase/migrations/20260804200000_create_high_scores_leaderboard.sql`](../supabase/migrations/20260804200000_create_high_scores_leaderboard.sql)
+(already applied). Re-check before store launch:
+
+1. Table Editor → `high_scores` exists with RLS on.
+2. Authentication → Policies → `high_scores` has SELECT + INSERT only (no UPDATE/DELETE for anon).
+3. Optional re-apply: [`supabase/rls.sql`](../supabase/rls.sql).
 
 ## App Store Connect
 
