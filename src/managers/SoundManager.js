@@ -2,6 +2,9 @@
 // Loads looping BGM + SFX from public/sounds/, and synthesizes short Web Audio
 // cues for sparkle pickups, style-swoosh near-misses, and sidewall wall-boops.
 // Changes:
+// - playBoop: phone-audible body (320→180 Hz) + short mid tick (~520 Hz);
+//   reused noise buffer (no per-hit alloc). Old 185→92 Hz was inaudible on
+//   iPhone speakers under BGM even though the BOOP popup fired.
 // - Softened playLogbook() into a gentle Enterprise-style bridge chirp
 //   (two quiet sine tones) instead of a sharp triangle stylus tick.
 // - Added playBoop(): a soft low "space rubber" blip for screen-edge wall hits.
@@ -53,6 +56,7 @@ export class SoundManager {
         this.bgmPlaying = false;
         this.bgmPaused = false;
         this.audioCtx = null;
+        this.boopNoiseBuffer = null; // reused by playBoop (no per-hit GC)
         this.muted = loadMuted();
         this.applyMute();
 
@@ -119,6 +123,16 @@ export class SoundManager {
         }
         if (this.audioCtx.state === 'suspended') {
             this.audioCtx.resume().catch(() => {});
+        }
+        if (this.audioCtx && !this.boopNoiseBuffer) {
+            // ~80 ms decaying noise, shared by every wall boop.
+            const sampleCount = Math.floor(this.audioCtx.sampleRate * 0.08);
+            const buffer = this.audioCtx.createBuffer(1, sampleCount, this.audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < sampleCount; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
+            }
+            this.boopNoiseBuffer = buffer;
         }
         return this.audioCtx;
     }
@@ -253,7 +267,8 @@ export class SoundManager {
     }
 
     // Soft "space rubber" blip when the ship kisses a screen sidewall.
-    // Low sine thump + a tiny filtered noise puff — distinct from turn / swoosh.
+    // Phone-audible body + mid tick (old ~185→92 Hz vanished under BGM on
+    // iPhone speakers) + tiny filtered noise puff — distinct from turn / swoosh.
     playBoop() {
         if (!this.initialized || this.muted) return;
 
@@ -262,44 +277,51 @@ export class SoundManager {
             if (!ctx) return;
 
             const now = ctx.currentTime;
-            const duration = 0.16;
+            const duration = 0.15;
 
-            // Round low body — the "boop".
+            // Round body — still thumpy, but above phone-speaker roll-off.
             const osc = ctx.createOscillator();
             const oscGain = ctx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(185, now);
-            osc.frequency.exponentialRampToValueAtTime(92, now + 0.12);
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.exponentialRampToValueAtTime(180, now + 0.11);
             oscGain.gain.setValueAtTime(0.0001, now);
-            oscGain.gain.exponentialRampToValueAtTime(0.28, now + 0.01);
+            oscGain.gain.exponentialRampToValueAtTime(0.34, now + 0.01);
             oscGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-            // Quiet vacuum puff on top so it reads as space, not a UI click.
-            const sampleCount = Math.floor(ctx.sampleRate * 0.08);
-            const buffer = ctx.createBuffer(1, sampleCount, ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < sampleCount; i++) {
-                data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
-            }
+            // Short mid tick so the cue cuts through BGM on tiny speakers.
+            const tick = ctx.createOscillator();
+            const tickGain = ctx.createGain();
+            tick.type = 'sine';
+            tick.frequency.setValueAtTime(520, now);
+            tickGain.gain.setValueAtTime(0.0001, now);
+            tickGain.gain.exponentialRampToValueAtTime(0.11, now + 0.008);
+            tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+
+            // Quiet vacuum puff (shared buffer — no per-hit alloc).
             const noise = ctx.createBufferSource();
-            noise.buffer = buffer;
+            noise.buffer = this.boopNoiseBuffer;
             const filter = ctx.createBiquadFilter();
             filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(420, now);
+            filter.frequency.setValueAtTime(520, now);
             filter.Q.value = 0.7;
             const noiseGain = ctx.createGain();
             noiseGain.gain.setValueAtTime(0.0001, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.09, now + 0.008);
+            noiseGain.gain.exponentialRampToValueAtTime(0.1, now + 0.008);
             noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
 
             osc.connect(oscGain);
             oscGain.connect(ctx.destination);
+            tick.connect(tickGain);
+            tickGain.connect(ctx.destination);
             noise.connect(filter);
             filter.connect(noiseGain);
             noiseGain.connect(ctx.destination);
 
             osc.start(now);
             osc.stop(now + duration);
+            tick.start(now);
+            tick.stop(now + 0.045);
             noise.start(now);
             noise.stop(now + 0.08);
         } catch (error) {

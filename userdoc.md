@@ -207,7 +207,7 @@ backing out to the menu.
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
-| Steer (Zigzag) | Space or Left / Right arrows (any flips) | Tap anywhere to flip. Swipe does nothing. |
+| Steer (Zigzag) | Space or Left / Right arrows (any flips) | Press/tap anywhere to flip (on touch-down). Swipe does nothing. |
 | Steer (Arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
 | Pause | Escape or the pause button (top-right). In Arc, Space also pauses. | Pause button (top-right) |
 
@@ -243,10 +243,11 @@ On phones the game fills the whole screen. Turn arcs and cruise speed are meant
 to feel the same as on a computer — if a build ever feels half-speed with KM
 racing ahead, that build is wrong; report the menu stamp (e.g. `BUILD 23 · WEB`).
 
-**iPhone / iPad (Safari):** the game paints at a steadier ~60 frames per second
-and a slightly lighter retina resolution so motion stays smooth on Apple
-browsers. Android phones and computers keep the full high-refresh path — travel
-speed and controls stay matched either way.
+**iPhone / iPad (Safari or Chrome):** the game targets a steadier ~60 frames per
+second and a slightly lighter retina resolution so motion stays cool and playable
+on Apple browsers (not identical to Android butter). Zigzag flips as soon as you
+press; wall **BOOP** should be heard as well as seen. Android phones and computers
+keep the full high-refresh path — travel speed stays matched either way.
 
 ## Points
 
@@ -281,9 +282,10 @@ itself — aim for the blue.
 Under **Options → Controls** you can pick how the ship steers:
 
 - **Zigzag** (default) — the ship always flies straight at a flatter fixed
-  angle, a bit faster than Arc; **tap** or **Space** (or an arrow key) flips
-  the other way. Swipe is off in this mode. Pause with Escape or the pause
-  button. Walls bounce you too. No arcs — just a clean zig-zag.
+  angle, a bit faster than Arc; **press/tap** (flips on finger-down) or **Space**
+  (or an arrow key) flips the other way. Swipe is off in this mode. Pause with
+  Escape or the pause button. Walls bounce you too (ink **BOOP** + soft blip).
+  No arcs — just a clean zig-zag.
 - **Arc** — the classic swoosh turn.
 
 ## Tips

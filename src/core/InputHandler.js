@@ -1,16 +1,13 @@
 // InputHandler.js
 // Keyboard / touch steering. Only active during an in-progress run.
 // Changes:
+// - Zigzag flips on touchstart (immediate); move/end ignored for that gesture
+//   so micro-swipes cannot cancel the flip. Arc still swipe + half-screen tap.
 // - Steering locked while LevelIntroSequence is active (run-start cinematic).
-// - Zigzag on touch: swipe/drag is ignored — only a clean tap (or key) flips.
-//   Arc mode still uses swipe + half-screen tap.
 // - Gate all gameplay input on game.isPlaying() so menu / options / high
 //   scores don't steer the ship or toggle pause.
-// - Mobile: swipe/drag left-right steers. A short tap with no drag still uses
-//   the old half-screen rule, so both muscle memories work. touchstart only
-//   arms the gesture — the arc fires on swipe (touchmove) or tap (touchend).
+// - Mobile arc: swipe/drag left-right steers; short tap uses half-screen rule.
 // - Lower swipe threshold so direction changes commit sooner.
-// - Zigzag flight: any tap / key flips lean (no swipe).
 
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
 
@@ -96,12 +93,28 @@ export class InputHandler {
         // One finger owns the gesture; ignore extras.
         if (this.touch) return;
 
+        // Zigzag: flip on press so the turn is immediate and finger drift
+        // cannot kill the tap on touchend.
+        if (this.game.flightStyle === FLIGHT_STYLE.zigzag) {
+            this.touch = {
+                id: t.identifier,
+                startX: t.clientX,
+                startY: t.clientY,
+                originX: t.clientX,
+                lastDir: null,
+                zigzagFlipped: true,
+            };
+            this.game.spacecraft.flipZigzag();
+            return;
+        }
+
         this.touch = {
             id: t.identifier,
             startX: t.clientX,
             startY: t.clientY,
             originX: t.clientX,
             lastDir: null,
+            zigzagFlipped: false,
         };
     }
 
@@ -109,9 +122,10 @@ export class InputHandler {
         if (!this.touch) return;
         e.preventDefault();
 
-        // Zigzag is tap-only on touch — ignore swipe/drag so a restless thumb
-        // doesn't chatter-flip while the player means to tap.
-        if (this.game.flightStyle === FLIGHT_STYLE.zigzag) return;
+        // Zigzag already flipped on touchstart — ignore swipe/drag entirely.
+        if (this.game.flightStyle === FLIGHT_STYLE.zigzag || this.touch.zigzagFlipped) {
+            return;
+        }
 
         const t = this.findTouch(e.touches, this.touch.id);
         if (!t) return;
@@ -150,6 +164,9 @@ export class InputHandler {
         if (!t || !this.game.isPlaying()) return;
         if (this.game.levelIntro?.active) return;
 
+        // Zigzag already handled on touchstart.
+        if (gesture.zigzagFlipped) return;
+
         // No swipe committed → tap.
         if (gesture.lastDir) return;
 
@@ -157,12 +174,7 @@ export class InputHandler {
         const dy = t.clientY - gesture.startY;
         if (Math.hypot(dx, dy) > TAP_SLOP_PX) return;
 
-        // Zigzag: any tap flips. Arc: classic half-screen left/right.
-        if (this.game.flightStyle === FLIGHT_STYLE.zigzag) {
-            this.game.spacecraft.flipZigzag();
-            return;
-        }
-
+        // Arc: classic half-screen left/right.
         const rect = this.game.canvas.getBoundingClientRect();
         const touchX = t.clientX - rect.left;
         this.steer(touchX < rect.width / 2 ? 'left' : 'right');

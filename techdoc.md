@@ -5,10 +5,11 @@
 >
 > **BUILD 23:** Zigzag is the default flight style (`Options → Controls`) —
 > straight ±52° lean at 1.45× speed, any input flips; Arc remains selectable.
-> **iOS canvas budget** (Safari web + Capicitor WKWebView): ~60 Hz paint cap,
-> DPR ≤ 2, opaque 2D context, lighter wakes/VFX — fixes ProMotion lag on
-> spaceswoosh.app without changing Android/desktop. KM from `abs(Δcamera.y)`.
-> Journey Logbook: observe → interact discovery journal (Journey-only writes).
+> **iOS canvas budget** (all iPhone/iPad browsers + Capicitor WKWebView): ~60 Hz
+> via `scheduleNextFrame` (setTimeout+rAF, no 120 Hz skip churn), hitch clamp
+> ≤1/30 s, DPR ≤ 2, opaque context, lighter wakes/VFX. Goal: playable steadiness
+> (“cool, not crap”), not Android-butter. Zigzag flips on touchstart; boop is
+> phone-audible. KM from `abs(Δcamera.y)`. Journey Logbook: observe → interact.
 
 ## 1. Overview
 
@@ -531,18 +532,20 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - `gameLoop()` runs on `requestAnimationFrame`, skips work when the tab is hidden,
   and freezes gameplay updates while paused **during** `playing`.
 - **Snappy pacing** uses wall-clock `tickScale = dt * 120` and
-  `dt_motion = tickScale / 60` on each worked frame (clamp `dt` ≤ 50 ms).
+  `dt_motion = tickScale / 60` on each worked frame. Non-iOS clamps `dt` ≤ 50 ms;
+  iOS clamps ≤ 1/30 s so hitch teleports stay smaller (`tickScale` ≤ ~4).
   Ship/camera advance classic paint-tick units × `tickScale` so travel-per-second
   matches BUILD 16 web @ ~120 Hz.
 - **iOS canvas budget** (`core/platform.js` → `game.iosCanvasBudget`): true for
-  iPhone/iPad (Safari tab **and** Capicitor WKWebView), including iPadOS that
-  reports as MacIntel. ProMotion can fire rAF at 120 Hz; the loop skips
-  update/render when elapsed < ~16.5 ms so Canvas2D paints ~60 Hz while
-  `tickScale` still covers the full wall gap (speed unchanged). Android browser,
-  Android app, and desktop stay one-update-per-paint (unlocked).
-- Opaque 2D context (`{ alpha: false }`) on native **and** iOS Safari (paper is
-  always painted first). Trail/wake paths mutate or reuse scratch arrays — no
-  per-frame `map`/`filter`/`slice` on the ship wake.
+  iPhone/iPad (Safari **and** Chrome/WebKit, plus Capicitor WKWebView), including
+  iPadOS that reports as MacIntel. `scheduleNextFrame()` targets ~60 Hz with
+  `setTimeout` + rAF so ProMotion does not wake JS at 120 Hz just to skip paints
+  (that skip-churn caused heat + worse jitter). Android browser, Android app, and
+  desktop stay unlocked one-update-per-paint. Success bar: playable steadiness
+  (“cool, not crap”), not identical butter to Chromium.
+- Opaque 2D context (`{ alpha: false }`) on native **and** iOS web (paper is
+  always painted first). Active-play UI hits skip `getBoundingClientRect` (InputHandler
+  owns steering). Trail/wake paths mutate or reuse scratch arrays.
 - **iOS draw LOD** (gated by `iosCanvasBudget`): trail max 48 pts (else 80);
   ribbon smudge off; dense-mark midpoints off; Mote cloud 1–2 dots; black-hole
   radial glow off (+ off-screen cull); collectible soft halo off; style-swoosh
@@ -558,8 +561,8 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
-  `zigzagSpeedScale` × cruise; tap, **Space**, or an arrow key flips
-  `zigzagSign` (touch swipe is ignored; Escape still pauses). Arc still uses
+  `zigzagSpeedScale` × cruise; **touch flips on `touchstart`** (move/end ignored
+  for that gesture), plus **Space** / arrows; Escape pauses. Arc still uses
   swipe + half-screen tap + arrows (Space pauses). The intro tutorial hint
   matches the active style (`{space}` renders as a bold SPACE keycap).
   Persisted in localStorage.
@@ -597,11 +600,12 @@ it is included in the `game_over` GA event.
    ring / streak / gap-dot burst plus a floating `SWOOSH +N` popup. Each pair
    awards once (cooldown + pair key).
 4. **Wall boop (sidewall bounce):** When `Spacecraft` clamps against a screen
-   edge (arc bounce or zigzag flip), it calls `WallBoopManager.triggerBoop(ship,
-   side)`. That plays `SoundManager.playBoop()` (soft low sine + vacuum puff)
-   and spawns an ink-only `BOOP` label below the hull (no glow/blot), inset
-   from the wall so the full word stays on-screen. Applies to every skin;
-   Square skins still also get `wallJelly` squash.
+   edge (arc bounce or zigzag wall clamp), it calls `WallBoopManager.triggerBoop(ship,
+   side)`. That plays `SoundManager.playBoop()` — phone-audible body (320→180 Hz)
+   + short mid tick (~520 Hz) + reused noise buffer (old ~185→92 Hz was inaudible
+   on iPhone speakers under BGM) — and spawns an ink-only `BOOP` label below the
+   hull (no glow/blot), inset from the wall so the full word stays on-screen.
+   Applies to every skin; Square skins still also get `wallJelly` squash.
 
 Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
 

@@ -2,10 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - iOS Safari (web) shares the Capicitor iOS canvas budget: ~60 Hz paint cap,
-//   DPR ≤ 2, opaque 2D context. ProMotion + DPR 3 was melting Safari on
-//   spaceswoosh.app while Android/desktop stayed smooth. tickScale still uses
-//   wall-clock dt so travel speed matches. See core/platform.js.
+// - iOS canvas budget: schedule ~60 Hz via setTimeout+rAF (no 120 Hz skip
+//   churn), tighter hitch clamp (≤1/30 s), skip getBoundingClientRect during
+//   active play. DPR ≤ 2, opaque context, draw LOD — see core/platform.js.
 // - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
 //   (ink fill, paler rest) spaced under the figure; aligned with pause.
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
@@ -378,23 +377,39 @@ export class Game {
         return this.appScreen === 'playing' && !this.isGameOver;
     }
 
+    // iOS: delay until the next ~60 Hz slot so ProMotion doesn't wake JS at
+    // 120 Hz just to skip. Android/desktop: plain rAF.
+    scheduleNextFrame() {
+        if (!this.iosPaintCap) {
+            requestAnimationFrame(() => this.gameLoop());
+            return;
+        }
+        const wait = Math.max(0, this.minFrameMs - (performance.now() - this.lastTime));
+        if (wait > 2) {
+            setTimeout(() => requestAnimationFrame(() => this.gameLoop()), wait);
+            return;
+        }
+        requestAnimationFrame(() => this.gameLoop());
+    }
+
     gameLoop() {
         // Only run the game loop if the tab is visible
         if (!document.hidden) {
             const currentTime = performance.now();
             const elapsedMs = currentTime - this.lastTime;
 
-            // iOS: skip sub-16.5 ms rAF ticks so we paint ~60 Hz on ProMotion.
-            // lastTime stays put so the next worked frame gets the full wall dt.
+            // iOS: if we woke early, reschedule without updating/rendering.
             if (this.iosPaintCap && elapsedMs < this.minFrameMs) {
-                requestAnimationFrame(() => this.gameLoop());
+                this.scheduleNextFrame();
                 return;
             }
 
             if (!this.isPaused || this.appScreen !== 'playing') {
                 // One update per paint — smooth with the display. tickScale maps
                 // wall time onto the snappy ~120 Hz classic-tick reference.
-                const frameTime = Math.min(elapsedMs / 1000, 0.05);
+                // iOS hitch clamp 1/30 s (tickScale ≤ ~4); others keep 50 ms.
+                const maxFrame = this.iosCanvasBudget ? 1 / 30 : 0.05;
+                const frameTime = Math.min(elapsedMs / 1000, maxFrame);
                 this.lastTime = currentTime;
                 this.tickScale = frameTime * this.snappyHz;
                 this.dt = (1 / 60) * this.tickScale;
@@ -405,7 +420,7 @@ export class Game {
 
             this.render();
         }
-        requestAnimationFrame(() => this.gameLoop());
+        this.scheduleNextFrame();
     }
 
     update(deltaTime) {
@@ -2313,6 +2328,12 @@ export class Game {
 
     setupEventListeners() {
         const handleInteraction = async (clientX, clientY) => {
+            // Active run: InputHandler owns steering — skip layout thrash.
+            // Pause menu still needs hit-testing below.
+            if (this.appScreen === 'playing' && !this.isPaused && !this.isGameOver) {
+                return;
+            }
+
             const rect = this.canvas.getBoundingClientRect();
             const scaleX = this.width / rect.width;
             const scaleY = this.height / rect.height;
