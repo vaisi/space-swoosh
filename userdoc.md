@@ -166,6 +166,7 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Wisp** | Teardrop again, with a thin thread that sheds drifting sparks — they flare on impact. |
 | **Pulse** | Focus's hull with a Signal-Blue dotted wake (same dense pile on boop). |
 | **Quill** | Flicker's tear with a fine Signal-Blue ribbon. |
+| **Nyan** | Echo’s sparrow-wing crescent in dark gray with two pink spots, plus a longer stacked rainbow wake. |
 | **Shard** | Faceted crystal diamond; chevrons shatter into a fan against the wall, then restack. |
 | **Halo** | Small orbital core with crawling ring-ticks; young rings inflate like soap bubbles on a wall hit, then pop — the core wobbles in a tiny orbit. |
 | **Needle** | Ultra-thin lance with a single hairline thread. Wall hits flex the tip and ripple the old end of the wake. |
@@ -196,8 +197,8 @@ more.
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
 to the wall, not on it) and a soft space-boop sound.
 
-Pulse and Quill can be store unlocks later; Ink and the rest of the roster are
-free. Right now every ship in **Options → Ship** is available so you can try
+Pulse and Quill can be store unlocks later; Nyan, Ink, and the rest of the roster
+are free. Right now every ship in **Options → Ship** is available so you can try
 them all.
 
 The shaped ships lean into their turns, and the trail curls out from behind them

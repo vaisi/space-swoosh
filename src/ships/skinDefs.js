@@ -2,6 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Nyan: Echo's crescent (sparrow wings), dark gray + two pink spots, longer
+//   rainbow ribbon. Hitbox matches crescent; spots are paint only.
 // - Ink wake: slightly wider ribbon + smudge so script boop flourish/flecks
 //   read clearly (still hull-attached via script mode).
 // - Flux hex shortened/compact; ink/signal dash wake. Cinder petal + flame-smoke.
@@ -45,6 +47,7 @@ import {
     drawLagEllipseTrail,
     drawDashTrail,
     drawCinderTrail,
+    drawRainbowRibbonTrail,
 } from './trails.js';
 
 // Hitboxes are in local hull space (x right, y toward the tail, nose negative),
@@ -190,6 +193,65 @@ function makeHullRenderer(pathFn, profile = 'default') {
 }
 
 const drawTearHull = makeHullRenderer(tearPath);
+
+// Nyan body colours — ship-local (not brand UI tokens).
+const NYAN_GRAY = '#3A3A3A';
+const NYAN_GRAY_SOFT = 'rgba(58, 58, 58, 0.45)';
+const NYAN_PINK = '#FF8FB8';
+
+/** Two pink dots — one on each sparrow wing (local fractions of r). */
+const NYAN_SPOTS = [
+    [0.48, 0.12, 0.085],
+    [-0.48, 0.12, 0.085],
+];
+
+/** Echo crescent / sparrow wings in dark gray + two pink spots. */
+function drawNyanHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.9 + 0.06 * Math.sin(time * 0.0056) + 0.04 * Math.sin(time * 0.0088);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.2 * turn;
+    const ry = r * stretch;
+
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.85, 'default');
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    ctx.beginPath();
+    ctx.arc(0, r * 0.12, r * 1.35, 0, Math.PI * 2);
+    ctx.fillStyle = color.ink12;
+    ctx.fill();
+
+    crescentPath(ctx, 0, 0, r, stretch);
+    ctx.fillStyle = NYAN_GRAY;
+    ctx.fill();
+
+    // Softer inner wash on the wing join (same gray family, not ink).
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.22 : breath * 0.28);
+    crescentPath(ctx, 0, r * 0.04, r * 0.42, stretch);
+    ctx.fillStyle = NYAN_GRAY_SOFT;
+    ctx.fill();
+
+    // Pink spots clipped to the crescent silhouette.
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.95 : breath);
+    crescentPath(ctx, 0, 0, r, stretch);
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = NYAN_PINK;
+    for (let i = 0; i < NYAN_SPOTS.length; i++) {
+        const [fx, fy, fr] = NYAN_SPOTS[i];
+        ctx.beginPath();
+        ctx.arc(fx * r, fy * ry, Math.max(1.2, fr * r), 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.restore();
+}
+
 const drawDartHull = makeHullRenderer(dartPath);
 const drawShardHull = makeHullRenderer(shardPath, 'shard');
 const drawCrescentHull = makeHullRenderer(crescentPath);
@@ -589,6 +651,27 @@ const quill = {
     },
 };
 
+// Echo's sparrow wings + Nyan paint — longer rainbow stripe wake.
+const nyan = {
+    id: 'nyan',
+    name: 'Nyan',
+    blurb: 'A long rainbow line of travel.',
+    hitbox: CRESCENT_HITBOX,
+    wallTrailMode: 'spring',
+    // ~2× default wake: more samples + slower fade so the rainbow stretches.
+    trailMaxPoints: 160,
+    trailFade: 1 / 360,
+
+    drawHull: drawNyanHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawRainbowRibbonTrail(ctx, ship, trail, toScreenY, {
+            widthScale: 0.85,
+            alpha: 0.9,
+        });
+    },
+};
+
 const shard = {
     id: 'shard',
     name: 'Shard',
@@ -786,7 +869,7 @@ const cinder = {
 };
 
 export const SKIN_DEFS = [
-    focus, flicker, ember, wisp, pulse, quill,
+    focus, flicker, ember, wisp, pulse, quill, nyan,
     shard, halo, needle, echo,
     squareStamp, squareTick, squareTrace, squareRing,
     fold, mote, spine, orbit, ink,

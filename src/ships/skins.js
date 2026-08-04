@@ -1,6 +1,7 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
+// - Preview wake stretches for skins with `trailMaxPoints` (Nyan rainbow).
 // - Preview fakeShip stamps `_wallTrailMode` so new crease/cloud/ladder/lag/
 //   script wakes still deform correctly in the Options picker.
 // - Slimmed to a registry; hull geometry moved to hulls.js, wake renderers to
@@ -54,10 +55,10 @@ export function saveShipSkinId(id) {
 
 // A short arc curving in from the lower left, sampled the way a live trail is
 // (oldest first, each point carrying the direction of travel at that moment).
-function previewWake(cx, cy, radius) {
-    const count = 12;
-    const span = radius * 3.4;
-    const amp = radius * 0.75;
+function previewWake(cx, cy, radius, { longWake = false } = {}) {
+    const count = longWake ? 22 : 12;
+    const span = radius * (longWake ? 5.4 : 3.4);
+    const amp = radius * (longWake ? 0.9 : 0.75);
     const bend = 1.6;
     const trail = [];
 
@@ -71,7 +72,7 @@ function previewWake(cx, cy, radius) {
         trail.push({
             x: cx - Math.sin(t * bend) * amp,
             y: cy + t * span,
-            opacity: Math.max(0.08, 1 - t * 0.85),
+            opacity: Math.max(0.08, 1 - t * (longWake ? 0.72 : 0.85)),
             angle: Math.atan2(vx, -vy),
             seed: (i * 0.618) % 1,
         });
@@ -84,6 +85,7 @@ function previewWake(cx, cy, radius) {
 export function drawSkinPreview(ctx, skinId, cx, cy, radius, time = performance.now()) {
     const skin = getSkin(skinId);
     const bank = Math.min(MAX_BANK, Math.atan2(1.6 * 0.75, 4.2));
+    const longWake = (skin.trailMaxPoints ?? 80) > 100;
 
     const fakeShip = {
         x: cx,
@@ -100,6 +102,6 @@ export function drawSkinPreview(ctx, skinId, cx, cy, radius, time = performance.
         game: { config: { spacecraft: { trailDotSize: 0.2 } } },
     };
 
-    skin.drawTrail(ctx, fakeShip, previewWake(cx, cy, radius), (y) => y);
+    skin.drawTrail(ctx, fakeShip, previewWake(cx, cy, radius, { longWake }), (y) => y);
     skin.drawHull(ctx, fakeShip, cy, time);
 }

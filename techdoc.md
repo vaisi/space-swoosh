@@ -87,9 +87,9 @@ game build env. Journey progress stays in `localStorage` only.
 | `services/Entitlements.js` | Skin ownership cache + purchase / restore. `UNLOCK_ALL_SKINS` (currently `true`) opens the whole roster without IAP for playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | Ship roster (Focus…Ink) composed from hulls + trails + boop signatures. |
+| `ships/skinDefs.js` | Ship roster (Focus…Nyan…Cinder) composed from hulls + trails + boop signatures. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes, `beginHullFrame`, `MAX_BANK`. |
-| `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, desync, shatter, etc.). |
+| `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules. |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
@@ -530,7 +530,7 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 | `shatter` | Shard |
 | `desync` | Echo |
 | `flare` | Wisp |
-| `spring` | Flicker, Quill, Square Trace |
+| `spring` | Flicker, Quill, Nyan, Square Trace |
 | `whip` | Needle |
 | `crease` | Fold |
 | `cloud` | Mote |
@@ -541,8 +541,12 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 | `cinder` | Cinder |
 
 Trail color accents: Signal Blue (`color.signalRgb`) on Pulse / Quill / Flux
-dashes / Cinder glints; warm Ember (`color.emberRgb`) on Cinder wakes only —
-not used in HUD/UI.
+dashes / Cinder glints; warm Ember (`color.emberRgb`) on Cinder wakes only;
+**Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe bands, not
+HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in dark gray
+with two clipped pink spots (`CRESCENT_HITBOX`). Optional skin fields
+`trailMaxPoints` / `trailFade` stretch wakes (Nyan: 160 pts, fade `1/360`);
+iOS canvas budget still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
 Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
@@ -683,6 +687,7 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   (or add one there), and build a shaped hull from
   `makeHullRenderer(pathFn, jellyProfile)` so it gets bank rotation, halo, and
   a boop feel for free. Size hitbox circles inside the outline (`?hitbox`).
+  Optional `trailMaxPoints` / `trailFade` for longer wakes.
 - **New collectible behavior / value:** edit `CollectibleManager` (cadence,
   placement) and `GameConfig.points`.
 - **New obstacle:** add a `BaseObstacle` subclass in `ObstacleManager.js`, add a

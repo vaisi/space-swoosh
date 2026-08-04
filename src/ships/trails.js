@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Nyan: `drawRainbowRibbonTrail` — stacked Nyan-Cat stripe bands along the
+//   path normals (parallel ribbons, tip fade). Cheap Canvas uses flat fills.
 // - Ink reverseBoop: stronger calligraphic pressure pulse + tip ink flecks
 //   during wall jelly (script deform still owns the path whip).
 // - Phase 1 cheap Canvas: skip createLinearGradient on ribbons (flat fill).
@@ -30,6 +32,18 @@ const INK_RGB = '26, 26, 26';
 const wakeScratch = [];
 const ribbonLeft = [];
 const ribbonRight = [];
+/** Offset centreline for rainbow stripe bands (reused per band). */
+const bandCenter = [];
+
+/** Classic Nyan Cat pop-stripe RGBs (outer → inner order is left-of-path first). */
+const NYAN_RGB = [
+    '255, 0, 102',
+    '255, 153, 0',
+    '255, 230, 0',
+    '51, 204, 51',
+    '0, 153, 255',
+    '153, 51, 255',
+];
 
 const KNOWN_MODES = new Set([
     'pile', 'spring', 'whip', 'desync', 'scatter', 'shatter', 'blot',
@@ -299,6 +313,86 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
             ctx.fillStyle = `rgba(${rgb}, ${Math.min(0.85, p.opacity * energy * (0.45 + alongTip * 0.4))})`;
             ctx.fill();
         }
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Quill-like ribbon split into parallel Nyan Cat colour bands.
+ * Bands sit side-by-side across the wake width (not a length-wise hue ramp).
+ */
+export function drawRainbowRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        widthScale = 0.95,
+        alpha = 0.92,
+        bands = NYAN_RGB,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    if (pts.length < 3) return;
+
+    const bandCount = bands.length;
+    if (bandCount < 1) return;
+
+    const halfTotal = ship.radius * 0.58 * widthScale;
+    const bandHalf = halfTotal / bandCount;
+    const last = pts.length - 1;
+    const n = pts.length;
+
+    const skipGrad = !!ship?.game?.cheapCanvas
+        || ship?.game?.perfFlags?.kill?.has?.('gradients');
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+
+    for (let b = 0; b < bandCount; b++) {
+        const centerOffset = (b - (bandCount - 1) / 2) * (bandHalf * 2);
+        const rgb = bands[b];
+
+        for (let i = 0; i < n; i++) {
+            const prev = pts[Math.max(0, i - 1)];
+            const next = pts[Math.min(n - 1, i + 1)];
+            const dx = next.x - prev.x;
+            const dy = next.y - prev.y;
+            const len = Math.hypot(dx, dy) || 1;
+            const nx = -dy / len;
+            const ny = dx / len;
+
+            let p = bandCenter[i];
+            if (!p) {
+                p = { x: 0, y: 0, opacity: 1 };
+                bandCenter[i] = p;
+            }
+            p.x = pts[i].x + nx * centerOffset;
+            p.y = pts[i].y + ny * centerOffset;
+            p.opacity = pts[i].opacity;
+        }
+        bandCenter.length = n;
+
+        const widthAt = (i) => {
+            const t = i / last;
+            return bandHalf * Math.pow(t, 0.55) * (0.5 + 0.5 * pts[i].opacity);
+        };
+
+        const chord = Math.hypot(
+            bandCenter[last].x - bandCenter[0].x,
+            bandCenter[last].y - bandCenter[0].y,
+        );
+        let fill = `rgba(${rgb}, ${alpha * 0.75})`;
+        if (chord > 1 && !skipGrad) {
+            fill = ctx.createLinearGradient(
+                bandCenter[0].x, bandCenter[0].y,
+                bandCenter[last].x, bandCenter[last].y,
+            );
+            fill.addColorStop(0, `rgba(${rgb}, 0)`);
+            fill.addColorStop(0.35, `rgba(${rgb}, ${alpha * 0.55})`);
+            fill.addColorStop(1, `rgba(${rgb}, ${alpha})`);
+        }
+
+        ribbonPath(ctx, bandCenter, widthAt);
+        ctx.globalAlpha = baseAlpha;
+        ctx.fillStyle = fill;
+        ctx.fill();
     }
 
     ctx.restore();

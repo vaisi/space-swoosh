@@ -6,6 +6,8 @@
 //   seat (no 0.55× redirect). Vertical speed eases toward the arc target so
 //   camera catch-up doesn't jerk on redirect. Taller climb via arcDuration +
 //   mid-arc verticalBoost 0.55.
+// - Per-skin trail length: optional `trailMaxPoints` / `trailFade` on the
+//   active skin (Nyan ~2× wake). iOS canvas budget still scales max points ×0.6.
 // - iOS canvas budget: shorter wake (48 pts vs 80) to cut fill/path cost on
 //   Safari without changing Android/desktop trail length.
 // - Render stamps `ship._wallTrailMode` from the active skin so wakes can pile
@@ -379,9 +381,14 @@ export class Spacecraft {
 
     updateTrail() {
         const trail = this.trail;
-        const fade = 1 / 180;
+        const skin = getSkin(this.game.shipSkinId);
+        const fade = skin.trailFade ?? (1 / 180);
         // iOS Safari: fewer samples → cheaper ribbons / dense marks / clouds.
-        const maxPoints = this.game.iosCanvasBudget ? 48 : 80;
+        // Skins may request a longer wake (e.g. Nyan); budget still trims ~40%.
+        const baseMax = skin.trailMaxPoints ?? 80;
+        const maxPoints = this.game.iosCanvasBudget
+            ? Math.max(48, Math.round(baseMax * 0.6))
+            : baseMax;
 
         // Fade in place; drop dead heads without allocating a new array.
         let write = 0;
