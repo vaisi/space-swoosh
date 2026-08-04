@@ -2,6 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Ink wake: slightly wider ribbon + smudge so script boop flourish/flecks
+//   read clearly (still hull-attached via script mode).
 // - Flux hex shortened/compact; ink/signal dash wake. Cinder petal + flame-smoke.
 // - Fold: solid kite drawer (crease stroke, no hollow inset); crease wake
 //   attaches at the hull. Orbit: planetoid hull (solid body + tilted ring +
@@ -750,9 +752,10 @@ const ink = {
     drawHull: drawTearHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawRibbonTrail(ctx, ship, trail, toScreenY, {
-            widthScale: 0.5,
-            alpha: 0.88,
-            smudge: false,
+            // Slightly wider so the script whip + flecks read on wall hits.
+            widthScale: 0.62,
+            alpha: 0.9,
+            smudge: true,
             reverseBoop: true,
         });
     },

@@ -2,6 +2,10 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Leaderboard rows show "CallSign, Ship" with a dotted leader to the score;
+//   submits write `ship_id` from the active skin.
+// - Submit-score errors distinguish LeaderboardUnavailableError (missing
+//   VITE_SUPABASE_* in the build) from generic network failures.
 // - iOS canvas budget: schedule ~60 Hz via setTimeout+rAF (no 120 Hz skip
 //   churn), tighter hitch clamp (≤1/30 s), skip getBoundingClientRect during
 //   active play. DPR ≤ 2, opaque context, draw LOD — see core/platform.js.
@@ -98,7 +102,11 @@ import { WallBoopManager } from '../managers/WallBoopManager.js';
 import { LogbookManager } from '../managers/LogbookManager.js';
 import { LogbookToastManager } from '../managers/LogbookToastManager.js';
 import { SoundManager } from '../managers/SoundManager.js';
-import { CallSignRejectedError, ScoreService } from '../services/ScoreService.js';
+import {
+    CallSignRejectedError,
+    LeaderboardUnavailableError,
+    ScoreService,
+} from '../services/ScoreService.js';
 import { track } from '../services/Analytics.js';
 import {
     getSkinPriceLabel,
@@ -2007,6 +2015,7 @@ export class Game {
             const y = startY + (scoreHeight + scoreSpacing) * index;
             const midY = y + scoreHeight / 2;
             const isTop = index < 3;
+            const nameLeft = leftX + unit * 1.2;
 
             ctx.save();
             ctx.textBaseline = 'middle';
@@ -2017,18 +2026,31 @@ export class Game {
             ctx.textAlign = 'right';
             ctx.fillText(`${index + 1}`, leftX, midY);
 
-            // Name — Space Grotesk.
+            // Call sign (+ ship) — "Name, Ship" then a dotted leader to the score.
             ctx.fillStyle = color.ink;
             ctx.font = `${isTop ? 700 : 500} ${namePx}px ${font.ui}`;
             ctx.textAlign = 'left';
-            ctx.fillText(score.player_name, leftX + unit * 1.2, midY);
+            ctx.fillText(score.player_name, nameLeft, midY);
+            let labelEnd = nameLeft + ctx.measureText(score.player_name).width;
+
+            const shipName = score.ship_id ? getSkin(score.ship_id).name : null;
+            if (shipName) {
+                const comma = ', ';
+                ctx.fillText(comma, labelEnd, midY);
+                labelEnd += ctx.measureText(comma).width;
+                const shipPx = Math.max(10, namePx * 0.82);
+                ctx.fillStyle = color.ink55;
+                ctx.font = `500 ${shipPx}px ${font.ui}`;
+                ctx.fillText(shipName, labelEnd, midY);
+                labelEnd += ctx.measureText(shipName).width;
+            }
 
             // Score — mono figure, optional KM label for distance.
             setMonoType(ctx, numPx, 700);
             ctx.fillStyle = color.ink;
             ctx.textAlign = 'right';
+            let scoreLeft = rightX;
             if (this.highScoreTab === 'distance') {
-                const sw = ctx.measureText(score.formattedScore).width;
                 const kmSize = Math.max(9, unit * 0.8);
                 setLabelType(ctx, kmSize);
                 ctx.fillStyle = color.ink55;
@@ -2036,10 +2058,22 @@ export class Game {
                 const kmW = ctx.measureText('KM').width;
                 setMonoType(ctx, numPx, 700);
                 ctx.fillStyle = color.ink;
-                ctx.fillText(score.formattedScore, rightX - kmW - unit * 0.5, midY);
+                scoreLeft = rightX - kmW - unit * 0.5;
+                ctx.fillText(score.formattedScore, scoreLeft, midY);
+                scoreLeft -= ctx.measureText(score.formattedScore).width;
             } else {
                 ctx.fillText(score.formattedScore, rightX, midY);
+                scoreLeft = rightX - ctx.measureText(score.formattedScore).width;
             }
+
+            // Dotted leader between the name block and the score.
+            const leaderPad = unit * 0.55;
+            const leaderFrom = labelEnd + leaderPad;
+            const leaderTo = scoreLeft - leaderPad;
+            if (leaderTo - leaderFrom > unit * 1.2) {
+                dottedLine(ctx, leaderFrom, leaderTo, midY, 1.2, 6, color.ink30);
+            }
+
             resetType(ctx);
             ctx.restore();
 
@@ -2966,13 +3000,15 @@ export class Game {
             await ScoreService.saveScore(
                 this.finalScore,
                 name,
-                this.obstaclesDestroyed
+                this.obstaclesDestroyed,
+                this.shipSkinId,
             );
 
             track('submit_highscore', {
                 'score': this.finalScore,
                 'player_name': name,
                 'obstacles_destroyed': this.obstaclesDestroyed,
+                'ship_id': this.shipSkinId,
                 'rank': this.currentRank
             });
 
@@ -2987,9 +3023,13 @@ export class Game {
             this.gameOverScreen = 'highscores';
         } catch (error) {
             console.error('Error saving score:', error);
-            this.submitError = error instanceof CallSignRejectedError
-                ? error.message
-                : 'Could not submit. Try again.';
+            if (error instanceof CallSignRejectedError) {
+                this.submitError = error.message;
+            } else if (error instanceof LeaderboardUnavailableError) {
+                this.submitError = 'Leaderboard offline in this build.';
+            } else {
+                this.submitError = 'Could not submit. Try again.';
+            }
             if (this.nameInput) {
                 this.nameInput.style.borderBottomColor = '#0000FF';
             }

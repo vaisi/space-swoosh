@@ -64,12 +64,12 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | Piece | Role |
 | --- | --- |
 | Project | vaisi's Project — ref `ptzaxgslzjefaxdkrvyr` |
-| Table | `public.high_scores` (`player_name`, `score` = KM, `obstacles_destroyed`, `created_at`) |
+| Table | `public.high_scores` (`player_name`, `ship_id`, `score` = KM, `obstacles_destroyed`, `created_at`) |
 | Client | `src/config/supabase.js` + `src/services/ScoreService.js` |
 | Access | Anonymous call signs (no Supabase Auth). `NameFilter` validates before insert. |
 | RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated` |
-| Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql` |
-| CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions + Codemagic env group |
+| Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql` |
+| CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
@@ -520,7 +520,7 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 | `cloud` | Mote |
 | `ladder` | Spine |
 | `lag` | Orbit |
-| `script` | Ink |
+| `script` | Ink — calligraphic reverse/whip on mid+tip (hull locked); `reverseBoop` adds pressure pulse + tip flecks |
 | `flick` | Flux |
 | `cinder` | Cinder |
 

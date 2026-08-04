@@ -1,12 +1,16 @@
 # Deploy to GitHub Pages
-# Changes: Bumped Pages actions past deprecated upload-artifact@v3 so deploys
-# succeed again (needed for spaceswoosh.app/privacy.html + SSL for Play).
+# Changes:
+# - Added workflow_dispatch so a secret-only fix can redeploy without a
+#   pointless code commit (leaderboard needs VITE_SUPABASE_* at build time).
+# - Bumped Pages actions past deprecated upload-artifact@v3 so deploys
+#   succeed again (needed for spaceswoosh.app/privacy.html + SSL for Play).
 
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches: ['main']
+  workflow_dispatch:
 
 permissions:
   contents: read

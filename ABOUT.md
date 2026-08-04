@@ -187,6 +187,7 @@ Loads from `public/sounds/`: `background.mp3` (looping BGM, vol 0.4), plus SFX f
 | --- | --- | --- |
 | `score` | integer | Distance (km), floored |
 | `player_name` | text | Call sign |
+| `ship_id` | text | Roster skin id flown on the run (nullable for legacy rows) |
 | `obstacles_destroyed` | integer | Secondary metric |
 | `created_at` | timestamp | Insert time |
 

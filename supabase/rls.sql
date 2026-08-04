@@ -31,6 +31,13 @@ create policy "high_scores_insert_public"
     char_length(player_name) between 2 and 15
     and score >= 0
     and obstacles_destroyed >= 0
+    and (
+      ship_id is null
+      or (
+        char_length(ship_id) between 2 and 32
+        and ship_id ~ '^[a-z][a-zA-Z0-9_]*$'
+      )
+    )
   );
 
 -- No update / delete policies for anon → denied by default when RLS is on.

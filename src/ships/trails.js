@@ -2,7 +2,10 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
-// - iOS canvas budget (via game.iosCanvasBudget): skip ribbon smudge pass, skip
+// - Ink reverseBoop: stronger calligraphic pressure pulse + tip ink flecks
+//   during wall jelly (script deform still owns the path whip).
+// - Phase 1 cheap Canvas: skip createLinearGradient on ribbons (flat fill).
+// - iOS draw LOD (via game.iosDrawLod): skip ribbon smudge pass, skip
 //   dense-mark midpoints, thin Mote cloud dots — Safari fill-rate relief only.
 // - Flux `drawDashTrail`: alternating ink / signal dashes (new trail type).
 // - Cinder `drawCinderTrail`: calm ember ribbon + cool ash dots (no time
@@ -210,7 +213,8 @@ export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
 }
 
 function iosBudget(ship) {
-    return !!ship?.game?.iosCanvasBudget;
+    // Prefer Phase-1 lod flag when present; fall back to the older budget name.
+    return !!(ship?.game?.iosDrawLod ?? ship?.game?.iosCanvasBudget);
 }
 
 export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
@@ -229,23 +233,30 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
     // Ink / script: tip/mid reverse lives in wallTrailDeform('script').
     // Never reverse point order — that yanked the ribbon off the hull.
-    const energy = reverseBoop ? jellyEnergy(ship) : 0;
+    const now = performance.now();
+    const energy = reverseBoop ? jellyEnergy(ship, now) : 0;
 
     const maxWidth = ship.radius * 0.6 * widthScale;
     const last = pts.length - 1;
     const widthAt = (i) => {
         const t = i / last;
-        // Subtle calligraphic tip thinness while jellying (hull end stays fat).
-        const tipThin = energy > 0
-            ? 1 - energy * 0.22 * Math.pow(1 - t, 1.3)
-            : 1;
-        return maxWidth * Math.pow(t, 0.6) * (0.45 + 0.55 * pts[i].opacity) * tipThin;
+        // Calligraphic pressure: tip thins hard, mid swells, hull stays fat.
+        let pressure = 1;
+        if (energy > 0) {
+            const tipThin = 1 - energy * 0.55 * Math.pow(1 - t, 1.15);
+            const midSwell = 1 + energy * 0.7 * Math.sin(t * Math.PI) * Math.sin(t * Math.PI);
+            pressure = tipThin * midSwell;
+        }
+        return maxWidth * Math.pow(t, 0.6) * (0.45 + 0.55 * pts[i].opacity) * pressure;
     };
 
     const chord = Math.hypot(pts[last].x - pts[0].x, pts[last].y - pts[0].y);
     let gradient = `rgba(${rgb}, ${alpha * 0.7})`;
 
-    if (chord > 1) {
+    // Cheap Canvas / kill=gradients: avoid per-frame gradient allocation.
+    const skipGrad = !!ship?.game?.cheapCanvas
+        || ship?.game?.perfFlags?.kill?.has?.('gradients');
+    if (chord > 1 && !skipGrad) {
         gradient = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[last].x, pts[last].y);
         gradient.addColorStop(0, `rgba(${rgb}, 0)`);
         gradient.addColorStop(0.45, `rgba(${rgb}, ${alpha * 0.55})`);
@@ -256,8 +267,10 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const baseAlpha = ctx.globalAlpha;
 
     if (useSmudge) {
-        ribbonPath(ctx, pts, (i) => widthAt(i) * 2.2);
-        ctx.globalAlpha = baseAlpha * 0.22;
+        // Extra bloom on boop so the flourish reads even on a thin ribbon.
+        const smudgeScale = energy > 0 ? 2.2 + energy * 1.4 : 2.2;
+        ribbonPath(ctx, pts, (i) => widthAt(i) * smudgeScale);
+        ctx.globalAlpha = baseAlpha * (0.22 + energy * 0.18);
         ctx.fillStyle = gradient;
         ctx.fill();
         ctx.globalAlpha = baseAlpha;
@@ -266,6 +279,27 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ribbonPath(ctx, pts, widthAt);
     ctx.fillStyle = gradient;
     ctx.fill();
+
+    // Tip ink flecks — pen-lift spray while the script whip is live.
+    if (reverseBoop && energy > 0.08 && !iosBudget(ship)) {
+        const side = ship.wallJelly?.side < 0 ? -1 : 1;
+        const r = ship.radius ?? 10;
+        const tipCount = Math.min(5, Math.floor(pts.length * 0.35));
+        for (let k = 0; k < tipCount; k++) {
+            const p = pts[k];
+            const seed = p.seed ?? (k + 0.3) / tipCount;
+            const alongTip = 1 - k / Math.max(1, tipCount - 1);
+            const ang = (p.angle ?? 0) + side * (0.6 + seed * 1.4);
+            const dist = r * (0.35 + seed * 1.1) * energy * alongTip;
+            const fx = p.x + Math.cos(ang) * dist * side;
+            const fy = p.y + Math.sin(ang) * dist * 0.75;
+            const fr = r * (0.06 + seed * 0.1) * (0.55 + energy * 0.7);
+            ctx.beginPath();
+            ctx.arc(fx, fy, fr, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${rgb}, ${Math.min(0.85, p.opacity * energy * (0.45 + alongTip * 0.4))})`;
+            ctx.fill();
+        }
+    }
 
     ctx.restore();
 }

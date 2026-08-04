@@ -1,6 +1,8 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Ink `script` boop: bigger calligraphic reverse/whip on mid+tip (still
+//   locked at along≈1); envelope peaks where the ribbon is still visible.
 // - Flux hex + Cinder petal paths; jelly profiles + flick/cinder trail modes.
 // - foldPath is a solid origami kite (no concave hollow notch).
 // - cloud boop puff is isotropic (seed angle), not wall-side biased.
@@ -533,19 +535,33 @@ export function wallTrailDeform(ship, time = performance.now(), {
     if (mode === 'script') {
         // Calligraphic whip: reverse mid-trail / tip only. Newest points
         // (along → 1) stay locked to the hull so the ribbon never disconnects.
-        const tip = Math.pow(1 - a, 1.4);
-        const mid = Math.sin(a * Math.PI);
-        const delay = tip * 0.42;
+        // Envelope peaks ~along 0.2–0.45 so the flourish reads on the still-
+        // opaque ribbon, not only the faded tip.
+        const tip = Math.pow(1 - a, 1.1);
+        const lock = Math.pow(a, 2.4); // hard zero near hull
+        const midBell = Math.sin(Math.min(1, a * 1.15) * Math.PI);
+        const flourish = tip * (1 - lock) * (0.45 + 0.55 * midBell);
+        const delay = tip * 0.22;
         const localT = Math.max(0, Math.min(1, t - delay));
-        const damp = Math.exp(-1.9 * localT);
-        const stroke = Math.sin(localT * Math.PI * 2.4) * damp;
-        const reverse = Math.sin(localT * Math.PI * 1.55) * Math.exp(-2.3 * localT);
-        const w = tip * (0.55 + 0.45 * mid);
+        const damp = Math.exp(-1.45 * localT);
+        // Broad reverse stroke, then a quicker counter-flick (pen lift).
+        const reverse = Math.sin(localT * Math.PI * 1.35) * Math.exp(-1.7 * localT);
+        const stroke = Math.sin(localT * Math.PI * 2.8 + seedPhase * 0.35) * damp;
+        const flick = Math.sin(localT * Math.PI * 4.2) * Math.exp(-2.6 * localT);
+        const w = flourish;
         return {
-            dx: side * r * (0.28 * stroke * w - 0.62 * reverse * tip),
-            dy: r * 0.48 * reverse * tip - r * 0.08 * stroke * w,
-            sx: Math.max(0.62, 1 - 0.14 * Math.abs(stroke) * tip),
-            sy: Math.min(1.32, 1 + 0.2 * Math.abs(reverse) * tip),
+            dx: side * r * (
+                0.55 * stroke * w
+                - 1.35 * reverse * flourish
+                - 0.4 * flick * tip * (1 - lock)
+            ),
+            dy: r * (
+                1.05 * reverse * flourish
+                - 0.28 * stroke * w
+                + 0.35 * flick * tip * (1 - lock)
+            ),
+            sx: Math.max(0.45, 1 - 0.32 * Math.abs(stroke) * flourish),
+            sy: Math.min(1.65, 1 + 0.55 * Math.abs(reverse) * flourish),
         };
     }
 

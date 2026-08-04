@@ -2,7 +2,7 @@
 
 > How to play. No spoilers, just the essentials.
 >
-> Open World high scores are online (call sign + distance). Journey progress
+> Open World high scores are online (call sign, ship, + distance). Journey progress
 > stays on your device.
 
 ## The goal
@@ -35,8 +35,9 @@ The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up. **This is the mode with the leaderboard** — if your run makes the
 board, pick a short call sign on the mission-end screen and submit your
-distance. **High Scores** on the main menu shows the top runs (distance or
-obstacles smashed). No account required.
+distance. The board shows your call sign and the ship you flew
+(`Name, Ship ··· score`). **High Scores** on the main menu shows the top runs
+(distance or obstacles smashed). No account required.
 
 Every run — Journey or Open World — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
@@ -177,7 +178,7 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Mote** | Soft ink disc; a messy organic cloud of micro-dots that drift and re-condense on a wall hit. |
 | **Spine** | Tall thin bar; ladder rungs compress toward the wall on a boop. |
 | **Orbit** | Small planetoid with a tilted ring and one satellite; a continuous orbital path lags behind with dense ellipse ticks. |
-| **Ink** | Quill’s dark twin — a fine ink ribbon whose tip whips backward on a wall boop while staying attached to the hull. |
+| **Ink** | Quill’s dark twin — a fine ink ribbon that flourishes hard on a wall boop (tip reverses, mid swells, a few flecks spray) while staying attached to the hull. |
 | **Flux** | Hex crystal; wake is alternating ink and Signal-Blue dashes that stretch on a wall hit. |
 | **Cinder** | Soft petal; a calm warm ember ribbon that cools into soft ash dots (blue glints mainly on a wall hit). |
 
