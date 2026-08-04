@@ -1,6 +1,11 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - Arc banks: linear full-π half-turn so X closes to startX (snap on finish).
+//   Mid-arc key/tap always starts a fresh full-duration arc from the current
+//   seat (no 0.55× redirect). Vertical speed eases toward the arc target so
+//   camera catch-up doesn't jerk on redirect. Taller climb via arcDuration +
+//   mid-arc verticalBoost 0.55.
 // - iOS canvas budget: shorter wake (48 pts vs 80) to cut fill/path cost on
 //   Safari without changing Android/desktop trail length.
 // - Render stamps `ship._wallTrailMode` from the active skin so wakes can pile
@@ -16,8 +21,7 @@
 // - updateTrail mutates opacities in place (no map/filter/slice per frame) to
 //   cut GC pressure on iOS WKWebView.
 // - Forward motion is one smooth step per frame via `game.tickScale`.
-// - Direction changes: reversing mid-arc uses a shorter redirect duration so
-//   turns don't feel stuck in the sine-arc apex dead zone. Bank eases faster.
+// - Direction changes: bank eases via BANK_SMOOTHING (hull lean, not path).
 // - Zigzag flight style: constant straight lean at ±zigzagAngleDeg from up;
 //   tap/key flips lean — no arcs; touch swipe ignored.
 // - Added `boost`, a cinematic multiplier on forward speed. Gameplay leaves it at
@@ -174,10 +178,10 @@ export class Spacecraft {
             const duration = this.moveState.duration ?? this.arcDuration;
             const elapsed = currentTime - this.moveState.startTime;
             const progress = Math.min(1, elapsed / duration);
-            // Slightly less than a full half-turn so the mid-arc lateral stall
-            // is milder (full π parks horizontal speed at zero at the apex).
+            // Full half-turn so sin(end)=0 and X returns to startX. Linear in
+            // time so the S spreads over the whole climb.
             const angle = (this.moveState.direction === 'left' ? -1 : 1)
-                * Math.PI * 0.85 * progress;
+                * Math.PI * progress;
             const newX = this.moveState.startX + Math.sin(angle) * this.arcRadius;
             
             // Wall collision check
@@ -203,12 +207,16 @@ export class Spacecraft {
                 this.x = newX;
             }
             
-            // Smoother vertical boost during movement. Honour cinematic `boost`
-            // so an arc that ends as the flyout starts doesn't yank the speed.
-            const verticalBoost = Math.sin(progress * Math.PI) * (this.baseSpeed * 0.3);
-            this.verticalVelocity = this.baseSpeed * this.boost + verticalBoost;
+            // Mid-arc boost, eased toward so a fresh bank mid-turn doesn't slam
+            // cruise (camera catch-up would jerk). Honour cinematic `boost`.
+            const verticalBoost = Math.sin(progress * Math.PI) * (this.baseSpeed * 0.55);
+            const desiredVertical = this.baseSpeed * this.boost + verticalBoost;
+            const vKeep = Math.pow(0.86, tickScale);
+            this.verticalVelocity = this.verticalVelocity * vKeep
+                + desiredVertical * (1 - vKeep);
             
             if (progress >= 1) {
+                this.x = this.moveState.startX;
                 this.moveState = null;
             }
         }
@@ -293,19 +301,14 @@ export class Spacecraft {
         // Play turn sound when starting a new movement
         this.game.soundManager.playTurn();
 
-        // Reversing mid-arc: cut the redirect short so the ship doesn't feel
-        // stuck finishing the old turn before it can commit the new one.
-        const reversing = this.moveState
-            && this.moveState.direction
-            && this.moveState.direction !== direction;
-        
-        // Always start fresh movement from the current seat
+        // Always a full symmetrical arc from the current seat — mid-arc left/right
+        // must feel identical to a bank from cruise (no shortened redirect).
         this.moveState = {
             startX: this.x,
             startY: this.y,
             startTime: performance.now(),
             direction,
-            duration: reversing ? this.arcDuration * 0.55 : this.arcDuration,
+            duration: this.arcDuration,
         };
         this.game.soundManager.playMove();
     }

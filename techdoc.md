@@ -388,11 +388,27 @@ carries enough bands to notice.
 
 ## 5. Ship heading
 
-The ship's arc gives a peak lateral speed of roughly `PI * arcRadius / arcDuration`
-— several times the vertical speed — so mid-turn the ship really is travelling
-almost sideways through the world. A circle hides that; any shaped hull doesn't.
-`Spacecraft.updateHeading(prevX, prevY)` therefore derives, from the frame's actual
-displacement:
+### Arc path (flight style `arc`)
+
+While `moveState` is active, lateral X is a closed half-turn, linear in time:
+
+- `angle = ±π · progress` (full half-turn so `sin(end) = 0` and X returns to
+  `startX`)
+- `x = startX + sin(angle) · arcRadius`
+- On `progress ≥ 1`, `x` snaps to `startX` before clearing `moveState`
+
+Tunables: `spacecraft.arcDuration` **820 ms**, `arcRadius` **0.2 × width**,
+mid-arc `verticalBoost = sin(π·p) · 0.55 · baseSpeed` (Y climb is independent of
+the sine; longer duration + boost make a taller swoosh). Any key/tap mid-arc
+starts a **fresh full-duration** arc from the current X (same shape left or
+right). Vertical speed eases toward the arc target so camera catch-up does not
+jerk on redirect. Wall bounce redirect still uses `arcDuration × 0.7`.
+
+Peak lateral speed is on the order of `π · arcRadius / arcDuration` — several
+times the vertical speed — so mid-turn the ship really is travelling almost
+sideways through the world. A circle hides that; any shaped hull doesn't.
+`Spacecraft.updateHeading(prevX, prevY)` therefore derives, from the frame's
+actual displacement:
 
 | Field | Meaning |
 | --- | --- |
@@ -588,8 +604,9 @@ with a linear gradient along the wake's chord for the length-wise fade.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
   `zigzagSpeedScale` × cruise; **touch flips on `touchstart`** (move/end ignored
-  for that gesture), plus **Space** / arrows; Escape pauses. Arc still uses
-  swipe + half-screen tap + arrows (Space pauses). The intro tutorial hint
+  for that gesture), plus **Space** / arrows; Escape pauses. Arc uses swipe +
+  half-screen tap + arrows (Space pauses); banks are **closed** linear full-π
+  swooshes (`arcDuration` 820 ms — see §5). The intro tutorial hint
   matches the active style (`{space}` renders as a bold SPACE keycap).
   Persisted in localStorage.
 

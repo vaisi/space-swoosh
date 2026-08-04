@@ -3,9 +3,11 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - Arc banks: arcDuration 820ms for a taller closed swoosh (linear full-π
+//   path + 0.55 mid-arc vertical boost in Spacecraft).
 // - Zigzag angle/speed tunables are the default flight style (see flightStyle.js).
-// - Snappier turns: shorter arcDuration; camera catch-up tightened so direction
-//   changes don't feel mushy under a lazy follower.
+// - Camera catch-up tightened so direction changes don't feel mushy under a
+//   lazy follower.
 // - Camera: slightly slower floor cruise than the ship + stronger catch-up so
 //   the follower accelerates when the ship leads high (smooth endless-runner feel).
 // - Dropped the dead `obstacles.types` unlock table. Nothing read it, and it had
@@ -37,8 +39,8 @@ export const GameConfig = {
         radius: 1,
         speed: 0.08,
         arcRadius: 0.2,
-        // Wall-clock ms for a full arc. Shorter = punchier direction changes.
-        arcDuration: 520,
+        // Wall-clock ms for a full closed arc (taller swoosh; linear π in Spacecraft).
+        arcDuration: 820,
         // Zigzag (default flight): degrees from straight up (higher = flatter lean).
         zigzagAngleDeg: 52,
         // Along-path speed vs arc cruise (zigzag wants to feel quicker).

@@ -217,8 +217,10 @@ backing out to the menu.
 | Steer (Arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
 | Pause | Escape or the pause button (top-right). In Arc, Space also pauses. | Pause button (top-right) |
 
-You bank in smooth arcs and bounce off the side walls (with a **BOOP**), so plan
-your turns a little ahead.
+In Arc, each bank is a smooth swoosh that curves out and back to the same lane
+you started from, then you fly straight again. Press mid-turn and a full new arc
+starts from where you are — left and right feel the same. You also bounce off the
+side walls (with a **BOOP**), so plan your turns a little ahead.
 
 ## Pausing and quitting
 
@@ -294,7 +296,8 @@ Under **Options → Controls** you can pick how the ship steers:
   (or an arrow key) flips the other way. Swipe is off in this mode. Pause with
   Escape or the pause button. Walls bounce you too (ink **BOOP** + soft blip).
   No arcs — just a clean zig-zag.
-- **Arc** — the classic swoosh turn.
+- **Arc** — the classic swoosh: a tall curve that finishes in the same lane it
+  started.
 
 ## Tips
 
