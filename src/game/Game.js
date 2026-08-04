@@ -2,6 +2,10 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - iOS Safari (web) shares the Capicitor iOS canvas budget: ~60 Hz paint cap,
+//   DPR ≤ 2, opaque 2D context. ProMotion + DPR 3 was melting Safari on
+//   spaceswoosh.app while Android/desktop stayed smooth. tickScale still uses
+//   wall-clock dt so travel speed matches. See core/platform.js.
 // - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
 //   (ink fill, paler rest) spaced under the figure; aligned with pause.
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
@@ -11,16 +15,14 @@
 //   modeOpenWorld pools via goToModeSelect().
 // - Journey Logbook: main-menu entry, logbook screen, toast HUD, Journey-only
 //   discovery hooks via LogbookManager (observe / interact / instant).
-// - iOS native: cap update/render to ~60 Hz (skip rAF ticks under 16.5 ms) so
-//   ProMotion 120 Hz does not double Canvas2D fill-rate; tickScale still uses
-//   wall-clock dt so travel speed stays snappy. Opaque 2D context on native.
-// - Snappy pacing (web + Android): one update per paint, `tickScale = dt * 120`.
-//   Ship updates before camera. Camera is a catch-up follower (cruise + accelerate
-//   when the ship rides too high) so climb feels smooth, not spring-sluggish.
-//   KM from abs(Δcamera.y) * (100/60).
+// - Snappy pacing (Android + non-iOS web): one update per paint,
+//   `tickScale = dt * 120`. Ship updates before camera. Camera is a catch-up
+//   follower (cruise + accelerate when the ship rides too high) so climb feels
+//   smooth, not spring-sluggish. KM from abs(Δcamera.y) * (100/60).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
-//   3 on web / 2 on native) and scales the context so all game math stays in
-//   CSS pixels via this.width / this.height. Menu stamp is BUILD 23.
+//   3 on Android/desktop web / 2 on iOS + native) and scales the context so all
+//   game math stays in CSS pixels via this.width / this.height. Menu stamp is
+//   BUILD 23.
 // - Options → Ship: after picking a vessel, a "Play now" button jumps straight
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
@@ -170,15 +172,20 @@ import {
     loadFlightStyle,
     saveFlightStyle,
 } from '../config/flightStyle.js';
+import {
+    canvasMaxDpr,
+    needsIosCanvasBudget,
+    preferOpaqueCanvas,
+} from '../core/platform.js';
 
 export class Game {
     constructor(config) {
         console.log('Game initializing...'); // Debug log
         this.config = config;
         this.canvas = document.getElementById('gameCanvas');
-        // Opaque buffer on native: we always paint paper first; WKWebView skips
-        // alpha compositing. Web keeps the default (transparent) context.
-        const ctxOpts = Capacitor.isNativePlatform() ? { alpha: false } : undefined;
+        // Opaque buffer when we always paint paper first — native + iOS Safari
+        // skip alpha compositing. Android/desktop web keep the default context.
+        const ctxOpts = preferOpaqueCanvas() ? { alpha: false } : undefined;
         this.ctx = this.canvas.getContext('2d', ctxOpts);
         this.baseUnit = 0;
         this.score = 0;
@@ -221,10 +228,11 @@ export class Game {
         this.snappyHz = 120;
         this.tickScale = 1; // classic paint-ticks covered this frame
         this.dt = 1 / 60; // motion dt for obstacle `* dt` paths (= tick/60)
-        // iOS ProMotion can fire rAF at 120 Hz; Canvas2D can't keep up in
-        // WKWebView. Cap worked frames to ~60 Hz; Android/web stay unlocked.
-        this.iosPaintCap =
-            Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+        // iOS (Safari + Capicitor WKWebView): ProMotion can fire rAF at 120 Hz
+        // and Canvas2D can't keep up. Cap worked frames to ~60 Hz; Android and
+        // non-iOS web stay unlocked (one update per paint).
+        this.iosCanvasBudget = needsIosCanvasBudget();
+        this.iosPaintCap = this.iosCanvasBudget;
         this.minFrameMs = 1000 / 60;
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
@@ -314,8 +322,8 @@ export class Game {
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
-        // Web 3×; native 2× (1× looked pixelated and did not fix pacing).
-        const maxDpr = Capacitor.isNativePlatform() ? 2 : 3;
+        // Android/desktop web ≤3×; iOS (Safari + native) and all Capicitor ≤2×.
+        const maxDpr = canvasMaxDpr();
         const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
         this.width = cssWidth;

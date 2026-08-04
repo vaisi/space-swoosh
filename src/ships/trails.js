@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - iOS canvas budget (via game.iosCanvasBudget): skip ribbon smudge pass, skip
+//   dense-mark midpoints, thin Mote cloud dots — Safari fill-rate relief only.
 // - Flux `drawDashTrail`: alternating ink / signal dashes (new trail type).
 // - Cinder `drawCinderTrail`: calm ember ribbon + cool ash dots (no time
 //   jitter); soft ink edge; sparse signal glints on boop.
@@ -207,6 +209,10 @@ export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
     }
 }
 
+function iosBudget(ship) {
+    return !!ship?.game?.iosCanvasBudget;
+}
+
 export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const {
         widthScale = 1,
@@ -217,6 +223,9 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
     } = opts;
     const pts = wakePoints(ship, trail, toScreenY);
     if (pts.length < 3) return;
+
+    // Soft outer smudge is a second full gradient fill — drop on iOS Safari.
+    const useSmudge = smudge && !iosBudget(ship);
 
     // Ink / script: tip/mid reverse lives in wallTrailDeform('script').
     // Never reverse point order — that yanked the ribbon off the hull.
@@ -246,7 +255,7 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.save();
     const baseAlpha = ctx.globalAlpha;
 
-    if (smudge) {
+    if (useSmudge) {
         ribbonPath(ctx, pts, (i) => widthAt(i) * 2.2);
         ctx.globalAlpha = baseAlpha * 0.22;
         ctx.fillStyle = gradient;
@@ -363,6 +372,8 @@ function denseTrailMarks(ship, trail, toScreenY) {
     const marks = [];
     const len = trail.length;
     const denom = Math.max(1, len - 1);
+    // Midpoints roughly double mark count — skip on the iOS canvas budget.
+    const withMids = !iosBudget(ship);
     for (let i = 0; i < len; i++) {
         const p = trail[i];
         const seed = p.seed ?? (i * 0.17) % 1;
@@ -379,7 +390,7 @@ function denseTrailMarks(ship, trail, toScreenY) {
             seed,
             along,
         });
-        if (i < len - 1) {
+        if (withMids && i < len - 1) {
             const nxt = trail[i + 1];
             const midSeed = ((p.seed ?? seed) + (nxt.seed ?? seed)) * 0.5;
             const midAlong = (along + (i + 1) / denom) * 0.5;
@@ -796,8 +807,10 @@ export function drawCloudTrail(ctx, ship, trail, toScreenY, opts = {}) {
         const condense = energy > 0 ? (1 - energy * along * 0.65) : 1;
         // Messy Focus cousin: several independent dots in a soft radial cloud.
         // Hashes are zero-mean in angle (not mirrored pairs) so it stays organic
-        // without always leaning one screen side.
-        const count = 3 + ((fract(seed * 17.13) * 3) | 0);
+        // without always leaning one screen side. iOS: 1–2 dots (was 3–5).
+        const count = iosBudget(ship)
+            ? 1 + ((fract(seed * 17.13) * 2) | 0)
+            : 3 + ((fract(seed * 17.13) * 3) | 0);
         const screenY = toScreenY(p.y + d.dy);
         for (let k = 0; k < count; k++) {
             const u = fract(seed * 12.9898 + k * 0.6180339887);

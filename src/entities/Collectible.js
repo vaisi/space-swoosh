@@ -5,6 +5,7 @@
 // means "good / active" (the same hue as the shield), so it reads as safe to
 // grab versus the solid-ink hazards.
 // Changes:
+// - iOS canvas budget: skip soft signalSoft halo (large translucent fill).
 // - Reduced sparkle/diamond size from 1.6× to 1.15× baseUnit so pickups feel
 //   less oversized relative to the ship and asteroids.
 // - Created file: the sparkle collectible entity (render + circle collision).
@@ -42,10 +43,13 @@ export class Collectible {
         ctx.translate(this.x, relativeY);
 
         // Soft signal glow halo — telegraphs "collect me" with no new texture.
-        ctx.beginPath();
-        ctx.arc(0, 0, r * 1.9, 0, Math.PI * 2);
-        ctx.fillStyle = color.signalSoft;
-        ctx.fill();
+        // Skip on iOS Safari: large translucent discs are a fill-rate tax.
+        if (!this.game.iosCanvasBudget) {
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 1.9, 0, Math.PI * 2);
+            ctx.fillStyle = color.signalSoft;
+            ctx.fill();
+        }
 
         // The sparkle itself, solid Signal Blue, slowly rotating.
         ctx.rotate(this.rotation);

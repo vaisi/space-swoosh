@@ -2,6 +2,7 @@
 // Awards "style" points when the ship threads a very narrow gap between two
 // obstacles (a near-miss swoosh past both), with Signal-Blue screen feedback.
 // Changes:
+// - iOS canvas budget: skip the large radial flash fill (rings/streaks remain).
 // - Journey Logbook: instant unlock for Style Swoosh on award.
 // - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
 // - Popup alpha multiplies into the caller's `globalAlpha` instead of replacing
@@ -230,6 +231,8 @@ export class StyleSwooshManager {
                 ctx.fill();
                 ctx.restore();
             } else if (e.type === 'flash') {
+                // Large soft radial — skip on iOS Safari canvas budget.
+                if (this.game.iosCanvasBudget) continue;
                 ctx.save();
                 const gr = ctx.createRadialGradient(e.x, sy, 0, e.x, sy, unit * 6);
                 gr.addColorStop(0, `rgba(${color.signalRgb}, ${0.18 * e.life})`);

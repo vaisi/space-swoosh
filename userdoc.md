@@ -241,7 +241,12 @@ track underneath (no border) that fills as you close on the target.
 
 On phones the game fills the whole screen. Turn arcs and cruise speed are meant
 to feel the same as on a computer — if a build ever feels half-speed with KM
-racing ahead, that build is wrong; report the menu stamp (e.g. `BUILD 22 · NATIVE`).
+racing ahead, that build is wrong; report the menu stamp (e.g. `BUILD 23 · WEB`).
+
+**iPhone / iPad (Safari):** the game paints at a steadier ~60 frames per second
+and a slightly lighter retina resolution so motion stays smooth on Apple
+browsers. Android phones and computers keep the full high-refresh path — travel
+speed and controls stay matched either way.
 
 ## Points
 

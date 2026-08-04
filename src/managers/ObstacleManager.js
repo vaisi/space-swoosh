@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - BlackHole: off-screen cull; on iOS canvas budget skip the large radial
+//   gradient glow (stroke pulse remains) — Safari fill-rate relief.
 // - First scored smash unlocks the DESTROYED HUD row (Game.noteHudDestroyedFromSmash).
 // - Motion-line streaks support count / speedFactor / motionLineAlpha / optional
 //   y-band wrap so the run-start intro can keep a top-of-frame shower that fades.
@@ -747,51 +749,41 @@ class BlackHoleObstacle extends BaseObstacle {
     }
 
     render(ctx) {
+        const screenY = this.game.camera.getRelativeY(this.y);
+        // Glow extends to size*4 — cull when that disc is fully off-screen.
+        if (screenY + this.size * 4 < 0 || screenY - this.size * 4 > this.game.height) {
+            return;
+        }
+
         // Main black hole (pure black)
         ctx.beginPath();
-        ctx.arc(
-            this.x,
-            this.game.camera.getRelativeY(this.y),
-            this.size,
-            0,
-            Math.PI * 2
-        );
-        ctx.fillStyle = '#000000'; // Changed to pure black
+        ctx.arc(this.x, screenY, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = '#000000';
         ctx.fill();
 
-        // Outer glow effect
-        const gradient = ctx.createRadialGradient(
-            this.x,
-            this.game.camera.getRelativeY(this.y),
-            this.size,
-            this.x,
-            this.game.camera.getRelativeY(this.y),
-            this.size * 4
-        );
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // Outer glow — large soft radial fill is expensive on iOS Safari.
+        if (!this.game.iosCanvasBudget) {
+            const gradient = ctx.createRadialGradient(
+                this.x,
+                screenY,
+                this.size,
+                this.x,
+                screenY,
+                this.size * 4
+            );
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-        ctx.beginPath();
-        ctx.arc(
-            this.x,
-            this.game.camera.getRelativeY(this.y),
-            this.size * 4,
-            0,
-            Math.PI * 2
-        );
-        ctx.fillStyle = gradient;
-        ctx.fill();
+            ctx.beginPath();
+            ctx.arc(this.x, screenY, this.size * 4, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
 
         // Pulsing effect
         const pulseSize = this.size * (1.2 + Math.sin(this.pulsePhase) * 0.2);
         ctx.beginPath();
-        ctx.arc(
-            this.x,
-            this.game.camera.getRelativeY(this.y),
-            pulseSize,
-            0,
-            Math.PI * 2
-        );
+        ctx.arc(this.x, screenY, pulseSize, 0, Math.PI * 2);
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         ctx.stroke();

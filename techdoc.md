@@ -5,7 +5,9 @@
 >
 > **BUILD 23:** Zigzag is the default flight style (`Options → Controls`) —
 > straight ±52° lean at 1.45× speed, any input flips; Arc remains selectable.
-> iOS native caps paint to ~60 Hz for WKWebView fill-rate. KM from `abs(Δcamera.y)`.
+> **iOS canvas budget** (Safari web + Capicitor WKWebView): ~60 Hz paint cap,
+> DPR ≤ 2, opaque 2D context, lighter wakes/VFX — fixes ProMotion lag on
+> spaceswoosh.app without changing Android/desktop. KM from `abs(Δcamera.y)`.
 > Journey Logbook: observe → interact discovery journal (Journey-only writes).
 
 ## 1. Overview
@@ -532,20 +534,27 @@ with a linear gradient along the wake's chord for the length-wise fade.
   `dt_motion = tickScale / 60` on each worked frame (clamp `dt` ≤ 50 ms).
   Ship/camera advance classic paint-tick units × `tickScale` so travel-per-second
   matches BUILD 16 web @ ~120 Hz.
-- **iOS native paint cap:** ProMotion can fire rAF at 120 Hz; the loop skips
-  update/render when elapsed < ~16.5 ms so Canvas2D paints ~60 Hz in WKWebView
-  while `tickScale` still covers the full wall gap (speed unchanged). Android and
-  web stay one-update-per-paint.
-- Native creates the 2D context with `{ alpha: false }` (opaque paper every
-  frame). Trail/wake paths mutate or reuse scratch arrays — no per-frame
-  `map`/`filter`/`slice` on the ship wake.
+- **iOS canvas budget** (`core/platform.js` → `game.iosCanvasBudget`): true for
+  iPhone/iPad (Safari tab **and** Capicitor WKWebView), including iPadOS that
+  reports as MacIntel. ProMotion can fire rAF at 120 Hz; the loop skips
+  update/render when elapsed < ~16.5 ms so Canvas2D paints ~60 Hz while
+  `tickScale` still covers the full wall gap (speed unchanged). Android browser,
+  Android app, and desktop stay one-update-per-paint (unlocked).
+- Opaque 2D context (`{ alpha: false }`) on native **and** iOS Safari (paper is
+  always painted first). Trail/wake paths mutate or reuse scratch arrays — no
+  per-frame `map`/`filter`/`slice` on the ship wake.
+- **iOS draw LOD** (gated by `iosCanvasBudget`): trail max 48 pts (else 80);
+  ribbon smudge off; dense-mark midpoints off; Mote cloud 1–2 dots; black-hole
+  radial glow off (+ off-screen cull); collectible soft halo off; style-swoosh
+  flash radial off; Open World `maxOnScreen` soft-capped at 18 (else Infinity).
 - KM is `abs(Δcamera.y) * (100/60)` so the HUD cannot desync from the world.
 - The world scrolls: entities store an absolute `y`; `camera.getRelativeY(y)`
   converts to on-screen Y for rendering and off-screen culling.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
-- Native caps canvas DPR at 2× (web at 3×) for WebView fill-rate; mobile layout
-  stays full-bleed (not letterboxed). Menu stamp: `BUILD 23 · NATIVE` / `WEB`.
+- Canvas DPR: iOS (web + native) and all Capicitor ≤ 2×; Android/desktop web ≤ 3×.
+  Mobile layout stays full-bleed (not letterboxed). Menu stamp:
+  `BUILD 23 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at

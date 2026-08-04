@@ -1,6 +1,8 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - iOS canvas budget: shorter wake (48 pts vs 80) to cut fill/path cost on
+//   Safari without changing Android/desktop trail length.
 // - Render stamps `ship._wallTrailMode` from the active skin so wakes can pile
 //   or spring on wall hits without a trails↔skins import cycle.
 // - `startMovement(direction)` param name restored (was `_direction` while the
@@ -375,7 +377,8 @@ export class Spacecraft {
     updateTrail() {
         const trail = this.trail;
         const fade = 1 / 180;
-        const maxPoints = 80;
+        // iOS Safari: fewer samples → cheaper ribbons / dense marks / clouds.
+        const maxPoints = this.game.iosCanvasBudget ? 48 : 80;
 
         // Fade in place; drop dead heads without allocating a new array.
         let write = 0;

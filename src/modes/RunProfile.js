@@ -5,6 +5,8 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - Open World on iOS canvas budget: soft maxOnScreen (18) so late-run fields
+//   cannot explode Safari draw cost; Android/desktop stay uncapped.
 // - Created file: RunProfile (the contract + shared defaults) and
 //   OpenWorldProfile, which reproduces the endless run's existing numbers
 //   exactly. The obstacle unlock schedule moved here from ObstacleManager, so
@@ -184,5 +186,14 @@ export class RunProfile {
 export class OpenWorldProfile extends RunProfile {
     get goalScore() {
         return this.game.TOTAL_DISTANCE * 100;
+    }
+
+    /**
+     * Uncapped on Android/desktop (historical Open World feel). On iOS Safari
+     * a soft ceiling keeps late-run Canvas2D draw+collision from melting FPS;
+     * Journey already caps via JourneyProfile.
+     */
+    get maxOnScreen() {
+        return this.game.iosCanvasBudget ? 18 : Infinity;
     }
 }
