@@ -5,9 +5,9 @@
 > Open World high scores are online (call sign, ship, + distance; top 100).
 > Your Open World personal best and Journey progress stay on your device.
 >
-> **Look (this build):** Options has a **Light Mode / Dark Mode** toggle (saved
-> on your device). Dark is night paper — charcoal ground, light ink, vivid mint
-> accents. Light is the classic cream paper with Signal Blue.
+> **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
+> Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
+> night paper — charcoal ground, light ink, vivid mint accents.
 
 ## The goal
 

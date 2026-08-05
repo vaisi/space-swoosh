@@ -3,9 +3,9 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **Night paper (`feat/night-paper`):** Dual theme via Options → **Light Mode /
-> Dark Mode** (`brand/theme.js`, key `ssTheme`). Dark: charcoal paper, bone ink,
-> vivid mint signal (`#3DFF9A`). Light: classic cream paper + Signal Blue.
+> **Themes:** Dual theme via Options → **Light Mode / Dark Mode**
+> (`brand/theme.js`, key `ssTheme`). **Default is light** (cream + Signal Blue)
+> when nothing is stored. Dark: charcoal paper, bone ink, vivid mint (`#3DFF9A`).
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
 > **BUILD 23 + Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
@@ -708,11 +708,11 @@ Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
 
 ## 8. Brand system (how visuals stay consistent)
 
-`brand/tokens.js` holds the live `color` object; `brand/theme.js` switches
-**dark** (charcoal `#1C1A16`, bone ink, vivid mint `#3DFF9A`) vs **light**
-(cream paper, near-black ink, Signal Blue). Options hub toggles and persists
-under `ssTheme`. Trail wakes / shields read tokens at draw time; milestone toasts
-use a paper-rgb plate so ink text stays readable on both themes. Canvas code draws through
+`brand/tokens.js` holds the live `color` object (light defaults); `brand/theme.js`
+switches **light** (cream, near-black ink, Signal Blue) vs **dark** (charcoal
+`#1C1A16`, bone ink, vivid mint `#3DFF9A`). Default with no `ssTheme` is light.
+Options hub toggles and persists. Trail wakes / shields read tokens at draw time;
+milestone toasts use a paper-rgb plate so ink text stays readable on both themes. Canvas code draws through
 `utils/BrandDraw.js` helpers so every surface matches. Obstacles and VFX must use
 `color.ink` / `color.inkRgb` — not hard-coded black. The points collectible is a
 four-point **sparkle** (`drawSparkle`) — deliberately distinct from the filled-ink

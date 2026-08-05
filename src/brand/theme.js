@@ -3,6 +3,7 @@
 // SPACE SWOOSH — Light / dark (night paper) theme switching.
 //
 // Changes:
+// - Default theme is light (cream paper) when no `ssTheme` is stored.
 // - Created: two palettes, localStorage persistence, applyTheme() mutates the
 //   shared `color` / `semantic` objects + CSS vars + page shell so canvas and
 //   DOM stay in sync. Clears hull/glow bake caches on switch.
@@ -68,7 +69,7 @@ const PALETTES = {
 };
 
 /** @type {ThemeId} */
-let currentTheme = THEME_DARK;
+let currentTheme = THEME_LIGHT;
 
 /** @returns {ThemeId} */
 export function getTheme() {
@@ -92,7 +93,7 @@ export function loadStoredTheme() {
     } catch (_) {
         /* private mode */
     }
-    return THEME_DARK;
+    return THEME_LIGHT;
 }
 
 /** @param {ThemeId} id */
@@ -168,8 +169,8 @@ function syncPageShell() {
  * @param {{ persist?: boolean }} [opts]
  */
 export function applyTheme(id, { persist = true } = {}) {
-    const palette = PALETTES[id] || PALETTES[THEME_DARK];
-    currentTheme = PALETTES[id] ? id : THEME_DARK;
+    const palette = PALETTES[id] || PALETTES[THEME_LIGHT];
+    currentTheme = PALETTES[id] ? id : THEME_LIGHT;
     Object.assign(color, palette);
     refreshDerivedTokens();
     syncPaintConsts();
