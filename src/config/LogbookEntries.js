@@ -1,6 +1,7 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Added wallBoost: thin Signal-Blue edge slab → shield + speed refresh.
 // - Deflector Smash / Finish Gate copy: flyout smashes still score; results
 //   finalize when the level-clear sequence enters screenIn.
 // - Complex / shooting asteroid copy notes shield smashes clip moons or shots
@@ -193,6 +194,16 @@ const BOOST_ENTRIES = [
         remark: 'Temporary immortality. Do not file under permanent.',
         unlockMode: 'observeThenInteract',
         icon: 'shield',
+    },
+    {
+        id: 'wallBoost',
+        category: 'boosts',
+        name: 'Wall Boost',
+        definition:
+            'A rare thin Signal-Blue slab on a random left or right edge, seen only on deep runs (past 12000 KM). Banking into it grants a fresh deflector shield and a strong forward speed boost. Safer than ink side barriers — blue means charge, not crash.',
+        remark: 'The wall finally has manners.',
+        unlockMode: 'observeThenInteract',
+        icon: 'wallBoost',
     },
     {
         id: 'pointsSparkle',

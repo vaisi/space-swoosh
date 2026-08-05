@@ -3,6 +3,11 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
+> **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
+> (random L/R, ~22s) only after `wallBoostsFromScore` (12000 KM). Collect →
+> `activateShield()` + `activateSpeedBoost()` (1.82× gameplay speed for 5s;
+> refreshes). Separate from cinematic `Spacecraft.boost` used by level-clear flyout.
+>
 > **Themes:** Dual theme via Options → **Light Mode / Dark Mode**
 > (`brand/theme.js`, key `ssTheme`). **Default is light** (cream + Signal Blue)
 > when nothing is stored. Dark: charcoal paper, bone ink, vivid mint (`#3DFF9A`).
@@ -117,11 +122,11 @@ game build env. Journey progress and Open World personal best stay in
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
-| `entities/Spacecraft.js` | Ship movement, heading, trail data, shield; render delegates to active skin. |
+| `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
 | `entities/Collectible.js` | The Signal-Blue sparkle points pickup (render + collision). |
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
 | `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. |
-| `managers/PowerUpManager.js` | Shield pickups (spawn + collect → activate shield). |
+| `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup below the hull. |
@@ -223,7 +228,7 @@ built by `createRunProfile()` and hung off `game.profile`:
 | --- | --- |
 | `goalScore`, `isRunComplete()`, `progress()`, `isEndless` | `Game.update()` win check, HUD goal bar |
 | `density()`, `baseClusterCount()`, `maxOnScreen`, `gapRange()`, `simpleChance`, `focusType`, `unlocksBy()`, `advancedBlackHoles`, `obstaclesFromScore` (default 0) | `ObstacleManager` |
-| `shieldsFromScore` / `collectiblesFromScore` | `PowerUpManager` / `CollectibleManager` |
+| `shieldsFromScore` / `wallBoostsFromScore` / `collectiblesFromScore` | `PowerUpManager` / `CollectibleManager` |
 | `speedMultiplier` | `Spacecraft.baseSpeed` |
 | `runsTutorial` | `ObstacleManager` tutorial phase |
 | `submitsScore`, `introMessage`, `title` | `Game` end-of-run flow, milestone log |
@@ -315,7 +320,7 @@ A science-journal discovery system. **Writes only during Journey runs**
 
 **State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`spaceBoop`, `styleSwoosh`, `deflectorSmash`, `spaceTravelBoost`) jump straight to `known`.
 
-**Hooks (Journey only):** on-screen obstacles/power-ups/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash / clear-boost phase → instant.
+**Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash / clear-boost phase → instant.
 
 **Future:** From the Void will hold beta-tester messages picked up around 11 km in endless Journey — category shell only for now.
 
@@ -483,10 +488,22 @@ implementations in `ObstacleManager.js` needed to change. While `shieldActive`,
 `hitCircles` collapses to a single `radius * 1.5` circle: the bubble that's
 actually drawn.
 
-Scope: obstacles only. `CollectibleManager` and `PowerUpManager` still test the
-generous `radius` circle so pickups stay easy to grab, and wall bounce plus
+Scope: obstacles only. `CollectibleManager` and the floating shield plus still
+test the generous `radius` circle so pickups stay easy to grab. Wall-boost slabs
+use an AABB (thin edge bar) against `spacecraft.radius`. Wall bounce plus
 `StyleSwooshManager` clearance also still use `radius`. Add `?hitbox` to the URL
 to stroke the live circles in Signal Blue over the ship.
+
+**Power-ups (`PowerUpManager`):** typed by `kind`. After `profile.shieldsFromScore`,
+spawns the floating plus every 5s → `activateShield()` only. After
+`profile.wallBoostsFromScore` (default **12000** KM), spawns `WallBoostPowerUp`
+every ~22s on a random left or right edge → `activateShield()` +
+`activateSpeedBoost()`. On contact the slab runs a ~220ms ease-in retract into
+the edge (button press) and fires `WallBoopManager.triggerBoop`; buffs grant
+immediately, the entity removes when the press finishes. Speed boost is a 5s /
+**1.82×** multiplier on forward speed via `Spacecraft.forwardSpeedScale()`
+(`boost * speedBoostMultiplier()`), independent of cinematic `boost`.
+Re-collecting refreshes both timers.
 
 Obstacle probes are meant to hug the drawn ink:
 

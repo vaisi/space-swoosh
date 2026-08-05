@@ -1,6 +1,7 @@
 // LogbookManager.js
 // Journey-only façade: maps gameplay events → logbook progress + toast.
 // Changes:
+// - Wall boost pickups: observe by kind on-screen; interact on collect.
 // - Created file: observe / interact / instant, same-frame toast debounce,
 //   on-screen visibility helpers for obstacles and pickups.
 
@@ -128,13 +129,24 @@ export class LogbookManager {
         const h = this.game.height;
         for (const p of this.game.powerUpManager?.powerUps ?? []) {
             const relY = cam.getRelativeY(p.y);
-            if (relY + p.size < 0 || relY - p.size > h) continue;
+            if (p.kind === 'wallBoost') {
+                const half = (p.height ?? 0) / 2;
+                if (relY + half < 0 || relY - half > h) continue;
+                this.observe('wallBoost');
+                continue;
+            }
+            const size = p.size ?? this.game.baseUnit;
+            if (relY + size < 0 || relY - size > h) continue;
             this.observe('shield');
         }
     }
 
     onShieldCollected() {
         this.interact('shield');
+    }
+
+    onWallBoostCollected() {
+        this.interact('wallBoost');
     }
 
     scanCollectiblesVisible() {

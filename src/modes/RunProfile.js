@@ -5,6 +5,7 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - `wallBoostsFromScore` (default 12000): deep-run wall-boost slab gate.
 // - `obstaclesFromScore` (default 0): Journey overrides to a shared early KM
 //   mark; Open World spawns as soon as intro ends.
 // - Open World on iOS draw LOD: soft maxOnScreen (18) so late-run fields
@@ -101,6 +102,11 @@ export class RunProfile {
     // --- Pickups ---------------------------------------------------------
     get shieldsFromScore() {
         return 500;
+    }
+
+    /** Deep-run wall-boost slabs; Open World / long flights only by default. */
+    get wallBoostsFromScore() {
+        return 12000;
     }
 
     get collectiblesFromScore() {

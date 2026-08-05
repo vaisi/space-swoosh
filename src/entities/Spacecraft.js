@@ -1,6 +1,8 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - Gameplay `speedBoost` (1.82×, 5s, refreshable) from wall-boost pickups —
+//   separate from cinematic `boost` so level-clear flyout is untouched.
 // - Arc banks: linear full-π half-turn so X closes to startX (snap on finish).
 //   Mid-arc key/tap always starts a fresh full-duration arc from the current
 //   seat (no 0.55× redirect). Vertical speed eases toward the arc target so
@@ -81,6 +83,11 @@ export class Spacecraft {
         // up by the level-clear flyout.
         this.boost = 1;
 
+        // Gameplay speed boost from wall-slab pickups (independent of cinematic boost).
+        this.speedBoostTimer = 0;
+        this.speedBoostDuration = 5000;
+        this.speedBoostFactor = 1.82; // 30% bigger than the original 1.4× wall boost
+
         this.trail = [];
         this.moveState = null;
         // Zigzag: +1 = lean right, -1 = lean left (straight at zigzagAngleDeg).
@@ -120,6 +127,7 @@ export class Spacecraft {
         this.moveState = null;
         this.zigzagSign = 1;
         this.boost = 1;
+        this.speedBoostTimer = 0;
         this.isVisible = true;
         this.wormholeTransit = false;
         this.wallJelly = null;
@@ -128,7 +136,19 @@ export class Spacecraft {
         this.speed = 0;
         this.prevX = this.x;
         this.prevY = this.y;
+        this.shieldActive = false;
+        this.shieldTimer = 0;
+        this.shieldWarningStarted = false;
         this.updateHitCircles();
+    }
+
+    /** Combined cinematic × gameplay forward multiplier. */
+    speedBoostMultiplier() {
+        return this.speedBoostTimer > 0 ? this.speedBoostFactor : 1;
+    }
+
+    forwardSpeedScale() {
+        return this.boost * this.speedBoostMultiplier();
     }
 
     isZigzag() {
@@ -168,12 +188,13 @@ export class Spacecraft {
             this.updateHeading(prevX, prevY);
             this.updateTrail();
             this.updateShield(tickScale);
+            this.updateSpeedBoost(tickScale);
             this.updateHitCircles();
             return;
         }
 
         // Smooth vertical movement — one frame, snappy tickScale (see Game).
-        const targetVerticalSpeed = this.baseSpeed * this.boost;
+        const targetVerticalSpeed = this.baseSpeed * this.forwardSpeedScale();
         const keep = Math.pow(0.95, tickScale);
         this.verticalVelocity = this.verticalVelocity * keep + targetVerticalSpeed * (1 - keep);
         this.y -= this.verticalVelocity * (1 / 60) * tickScale;
@@ -214,9 +235,9 @@ export class Spacecraft {
             }
             
             // Mid-arc boost, eased toward so a fresh bank mid-turn doesn't slam
-            // cruise (camera catch-up would jerk). Honour cinematic `boost`.
+            // cruise (camera catch-up would jerk). Honour cinematic + gameplay boost.
             const verticalBoost = Math.sin(progress * Math.PI) * (this.baseSpeed * 0.55);
-            const desiredVertical = this.baseSpeed * this.boost + verticalBoost;
+            const desiredVertical = this.baseSpeed * this.forwardSpeedScale() + verticalBoost;
             const vKeep = Math.pow(0.86, tickScale);
             this.verticalVelocity = this.verticalVelocity * vKeep
                 + desiredVertical * (1 - vKeep);
@@ -230,6 +251,7 @@ export class Spacecraft {
         this.updateHeading(prevX, prevY);
         this.updateTrail();
         this.updateShield(tickScale);
+        this.updateSpeedBoost(tickScale);
 
         // Last, so the circles reflect this frame's final position, bank and
         // shield state before ObstacleManager tests them.
@@ -242,7 +264,7 @@ export class Spacecraft {
         const cfg = this.game.config.spacecraft;
         const deg = cfg.zigzagAngleDeg ?? 52;
         const rad = (deg * Math.PI) / 180;
-        const speed = this.baseSpeed * this.boost * (cfg.zigzagSpeedScale ?? 1.45);
+        const speed = this.baseSpeed * this.forwardSpeedScale() * (cfg.zigzagSpeedScale ?? 1.45);
         const dist = speed * (1 / 60) * tickScale;
 
         this.x += Math.sin(rad) * this.zigzagSign * dist;
@@ -272,7 +294,9 @@ export class Spacecraft {
     updateShield(tickScale) {
         if (!this.shieldActive) return;
         this.shieldTimer -= (1000 / 60) * tickScale;
-        this.shieldPulse += 0.1 * tickScale;
+        // Slightly snappier pulse while speed-boosted so the dual buff reads.
+        const pulseRate = this.speedBoostTimer > 0 ? 0.14 : 0.1;
+        this.shieldPulse += pulseRate * tickScale;
 
         if (this.shieldTimer < 1500 && !this.shieldWarningStarted) {
             this.shieldWarningStarted = true;
@@ -283,6 +307,12 @@ export class Spacecraft {
             this.shieldActive = false;
             this.shieldWarningStarted = false;
         }
+    }
+
+    updateSpeedBoost(tickScale) {
+        if (this.speedBoostTimer <= 0) return;
+        this.speedBoostTimer -= (1000 / 60) * tickScale;
+        if (this.speedBoostTimer < 0) this.speedBoostTimer = 0;
     }
 
     /** Zigzag: flip lean. Arc mode ignores this. */
@@ -514,5 +544,9 @@ export class Spacecraft {
         this.shieldWarningStarted = false;
         this.shieldPulse = 0;
         this.updateHitCircles();
+    }
+
+    activateSpeedBoost() {
+        this.speedBoostTimer = this.speedBoostDuration;
     }
 }

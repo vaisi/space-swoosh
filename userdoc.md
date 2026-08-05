@@ -2,6 +2,11 @@
 
 > How to play. No spoilers, just the essentials.
 >
+> **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
+> sometimes lights up on the left or right edge. Bank into it for a fresh shield
+> and a strong speed rush. Black side barriers are still deadly — only the blue
+> edge is a gift.
+>
 > Open World high scores are online (call sign, ship, + distance; top 100).
 > Your Open World personal best and Journey progress stay on your device.
 >
@@ -115,7 +120,7 @@ Categories:
 | Tab | What it holds |
 | --- | --- |
 | Obstacles | Asteroids, barriers, wormholes, black holes, Space BOOP, … |
-| Boosts | Shield, point sparkles, style swoosh, finish gate, clear boost, … |
+| Boosts | Shield, wall boost, point sparkles, style swoosh, finish gate, clear boost, … |
 | Levels | One flight report per Journey level (story placeholders for now) |
 | From the Void | Reserved for future transmissions — empty for now |
 
@@ -294,12 +299,19 @@ total points are shown live in the HUD and again on the mission-end screen.
 
 ## Shields
 
-Blue shield pickups give you a temporary shield. While it's up you can plow
-through asteroids (destroying them for points) instead of crashing. On a big
-asteroid with orbiting debris moons — or a star that fires shots — you only
-smash what you hit: clip a moon or a shot and the main rock stays; ram the body
-and the whole thing goes. The shield pulses faster right before it runs out —
-pick your moment.
+Blue shield pickups (the pulsing **plus**) give you a temporary shield. While
+it's up you can plow through asteroids (destroying them for points) instead of
+crashing. On a big asteroid with orbiting debris moons — or a star that fires
+shots — you only smash what you hit: clip a moon or a shot and the main rock
+stays; ram the body and the whole thing goes. The shield pulses faster right
+before it runs out — pick your moment.
+
+A rare **wall boost** appears only after **12000 KM**: a thin blue slab on a
+random left or right edge. Fly into it and it presses into the wall like a
+button (with a **BOOP**), giving you the same shield plus a strong speed burst.
+Grabbing another plus or wall boost while you're already powered up refreshes
+the timers. Don't confuse it with the thick **black** side barriers — those
+still end the run.
 
 Blue **portal** rings are also safe: fly into one and you hear a deep echoing
 warp suck you in, then a second warp as you emerge ahead with a fresh shield.

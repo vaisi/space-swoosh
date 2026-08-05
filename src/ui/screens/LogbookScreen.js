@@ -1,6 +1,7 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - Icon for wallBoost: single thin Signal-Blue edge bar.
 // - Night paper: black-hole icon gradient uses inkRgb (bone) instead of near-black.
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Scrollable taller cards again (not a one-card pager). Real in-game obstacle
@@ -377,6 +378,11 @@ export function drawEntryIcon(ctx, icon, cx, cy, size, dimmed) {
             ctx.moveTo(0, -size * 0.2);
             ctx.lineTo(0, size * 0.2);
             ctx.stroke();
+            break;
+        case 'wallBoost':
+            // Single thin blue edge bar (random L/R in-run; icon hugs left).
+            ctx.fillStyle = signal;
+            ctx.fillRect(-size * 0.48, -size * 0.42, size * 0.16, size * 0.84);
             break;
         case 'pointsSparkle':
             drawSparkle(ctx, 0, 0, size * 0.48, { fill: signal });

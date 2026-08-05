@@ -3,6 +3,7 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Motif `wallBoost`: thin Signal-Blue edge slab (shield + speed pickup).
 // - Theme toggle: `color` is mutated in place by brand/theme.js (light cream /
 //   dark night-paper). Defaults below are light until initTheme() runs.
 // - Night paper (feat/night-paper): dark palette + vivid mint live in theme.js;
@@ -159,6 +160,7 @@ export const motif = {
         pulsar:   { shape: 'circle (scaling)',  fill: 'ink',    role: 'Pulsating / unstable asteroid' },
         comet:    { shape: 'circle + trail',    fill: 'ink',    role: 'Fast comet fly-by' },
         barrier:  { shape: 'bar',               fill: 'ink',    role: 'Side barrier (screen edge)' },
+        wallBoost:{ shape: 'thin bar',          fill: 'signal', role: 'Edge slab — shield + speed on contact' },
         // --- Anomalies (hazards) ---
         blackhole:{ shape: 'disc + glow + ring',fill: 'ink',    role: 'Gravity well — pulls the ship in' },
         teleport: { shape: 'dashed ring',       fill: 'signal', role: 'Wormhole gate — teleports + grants shield' },
