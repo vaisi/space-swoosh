@@ -4,6 +4,8 @@
 // (src/brand/tokens.js) to the <canvas> game surface.
 //
 // Changes:
+// - drawFramedButton insets the label with horizontal padding and shrinks the
+//   type to fit, so short tags like BACK no longer hug the left frame edge.
 // - Created file: geometric-minimalism drawing primitives shared by the HUD and
 //   the end screens so every canvas surface reads from the same brand tokens as
 //   the DOM/CSS. Retires the hand-drawn Comic Sans + Arial look:
@@ -14,8 +16,6 @@
 //     * drawReticle()       — the crosshair focus glyph (the ship / monogram)
 //     * drawSparkle()       — the four-point points-collectible glyph
 //     * setLabelType/setMonoType/setDisplayType — brand type presets for canvas
-//
-// Changes:
 // - drawSparkle() takes an optional `stroke`, drawing the sparkle hollow. Used
 //   for stars not yet earned, where a faint fill read as a gap in the layout.
 // - Added drawSparkle(): a solid four-point sparkle (points at N/E/S/W) used for
@@ -126,14 +126,28 @@ export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary =
         ctx.fillText(tag, x + labelAreaW + tagW / 2, y + h / 2 + 1);
     }
 
-    // Label — uppercase, wide tracking.
-    const size = labelPx ?? Math.min(baseUnit * 1.5, h * 0.42);
+    // Label — uppercase, tracking, padded so it never kisses the frame / hairline.
+    const text = String(label).toUpperCase();
+    const padX = Math.max(baseUnit * 0.7, h * 0.22);
+    const labelMaxW = Math.max(8, labelAreaW - padX * 2);
+    let size = labelPx ?? Math.min(baseUnit * 1.5, h * 0.42);
+    const minPx = Math.max(9, Math.min(size, h * 0.28));
+
     ctx.fillStyle = primary ? color.paper : color.ink;
-    ctx.font = `700 ${size}px ${font.ui}`;
-    ctx.letterSpacing = `${0.08 * size}px`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(label).toUpperCase(), x + labelAreaW / 2, y + h / 2 + 1);
+    const applyLabelFont = (px) => {
+        ctx.font = `700 ${px}px ${font.ui}`;
+        // Slightly tighter tracking than before — wide spacing + center align
+        // optically shoved short labels into the left border on narrow tiles.
+        ctx.letterSpacing = `${0.05 * px}px`;
+    };
+    applyLabelFont(size);
+    while (size > minPx && ctx.measureText(text).width > labelMaxW) {
+        size -= 0.5;
+        applyLabelFont(size);
+    }
+    ctx.fillText(text, x + padX + labelMaxW / 2, y + h / 2 + 1);
 
     resetType(ctx);
     ctx.restore();

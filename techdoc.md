@@ -190,7 +190,9 @@ The cream panel vs dark ink surround comes from the page shell in `index.html`
 only; `drawScreenFrame` was removed.
 
 - `Game.drawScreenHeader(title, { back })` draws the Back control + centred title
-  and a closing dotted rule; it returns `{ backRect, contentTop }`.
+  and a closing dotted rule; it returns `{ backRect, contentTop }`. Back uses a
+  slightly wider tile and a stepped-down `labelPx`; `drawFramedButton` also
+  insets/fits labels so short tags do not hug the left frame.
 - `drawRuledLabel()` is the small caps section label with dotted rules; `drawDivider()`
   separates bands.
 - `fitPx()` shrinks a string until it fits its box; `wrapLines()` wraps to N lines.

@@ -46,6 +46,8 @@
 //   lock; closeNameInputModal() is shared by the modal close button and Android
 //   hardware back (game/BackNavigation.js). Analytics goes through
 //   services/Analytics.js instead of bare gtag (which threw when blocked).
+// - Screen-header Back control: slightly wider tile + smaller labelPx so the
+//   word isn't jammed against the left frame on mobile.
 // - Clearing a Journey level runs a flyout (game/LevelClearSequence.js) instead of
 //   holding the world for a beat: the sequence owns the `gameover` update/render
 //   branches while `levelClear` is live, and drives `gameOverAlpha` itself. Input
@@ -1154,8 +1156,16 @@ export class Game {
 
         let backRect = null;
         if (back) {
-            const backW = Math.max(unit * 9, this.width * 0.19);
-            backRect = this.drawBrandButton(L.left, y, backW, barH, 'Back', { tag: '\u2190' });
+            // A touch wider + a step-down label so "BACK" has air from the frame
+            // on phone widths (shared by every screen that uses this header).
+            const backW = Math.max(unit * 10.5, this.width * 0.22);
+            const backLabelPx = L.isMobile
+                ? Math.min(unit * 1.55, 17)
+                : Math.min(unit * 1.45, 16);
+            backRect = this.drawBrandButton(L.left, y, backW, barH, 'Back', {
+                tag: '\u2190',
+                labelPx: backLabelPx,
+            });
         }
 
         ctx.save();
