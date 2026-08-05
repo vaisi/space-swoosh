@@ -5,6 +5,8 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
+// - Entering screenIn finalizes the Journey result (finalScore + finishJourneyLevel)
+//   so shield smashes during hold/boost/fadeOut count toward the outcome.
 // - Flyout keeps the ship's lean (zigzag sign / captured arc heading) instead of
 //   easing to centre — hyperspeed exit via cinematicFlight.
 // - Journey Logbook: Space Travel Boost unlocks when the boost phase begins.
@@ -116,7 +118,7 @@ export class LevelClearSequence {
     updateFadeOut(elapsed, dt) {
         const t = clamp01(elapsed / FADE_OUT_MS);
         this.worldAlpha = 1 - t;
-        // The readout goes first: its job ended when the goal was crossed.
+        // The readout fades first so the exit reads as the ship leaving the HUD.
         this.hudAlpha = clamp01(1 - t * 1.6);
         this.streamWorld(CAMERA_BOOST, dt);
 
@@ -151,7 +153,7 @@ export class LevelClearSequence {
         camera.y += this.cameraSpeed * cameraFactor * dt;
         camera.totalDistance = Math.abs(camera.y);
 
-        // Obstacles tick on game.dt (set by Game.update) — smash VFX only.
+        // Obstacles tick on game.dt (set by Game.update) — smash VFX + scoring.
         obstacleManager.update();
         obstacleManager.updateMotionLines();
         milestoneManager.update();
@@ -170,6 +172,9 @@ export class LevelClearSequence {
             this.game.obstacleManager.motionLines = [];
             this.game.obstacleManager.motionLineAlpha = 0.3;
             this.game.obstacleManager.motionLineBand = null;
+            // World no longer streams — lock score / stars / outcome for the fade-in.
+            this.game.finalScore = Math.floor(this.game.score);
+            this.game.finishJourneyLevel(true);
         }
     }
 

@@ -1,6 +1,9 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Journey level-clear flyout smashes now award points / score / DESTROYED like
+//   normal play (SFX still throttled via canPlayCinematicCrash). Finalization
+//   waits until LevelClearSequence enters screenIn.
 // - Invisible-death fixes: (1) obstacles update *before* collision so orbiting
 //   moons / movers match the ink this frame; (2) ComplexAsteroid render cull
 //   uses the full core+moon radius (core-only cull left lethal moons on-screen
@@ -45,11 +48,8 @@
 // - Destroying an asteroid (shield collision) now also awards
 //   config.points.perAsteroid to the new points total, and the floating popup
 //   shows the points earned (Space Mono, ink) instead of the old "+10" / Arial.
-// - `pauseSpawning` is honoured (it was set but never read), and during the
-//   Journey level-clear flyout a shielded smash keeps its particles but leaves
-//   score / points / destroyed alone — the run is already scored —
-//   with the crash sound throttled. The motion-line streaks written for the
-//   never-fired tutorial cutscene are now also the flyout's speed lines.
+// - `pauseSpawning` is honoured; flyout crash sound stays throttled. Motion-line
+//   streaks from the tutorial cutscene are also the flyout's speed lines.
 // - Row width and cluster size now respect `profile.maxRowSpawns()` /
 //   `maxClusterCount()`, so early Journey levels stay at one rock per line.
 
@@ -1301,10 +1301,8 @@ export class ObstacleManager {
 
             if (ship.collidesWith(obstacle)) {
                 if (this.game.spacecraft.shieldActive) {
-                    // The level-clear flyout is a shielded ram through whatever is
-                    // left: it keeps the smash, but the run is already scored, so
-                    // nothing it hits may touch the numbers. And a rapid smash-fest
-                    // would machine-gun the crash sound.
+                    // Flyout smashes still score; throttle crash SFX so a row of
+                    // rocks at exit speed doesn't machine-gun the speaker.
                     const cinematic = this.game.levelClear?.active;
 
                     // Complex / shooting asteroids: clip only moons or shots you
@@ -1326,14 +1324,12 @@ export class ObstacleManager {
                                     ? obstacle.createSatelliteDestructionParticles(part)
                                     : obstacle.createProjectileDestructionParticles(part);
                                 this.destructionParticles.push(...particles);
-                                if (!cinematic) {
-                                    const pts = this.game.config.points.perAsteroid;
-                                    this.game.points += pts;
-                                    this.showScorePopup(part.x, part.y, `+${pts}`);
-                                    this.game.score += 10;
-                                    this.game.obstaclesDestroyed++;
-                                    this.game.noteHudDestroyedFromSmash?.();
-                                }
+                                const pts = this.game.config.points.perAsteroid;
+                                this.game.points += pts;
+                                this.showScorePopup(part.x, part.y, `+${pts}`);
+                                this.game.score += 10;
+                                this.game.obstaclesDestroyed++;
+                                this.game.noteHudDestroyedFromSmash?.();
                             }
                             this.game.logbook?.onObstacleInteract?.(obstacle);
                             this.game.logbook?.onDeflectorSmash?.();
@@ -1351,16 +1347,14 @@ export class ObstacleManager {
                         ...obstacle.createDestructionParticles()
                     );
 
-                    if (!cinematic) {
-                        // Award points for the destroyed asteroid + floating popup.
-                        const pts = this.game.config.points.perAsteroid;
-                        this.game.points += pts;
-                        this.showScorePopup(obstacle.x, obstacle.y, `+${pts}`);
-                        // Keep the existing distance bonus + destroyed counter.
-                        this.game.score += 10;
-                        this.game.obstaclesDestroyed++; // Journey's smash-star counter
-                        this.game.noteHudDestroyedFromSmash?.();
-                    }
+                    // Award points for the destroyed asteroid + floating popup.
+                    const pts = this.game.config.points.perAsteroid;
+                    this.game.points += pts;
+                    this.showScorePopup(obstacle.x, obstacle.y, `+${pts}`);
+                    // Keep the existing distance bonus + destroyed counter.
+                    this.game.score += 10;
+                    this.game.obstaclesDestroyed++; // Journey's smash-star counter
+                    this.game.noteHudDestroyedFromSmash?.();
                     this.game.logbook?.onObstacleInteract?.(obstacle);
                     this.game.logbook?.onDeflectorSmash?.();
                     return false; // Remove the obstacle

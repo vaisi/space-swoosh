@@ -49,10 +49,11 @@
 // - Clearing a Journey level runs a flyout (game/LevelClearSequence.js) instead of
 //   holding the world for a beat: the sequence owns the `gameover` update/render
 //   branches while `levelClear` is live, and drives `gameOverAlpha` itself. Input
-//   is swallowed until it finishes (not skippable). `renderWorld()` takes
-//   `{ hudAlpha }` so the readout can fade ahead of the world, and
-//   `drawBrandButton()` accepts a `labelPx` override for buttons too narrow for
-//   the default label size.
+//   is swallowed until it finishes (not skippable). `finishJourneyLevel(true)`
+//   waits until the flyout enters `screenIn` so post-gate smashes count.
+//   `renderWorld()` takes `{ hudAlpha }` so the readout can fade ahead of the
+//   world, and `drawBrandButton()` accepts a `labelPx` override for buttons too
+//   narrow for the default label size.
 // - Journey draws a world-space finish line (dotted rule + Signal-Blue end ticks)
 //   that fades in on approach and locks when the goal is crossed so the flyout
 //   can pass through it.
@@ -2222,11 +2223,10 @@ export class Game {
         this.hasWon = true;
         this.updatePauseButtonVisibility();
         this.soundManager?.stopBGM?.();
-        // Snapshot the result first: the flyout that follows must not be able to
-        // change what the outcome screen reports. Lock the finish line here so
-        // the ship can fly through a fixed mark rather than dragging it along.
+        // Lock the finish line here so the ship can fly through a fixed mark.
+        // Journey results finalize when the flyout enters screenIn — smashes
+        // during hold/boost/fadeOut still count toward points / destroyed / stars.
         this.logbook?.onFinishGateCrossed?.();
-        this.finishJourneyLevel(true);
         this.finishLineWorldY = this.spacecraft.y;
         this.levelClear = new LevelClearSequence(this);
         this.logbook?.flushToast?.();

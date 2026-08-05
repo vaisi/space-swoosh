@@ -1,6 +1,8 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Deflector Smash / Finish Gate copy: flyout smashes still score; results
+//   finalize when the level-clear sequence enters screenIn.
 // - Complex / shooting asteroid copy notes shield smashes clip moons or shots
 //   separately from the parent body.
 // - Split simple asteroids into circle / triangle / square entries so each
@@ -217,7 +219,7 @@ const BOOST_ENTRIES = [
         category: 'boosts',
         name: 'Deflector Smash',
         definition:
-            'Shielded impact that pulverizes an obstacle. Debris particles mark the event; points and the destroyed counter advance outside cinematic flyouts.',
+            'Shielded impact that pulverizes an obstacle. Debris particles mark the event; points and the destroyed counter advance — including during the level-clear flyout.',
         remark: 'Manners optional. Physics mandatory.',
         unlockMode: 'instant',
         icon: 'deflectorSmash',
@@ -227,7 +229,7 @@ const BOOST_ENTRIES = [
         category: 'boosts',
         name: 'Finish Gate',
         definition:
-            'Journey destination: a dotted rule with Signal-Blue end ticks. Crossing it locks the score and begins the level-clear sequence.',
+            'Journey destination: a dotted rule with Signal-Blue end ticks. Crossing it begins the level-clear sequence; the final score locks when the results screen fades in.',
         remark: 'The line is not a suggestion.',
         unlockMode: 'observeThenInteract',
         icon: 'finishGate',

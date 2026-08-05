@@ -357,12 +357,13 @@ Two things make it work:
   position. During `boost` / `fadeOut` the sequence stops calling `camera.update()`
   and advances `camera.y` by hand at the velocity captured on completion, eased to
   1.25×. The world keeps streaming; the ship (boost × lean) pulls away and exits.
-- **The run is already scored.** `completeRun()` calls `finishJourneyLevel()`
-  *before* constructing the sequence, and `ObstacleManager`'s shielded-collision
-  branch checks `game.levelClear?.active`: particles yes, but `score` / `points` /
-  `obstaclesDestroyed` and the `+points` popup are all skipped, and
-  `playShieldCrash()` is throttled to one per 120ms. `pauseSpawning` (set but never
-  read until now) stops new rows appearing mid-flyout.
+- **Scoring stays live through the flyout.** Shield smashes during `hold` /
+  `boost` / `fadeOut` still award `points`, `score += 10`, `obstaclesDestroyed`,
+  and the `+points` popup. `playShieldCrash()` is throttled to one per 120ms.
+  `pauseSpawning` stops new rows mid-flyout. When the sequence enters `screenIn`
+  (world no longer streams), it sets `finalScore` and calls
+  `finishJourneyLevel(true)` so stars, persistence, and `levelOutcome` use the
+  post-flyout totals.
 
 The sequence owns `gameOverAlpha`, so the existing fade-in render path and the
 `gameOverAlpha < 0.6` click guard need no changes. Tap / key / hardware back are
