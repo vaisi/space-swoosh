@@ -7,7 +7,8 @@
 //   underline call sign + brand Submit. Dropped centered blue hero chrome.
 // - Crash → end screen: world fades under the blast (no blank paper flash),
 //   Mission Failed crossfades in during the blast, submit modal opens only
-//   after the end screen has fully settled.
+//   after the end screen has fully settled. Journey crashes still route to
+//   the level-outcome screen (not Open World game-over).
 // - Open World personal best (localStorage via OpenWorldProgress) updates on
 //   every finished Open World run and feeds the mode-select card footer.
 // - Leaderboard: 10 rows/page (max 10 pages / 100 scores), wider taller rows,
@@ -690,7 +691,9 @@ export class Game {
                 if (this.gameOverAlpha > 0) {
                     this.ctx.save();
                     this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
-                    if (this.gameOverScreen === 'highscores') {
+                    if (this.isJourney()) {
+                        this.levelOutcomeButtons = renderLevelOutcome(this);
+                    } else if (this.gameOverScreen === 'highscores') {
                         this.renderHighScores();
                     } else {
                         this.renderMainGameOver();

@@ -3,6 +3,8 @@
 // against each, and where to go next. Replaces the Open World game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
+// - Stopped calling removed `game.drawScreenFrame()` — that threw after the
+//   flyout and left a blank paper end screen (dead end after level clear).
 // - Third objective value is smash count vs `smashTarget` (shield destroy mission).
 // - Verdict subtitle reads `outcome.flavor` from CopyBank (picked once when the
 //   level ends) so fail / partial / flawless / finale lines rotate visit to visit.
@@ -62,8 +64,6 @@ export function renderLevelOutcome(game) {
     const L = screenLayout(game, game.baseUnit);
     const outcome = game.levelOutcome;
     if (!outcome) return {};
-
-    game.drawScreenFrame();
 
     const rows = actionRows(outcomeActions(outcome));
     const shape = { isMobile: L.isMobile, actionRows: rows.length };
