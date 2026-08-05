@@ -2,7 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
-// - Nyan: Echo's crescent (sparrow wings), dark gray + two pink spots, longer
+// - Night paper: Nyan hull gray lifted so the crescent still reads on charcoal.
+// - Nyan: Echo's crescent (sparrow wings), gray + two pink spots, longer
 //   rainbow ribbon. Hitbox matches crescent; spots are paint only.
 // - Ink wake: slightly wider ribbon + smudge so script boop flourish/flecks
 //   read clearly (still hull-attached via script mode).
@@ -194,9 +195,9 @@ function makeHullRenderer(pathFn, profile = 'default') {
 
 const drawTearHull = makeHullRenderer(tearPath);
 
-// Nyan body colours — ship-local (not brand UI tokens).
-const NYAN_GRAY = '#3A3A3A';
-const NYAN_GRAY_SOFT = 'rgba(58, 58, 58, 0.45)';
+// Nyan body colours — ship-local (not brand UI tokens). Lifted for night paper.
+const NYAN_GRAY = '#C4BDB0';
+const NYAN_GRAY_SOFT = 'rgba(196, 189, 176, 0.45)';
 const NYAN_PINK = '#FF8FB8';
 
 /** Two pink dots — one on each sparrow wing (local fractions of r). */

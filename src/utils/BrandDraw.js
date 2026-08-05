@@ -4,6 +4,8 @@
 // (src/brand/tokens.js) to the <canvas> game surface.
 //
 // Changes:
+// - Night paper: drawPaper is flat night ground; primary button hairline uses
+//   paperRgb so dividers read on bone-ink primary fills.
 // - drawFramedButton insets the label with horizontal padding and shrinks the
 //   type to fit, so short tags like BACK no longer hug the left frame edge.
 // - Created file: geometric-minimalism drawing primitives shared by the HUD and
@@ -69,7 +71,7 @@ export function resetType(ctx) {
 }
 
 // --- Paper (the ground) ------------------------------------------------------
-// Clean, flat warm paper. Every surface — gameplay and end screens alike — sits
+// Clean, flat night paper. Every surface — gameplay and end screens alike — sits
 // on this so shapes and type read clearly with no background texture.
 export function drawPaper(ctx, width, height) {
     ctx.save();
@@ -112,7 +114,7 @@ export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary =
 
     if (tag) {
         // Hairline divider between label and micro-tag.
-        ctx.strokeStyle = primary ? 'rgba(225, 217, 193, 0.25)' : color.ink12;
+        ctx.strokeStyle = primary ? `rgba(${color.paperRgb}, 0.25)` : color.ink12;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(Math.round(x + labelAreaW) + 0.5, y + h * 0.16);

@@ -2,6 +2,10 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Options hub: Restore Purchases replaced by Light Mode / Dark Mode toggle
+//   (brand/theme.js). Choice persists in localStorage.
+// - Night paper: pause wash / goal-bar rest / crash particles / name-modal dim
+//   and DOM input fallbacks use token RGB (no cream or near-black literals).
 // - Submit Signal modal lightened: left-aligned value→label stacks in order
 //   distance → asteroids destroyed → rank with clearer vertical gaps;
 //   underline call sign + brand Submit. Dropped centered blue hero chrome.
@@ -136,11 +140,11 @@ import {
     isSkinOwned,
     isSkinPremium,
     purchaseSkin,
-    restorePurchases,
 } from '../services/Entitlements.js';
-import { syncKeepAwake } from '../native/index.js';
+import { syncKeepAwake, syncStatusBarTheme } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { color, font } from '../brand/tokens.js';
+import { themeLabel, toggleTheme } from '../brand/theme.js';
 import {
     drawPaper,
     drawFramedButton,
@@ -694,7 +698,7 @@ export class Game {
 
                 if (timeSinceGameOver < deceleration) {
                     for (const particle of this.explosionParticles) {
-                        this.ctx.fillStyle = `rgba(26, 26, 26, ${particle.opacity})`;
+                        this.ctx.fillStyle = `rgba(${color.inkRgb}, ${particle.opacity})`;
                         this.ctx.beginPath();
                         this.ctx.arc(
                             particle.x,
@@ -1033,7 +1037,7 @@ export class Game {
 
         ctx.save();
         // Pale rest of the track; done portion in full ink.
-        ctx.fillStyle = 'rgba(26, 26, 26, 0.06)';
+        ctx.fillStyle = color.ink06;
         ctx.fillRect(x, y, width, height);
         ctx.fillStyle = color.ink;
         ctx.fillRect(x, y, Math.max(0, filled), height);
@@ -1051,7 +1055,7 @@ export class Game {
         const L = screenLayout(this, unit);
 
         ctx.save();
-        ctx.fillStyle = 'rgba(225, 217, 193, 0.92)';
+        ctx.fillStyle = `rgba(${color.paperRgb}, 0.92)`;
         ctx.fillRect(0, 0, this.width, this.height);
         ctx.restore();
 
@@ -1344,7 +1348,7 @@ export class Game {
         );
     }
 
-    // Options hub — Ship / Controls / Sound / Restore Purchases.
+    // Options hub — Ship / Controls / Sound / Light·Dark Mode toggle.
     renderOptionsHub() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -1358,11 +1362,9 @@ export class Game {
         const buttonHeight = L.isMobile ? unit * 5.4 : unit * 5;
         const buttonGap = unit * 1.4;
         const buttonsH = buttonHeight * 4 + buttonGap * 3;
-        const statusPx = Math.max(10, unit * 0.95);
-        const statusH = this.purchaseStatus ? statusPx * 1.6 + L.block : 0;
         const subH = subPx * 1.4;
 
-        const blockH = subH + L.section + buttonsH + statusH;
+        const blockH = subH + L.section + buttonsH;
         const available = L.bottom - header.contentTop;
         let y = header.contentTop + Math.max(0, (available - blockH) / 2);
 
@@ -1390,22 +1392,10 @@ export class Game {
             bx, y, buttonWidth, buttonHeight, 'Sound', { tag: '\u266A' }
         );
         y += buttonHeight + buttonGap;
-        // Required on iOS (guideline 3.1.1) whenever the app sells non-consumables.
-        this.optionsHubButtons.restore = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Restore Purchases', { tag: '\u21A9' }
+        // Shows the active look; tap flips light ↔ dark (persisted).
+        this.optionsHubButtons.theme = this.drawBrandButton(
+            bx, y, buttonWidth, buttonHeight, themeLabel(), { tag: '\u25D0' }
         );
-
-        if (this.purchaseStatus) {
-            y += buttonHeight + L.block;
-            ctx.save();
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            setLabelType(ctx, statusPx);
-            ctx.fillStyle = color.ink55;
-            ctx.fillText(this.purchaseStatus.toUpperCase(), L.centerX, y + statusPx * 0.5);
-            resetType(ctx);
-            ctx.restore();
-        }
     }
 
     // Ship picker — fixed-size cards in a 2-col grid. Longer rosters scroll
@@ -1746,26 +1736,6 @@ export class Game {
         if (!isSkinOwned(this.shipSkinId)) return;
         track('quick_play_endless', { skin_id: this.shipSkinId });
         this.beginRun(PLAY_MODE.openWorld);
-    }
-
-    async handleRestorePurchases() {
-        if (this.purchaseBusy) return;
-        this.purchaseBusy = true;
-        this.setPurchaseStatus('Restoring…', 0);
-        try {
-            const result = await restorePurchases();
-            if (result.ok) {
-                // If the equipped skin was locked and is now owned, keep it;
-                // otherwise fall back through loadShipSkinId.
-                this.shipSkinId = loadShipSkinId();
-                this.setPurchaseStatus(result.message || 'Restored.');
-                track('restore_purchases', { count: result.count || 0 });
-            } else {
-                this.setPurchaseStatus(result.message || 'Restore unavailable.');
-            }
-        } finally {
-            this.purchaseBusy = false;
-        }
     }
 
     // The one entry point into a run. The profile is built first because the
@@ -2626,8 +2596,9 @@ export class Game {
                     this.appScreen = 'optionsSound';
                     return;
                 }
-                if (this.isClickInButton(x, y, this.optionsHubButtons.restore)) {
-                    await this.handleRestorePurchases();
+                if (this.isClickInButton(x, y, this.optionsHubButtons.theme)) {
+                    toggleTheme();
+                    syncStatusBarTheme().catch(() => {});
                     return;
                 }
                 return;
@@ -2880,14 +2851,14 @@ export class Game {
             position: absolute;
             top: 16px;
             right: 16px;
-            background: var(--ss-paper-tint, #EAE4D2);
-            border: 1.5px solid var(--ss-ink, #1A1A1A);
+            background: var(--ss-paper-tint, #2A2620);
+            border: 1.5px solid var(--ss-ink, #E1D9C1);
             border-radius: 0;
             font-size: 22px;
             cursor: pointer;
             z-index: 1000;
             padding: 0;
-            color: var(--ss-ink, #1A1A1A);
+            color: var(--ss-ink, #E1D9C1);
             opacity: 0.85;
             transition: transform var(--ss-dur-fast, 120ms) var(--ss-ease-standard, ease), opacity 1s ease;
             font-family: var(--ss-font-ui, system-ui, sans-serif);
@@ -3038,8 +3009,8 @@ export class Game {
     renderNameInputModal() {
         const ctx = this.ctx;
 
-        // Soft ink dim — Mission Failed stays readable underneath.
-        ctx.fillStyle = 'rgba(26, 26, 26, 0.42)';
+        // Soft charcoal dim — Mission Failed stays readable underneath.
+        ctx.fillStyle = `rgba(${color.paperRgb}, 0.72)`;
         ctx.fillRect(0, 0, this.width, this.height);
 
         const modalWidth = Math.min(360, this.width * 0.88);
@@ -3149,12 +3120,12 @@ export class Game {
                 box-sizing: border-box;
                 font-size: 16px;
                 border: none;
-                border-bottom: 2px solid var(--ss-ink, #1A1A1A);
+                border-bottom: 2px solid var(--ss-ink, #E1D9C1);
                 border-radius: 0;
                 outline: none;
                 padding: 0 4px;
                 background: transparent;
-                color: var(--ss-ink, #1A1A1A);
+                color: var(--ss-ink, #E1D9C1);
                 font-family: var(--ss-font-ui, 'Space Grotesk', 'Segoe UI', system-ui, sans-serif);
                 font-weight: 500;
                 letter-spacing: 0.04em;

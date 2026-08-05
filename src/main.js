@@ -1,6 +1,7 @@
 // main.js
 // Entry point: bootstraps the game.
 // Changes:
+// - initTheme() before first paint so light/dark preference paints tokens + shell.
 // - Boots straight into the main menu (no blocking name prompt). Name is
 //   collected when submitting a score.
 // - Preload the brand webfonts (Space Grotesk / Space Mono) before the first
@@ -14,12 +15,16 @@
 import { Game } from './game/Game.js';
 import { GameConfig } from './config/GameConfig.js';
 import { ensureBrandFonts } from './utils/BrandDraw.js';
+import { initTheme } from './brand/theme.js';
 import { initNative } from './native/index.js';
 import { initAnalytics } from './services/Analytics.js';
 import { initEntitlements } from './services/Entitlements.js';
 
 window.addEventListener('load', async () => {
     initAnalytics();
+
+    // Tokens + page shell before fonts/canvas so the first frame matches preference.
+    initTheme();
 
     // Make sure the geometric brand type is ready before we draw anything.
     await ensureBrandFonts();

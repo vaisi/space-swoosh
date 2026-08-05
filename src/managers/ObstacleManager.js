@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Night paper: obstacle fills/strokes use brand `color.ink` (not hard-coded
+//   #000); debris particles and teleport rings follow tokens.
 // - Spawn cursor arms at the camera top (`camera.y`), not 1.5 screens ahead —
 //   the old seat sat in the despawn band so early rows were deleted on spawn
 //   and the belt felt empty until well past 2,000 KM.
@@ -61,6 +63,7 @@
 //   `maxClusterCount()`, so early Journey levels stay at one rock per line.
 
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
+import { color } from '../brand/tokens.js';
 import { drawBlackHoleGlowSprite } from '../utils/GlowSprites.js';
 import { isKilled } from '../core/perfFlags.js';
 
@@ -174,7 +177,7 @@ class SimpleAsteroid extends BaseObstacle {
         }
 
         ctx.closePath();
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.fill();
         ctx.restore();
     }
@@ -308,7 +311,7 @@ class AsteroidBelt extends BaseObstacle {
         
         ctx.beginPath();
         ctx.ellipse(0, 0, this.width/2, this.height/2, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.fill();
         
         ctx.restore();
@@ -407,7 +410,7 @@ class ComplexAsteroid extends BaseObstacle {
         // Draw a circle instead of a diamond
         ctx.beginPath();
         ctx.arc(0, 0, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.fill();
         
         // Draw satellites
@@ -502,7 +505,7 @@ class PulsatingAsteroid extends BaseObstacle {
         
         ctx.beginPath();
         ctx.arc(0, 0, this.currentSize, 0, Math.PI * 2);
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.fill();
         
         ctx.restore();
@@ -555,7 +558,7 @@ class MovingAsteroid extends BaseObstacle {
             else ctx.lineTo(x, y);
         }
         ctx.closePath();
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.fill();
         
         ctx.restore();
@@ -666,7 +669,7 @@ class ShootingAsteroid extends BaseObstacle {
                 else ctx.lineTo(x, y);
             }
             ctx.closePath();
-            ctx.fillStyle = '#000000';
+            ctx.fillStyle = color.ink;
             ctx.fill();
             ctx.restore();
         }
@@ -674,7 +677,7 @@ class ShootingAsteroid extends BaseObstacle {
         this.projectiles.forEach(p => {
             ctx.beginPath();
             ctx.arc(p.x, this.game.camera.getRelativeY(p.y), this.projectileSize, 0, Math.PI * 2);
-            ctx.fillStyle = '#000000';  // Always black projectiles
+            ctx.fillStyle = color.ink;  // Always black projectiles
             ctx.fill();
         });
     }
@@ -833,7 +836,7 @@ class CometObstacle extends BaseObstacle {
         this.trailParticles.forEach(p => {
             ctx.beginPath();
             ctx.arc(p.x, this.game.camera.getRelativeY(this.y), p.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(0, 0, 0, ${p.opacity})`;
+            ctx.fillStyle = `rgba(${color.inkRgb}, ${p.opacity})`;
             ctx.fill();
         });
         
@@ -844,7 +847,7 @@ class CometObstacle extends BaseObstacle {
         // Comet head
         ctx.beginPath();
         ctx.arc(0, 0, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.fill();
         
         ctx.restore();
@@ -894,7 +897,7 @@ class BlackHoleObstacle extends BaseObstacle {
         // Main black hole (pure black)
         ctx.beginPath();
         ctx.arc(this.x, screenY, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.fill();
 
         // Outer glow — path radial is expensive on iOS; Phase 1 uses a sprite.
@@ -910,8 +913,8 @@ class BlackHoleObstacle extends BaseObstacle {
                     screenY,
                     this.size * 4
                 );
-                gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                gradient.addColorStop(0, `rgba(${color.inkRgb}, 0.4)`);
+                gradient.addColorStop(1, `rgba(${color.inkRgb}, 0)`);
 
                 ctx.beginPath();
                 ctx.arc(this.x, screenY, this.size * 4, 0, Math.PI * 2);
@@ -924,7 +927,7 @@ class BlackHoleObstacle extends BaseObstacle {
         const pulseSize = this.size * (1.2 + Math.sin(this.pulsePhase) * 0.2);
         ctx.beginPath();
         ctx.arc(this.x, screenY, pulseSize, 0, Math.PI * 2);
-        ctx.strokeStyle = '#000000';
+        ctx.strokeStyle = color.ink;
         ctx.lineWidth = 2;
         ctx.stroke();
     }
@@ -1039,11 +1042,11 @@ class WormholeGate extends BaseObstacle {
         ctx.setLineDash([5, 5]);
         ctx.lineDashOffset = this.dashOffset;
         
-        // Color based on state
+        // Color based on state — signal entry, ink exit, muted when spent.
         if (this.paired) {
-            ctx.strokeStyle = '#666666'; // Gray out used gates
+            ctx.strokeStyle = color.ink30;
         } else {
-            ctx.strokeStyle = this.isExit ? '#00ff00' : '#0000ff';
+            ctx.strokeStyle = this.isExit ? color.ink : color.signal;
         }
         
         ctx.lineWidth = this.size * 0.1;
@@ -1073,7 +1076,7 @@ class SideBarrier extends BaseObstacle {
         }
 
         ctx.save();
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = color.ink;
         ctx.beginPath();
         ctx.rect(
             this.x - this.width/2,
@@ -1741,7 +1744,7 @@ export class ObstacleManager {
             const a = this.motionLineAlpha ?? 0.3;
             if (a > 0.01) {
                 ctx.beginPath();
-                ctx.strokeStyle = `rgba(0, 0, 0, ${a})`;
+                ctx.strokeStyle = `rgba(${color.inkRgb}, ${a})`;
                 ctx.lineWidth = 2;
                 this.motionLines.forEach(line => {
                     ctx.moveTo(line.x, line.y);
@@ -1757,7 +1760,7 @@ export class ObstacleManager {
                 // Render score popup — Space Mono, ink, matching the HUD figures.
                 ctx.save();
                 ctx.font = `700 ${particle.size}px 'Space Mono', ui-monospace, monospace`;
-                ctx.fillStyle = `rgba(26, 26, 26, ${particle.opacity})`;
+                ctx.fillStyle = `rgba(${color.inkRgb}, ${particle.opacity})`;
                 ctx.textAlign = 'center';
                 ctx.fillText(
                     particle.text,
@@ -1775,7 +1778,7 @@ export class ObstacleManager {
                     0,
                     Math.PI * 2
                 );
-                ctx.fillStyle = `rgba(0, 0, 0, ${particle.opacity})`;
+                ctx.fillStyle = `rgba(${color.inkRgb}, ${particle.opacity})`;
                 ctx.fill();
             }
         });

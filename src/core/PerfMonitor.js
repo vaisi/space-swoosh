@@ -1,6 +1,7 @@
 // PerfMonitor.js
 // Phase 0 frame-delta harness: p50/p95/p99 + histogram (not average fps).
 // Changes:
+// - Night paper: overlay colors use CSS brand tokens (ink on paper).
 // - Created: ring buffer of worked-frame dts; overlay for ?perf=1; console
 //   summary every ~3s. Hitch ratio = p99/p50.
 
@@ -87,9 +88,9 @@ export class PerfMonitor {
             margin: '0',
             padding: '6px 8px',
             font: '11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace',
-            color: '#1A1A1A',
-            background: 'rgba(225, 217, 193, 0.92)',
-            border: '1px solid rgba(26,26,26,0.35)',
+            color: 'var(--ss-ink, #E1D9C1)',
+            background: 'rgba(28, 26, 22, 0.92)',
+            border: '1px solid rgba(225, 217, 193, 0.35)',
             borderRadius: '2px',
             pointerEvents: 'none',
             whiteSpace: 'pre',

@@ -4,8 +4,10 @@
  * SPACE SWOOSH — Brand design tokens as CSS custom properties.
  *
  * Changes:
+ * - Night paper (feat/night-paper): inverted palette — charcoal ground, bone ink,
+ *   soft mint signal (replaces blue/orchid); primary button hairline uses contrast.
  * - Page shell (index.html) uses --ss-ink for the viewport surround and
- *   --ss-paper only on the game stage so the cream playfield edges read.
+ *   --ss-paper only on the game stage so the playfield edges read.
  * - Created file: mirrors src/brand/tokens.js for DOM/CSS surfaces (index.html,
  *   pause button, name input, brandkit.html). Import once at the root and use
  *   var(--ss-*) everywhere so the paper/ink/signal system + geometric type
@@ -63,22 +65,22 @@
 }
 
 :root {
-    /* Color — ground */
-    --ss-paper:       #E1D9C1;
-    --ss-paper-tint:  #EAE4D2;
-    --ss-paper-deep:  #D3C9AC;
+    /* Color — ground (night paper charcoal) */
+    --ss-paper:       #1C1A16;
+    --ss-paper-tint:  #2A2620;
+    --ss-paper-deep:  #12100E;
 
-    /* Color — ink */
-    --ss-ink:      #1A1A1A;
-    --ss-ink-80:   rgba(26, 26, 26, 0.80);
-    --ss-ink-55:   rgba(26, 26, 26, 0.55);
-    --ss-ink-30:   rgba(26, 26, 26, 0.30);
-    --ss-ink-12:   rgba(26, 26, 26, 0.12);
-    --ss-ink-06:   rgba(26, 26, 26, 0.06);
+    /* Color — ink (warm bone) */
+    --ss-ink:      #E1D9C1;
+    --ss-ink-80:   rgba(225, 217, 193, 0.80);
+    --ss-ink-55:   rgba(225, 217, 193, 0.55);
+    --ss-ink-30:   rgba(225, 217, 193, 0.30);
+    --ss-ink-12:   rgba(225, 217, 193, 0.12);
+    --ss-ink-06:   rgba(225, 217, 193, 0.06);
 
-    /* Color — signal (the one accent) */
-    --ss-signal:      #0000FF;
-    --ss-signal-soft: rgba(0, 0, 255, 0.14);
+    /* Color — signal (vivid mint accent on night paper) */
+    --ss-signal:      #3DFF9A;
+    --ss-signal-soft: rgba(61, 255, 154, 0.32);
 
     /* Typography */
     --ss-font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
@@ -151,7 +153,7 @@
 }
 .ss-btn--primary { background: var(--ss-ink); }
 .ss-btn--primary .ss-btn__label { color: var(--ss-paper); }
-.ss-btn--primary .ss-btn__tag { color: var(--ss-paper-deep); border-left-color: rgba(225,217,193,0.25); }
+.ss-btn--primary .ss-btn__tag { color: var(--ss-paper-deep); border-left-color: rgba(28, 26, 22, 0.25); }
 .ss-btn--signal { border-color: var(--ss-signal); }
 .ss-btn--signal .ss-btn__tag { color: var(--ss-signal); border-left-color: var(--ss-signal-soft); }
 

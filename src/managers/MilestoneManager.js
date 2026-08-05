@@ -1,6 +1,8 @@
 // MilestoneManager.js
 // Shows the timed milestone log lines during flight.
 // Changes:
+// - Night paper: backing plate uses charcoal paperRgb so bone ink text stays
+//   readable (old cream plate washed out against ink).
 // - Rich `{space}` lines reset textAlign/fillStyle after the keycap so the
 //   trailing words ("to change direction") no longer draw centred on top of it.
 // - showMessage() accepts optional fadeIn / hold / fadeOut timings so the
@@ -160,7 +162,7 @@ export class MilestoneManager {
         const textWidth = this.measureRichWidth(ctx, text, fontSize);
         const padX = unit * 1.4;
         const padY = unit * 0.9;
-        ctx.fillStyle = 'rgba(234, 228, 210, 0.82)';
+        ctx.fillStyle = `rgba(${color.paperRgb}, 0.92)`;
         ctx.fillRect(cx - textWidth / 2 - padX, cy - fontSize / 2 - padY, textWidth + padX * 2, fontSize + padY * 2);
 
         // A dotted-trail underline (the brand's signature mark).

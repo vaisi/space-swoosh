@@ -1,6 +1,9 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
+// - Theme toggle: syncStatusBarTheme() matches light/dark paper + glyph style.
+// - Night paper: status bar uses Style.Dark + charcoal paper background so light
+//   glyphs read on the dark stage.
 // - Created file: hardware back navigation, app lifecycle pausing, screen
 //   wake-lock during a run, status bar colouring and splash dismissal.
 //
@@ -11,8 +14,13 @@
 import { Capacitor } from '@capacitor/core';
 
 import { goBack } from '../game/BackNavigation.js';
+import { color } from '../brand/tokens.js';
+import { isDarkTheme } from '../brand/theme.js';
 
 export const isNative = () => Capacitor.isNativePlatform();
+
+/** @type {{ StatusBar: import('@capacitor/status-bar').StatusBarPlugin, Style: typeof import('@capacitor/status-bar').Style } | null} */
+let statusBarApi = null;
 
 // --- Screen wake lock --------------------------------------------------------
 // The ship flies itself, so a player threading a dense field can go a long time
@@ -80,17 +88,21 @@ async function wireLifecycle(game, App) {
 }
 
 // --- Chrome ------------------------------------------------------------------
-async function styleStatusBar(StatusBar, Style) {
+/** Match the status bar to the active light/dark paper theme. */
+export async function syncStatusBarTheme() {
+    if (!isNative() || !statusBarApi) return;
+    const { StatusBar, Style } = statusBarApi;
     try {
-        // Paper ground, so the bar needs dark glyphs. Style.Light means
-        // "dark content, for light backgrounds".
-        await StatusBar.setStyle({ style: Style.Light });
+        // Style.Dark = light glyphs on dark bg; Style.Light = dark glyphs on light bg.
+        await StatusBar.setStyle({
+            style: isDarkTheme() ? Style.Dark : Style.Light,
+        });
 
         if (Capacitor.getPlatform() === 'android') {
             // Keep the bar as its own paper strip rather than letting the
             // WebView slide under it — the CSS safe-area padding then has
             // nothing to compensate for and the HUD sits where it was designed.
-            await StatusBar.setBackgroundColor({ color: '#E1D9C1' });
+            await StatusBar.setBackgroundColor({ color: color.paper });
             await StatusBar.setOverlaysWebView({ overlay: false });
         }
     } catch {
@@ -113,7 +125,8 @@ export async function initNative(game) {
         import('@capacitor/splash-screen'),
     ]);
 
-    await styleStatusBar(StatusBar, Style);
+    statusBarApi = { StatusBar, Style };
+    await syncStatusBarTheme();
     await wireBackButton(game, App);
     await wireLifecycle(game, App);
     await syncKeepAwake(game);

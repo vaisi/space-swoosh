@@ -4,16 +4,31 @@
 // with the sketchy in-game aesthetic instead of stark black boxes + plain Arial.
 //
 // Changes:
+// - Theme toggle: PAPER / INK / SHIELD_* are live `let`s refreshed via
+//   syncPaintConsts() when light/dark switches (no module-load snapshots).
+// - Night paper: PAPER / INK / INK_SOFT / SHIELD_BLUE re-export from brand tokens
+//   so legacy callers stay in sync with the inverted palette.
 // - Created file: extracted reusable sketch primitives (seeded, stable wobble)
 //   plus a shield glyph + checkmark so the shield power-up and screens share one look.
 
-export const PAPER = '#E1D9C1';
-export const INK = '#1A1A1A';
-export const INK_SOFT = 'rgba(26, 26, 26, 0.55)';
+import { color } from '../brand/tokens.js';
+
+export let PAPER = color.paper;
+export let INK = color.ink;
+export let INK_SOFT = color.ink55;
 // Shared "shield blue" — the same hue used by the portal gates that grant a
 // shield, so the pickup + active-shield glow read as the same mechanic.
-export const SHIELD_BLUE = '#0000ff';
-export const SHIELD_BLUE_RGB = '0, 0, 255';
+export let SHIELD_BLUE = color.signal;
+export let SHIELD_BLUE_RGB = color.signalRgb;
+
+/** Call after applyTheme so legacy paint consts match live tokens. */
+export function syncPaintConsts() {
+    PAPER = color.paper;
+    INK = color.ink;
+    INK_SOFT = color.ink55;
+    SHIELD_BLUE = color.signal;
+    SHIELD_BLUE_RGB = color.signalRgb;
+}
 
 // Deterministic pseudo-random in [-1, 1] from a seed. Using a seed (instead of
 // Math.random) keeps the hand-drawn wobble fixed frame-to-frame so static
@@ -53,9 +68,9 @@ export function sketchUnderline(ctx, x1, x2, y, roughness = 2, seed = 5) {
 }
 
 // A dotted separator line — echoes the spacecraft's signature dotted trail.
-export function dottedLine(ctx, x1, x2, y, dotRadius = 1.5, gap = 8, color = INK_SOFT) {
+export function dottedLine(ctx, x1, x2, y, dotRadius = 1.5, gap = 8, strokeColor = null) {
     ctx.save();
-    ctx.fillStyle = color;
+    ctx.fillStyle = strokeColor ?? INK_SOFT;
     for (let x = x1; x <= x2; x += gap) {
         ctx.beginPath();
         ctx.arc(x, y, dotRadius, 0, Math.PI * 2);

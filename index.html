@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: body/html chrome is brand ink so the
-     cream game stage is letterboxed and its edges read clearly on desktop web;
-     #gameContainer keeps paper; theme-color matches the ink surround. -->
+<!-- index.html — page shell. Changes: night paper — bone ink surround letterboxes
+     the charcoal game stage so playfield edges read on desktop; theme-color
+     matches the bone surround; #gameContainer / canvas use --ss-paper. -->
 <html lang="en">
 <head>
     <!-- Analytics is injected from src/services/Analytics.js, and only on the
          web. The packaged app must not pull a remote tracker: it fails offline
          and it drags a third-party SDK into both stores' privacy disclosures. -->
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover lets the ink surround reach the notch / home
-         indicator; the cream stage is inset by env(safe-area-inset-*) below
+    <!-- viewport-fit=cover lets the surround reach the notch / home
+         indicator; the stage is inset by env(safe-area-inset-*) below
          so the HUD never sits under hardware. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1A1A1A">
-    <meta name="description" content="A one-thumb space dodge game in a paper universe. Steer, survive, climb.">
+    <meta name="theme-color" content="#E1D9C1">
+    <meta name="description" content="A one-thumb space dodge game in a night-paper universe. Steer, survive, climb.">
     <title>Space Swoosh</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -26,14 +26,14 @@
     <style>
         html, body {
             height: 100%;
-            background: var(--ss-ink, #1A1A1A);
+            background: var(--ss-ink, #E1D9C1);
         }
         body {
             margin: 0;
             padding: 0;
-            /* Ink surround — only the cream stage (#gameContainer) is paper, so
-               the playfield rectangle is visible against the page. */
-            background: var(--ss-ink, #1A1A1A);
+            /* Bone surround — only the charcoal stage (#gameContainer) is paper,
+               so the playfield rectangle is visible against the page. */
+            background: var(--ss-ink, #E1D9C1);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -53,9 +53,9 @@
             min-width: 280px;
             aspect-ratio: 2/3;
             position: relative;
-            /* Paper stage — cream before the canvas paints, and the visible
-               frame against the ink page. */
-            background: var(--ss-paper, #E1D9C1);
+            /* Night paper stage — charcoal before the canvas paints, and the
+               visible frame against the bone page. */
+            background: var(--ss-paper, #1C1A16);
             overflow: hidden;
         }
         #gameCanvas {
@@ -63,10 +63,10 @@
             height: 100%;
             display: block;
             touch-action: none;
-            background: var(--ss-paper, #E1D9C1);
+            background: var(--ss-paper, #1C1A16);
         }
 
-        /* Mobile / packaged app: fill the safe area with the cream stage; ink
+        /* Mobile / packaged app: fill the safe area with the stage; bone ink
            shows in the notch / home-indicator insets so the stage edge still
            reads. */
         @media (max-width: 768px) {
@@ -102,4 +102,4 @@
         <canvas id="gameCanvas"></canvas>
     </div>
 </body>
-</html> 
+</html>
