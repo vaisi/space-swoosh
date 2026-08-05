@@ -74,7 +74,8 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
-game build env. Journey progress stays in `localStorage` only.
+game build env. Journey progress and Open World personal best stay in
+`localStorage` only.
 
 ## 3. Directory map (`src/`)
 
@@ -97,6 +98,7 @@ game build env. Journey progress stays in `localStorage` only.
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points. |
+| `services/OpenWorldProgress.js` | `localStorage` personal-best Open World distance (device-only). |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, level placeholders, From the Void stub. |
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
@@ -134,7 +136,7 @@ game build env. Journey progress stays in `localStorage` only.
 | Screen | Role |
 | --- | --- |
 | `menu` | Title, selected-skin preview, Play / Logbook / Options / High Scores |
-| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. |
+| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open World footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
 | `options` | Options hub: Ship / Controls / Sound |
@@ -633,6 +635,10 @@ There are **three independent metrics** on the `Game` instance:
 | `score` | Distance in "KM" | `+= abs(Δcamera.y) * (100/60)` after each camera step (locked to world travel); also `+10` per shield-destroyed asteroid | HUD, end screen, leaderboard (`distance` tab) |
 | `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD, end screen, leaderboard (`obstacles` tab), Journey's third star vs `smashTarget` |
 | `points` | **Reward points** | `+perAsteroid` destroy, `+perCollectible` sparkle, `+perSwoosh` near-miss style | HUD, end screen, Journey's second star |
+
+Open World also keeps a device-local **personal best** (`services/OpenWorldProgress.js`,
+key `openWorldProgress`) updated in `gameOver()` whenever a non-Journey run ends.
+Exit Run does not write it. The Play → Open World card reads it for its footer.
 
 `points` is **local only** — it is not (yet) sent to the Supabase leaderboard;
 it is included in the `game_over` GA event.

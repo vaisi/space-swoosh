@@ -3,6 +3,8 @@
 // (endless run + leaderboard). Two description cards rather than two bare
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
+// - Open World card footer shows this device's personal best distance (with KM)
+//   when one exists (from OpenWorldProgress), matching Journey's level/stars footer.
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Card blurbs come from CopyBank (modeJourney / modeOpenWorld), picked once
 //   on enter via game.goToModeSelect(). Journey stays first + RECOMMENDED.
@@ -15,6 +17,8 @@ import { screenLayout, fitPx, wrapLines } from '../ScreenKit.js';
 import { PLAY_MODE } from '../../modes/index.js';
 import { STARS_PER_LEVEL, TOTAL_LEVELS } from '../../config/JourneyConfig.js';
 import { nextPlayableLevel, totalStars } from '../../services/JourneyProgress.js';
+import { personalBest } from '../../services/OpenWorldProgress.js';
+import { ScoreService } from '../../services/ScoreService.js';
 
 /** Draws the screen and returns the hit-boxes Game routes clicks against. */
 export function renderModeSelect(game) {
@@ -35,6 +39,7 @@ export function renderModeSelect(game) {
 
     const level = nextPlayableLevel(game.journeyProgress);
     const stars = totalStars(game.journeyProgress);
+    const best = personalBest(game.openWorldProgress);
 
     const buttons = { back: header.backRect };
 
@@ -52,6 +57,9 @@ export function renderModeSelect(game) {
         title: 'Open World',
         blurb: game.modeOpenWorldBlurb || 'One run, no finish line.',
         tag: 'ENDLESS',
+        footer: best > 0
+            ? `Personal best: ${ScoreService.formatScore(best)} KM`
+            : null,
     });
 
     ctx.save();

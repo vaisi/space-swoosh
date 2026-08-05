@@ -3,7 +3,7 @@
 > How to play. No spoilers, just the essentials.
 >
 > Open World high scores are online (call sign, ship, + distance; top 100).
-> Journey progress stays on your device.
+> Your Open World personal best and Journey progress stay on your device.
 
 ## The goal
 
@@ -16,7 +16,9 @@ There are two ways to play, and you pick one every time you hit Play.
 
 Play lists **Journey first** — it's the recommended path. Each visit, the short
 line under Journey and Open World is a fresh Spock-voice blurb (same idea, new
-wording).
+wording). Journey's card shows your current level and star total; Open World's
+card shows your **personal best** distance on this device once you've finished
+at least one run.
 
 ### Journey
 

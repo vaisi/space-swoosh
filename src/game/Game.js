@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Open World personal best (localStorage via OpenWorldProgress) updates on
+//   every finished Open World run and feeds the mode-select card footer.
 // - Leaderboard: 10 rows/page (max 10 pages / 100 scores), wider taller rows,
 //   🥇🥈🥉 for ranks 1–3, sharper dotted row separators (no ship–score leaders),
 //   PAGE n/m arrows centered in the gap under the list; submit prompt for top
@@ -161,6 +163,10 @@ import {
     recordLevelResult,
 } from '../services/JourneyProgress.js';
 import {
+    loadOpenWorldProgress,
+    recordOpenWorldScore,
+} from '../services/OpenWorldProgress.js';
+import {
     renderModeSelect,
     handleModeSelectClick,
 } from '../ui/screens/ModeSelectScreen.js';
@@ -277,6 +283,7 @@ export class Game {
         // Journey state. Progress is local-only; the leaderboard stays Open World.
         this.journeyProgress = loadJourneyProgress();
         this.journeyLevel = nextPlayableLevel(this.journeyProgress);
+        this.openWorldProgress = loadOpenWorldProgress();
         this.journeyMapScroll = 0;
         this.shipPickerScroll = 0;
         // Ship picker: reveal Play now after the player taps a vessel.
@@ -2357,6 +2364,10 @@ export class Game {
             }
 
             this.endFlavor = pickCopy('crash');
+
+            // Local personal best for the Play → Open World card (device-only).
+            const bestResult = recordOpenWorldScore(this.openWorldProgress, this.finalScore);
+            this.openWorldProgress = bestResult.progress;
 
             track('game_over', {
                 'score': this.finalScore,
