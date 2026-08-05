@@ -474,10 +474,14 @@ Obstacle probes are meant to hug the drawn ink:
 | Simple circle / pulsating | Exact drawn radius |
 | Simple square | Circle-vs-AABB (not an expanded box) |
 | Simple triangle / moving pentagon | Edges + interior |
-| Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render) |
-| Shooting star | 8-point star polygon + projectile circles |
+| Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render). Shield smash destroys only the part hit: a moon clip leaves the core; a core hit clears the whole cluster. Render cull uses full cluster radius so moons are never collidable while undrawn. |
+| Shooting star | 8-point star polygon + projectile circles (projectiles still drawn when the star body is culled). Shield smash clips only the shots you hit; body hit clears the star. |
 | Black hole | Core radius only (glow/pulse are VFX) |
 | Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop |
+
+`ObstacleManager.update()` advances every obstacle (orbits, movers, shots)
+**before** running shield/fatal collision, so hit tests match the ink painted
+later in the frame.
 
 Note: `Game.checkCollisions()` is dead code — it calls a nonexistent
 `obstacleManager.checkCollisions()` and nothing invokes it.
@@ -648,7 +652,10 @@ it is included in the `game_over` GA event.
 1. **Destroying an asteroid** (only possible while the shield is active): in
    `ObstacleManager.update()`'s shield-collision branch, `game.points +=
    config.points.perAsteroid`, an ink `+1` popup floats up, and the existing
-   distance bonus / destroyed counter still apply.
+   distance bonus / destroyed counter still apply. For `ComplexAsteroid` /
+   `ShootingAsteroid`, a moon- or shot-only contact clips that part (same
+   awards, smaller debris) and keeps the parent rock; contacting the body/core
+   still removes the whole obstacle.
 2. **Collecting a sparkle:** `CollectibleManager` spawns `Collectible`s at a
    jittered interval once `score >= profile.collectiblesFromScore` (100 km in
    Open World, 4% of the goal in Journey) and the tutorial is over. Each sparkle

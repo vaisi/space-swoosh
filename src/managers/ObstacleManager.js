@@ -1,6 +1,16 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Invisible-death fixes: (1) obstacles update *before* collision so orbiting
+//   moons / movers match the ink this frame; (2) ComplexAsteroid render cull
+//   uses the full core+moon radius (core-only cull left lethal moons on-screen
+//   after the body scrolled off); (3) ShootingAsteroid always draws projectiles
+//   even when the star body itself is off-screen; (4) SideBarrier cull uses the
+//   full slab height, not the centre point.
+// - Shielded smash on ComplexAsteroid / ShootingAsteroid destroys only the part
+//   you hit: orbiting moons or fired shots clip off while the parent rock
+//   survives; a body/core hit still clears the whole obstacle. Partial clips
+//   award the usual per-asteroid points / DESTROYED count and a small debris burst.
 // - Phase 1: black-hole outer glow via pre-baked sprite when game.useGlowSprites;
 //   iOS draw LOD still skips path radials without sprites.
 // - BlackHole: off-screen cull; stroke pulse remains.
@@ -334,10 +344,50 @@ class ComplexAsteroid extends BaseObstacle {
         }
     }
 
+    // Sats are drawn under ctx.rotate(this.rotation) — world positions must
+    // apply the same transform or the hit moons drift off the ink.
+    satelliteWorldPos(satellite) {
+        const lx = Math.cos(satellite.angle) * satellite.distance;
+        const ly = Math.sin(satellite.angle) * satellite.distance;
+        const cosR = Math.cos(this.rotation);
+        const sinR = Math.sin(this.rotation);
+        return {
+            x: this.x + lx * cosR - ly * sinR,
+            y: this.y + lx * sinR + ly * cosR,
+        };
+    }
+
+    // Furthest ink from the core centre (core disc or any moon).
+    clusterRadius() {
+        let extent = this.size;
+        for (const satellite of this.satellites) {
+            extent = Math.max(extent, satellite.distance + satellite.size);
+        }
+        return extent;
+    }
+
+    hitsCore(probe) {
+        const r = probe.radius;
+        const dx = probe.x - this.x;
+        const dy = probe.y - this.y;
+        return dx * dx + dy * dy < (this.size + r) * (this.size + r);
+    }
+
+    hitsSatellite(probe, satellite) {
+        const { x, y } = this.satelliteWorldPos(satellite);
+        const r = probe.radius;
+        const dx = x - probe.x;
+        const dy = y - probe.y;
+        const hitR = satellite.size + r;
+        return dx * dx + dy * dy < hitR * hitR;
+    }
+
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
-        
-        if (relativeY + this.size < 0 || relativeY - this.size > this.game.height) {
+        // Must include orbiting moons — culling on the core alone left collidable
+        // satellites on-screen with nothing drawn (classic "invisible rock").
+        const extent = this.clusterRadius();
+        if (relativeY + extent < 0 || relativeY - extent > this.game.height) {
             return;
         }
 
@@ -365,27 +415,51 @@ class ComplexAsteroid extends BaseObstacle {
     }
 
     checkCollision(spacecraft) {
-        const r = spacecraft.radius;
-        const dxMain = spacecraft.x - this.x;
-        const dyMain = spacecraft.y - this.y;
-        if (dxMain * dxMain + dyMain * dyMain < (this.size + r) * (this.size + r)) {
-            return true;
+        if (this.hitsCore(spacecraft)) return true;
+        return this.satellites.some((satellite) => this.hitsSatellite(spacecraft, satellite));
+    }
+
+    // Shield smash: core contact clears the whole cluster; moon-only contact
+    // clips just those moons and leaves the parent rock flying.
+    // `hitCircles` are the ship's active probes (shield bubble or hull circles).
+    takeShieldHit(hitCircles) {
+        if (hitCircles.some((circle) => this.hitsCore(circle))) {
+            return { kind: 'core' };
         }
 
-        // Sats are drawn under ctx.rotate(this.rotation) — world positions must
-        // apply the same transform or the hit moons drift off the ink.
-        const cosR = Math.cos(this.rotation);
-        const sinR = Math.sin(this.rotation);
-        return this.satellites.some((satellite) => {
-            const lx = Math.cos(satellite.angle) * satellite.distance;
-            const ly = Math.sin(satellite.angle) * satellite.distance;
-            const satX = this.x + lx * cosR - ly * sinR;
-            const satY = this.y + lx * sinR + ly * cosR;
-            const dx = satX - spacecraft.x;
-            const dy = satY - spacecraft.y;
-            const hitR = satellite.size + r;
-            return dx * dx + dy * dy < hitR * hitR;
-        });
+        const removed = [];
+        for (let i = this.satellites.length - 1; i >= 0; i--) {
+            const satellite = this.satellites[i];
+            if (hitCircles.some((circle) => this.hitsSatellite(circle, satellite))) {
+                const pos = this.satelliteWorldPos(satellite);
+                removed.push({ x: pos.x, y: pos.y, size: satellite.size });
+                this.satellites.splice(i, 1);
+            }
+        }
+
+        if (removed.length === 0) return null;
+        return { kind: 'satellites', removed };
+    }
+
+    createSatelliteDestructionParticles(satelliteHit) {
+        const particles = [];
+        const particleCount = 6;
+        const baseSpeed = this.game.baseUnit * 0.5;
+
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount;
+            const speed = baseSpeed * (1.5 + Math.random() * 2.5);
+            particles.push({
+                x: satelliteHit.x,
+                y: satelliteHit.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: satelliteHit.size * (0.15 + Math.random() * 0.35),
+                opacity: 1,
+                rotation: Math.random() * Math.PI * 2
+            });
+        }
+        return particles;
     }
 
     update() {
@@ -561,31 +635,33 @@ class ShootingAsteroid extends BaseObstacle {
 
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
-        
-        if (relativeY + this.size < 0 || relativeY - this.size > this.game.height) {
-            return;
+        const bodyOnScreen = !(
+            relativeY + this.size < 0 || relativeY - this.size > this.game.height
+        );
+
+        // Body can scroll off while shots are still in the playfield — never
+        // skip projectile ink just because the star itself is culled.
+        if (bodyOnScreen) {
+            ctx.save();
+            ctx.translate(this.x, relativeY);
+            ctx.rotate(this.rotation);
+
+            // Draw a star shape
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const radius = i % 2 === 0 ? this.size : this.size * 0.5;
+                const angle = (i * Math.PI / 4);
+                const x = radius * Math.cos(angle);
+                const y = radius * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = '#000000';
+            ctx.fill();
+            ctx.restore();
         }
 
-        ctx.save();
-        ctx.translate(this.x, relativeY);
-        ctx.rotate(this.rotation);
-        
-        // Draw a star shape
-        ctx.beginPath();
-        for (let i = 0; i < 8; i++) {
-            const radius = i % 2 === 0 ? this.size : this.size * 0.5;
-            const angle = (i * Math.PI / 4);
-            const x = radius * Math.cos(angle);
-            const y = radius * Math.sin(angle);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.fillStyle = '#000000';
-        ctx.fill();
-        
-        // Draw projectiles with explicit black color
-        ctx.restore();
         this.projectiles.forEach(p => {
             ctx.beginPath();
             ctx.arc(p.x, this.game.camera.getRelativeY(p.y), this.projectileSize, 0, Math.PI * 2);
@@ -594,7 +670,7 @@ class ShootingAsteroid extends BaseObstacle {
         });
     }
 
-    checkCollision(spacecraft) {
+    hitsBody(probe) {
         // Star outline (outer/inner radii), not the circumcircle that filled notches.
         const vertices = [];
         for (let i = 0; i < 8; i++) {
@@ -605,18 +681,66 @@ class ShootingAsteroid extends BaseObstacle {
                 y: this.y + radius * Math.sin(angle),
             });
         }
-        if (pointInPolygonOrNearEdge(
-            spacecraft.x, spacecraft.y, vertices, spacecraft.radius
-        )) {
-            return true;
+        return pointInPolygonOrNearEdge(
+            probe.x, probe.y, vertices, probe.radius
+        );
+    }
+
+    hitsProjectile(probe, projectile) {
+        const dx = projectile.x - probe.x;
+        const dy = projectile.y - probe.y;
+        const hitR = this.projectileSize + probe.radius;
+        return dx * dx + dy * dy < hitR * hitR;
+    }
+
+    checkCollision(spacecraft) {
+        if (this.hitsBody(spacecraft)) return true;
+        return this.projectiles.some((p) => this.hitsProjectile(spacecraft, p));
+    }
+
+    // Shield smash: body contact clears the star; shot-only contact clips those
+    // projectiles and leaves the asteroid (and any other shots) flying.
+    takeShieldHit(hitCircles) {
+        if (hitCircles.some((circle) => this.hitsBody(circle))) {
+            return { kind: 'core' };
         }
 
-        return this.projectiles.some((p) => {
-            const dx = p.x - spacecraft.x;
-            const dy = p.y - spacecraft.y;
-            const hitR = this.projectileSize + spacecraft.radius;
-            return dx * dx + dy * dy < hitR * hitR;
-        });
+        const removed = [];
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            const projectile = this.projectiles[i];
+            if (hitCircles.some((circle) => this.hitsProjectile(circle, projectile))) {
+                removed.push({
+                    x: projectile.x,
+                    y: projectile.y,
+                    size: this.projectileSize,
+                });
+                this.projectiles.splice(i, 1);
+            }
+        }
+
+        if (removed.length === 0) return null;
+        return { kind: 'projectiles', removed };
+    }
+
+    createProjectileDestructionParticles(shot) {
+        const particles = [];
+        const particleCount = 5;
+        const baseSpeed = this.game.baseUnit * 0.5;
+
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount;
+            const speed = baseSpeed * (1.5 + Math.random() * 2.5);
+            particles.push({
+                x: shot.x,
+                y: shot.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: shot.size * (0.2 + Math.random() * 0.4),
+                opacity: 1,
+                rotation: Math.random() * Math.PI * 2,
+            });
+        }
+        return particles;
     }
 
     update() {
@@ -927,8 +1051,10 @@ class SideBarrier extends BaseObstacle {
 
     render(ctx) {
         const relativeY = this.game.camera.getRelativeY(this.y);
-        
-        if (relativeY + this.height < 0 || relativeY > this.game.height) {
+        const halfHeight = this.height / 2;
+        // Cull against the drawn rect, not the centre point — centre-only cull
+        // hid the slab while its hitbox was still in the playfield.
+        if (relativeY + halfHeight < 0 || relativeY - halfHeight > this.game.height) {
             return;
         }
 
@@ -937,7 +1063,7 @@ class SideBarrier extends BaseObstacle {
         ctx.beginPath();
         ctx.rect(
             this.x - this.width/2,
-            relativeY - this.height/2,
+            relativeY - halfHeight,
             this.width,
             this.height
         );
@@ -1136,6 +1262,16 @@ export class ObstacleManager {
             }
         }
 
+        // Advance obstacle motion *before* hits so orbiting moons / movers /
+        // projectiles match what render will draw this frame. Colliding against
+        // last frame's pose while painting this frame's made moons feel invisible.
+        this.obstacles = this.obstacles.filter((obstacle) => {
+            if (obstacle.update) {
+                obstacle.update();
+            }
+            return obstacle.y > this.game.camera.y - this.despawnAhead;
+        });
+
         // First check for wormhole teleports
         const wormholes = this.obstacles.filter(obs => obs instanceof WormholeGate);
         const ship = this.game.spacecraft;
@@ -1163,6 +1299,42 @@ export class ObstacleManager {
                     // nothing it hits may touch the numbers. And a rapid smash-fest
                     // would machine-gun the crash sound.
                     const cinematic = this.game.levelClear?.active;
+
+                    // Complex / shooting asteroids: clip only moons or shots you
+                    // actually touch. A body/core hit still nukes the whole rock.
+                    if (
+                        obstacle instanceof ComplexAsteroid
+                        || obstacle instanceof ShootingAsteroid
+                    ) {
+                        const smash = obstacle.takeShieldHit(ship.hitCircles);
+                        if (
+                            smash?.kind === 'satellites'
+                            || smash?.kind === 'projectiles'
+                        ) {
+                            if (!cinematic || this.canPlayCinematicCrash()) {
+                                this.game.soundManager.playShieldCrash();
+                            }
+                            for (const part of smash.removed) {
+                                const particles = smash.kind === 'satellites'
+                                    ? obstacle.createSatelliteDestructionParticles(part)
+                                    : obstacle.createProjectileDestructionParticles(part);
+                                this.destructionParticles.push(...particles);
+                                if (!cinematic) {
+                                    const pts = this.game.config.points.perAsteroid;
+                                    this.game.points += pts;
+                                    this.showScorePopup(part.x, part.y, `+${pts}`);
+                                    this.game.score += 10;
+                                    this.game.obstaclesDestroyed++;
+                                    this.game.noteHudDestroyedFromSmash?.();
+                                }
+                            }
+                            this.game.logbook?.onObstacleInteract?.(obstacle);
+                            this.game.logbook?.onDeflectorSmash?.();
+                            return true; // Keep the parent asteroid
+                        }
+                        // smash.kind === 'core' (or null after a race) → full destroy
+                    }
+
                     if (!cinematic || this.canPlayCinematicCrash()) {
                         this.game.soundManager.playShieldCrash();
                     }
@@ -1195,11 +1367,6 @@ export class ObstacleManager {
             return true;
         });
 
-        // Remove off-screen obstacles
-        this.obstacles = this.obstacles.filter(obstacle => 
-            obstacle.y > this.game.camera.y - this.despawnAhead
-        );
-
         this.game.logbook?.scanObstaclesVisible?.();
 
         // Update destruction particles
@@ -1226,14 +1393,6 @@ export class ObstacleManager {
                 this.spawnObstacleRow();
             }
         }
-        
-        // Update and filter obstacles
-        this.obstacles = this.obstacles.filter(obstacle => {
-            if (obstacle.update) {
-                obstacle.update();
-            }
-            return obstacle.y > this.game.camera.y - this.despawnAhead;
-        });
 
         // Update available types based on score
         this.updateAvailableTypes(this.game.score);

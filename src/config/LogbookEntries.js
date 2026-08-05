@@ -1,6 +1,8 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Complex / shooting asteroid copy notes shield smashes clip moons or shots
+//   separately from the parent body.
 // - Split simple asteroids into circle / triangle / square entries so each
 //   in-game shape is logged with its real silhouette.
 // - Created file: obstacles, boosts, per-level placeholders, and From the Void
@@ -111,7 +113,7 @@ const OBSTACLE_ENTRIES = [
         category: 'obstacles',
         name: 'Complex Asteroid',
         definition:
-            'A primary disc with orbiting debris moons. Hitboxes include satellites; threading the cluster awards style if clearance is tight enough.',
+            'A primary disc with orbiting debris moons. Hitboxes include satellites. With a shield up, smashing a moon removes only that moon; the core must be hit to clear the cluster. Threading awards style if clearance is tight enough.',
         remark: 'One rock. Several opinions.',
         unlockMode: 'observeThenInteract',
         icon: 'complex',
@@ -131,7 +133,7 @@ const OBSTACLE_ENTRIES = [
         category: 'obstacles',
         name: 'Shooting Asteroid',
         definition:
-            'A star-form hazard that emits projectiles. Both body and shot count as lethal contact without a shield.',
+            'A star-form hazard that emits projectiles. Both body and shot count as lethal contact without a shield. With a shield up, smashing a shot removes only that shot; the star must be hit to clear it.',
         remark: 'It objects at range. Noted.',
         unlockMode: 'observeThenInteract',
         icon: 'shooting',

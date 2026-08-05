@@ -284,8 +284,11 @@ total points are shown live in the HUD and again on the mission-end screen.
 ## Shields
 
 Blue shield pickups give you a temporary shield. While it's up you can plow
-through asteroids (destroying them for points) instead of crashing. The shield
-pulses faster right before it runs out — pick your moment.
+through asteroids (destroying them for points) instead of crashing. On a big
+asteroid with orbiting debris moons — or a star that fires shots — you only
+smash what you hit: clip a moon or a shot and the main rock stays; ram the body
+and the whole thing goes. The shield pulses faster right before it runs out —
+pick your moment.
 
 Blue **portal** rings are also safe: fly into one and you hop ahead, then get a
 fresh shield. The rocks around a portal can still crash you if you miss the ring
