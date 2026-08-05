@@ -3,6 +3,7 @@
 // (endless run + leaderboard). Two description cards rather than two bare
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
+// - No longer draws the gray inset screen frame (removed app-wide).
 // - Card blurbs come from CopyBank (modeJourney / modeOpenWorld), picked once
 //   on enter via game.goToModeSelect(). Journey stays first + RECOMMENDED.
 // - Created file. Kept out of Game.js, which is already long; it draws through
@@ -21,7 +22,6 @@ export function renderModeSelect(game) {
     const unit = game.baseUnit;
     const L = screenLayout(game, unit);
 
-    game.drawScreenFrame();
     const header = game.drawScreenHeader('PLAY', { back: true });
 
     const footnotePx = Math.max(9, unit * 0.9);

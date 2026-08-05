@@ -3,13 +3,12 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **BUILD 23:** Zigzag is the default flight style (`Options → Controls`) —
-> straight ±52° lean at 1.45× speed, any input flips; Arc remains selectable.
-> **iOS canvas budget** (all iPhone/iPad browsers + Capicitor WKWebView): ~60 Hz
-> via `scheduleNextFrame` (setTimeout+rAF, no 120 Hz skip churn), hitch clamp
-> ≤1/30 s, DPR ≤ 2, opaque context, lighter wakes/VFX. Goal: playable steadiness
-> (“cool, not crap”), not Android-butter. Zigzag flips on touchstart; boop is
-> phone-audible. KM from `abs(Δcamera.y)`. Journey Logbook: observe → interact.
+> **BUILD 23 + Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
+> (~60 Hz paint, hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas** on
+> iPhone/iPad: DPR ≤ 1.5, baked hull `drawImage`, glow sprites (halos/black-hole/
+> swoosh flash restored without path radials), flat ribbon fills. Phase 0 URL
+> harness: `?perf=1`, `?nodraw=1`, `?drawonly=1`, `?kill=trails,glows,hud,hulls,obstacles,gradients`,
+> `?fullvfx=1`, `?cheap=0|1`, `?dpr=N`. See §6.
 >
 > **Supabase:** Open World leaderboard uses **vaisi's Project**
 > (`ptzaxgslzjefaxdkrvyr`). Table `public.high_scores` + RLS (SELECT/INSERT only
@@ -70,6 +69,8 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated` |
 | Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql` |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
+| Fetch | `ScoreService.getTopScores(type, limit = 100)` — enough for 10 pages × 10 rows |
+| Submit prompt | Open World game-over prompts for a call sign when rank ≤ 100 |
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
@@ -119,7 +120,7 @@ game build env. Journey progress stays in `localStorage` only.
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup below the hull. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playLogbook()`. |
-| `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`. |
+| `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
 | `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear / Play mode-select blurbs. |
@@ -140,7 +141,7 @@ game build env. Journey progress stays in `localStorage` only.
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Sound on/off, driving `SoundManager`'s persisted mute |
-| `highscores` | Leaderboard; Back returns to `highScoresReturnScreen` (`menu` or `gameover`) |
+| `highscores` | Leaderboard: 10 tall rows/page (max 10 pages), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
 | `gameover` | End of a run. Open World: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission |
 
@@ -180,9 +181,11 @@ persists under the `soundMuted` key.
 
 All non-gameplay screens share one grid via `screenLayout(canvas, baseUnit)` in
 [`ui/ScreenKit.js`](src/ui/ScreenKit.js): content edges (`left` / `right` /
-`top` / `bottom`) inside the drawn frame, plus a named vertical rhythm —
-`section` (between bands), `block` (inside a band), `row` (label under a figure).
-Use these instead of ad-hoc `unit * n` gaps.
+`top` / `bottom`) from a layout margin (no in-canvas gray border stroke), plus a
+named vertical rhythm — `section` (between bands), `block` (inside a band),
+`row` (label under a figure). Use these instead of ad-hoc `unit * n` gaps.
+The cream panel vs dark ink surround comes from the page shell in `index.html`
+only; `drawScreenFrame` was removed.
 
 - `Game.drawScreenHeader(title, { back })` draws the Back control + centred title
   and a closing dotted rule; it returns `{ backRect, contentTop }`.
@@ -193,7 +196,8 @@ Use these instead of ad-hoc `unit * n` gaps.
 - Screens compose as bands and are centred as a single block, so they stay
   balanced at any canvas height: menu = identity / ship / actions;
   game over = verdict / stats / actions; options hub = header / three buttons;
-  optionsShip = header / vessel tiles / footnote.
+  optionsShip = header / vessel tiles / footnote;
+  highscores = header / tabs / 10 rows / pager.
 
 The ship tiles lay out as a 2-column grid (`Math.ceil(n / 2)` rows). The footnote
 is pinned to the bottom rule and the grid is centred in the space between it and
@@ -393,7 +397,7 @@ carries enough bands to notice.
 While `moveState` is active, lateral X is a closed half-turn, linear in time:
 
 - `angle = ±π · progress` (full half-turn so `sin(end) = 0` and X returns to
-  `startX`)
+  `startX`; no angle ease-in — that compressed the S sideways)
 - `x = startX + sin(angle) · arcRadius`
 - On `progress ≥ 1`, `x` snaps to `startX` before clearing `moveState`
 
@@ -546,7 +550,7 @@ dashes / Cinder glints; warm Ember (`color.emberRgb`) on Cinder wakes only;
 HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in dark gray
 with two clipped pink spots (`CRESCENT_HITBOX`). Optional skin fields
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan: 160 pts, fade `1/360`);
-iOS canvas budget still multiplies max points by 0.6.
+iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
 Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
@@ -555,7 +559,8 @@ Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
 
 - Registry: `ships/skins.js` (`getSkin`, `drawSkinPreview`, `loadShipSkinId` / `saveShipSkinId`).
 - Roster: `ships/skinDefs.js`; geometry in `ships/hulls.js`; wakes in `ships/trails.js`.
-- `Spacecraft.render()` calls `skin.drawTrail` then `skin.drawHull`; shield rings stay Signal Blue around the hull.
+- `Spacecraft.render()` calls `skin.drawTrail` then hull (`HullCache` blit when
+  `game.useHullCache`, else `skin.drawHull`); shield rings stay Signal Blue.
 - Active id: `game.shipSkinId` (storage key `shipSkinId`).
 
 ### Wake rendering
@@ -584,21 +589,26 @@ with a linear gradient along the wake's chord for the length-wise fade.
   iPadOS that reports as MacIntel. `scheduleNextFrame()` targets ~60 Hz with
   `setTimeout` + rAF so ProMotion does not wake JS at 120 Hz just to skip paints
   (that skip-churn caused heat + worse jitter). Android browser, Android app, and
-  desktop stay unlocked one-update-per-paint. Success bar: playable steadiness
-  (“cool, not crap”), not identical butter to Chromium.
+  desktop stay unlocked one-update-per-paint.
+- **`iosDrawLod` vs `cheapCanvas`:** draw LOD (short trails, smudge off, Open
+  World `maxOnScreen` 18) is `iosCanvasBudget && !fullvfx`. Cheap Canvas defaults
+  **on** for iOS (`?cheap=0` to force off): hull bitmaps (`ships/HullCache.js`),
+  glow sprites (`utils/GlowSprites.js`) so soft VFX return without path radials,
+  ribbon fills skip `createLinearGradient`. Paint hitch clamps stay on `iosCanvasBudget`.
+- **Phase 0 harness** (`core/perfFlags.js`, `core/PerfMonitor.js`): `?perf=1`
+  overlays p50/p95/p99 + histogram (not average fps). `?nodraw=1` = full sim, paper
+  clear only. `?drawonly=1` = freeze updates, keep drawing. `?kill=…` bisects
+  renderer families. `?fullvfx=1` turns off draw LOD for A/B.
 - Opaque 2D context (`{ alpha: false }`) on native **and** iOS web (paper is
   always painted first). Active-play UI hits skip `getBoundingClientRect` (InputHandler
   owns steering). Trail/wake paths mutate or reuse scratch arrays.
-- **iOS draw LOD** (gated by `iosCanvasBudget`): trail max 48 pts (else 80);
-  ribbon smudge off; dense-mark midpoints off; Mote cloud 1–2 dots; black-hole
-  radial glow off (+ off-screen cull); collectible soft halo off; style-swoosh
-  flash radial off; Open World `maxOnScreen` soft-capped at 18 (else Infinity).
 - KM is `abs(Δcamera.y) * (100/60)` so the HUD cannot desync from the world.
 - The world scrolls: entities store an absolute `y`; `camera.getRelativeY(y)`
   converts to on-screen Y for rendering and off-screen culling.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
-- Canvas DPR: iOS (web + native) and all Capicitor ≤ 2×; Android/desktop web ≤ 3×.
+- Canvas DPR: **iOS ≤ 1.5×** (Phase 1); other Capicitor ≤ 2×; Android/desktop web ≤ 3×
+  (`?dpr=N` override).
   **Page shell:** `html`/`body` are brand **ink** (`#1A1A1A`); only
   `#gameContainer` / canvas are **paper** cream, so the playfield edges read on
   desktop (centered, max-width 500px, 2:3). Mobile fills the safe area with the
@@ -687,7 +697,8 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   (or add one there), and build a shaped hull from
   `makeHullRenderer(pathFn, jellyProfile)` so it gets bank rotation, halo, and
   a boop feel for free. Size hitbox circles inside the outline (`?hitbox`).
-  Optional `trailMaxPoints` / `trailFade` for longer wakes.
+  Optional `trailMaxPoints` / `trailFade` for longer wakes; add `HullCache`
+  `HULL_META` when using a non-default jelly profile.
 - **New collectible behavior / value:** edit `CollectibleManager` (cadence,
   placement) and `GameConfig.points`.
 - **New obstacle:** add a `BaseObstacle` subclass in `ObstacleManager.js`, add a

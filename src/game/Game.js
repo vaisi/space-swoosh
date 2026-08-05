@@ -2,13 +2,20 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Leaderboard rows show "CallSign, Ship" with a dotted leader to the score;
-//   submits write `ship_id` from the active skin.
+// - Leaderboard: 10 rows/page (max 10 pages / 100 scores), wider taller rows,
+//   🥇🥈🥉 for ranks 1–3, sharper dotted row separators (no ship–score leaders),
+//   PAGE n/m arrows centered in the gap under the list; submit prompt for top
+//   100. Removed drawScreenFrame chrome.
+// - Leaderboard rows show "CallSign, Ship"; submits write `ship_id` from the
+//   active skin.
 // - Submit-score errors distinguish LeaderboardUnavailableError (missing
 //   VITE_SUPABASE_* in the build) from generic network failures.
+// - Phase 0+1: ?perf / ?nodraw / ?drawonly / ?kill= / ?fullvfx / ?cheap / ?dpr
+//   harness (PerfMonitor). iOS cheap Canvas: DPR 1.5, hull cache, glow sprites.
+//   iosDrawLod split from paint budget so sprites can restore soft VFX.
 // - iOS canvas budget: schedule ~60 Hz via setTimeout+rAF (no 120 Hz skip
 //   churn), tighter hitch clamp (≤1/30 s), skip getBoundingClientRect during
-//   active play. DPR ≤ 2, opaque context, draw LOD — see core/platform.js.
+//   active play. DPR ≤ 1.5 on iOS, opaque context, draw LOD — see platform.js.
 // - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
 //   (ink fill, paler rest) spaced under the figure; aligned with pause.
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
@@ -184,6 +191,9 @@ import {
     needsIosCanvasBudget,
     preferOpaqueCanvas,
 } from '../core/platform.js';
+import { parsePerfFlags, isKilled } from '../core/perfFlags.js';
+import { PerfMonitor } from '../core/PerfMonitor.js';
+import { clearHullCache } from '../ships/HullCache.js';
 
 export class Game {
     constructor(config) {
@@ -235,15 +245,34 @@ export class Game {
         this.snappyHz = 120;
         this.tickScale = 1; // classic paint-ticks covered this frame
         this.dt = 1 / 60; // motion dt for obstacle `* dt` paths (= tick/60)
+        // Phase 0 / Phase 1 flags (URL query). Cheap Canvas defaults on for iOS.
+        this.perfFlags = parsePerfFlags();
+        this.perfMonitor = this.perfFlags.perf ? new PerfMonitor() : null;
         // iOS (Safari + Capicitor WKWebView): ProMotion can fire rAF at 120 Hz
         // and Canvas2D can't keep up. Cap worked frames to ~60 Hz; Android and
         // non-iOS web stay unlocked (one update per paint).
         this.iosCanvasBudget = needsIosCanvasBudget();
+        this.cheapCanvas = this.perfFlags.cheap ?? this.iosCanvasBudget;
+        this.useHullCache = this.cheapCanvas;
+        this.useGlowSprites = this.cheapCanvas;
+        // Draw LOD (short trails, no path-radials, soft-cap) — off with ?fullvfx=1.
+        this.iosDrawLod = this.iosCanvasBudget && !this.perfFlags.fullVfx;
         this.iosPaintCap = this.iosCanvasBudget;
         this.minFrameMs = 1000 / 60;
+        if (this.perfMonitor) {
+            const bits = [
+                this.cheapCanvas ? 'cheap' : 'full2d',
+                this.iosDrawLod ? 'lod' : 'nolod',
+                this.perfFlags.noDraw ? 'nodraw' : '',
+                this.perfFlags.drawOnly ? 'drawonly' : '',
+                [...this.perfFlags.kill].join('+'),
+            ].filter(Boolean);
+            this.perfMonitor.setModeLabel(bits.join(' '));
+        }
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         this.highScoreTab = 'distance'; // Add tab state
+        this.highScorePage = 0; // 0-based page index (10 scores per page)
 
         // Journey state. Progress is local-only; the leaderboard stays Open World.
         this.journeyProgress = loadJourneyProgress();
@@ -329,8 +358,8 @@ export class Game {
         // Logical (CSS) size — all game math and hit-testing stay in these units.
         const cssWidth = container.clientWidth;
         const cssHeight = container.clientHeight;
-        // Android/desktop web ≤3×; iOS (Safari + native) and all Capicitor ≤2×.
-        const maxDpr = canvasMaxDpr();
+        // iOS ≤1.5 (Phase 1); other Cap ≤2; Android/desktop web ≤3. ?dpr= overrides.
+        const maxDpr = this.perfFlags?.dprOverride ?? canvasMaxDpr();
         const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
         this.width = cssWidth;
@@ -351,6 +380,8 @@ export class Game {
         if (this.spacecraft) {
             this.spacecraft.radius = this.baseUnit;
         }
+        // Hull bitmaps are sized to radius — drop them when the layout unit changes.
+        clearHullCache();
     }
 
     // Re-assert the HiDPI transform each frame. Assigning canvas.width resets
@@ -412,7 +443,11 @@ export class Game {
                 return;
             }
 
-            if (!this.isPaused || this.appScreen !== 'playing') {
+            const flags = this.perfFlags;
+            const skipUpdate = flags.drawOnly;
+            const skipDraw = flags.noDraw;
+
+            if (!skipUpdate && (!this.isPaused || this.appScreen !== 'playing')) {
                 // One update per paint — smooth with the display. tickScale maps
                 // wall time onto the snappy ~120 Hz classic-tick reference.
                 // iOS hitch clamp 1/30 s (tickScale ≤ ~4); others keep 50 ms.
@@ -424,9 +459,27 @@ export class Game {
                 this.update(frameTime);
             } else {
                 this.lastTime = currentTime;
+                if (skipUpdate) {
+                    // Keep motion dt sane if anything reads it during draw-only.
+                    this.tickScale = (1 / 60) * this.snappyHz;
+                    this.dt = 1 / 60;
+                }
             }
 
-            this.render();
+            if (!skipDraw) {
+                this.render();
+            } else {
+                // Empty-draw: still clear paper so the screen isn't stale garbage.
+                this.ensureHiDpiTransform();
+                drawPaper(this.ctx, this.width, this.height);
+            }
+
+            if (this.perfMonitor) {
+                this.perfMonitor.sample(elapsedMs);
+                this.perfMonitor.tickOverlay(
+                    `dpr=${(this.dpr || 1).toFixed(2)} hull=${this.useHullCache ? 1 : 0} glow=${this.useGlowSprites ? 1 : 0}`
+                );
+            }
         }
         this.scheduleNextFrame();
     }
@@ -636,13 +689,19 @@ export class Game {
     // the level-clear flyout can keep showing it after gameplay has stopped —
     // where the HUD fades ahead of the world, hence `hudAlpha`.
     renderWorld({ hudAlpha = 1 } = {}) {
-        this.obstacleManager.render(this.ctx);
+        const flags = this.perfFlags;
+        if (!isKilled(flags, 'obstacles')) {
+            this.obstacleManager.render(this.ctx);
+        }
 
         // Draw under the ship so crossing the goal reads as flying through it.
         this.renderFinishLine();
 
         if (this.spacecraft.isVisible) {
-            this.spacecraft.render(this.ctx);
+            this.spacecraft.render(this.ctx, {
+                skipTrail: isKilled(flags, 'trails'),
+                skipHull: isKilled(flags, 'hulls'),
+            });
         }
 
         this.milestoneManager.render(this.ctx);
@@ -652,6 +711,7 @@ export class Game {
         this.wallBoopManager.render(this.ctx);
 
         if (hudAlpha <= 0) return;
+        if (isKilled(flags, 'hud')) return;
         this.ctx.save();
         this.ctx.globalAlpha *= hudAlpha;
         this.renderHud();
@@ -931,8 +991,6 @@ export class Game {
         ctx.fillRect(0, 0, this.width, this.height);
         ctx.restore();
 
-        this.drawScreenFrame();
-
         const buttonWidth = Math.min(unit * 30, L.width);
         const buttonHeight = L.isMobile ? unit * 5.6 : unit * 5;
         const buttonGap = unit * 1.5;
@@ -1076,17 +1134,6 @@ export class Game {
         });
     }
 
-    // A crisp framed border around the screen so the end screens read as one
-    // clean panel, set well in from the edges for breathing room.
-    drawScreenFrame() {
-        const m = this.baseUnit * 2.4;
-        this.ctx.save();
-        this.ctx.strokeStyle = color.ink12;
-        this.ctx.lineWidth = 1.5;
-        this.ctx.strokeRect(m + 0.75, m + 0.75, this.width - m * 2 - 1.5, this.height - m * 2 - 1.5);
-        this.ctx.restore();
-    }
-
     // Shared screen header: optional Back control on the left, a centred display
     // title on the same band, closed by a dotted rule. Returns the Back hit-box
     // and the Y where page content should start.
@@ -1129,8 +1176,6 @@ export class Game {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
-
-        this.drawScreenFrame();
 
         const buttonWidth = Math.min(unit * 32, L.width);
         const buttonHeight = L.isMobile ? unit * 6.6 : unit * 6;
@@ -1233,8 +1278,6 @@ export class Game {
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
 
-        this.drawScreenFrame();
-
         const header = this.drawScreenHeader('OPTIONS', { back: true });
         this.optionsHubButtons = { back: header.backRect };
 
@@ -1300,8 +1343,6 @@ export class Game {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
-
-        this.drawScreenFrame();
 
         this.optionsButtons = { skins: {} };
         const header = this.drawScreenHeader('SHIP', { back: true });
@@ -1422,8 +1463,6 @@ export class Game {
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
 
-        this.drawScreenFrame();
-
         const header = this.drawScreenHeader('SOUND', { back: true });
         this.optionsButtons = { back: header.backRect };
 
@@ -1467,8 +1506,6 @@ export class Game {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
-
-        this.drawScreenFrame();
 
         const header = this.drawScreenHeader('CONTROLS', { back: true });
         this.optionsButtons = { back: header.backRect };
@@ -1813,8 +1850,6 @@ export class Game {
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
 
-        this.drawScreenFrame();
-
         // Three bands: verdict, stats, actions — separated by dotted rules and
         // centred as one block so the screen never sits top-heavy.
         const numButtons = this.scoreSubmitted ? 3 : 4;
@@ -1947,12 +1982,14 @@ export class Game {
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
         const isMobile = L.isMobile;
-        const padding = unit * 3;
-
-        this.drawScreenFrame();
+        const PAGE_SIZE = 10;
+        const MAX_PAGES = 10;
+        const RANK_TROPHIES = ['🥇', '🥈', '🥉'];
 
         const header = this.drawScreenHeader('LEADERBOARD', { back: true });
         this.highScoresBackButton = header.backRect;
+        this.highScorePrevButton = null;
+        this.highScoreNextButton = null;
 
         // Tabs — uppercase labels; the active tab is marked by a dotted trail.
         const tabWidth = this.width * (isMobile ? 0.4 : 0.3);
@@ -1991,42 +2028,65 @@ export class Game {
             ctx.restore();
         });
 
-        // Scores list with dotted-trail separators.
-        const startY = tabY + tabHeight + padding * 1.4;
-        const scoreHeight = isMobile ? unit * 3.6 : unit * 3.1;
-        const scoreSpacing = unit * 1;
-        const numPx = isMobile ? Math.min(unit * 1.8, 21) : unit * 1.6;
-        const namePx = isMobile ? Math.min(unit * 1.8, 21) : unit * 1.6;
-        const leftX = this.width * 0.2;
-        const rightX = this.width * 0.8;
+        // Wider columns; leave a bottom band so PAGE n/m can sit mid-gap.
+        const leftX = this.width * 0.08;
+        const rightX = this.width * 0.92;
+        const listTop = tabY + tabHeight + unit * 2.4;
+        const pagerZone = Math.max(unit * 7, this.height * 0.16);
+        const listBottom = this.height - pagerZone;
+        const listH = Math.max(unit * 20, listBottom - listTop);
+        const scoreSpacing = unit * 0.55;
+        const scoreHeight = (listH - scoreSpacing * (PAGE_SIZE - 1)) / PAGE_SIZE;
+        const numPx = isMobile ? Math.min(unit * 1.85, 22) : unit * 1.7;
+        const namePx = isMobile ? Math.min(unit * 1.85, 22) : unit * 1.7;
+        const rankColW = unit * 3.2;
+        const nameLeft = leftX + rankColW + unit * 0.8;
 
-        if (!this.highScores || this.highScores.length === 0) {
+        const scores = this.highScores || [];
+        const totalPages = scores.length === 0
+            ? 1
+            : Math.min(MAX_PAGES, Math.max(1, Math.ceil(scores.length / PAGE_SIZE)));
+        if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
+        if (this.highScorePage < 0) this.highScorePage = 0;
+
+        if (scores.length === 0) {
             ctx.save();
             ctx.fillStyle = color.ink55;
             ctx.font = `500 ${namePx}px ${font.ui}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('No signals logged. Be the first.', this.width / 2, startY + scoreHeight);
+            ctx.fillText('No signals logged. Be the first.', this.width / 2, listTop + scoreHeight);
             ctx.restore();
             return;
         }
 
-        this.highScores.forEach((score, index) => {
-            const y = startY + (scoreHeight + scoreSpacing) * index;
+        const pageScores = scores.slice(
+            this.highScorePage * PAGE_SIZE,
+            this.highScorePage * PAGE_SIZE + PAGE_SIZE
+        );
+
+        pageScores.forEach((score, index) => {
+            const rank = this.highScorePage * PAGE_SIZE + index + 1;
+            const y = listTop + (scoreHeight + scoreSpacing) * index;
             const midY = y + scoreHeight / 2;
-            const isTop = index < 3;
-            const nameLeft = leftX + unit * 1.2;
+            const isTop = rank <= 3;
 
             ctx.save();
             ctx.textBaseline = 'middle';
 
-            // Rank — mono, top 3 in full ink.
-            ctx.fillStyle = isTop ? color.ink : color.ink55;
-            setMonoType(ctx, numPx);
-            ctx.textAlign = 'right';
-            ctx.fillText(`${index + 1}`, leftX, midY);
+            // Rank — trophy emoji for 1–3, mono number otherwise.
+            if (isTop) {
+                ctx.font = `${Math.max(numPx * 1.15, 18)}px ${font.ui}`;
+                ctx.textAlign = 'center';
+                ctx.fillText(RANK_TROPHIES[rank - 1], leftX + rankColW / 2, midY);
+            } else {
+                ctx.fillStyle = color.ink55;
+                setMonoType(ctx, numPx);
+                ctx.textAlign = 'right';
+                ctx.fillText(`${rank}`, leftX + rankColW, midY);
+            }
 
-            // Call sign (+ ship) — "Name, Ship" then a dotted leader to the score.
+            // Call sign (+ ship) — clean gap to the score, no dotted leader.
             ctx.fillStyle = color.ink;
             ctx.font = `${isTop ? 700 : 500} ${namePx}px ${font.ui}`;
             ctx.textAlign = 'left';
@@ -2042,14 +2102,12 @@ export class Game {
                 ctx.fillStyle = color.ink55;
                 ctx.font = `500 ${shipPx}px ${font.ui}`;
                 ctx.fillText(shipName, labelEnd, midY);
-                labelEnd += ctx.measureText(shipName).width;
             }
 
             // Score — mono figure, optional KM label for distance.
             setMonoType(ctx, numPx, 700);
             ctx.fillStyle = color.ink;
             ctx.textAlign = 'right';
-            let scoreLeft = rightX;
             if (this.highScoreTab === 'distance') {
                 const kmSize = Math.max(9, unit * 0.8);
                 setLabelType(ctx, kmSize);
@@ -2058,29 +2116,70 @@ export class Game {
                 const kmW = ctx.measureText('KM').width;
                 setMonoType(ctx, numPx, 700);
                 ctx.fillStyle = color.ink;
-                scoreLeft = rightX - kmW - unit * 0.5;
-                ctx.fillText(score.formattedScore, scoreLeft, midY);
-                scoreLeft -= ctx.measureText(score.formattedScore).width;
+                ctx.fillText(score.formattedScore, rightX - kmW - unit * 0.5, midY);
             } else {
                 ctx.fillText(score.formattedScore, rightX, midY);
-                scoreLeft = rightX - ctx.measureText(score.formattedScore).width;
-            }
-
-            // Dotted leader between the name block and the score.
-            const leaderPad = unit * 0.55;
-            const leaderFrom = labelEnd + leaderPad;
-            const leaderTo = scoreLeft - leaderPad;
-            if (leaderTo - leaderFrom > unit * 1.2) {
-                dottedLine(ctx, leaderFrom, leaderTo, midY, 1.2, 6, color.ink30);
             }
 
             resetType(ctx);
             ctx.restore();
 
-            if (index < this.highScores.length - 1) {
-                dottedLine(ctx, leftX, rightX, y + scoreHeight + scoreSpacing / 2, 1.4, 7);
+            if (index < pageScores.length - 1) {
+                // Sharper dotted row separators.
+                dottedLine(
+                    ctx,
+                    leftX,
+                    rightX,
+                    y + scoreHeight + scoreSpacing / 2,
+                    1,
+                    5,
+                    color.ink30
+                );
             }
         });
+
+        // Pager: ←  PAGE n/m  → — vertically mid between last row and screen bottom.
+        const pageLabel = `PAGE ${this.highScorePage + 1}/${totalPages}`;
+        const lastRowBottom = listTop
+            + pageScores.length * scoreHeight
+            + Math.max(0, pageScores.length - 1) * scoreSpacing;
+        const pagerY = (lastRowBottom + this.height) / 2;
+        const arrowW = unit * 5;
+        const arrowH = unit * 3.6;
+        const labelW = unit * 14;
+        const canPrev = this.highScorePage > 0;
+        const canNext = this.highScorePage < totalPages - 1;
+
+        this.highScorePrevButton = {
+            x: this.width / 2 - labelW / 2 - arrowW - unit,
+            y: pagerY - arrowH / 2,
+            width: arrowW,
+            height: arrowH,
+            enabled: canPrev
+        };
+        this.highScoreNextButton = {
+            x: this.width / 2 + labelW / 2 + unit,
+            y: pagerY - arrowH / 2,
+            width: arrowW,
+            height: arrowH,
+            enabled: canNext
+        };
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        setLabelType(ctx, isMobile ? Math.min(unit * 1.35, 15) : unit * 1.2);
+        ctx.fillStyle = color.ink;
+        ctx.fillText(pageLabel, this.width / 2, pagerY);
+
+        ctx.fillStyle = canPrev ? color.ink : color.ink30;
+        ctx.font = `600 ${numPx}px ${font.ui}`;
+        ctx.fillText('\u2190', this.highScorePrevButton.x + arrowW / 2, pagerY);
+
+        ctx.fillStyle = canNext ? color.ink : color.ink30;
+        ctx.fillText('\u2192', this.highScoreNextButton.x + arrowW / 2, pagerY);
+        resetType(ctx);
+        ctx.restore();
     }
 
     updateScore() {
@@ -2274,10 +2373,10 @@ export class Game {
                 // Store rank separately so it persists even if modal is closed
                 this.currentRank = rank;
                 
-                // Only show score submission immediately for top 20
-                const isTop20 = rank <= 20;
-                
-                this.pendingHighScore = isTop20 ? {
+                // Prompt for a call sign when the run lands in the top 100.
+                const isTop100 = rank <= 100;
+
+                this.pendingHighScore = isTop100 ? {
                     score: this.finalScore,
                     obstaclesDestroyed: this.obstaclesDestroyed,
                     isWinner: this.hasWon,
@@ -2301,6 +2400,11 @@ export class Game {
             console.error('Failed to load high scores:', error);
             this.highScores = [];
         }
+        const totalPages = this.highScores.length === 0
+            ? 1
+            : Math.min(10, Math.max(1, Math.ceil(this.highScores.length / 10)));
+        if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
+        if (this.highScorePage < 0) this.highScorePage = 0;
     }
 
     createExplosionParticles(x, y) {
@@ -2412,6 +2516,7 @@ export class Game {
                 } else if (this.isClickInButton(x, y, this.menuButtons.highScores)) {
                     this.highScoresReturnScreen = 'menu';
                     this.appScreen = 'highscores';
+                    this.highScorePage = 0;
                     await this.loadHighScores();
                     this.updatePauseButtonVisibility();
                 }
@@ -2486,10 +2591,16 @@ export class Game {
             if (this.appScreen === 'highscores') {
                 if (this.isClickInButton(x, y, this.distanceTab) && this.highScoreTab !== 'distance') {
                     this.highScoreTab = 'distance';
+                    this.highScorePage = 0;
                     await this.loadHighScores();
                 } else if (this.isClickInButton(x, y, this.obstaclesTab) && this.highScoreTab !== 'obstacles') {
                     this.highScoreTab = 'obstacles';
+                    this.highScorePage = 0;
                     await this.loadHighScores();
+                } else if (this.highScorePrevButton?.enabled && this.isClickInButton(x, y, this.highScorePrevButton)) {
+                    this.highScorePage -= 1;
+                } else if (this.highScoreNextButton?.enabled && this.isClickInButton(x, y, this.highScoreNextButton)) {
+                    this.highScorePage += 1;
                 } else if (this.isClickInButton(x, y, this.highScoresBackButton)) {
                     if (this.highScoresReturnScreen === 'gameover') {
                         this.appScreen = 'gameover';
@@ -2531,10 +2642,16 @@ export class Game {
             if (this.gameOverScreen === 'highscores') {
                 if (this.isClickInButton(x, y, this.distanceTab) && this.highScoreTab !== 'distance') {
                     this.highScoreTab = 'distance';
+                    this.highScorePage = 0;
                     await this.loadHighScores();
                 } else if (this.isClickInButton(x, y, this.obstaclesTab) && this.highScoreTab !== 'obstacles') {
                     this.highScoreTab = 'obstacles';
+                    this.highScorePage = 0;
                     await this.loadHighScores();
+                } else if (this.highScorePrevButton?.enabled && this.isClickInButton(x, y, this.highScorePrevButton)) {
+                    this.highScorePage -= 1;
+                } else if (this.highScoreNextButton?.enabled && this.isClickInButton(x, y, this.highScoreNextButton)) {
+                    this.highScorePage += 1;
                 } else if (this.isClickInButton(x, y, this.highScoresBackButton)) {
                     this.gameOverScreen = 'main';
                 }
@@ -2549,6 +2666,7 @@ export class Game {
                     this.highScoresReturnScreen = 'gameover';
                     this.appScreen = 'highscores';
                     this.gameOverScreen = 'main';
+                    this.highScorePage = 0;
                     await this.loadHighScores();
                 } else if (this.isClickInButton(x, y, this.gameOverButtons.menu)) {
                     this.goToMenu();

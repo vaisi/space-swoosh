@@ -2,8 +2,8 @@
 
 > How to play. No spoilers, just the essentials.
 >
-> Open World high scores are online (call sign, ship, + distance). Journey progress
-> stays on your device.
+> Open World high scores are online (call sign, ship, + distance; top 100).
+> Journey progress stays on your device.
 
 ## The goal
 
@@ -33,11 +33,12 @@ with hazards and boosts to fill your field manual.
 
 The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
-turning up. **This is the mode with the leaderboard** — if your run makes the
-board, pick a short call sign on the mission-end screen and submit your
+turning up. **This is the mode with the leaderboard** — if your run lands in the
+top 100, pick a short call sign on the mission-end screen and submit your
 distance. The board shows your call sign and the ship you flew
-(`Name, Ship ··· score`). **High Scores** on the main menu shows the top runs
-(distance or obstacles smashed). No account required.
+(`Name, Ship` and the score). **High Scores** on the main menu browses up to
+100 runs (10 per page, with page arrows), by distance or obstacles smashed.
+Ranks 1–3 show trophy icons. No account required.
 
 Every run — Journey or Open World — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
@@ -73,7 +74,7 @@ screens do the same with their own lines.
 - **Play** — choose Open World or Journey.
 - **Logbook** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, and Sound (see below).
-- **High Scores** — browse the leaderboard.
+- **High Scores** — browse the leaderboard (10 scores per page, up to 10 pages).
 
 After a run, **Menu** on the end screen brings you back here.
 
@@ -299,6 +300,13 @@ Under **Options → Controls** you can pick how the ship steers:
   No arcs — just a clean zig-zag.
 - **Arc** — the classic swoosh: a tall curve that finishes in the same lane it
   started.
+
+## Phones (especially iPhone)
+
+The game is tuned for phones: on iPhone/iPad it paints at a steadier rate and
+uses lighter drawing tricks (sharper enough for the paper look, smoother steering).
+You don’t need to change any settings — just play. If a build ever feels off,
+the usual fix is to update the app or refresh the site.
 
 ## Tips
 

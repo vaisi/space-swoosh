@@ -5,13 +5,17 @@
 // means "good / active" (the same hue as the shield), so it reads as safe to
 // grab versus the solid-ink hazards.
 // Changes:
-// - iOS canvas budget: skip soft signalSoft halo (large translucent fill).
+// - Phase 1: cheap Canvas uses pre-baked glow sprite (drawImage) so iOS can
+//   show the halo again without createRadialGradient / soft path fills.
+// - iOS draw LOD (without sprites): skip soft signalSoft halo.
 // - Reduced sparkle/diamond size from 1.6× to 1.15× baseUnit so pickups feel
 //   less oversized relative to the ship and asteroids.
 // - Created file: the sparkle collectible entity (render + circle collision).
 
 import { color } from '../brand/tokens.js';
 import { drawSparkle } from '../utils/BrandDraw.js';
+import { drawSignalHaloSprite } from '../utils/GlowSprites.js';
+import { isKilled } from '../core/perfFlags.js';
 
 export class Collectible {
     constructor(game, x, y) {
@@ -42,13 +46,17 @@ export class Collectible {
         ctx.save();
         ctx.translate(this.x, relativeY);
 
-        // Soft signal glow halo — telegraphs "collect me" with no new texture.
-        // Skip on iOS Safari: large translucent discs are a fill-rate tax.
-        if (!this.game.iosCanvasBudget) {
-            ctx.beginPath();
-            ctx.arc(0, 0, r * 1.9, 0, Math.PI * 2);
-            ctx.fillStyle = color.signalSoft;
-            ctx.fill();
+        // Soft signal glow halo — telegraphs "collect me".
+        // Phase 1 sprites restore this on iOS; LOD without sprites still skips.
+        if (!isKilled(this.game.perfFlags, 'glows')) {
+            if (this.game.useGlowSprites) {
+                drawSignalHaloSprite(ctx, 0, 0, r * 1.9);
+            } else if (!this.game.iosDrawLod) {
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 1.9, 0, Math.PI * 2);
+                ctx.fillStyle = color.signalSoft;
+                ctx.fill();
+            }
         }
 
         // The sparkle itself, solid Signal Blue, slowly rotating.

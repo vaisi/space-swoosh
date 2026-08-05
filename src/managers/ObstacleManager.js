@@ -1,8 +1,9 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
-// - BlackHole: off-screen cull; on iOS canvas budget skip the large radial
-//   gradient glow (stroke pulse remains) — Safari fill-rate relief.
+// - Phase 1: black-hole outer glow via pre-baked sprite when game.useGlowSprites;
+//   iOS draw LOD still skips path radials without sprites.
+// - BlackHole: off-screen cull; stroke pulse remains.
 // - First scored smash unlocks the DESTROYED HUD row (Game.noteHudDestroyedFromSmash).
 // - Motion-line streaks support count / speedFactor / motionLineAlpha / optional
 //   y-band wrap so the run-start intro can keep a top-of-frame shower that fades.
@@ -41,6 +42,8 @@
 //   `maxClusterCount()`, so early Journey levels stay at one rock per line.
 
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
+import { drawBlackHoleGlowSprite } from '../utils/GlowSprites.js';
+import { isKilled } from '../core/perfFlags.js';
 
 // How rarely the shielded-smash sound may repeat during the level-clear flyout.
 const CINEMATIC_CRASH_MS = 120;
@@ -761,23 +764,27 @@ class BlackHoleObstacle extends BaseObstacle {
         ctx.fillStyle = '#000000';
         ctx.fill();
 
-        // Outer glow — large soft radial fill is expensive on iOS Safari.
-        if (!this.game.iosCanvasBudget) {
-            const gradient = ctx.createRadialGradient(
-                this.x,
-                screenY,
-                this.size,
-                this.x,
-                screenY,
-                this.size * 4
-            );
-            gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // Outer glow — path radial is expensive on iOS; Phase 1 uses a sprite.
+        if (!isKilled(this.game.perfFlags, 'glows')) {
+            if (this.game.useGlowSprites) {
+                drawBlackHoleGlowSprite(ctx, this.x, screenY, this.size, this.size * 4);
+            } else if (!this.game.iosDrawLod) {
+                const gradient = ctx.createRadialGradient(
+                    this.x,
+                    screenY,
+                    this.size,
+                    this.x,
+                    screenY,
+                    this.size * 4
+                );
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-            ctx.beginPath();
-            ctx.arc(this.x, screenY, this.size * 4, 0, Math.PI * 2);
-            ctx.fillStyle = gradient;
-            ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x, screenY, this.size * 4, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
         }
 
         // Pulsing effect

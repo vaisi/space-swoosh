@@ -2,7 +2,8 @@
 // Awards "style" points when the ship threads a very narrow gap between two
 // obstacles (a near-miss swoosh past both), with Signal-Blue screen feedback.
 // Changes:
-// - iOS canvas budget: skip the large radial flash fill (rings/streaks remain).
+// - Phase 1: flash uses pre-baked glow sprite when game.useGlowSprites; iOS
+//   draw LOD still skips path radials without sprites.
 // - Journey Logbook: instant unlock for Style Swoosh on award.
 // - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
 // - Popup alpha multiplies into the caller's `globalAlpha` instead of replacing
@@ -11,6 +12,8 @@
 
 import { color } from '../brand/tokens.js';
 import { setLabelType, setMonoType, resetType } from '../utils/BrandDraw.js';
+import { drawSwooshFlashSprite } from '../utils/GlowSprites.js';
+import { isKilled } from '../core/perfFlags.js';
 
 const SKIP_TYPES = new Set(['WormholeGate', 'BlackHoleObstacle']);
 
@@ -231,16 +234,19 @@ export class StyleSwooshManager {
                 ctx.fill();
                 ctx.restore();
             } else if (e.type === 'flash') {
-                // Large soft radial — skip on iOS Safari canvas budget.
-                if (this.game.iosCanvasBudget) continue;
+                if (isKilled(this.game.perfFlags, 'glows')) continue;
                 ctx.save();
-                const gr = ctx.createRadialGradient(e.x, sy, 0, e.x, sy, unit * 6);
-                gr.addColorStop(0, `rgba(${color.signalRgb}, ${0.18 * e.life})`);
-                gr.addColorStop(1, `rgba(${color.signalRgb}, 0)`);
-                ctx.fillStyle = gr;
-                ctx.beginPath();
-                ctx.arc(e.x, sy, unit * 6, 0, Math.PI * 2);
-                ctx.fill();
+                if (this.game.useGlowSprites) {
+                    drawSwooshFlashSprite(ctx, e.x, sy, unit * 6, 0.36 * e.life);
+                } else if (!this.game.iosDrawLod) {
+                    const gr = ctx.createRadialGradient(e.x, sy, 0, e.x, sy, unit * 6);
+                    gr.addColorStop(0, `rgba(${color.signalRgb}, ${0.18 * e.life})`);
+                    gr.addColorStop(1, `rgba(${color.signalRgb}, 0)`);
+                    ctx.fillStyle = gr;
+                    ctx.beginPath();
+                    ctx.arc(e.x, sy, unit * 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 ctx.restore();
             } else if (e.type === 'streak') {
                 ctx.save();

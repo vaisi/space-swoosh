@@ -1,6 +1,7 @@
 // ScoreService.js
 // Supabase read/write for the online leaderboard, plus score formatting.
 // Changes:
+// - getTopScores default limit is 100 (10 leaderboard pages × 10 rows).
 // - saveScore accepts optional shipId (roster skin id) and writes `ship_id`.
 // - Inserts omit client `created_at` (DB default `now()`) to avoid timestamp
 //   serialization edge cases from the browser.
@@ -93,7 +94,7 @@ export class ScoreService {
 
     // An unconfigured build shows an empty board rather than an error screen —
     // the leaderboard is a side feature and must never block the menu.
-    static async getTopScores(type = 'distance', limit = 20) {
+    static async getTopScores(type = 'distance', limit = 100) {
         if (!supabase) return [];
 
         try {

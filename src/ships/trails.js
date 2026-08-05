@@ -227,8 +227,7 @@ export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
 }
 
 function iosBudget(ship) {
-    // Prefer Phase-1 lod flag when present; fall back to the older budget name.
-    return !!(ship?.game?.iosDrawLod ?? ship?.game?.iosCanvasBudget);
+    return !!ship?.game?.iosDrawLod;
 }
 
 export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {

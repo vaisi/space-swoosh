@@ -5,7 +5,7 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
-// - Open World on iOS canvas budget: soft maxOnScreen (18) so late-run fields
+// - Open World on iOS draw LOD: soft maxOnScreen (18) so late-run fields
 //   cannot explode Safari draw cost; Android/desktop stay uncapped.
 // - Created file: RunProfile (the contract + shared defaults) and
 //   OpenWorldProfile, which reproduces the endless run's existing numbers
@@ -194,6 +194,6 @@ export class OpenWorldProfile extends RunProfile {
      * Journey already caps via JourneyProfile.
      */
     get maxOnScreen() {
-        return this.game.iosCanvasBudget ? 18 : Infinity;
+        return this.game.iosDrawLod ? 18 : Infinity;
     }
 }

@@ -4,6 +4,7 @@
 // is taller than the screen, so it scrolls (wheel or drag — Game owns the
 // gesture and hands us the offset).
 // Changes:
+// - No longer draws the gray inset screen frame (removed app-wide).
 // - Tile star pips are solid when earned and hollow when not (they used to be a
 //   faint fill), matching the outcome screen's objective rows.
 // - Created file.
@@ -39,7 +40,6 @@ export function renderJourneyMap(game) {
     const unit = game.baseUnit;
     const L = screenLayout(game, unit);
 
-    game.drawScreenFrame();
     const header = game.drawScreenHeader('JOURNEY', { back: true });
 
     // Star tally, pinned to the header band on the right.

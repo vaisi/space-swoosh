@@ -6,10 +6,12 @@
 //   seat (no 0.55× redirect). Vertical speed eases toward the arc target so
 //   camera catch-up doesn't jerk on redirect. Taller climb via arcDuration +
 //   mid-arc verticalBoost 0.55.
+// - Phase 1: optional hull bitmap blit via HullCache when game.useHullCache.
+//   Render accepts { skipTrail, skipHull } for Phase 0 bisect (?kill=).
 // - Per-skin trail length: optional `trailMaxPoints` / `trailFade` on the
-//   active skin (Nyan ~2× wake). iOS canvas budget still scales max points ×0.6.
-// - iOS canvas budget: shorter wake (48 pts vs 80) to cut fill/path cost on
-//   Safari without changing Android/desktop trail length.
+//   active skin (Nyan ~2× wake). iOS draw LOD still scales max points ×0.6.
+// - `skipHullCache` on a skin forces live `drawHull` (for animated hull paint).
+// - iOS draw LOD: shorter wake (48 pts vs 80) via game.iosDrawLod.
 // - Render stamps `ship._wallTrailMode` from the active skin so wakes can pile
 //   or spring on wall hits without a trails↔skins import cycle.
 // - `startMovement(direction)` param name restored (was `_direction` while the
@@ -48,6 +50,7 @@
 import { SHIELD_BLUE_RGB } from '../utils/DrawUtils.js';
 import { getSkin } from '../ships/skins.js';
 import { MAX_BANK } from '../ships/hulls.js';
+import { drawCachedHull } from '../ships/HullCache.js';
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
 
 const BANK_SMOOTHING = 0.34; // snappier hull lean on direction changes
@@ -181,7 +184,8 @@ export class Spacecraft {
             const elapsed = currentTime - this.moveState.startTime;
             const progress = Math.min(1, elapsed / duration);
             // Full half-turn so sin(end)=0 and X returns to startX. Linear in
-            // time so the S spreads over the whole climb.
+            // time so the S spreads over the whole climb (ease-in packed it
+            // sideways into a short vertical span).
             const angle = (this.moveState.direction === 'left' ? -1 : 1)
                 * Math.PI * progress;
             const newX = this.moveState.startX + Math.sin(angle) * this.arcRadius;
@@ -383,10 +387,10 @@ export class Spacecraft {
         const trail = this.trail;
         const skin = getSkin(this.game.shipSkinId);
         const fade = skin.trailFade ?? (1 / 180);
-        // iOS Safari: fewer samples → cheaper ribbons / dense marks / clouds.
-        // Skins may request a longer wake (e.g. Nyan); budget still trims ~40%.
+        // iOS draw LOD: fewer samples → cheaper ribbons / dense marks / clouds.
+        // Skins may request a longer wake (e.g. Nyan); LOD still trims ~40%.
         const baseMax = skin.trailMaxPoints ?? 80;
-        const maxPoints = this.game.iosCanvasBudget
+        const maxPoints = this.game.iosDrawLod
             ? Math.max(48, Math.round(baseMax * 0.6))
             : baseMax;
 
@@ -423,7 +427,7 @@ export class Spacecraft {
         }
     }
 
-    render(ctx) {
+    render(ctx, { skipTrail = false, skipHull = false } = {}) {
         if (!this.isVisible) return;
 
         const skin = getSkin(this.game.shipSkinId);
@@ -433,8 +437,16 @@ export class Spacecraft {
         ctx.save();
         // Trails read this so wake physics can stay mode-aware without importing skins.
         this._wallTrailMode = skin.wallTrailMode ?? 'spring';
-        skin.drawTrail(ctx, this, this.trail, (wy) => this.game.camera.getRelativeY(wy));
-        skin.drawHull(ctx, this, screenY, time);
+        if (!skipTrail) {
+            skin.drawTrail(ctx, this, this.trail, (wy) => this.game.camera.getRelativeY(wy));
+        }
+        if (!skipHull) {
+            if (this.game.useHullCache && !skin.skipHullCache) {
+                drawCachedHull(ctx, this, screenY, time);
+            } else {
+                skin.drawHull(ctx, this, screenY, time);
+            }
+        }
         ctx.restore();
 
         if (DEBUG_HITBOX) this.renderHitCircles(ctx);

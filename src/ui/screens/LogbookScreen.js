@@ -1,6 +1,7 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - No longer draws the gray inset screen frame (removed app-wide).
 // - Scrollable taller cards again (not a one-card pager). Real in-game obstacle
 //   silhouettes (circle / triangle / square / pentagon / star / cluster…).
 // - Created file: observe/known states, empty Spock copy, From the Void stub.
@@ -39,7 +40,6 @@ export function renderLogbook(game) {
     const L = screenLayout(game, unit);
     const progress = game.logbook?.progress;
 
-    game.drawScreenFrame();
     const header = game.drawScreenHeader('LOGBOOK', { back: true });
 
     const buttons = { back: header.backRect, tabs: [], entries: [] };

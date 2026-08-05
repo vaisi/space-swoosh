@@ -1,6 +1,8 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
+// - Phase 1: iOS (and native iOS) canvas DPR cap is 1.5 (~44% fewer pixels than
+//   2×; paper/ink hides the softness). Android Cap native stays ≤2; desktop ≤3.
 // - Created: iOS (Safari + Capicitor WKWebView) shares one Canvas2D budget —
 //   ProMotion + retina fill-rate is the lag source on spaceswoosh.app Safari.
 //   Android browser/app and desktop stay on the uncapped snappy path.
@@ -30,11 +32,12 @@ export function needsIosCanvasBudget() {
 }
 
 /**
- * Cap the backing-store DPR. Native and all iOS use 2×; other web (Android
- * browser, desktop) may use up to 3× for sharper menus.
+ * Cap the backing-store DPR.
+ * iOS web + native: 1.5 (Phase 1 cheap path). Other Cap native: 2. Desktop/Android web: 3.
  */
 export function canvasMaxDpr() {
-    if (Capacitor.isNativePlatform() || isIosDevice()) return 2;
+    if (isIosDevice()) return 1.5;
+    if (Capacitor.isNativePlatform()) return 2;
     return 3;
 }
 
