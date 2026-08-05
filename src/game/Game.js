@@ -2,6 +2,12 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Submit Signal modal lightened: left-aligned value→label stacks in order
+//   distance → asteroids destroyed → rank with clearer vertical gaps;
+//   underline call sign + brand Submit. Dropped centered blue hero chrome.
+// - Crash → end screen: world fades under the blast (no blank paper flash),
+//   Mission Failed crossfades in during the blast, submit modal opens only
+//   after the end screen has fully settled.
 // - Open World personal best (localStorage via OpenWorldProgress) updates on
 //   every finished Open World run and feeds the mode-select card footer.
 // - Leaderboard: 10 rows/page (max 10 pages / 100 scores), wider taller rows,
@@ -119,6 +125,7 @@ import {
     LeaderboardUnavailableError,
     ScoreService,
 } from '../services/ScoreService.js';
+import { CALL_SIGN_MAX_LEN } from '../services/NameFilter.js';
 import { track } from '../services/Analytics.js';
 import {
     getSkinPriceLabel,
@@ -653,31 +660,56 @@ export class Game {
                 if (this.gameOverAlpha <= 0) return;
             }
 
-            if (this.runOutcome === 'crashed' && timeSinceGameOver < deceleration) {
-                for (const particle of this.explosionParticles) {
-                    this.ctx.fillStyle = `rgba(26, 26, 26, ${particle.opacity})`;
-                    this.ctx.beginPath();
-                    this.ctx.arc(
-                        particle.x,
-                        this.camera.getRelativeY(particle.y),
-                        particle.size,
-                        0,
-                        Math.PI * 2
-                    );
-                    this.ctx.fill();
+            // Crash: keep the world under the blast (fading), then crossfade the
+            // end screen — no blank-paper gap between explosion and Mission Failed.
+            if (this.runOutcome === 'crashed') {
+                const blastT = Math.min(1, timeSinceGameOver / deceleration);
+                const worldAlpha = Math.max(0, 1 - blastT * 1.2);
+                if (worldAlpha > 0.02) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = worldAlpha;
+                    this.renderWorld({ hudAlpha: worldAlpha });
+                    this.ctx.restore();
                 }
-            } else {
-                this.ctx.save();
-                this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
-                if (this.isJourney()) {
-                    this.levelOutcomeButtons = renderLevelOutcome(this);
-                } else if (this.gameOverScreen === 'highscores') {
-                    this.renderHighScores();
-                } else {
-                    this.renderMainGameOver();
+
+                if (timeSinceGameOver < deceleration) {
+                    for (const particle of this.explosionParticles) {
+                        this.ctx.fillStyle = `rgba(26, 26, 26, ${particle.opacity})`;
+                        this.ctx.beginPath();
+                        this.ctx.arc(
+                            particle.x,
+                            this.camera.getRelativeY(particle.y),
+                            particle.size,
+                            0,
+                            Math.PI * 2
+                        );
+                        this.ctx.fill();
+                    }
                 }
-                this.ctx.restore();
+
+                if (this.gameOverAlpha > 0) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
+                    if (this.gameOverScreen === 'highscores') {
+                        this.renderHighScores();
+                    } else {
+                        this.renderMainGameOver();
+                    }
+                    this.ctx.restore();
+                }
+                return;
             }
+
+            this.ctx.save();
+            this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
+            if (this.isJourney()) {
+                this.levelOutcomeButtons = renderLevelOutcome(this);
+            } else if (this.gameOverScreen === 'highscores') {
+                this.renderHighScores();
+            } else {
+                this.renderMainGameOver();
+            }
+            this.ctx.restore();
             return;
         }
 
@@ -1964,11 +1996,6 @@ export class Game {
         drawDivider(ctx, L.left, L.right, y);
         y += L.section / 2;
 
-        if (this.pendingHighScore?.shouldPromptName) {
-            this.renderNameInputModal();
-            return;
-        }
-
         // --- Actions ---------------------------------------------------------
         const bx = L.centerX - buttonWidth / 2;
         this.gameOverButtons = {};
@@ -1993,6 +2020,12 @@ export class Game {
         this.gameOverButtons.menu = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, 'Menu', { tag: '\u2302' }
         );
+
+        // Submit modal only after Mission Failed has fully settled — avoids the
+        // modal flashing in over a half-faded end screen.
+        if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1) {
+            this.renderNameInputModal();
+        }
     }
 
     renderHighScores() {
@@ -2462,9 +2495,12 @@ export class Game {
                 return;
             }
 
-            // Update explosion particles during the first 2 seconds
+            // Blast particles for the deceleration window; Mission Failed starts
+            // crossfading in during the second half so there is no blank beat.
+            const screenFadeStart = deceleration * 0.5;
+            const screenFadeMs = deceleration * 0.5 + 350;
+
             if (timeSinceGameOver < deceleration) {
-                // Expand and update particles
                 this.explosionParticles = this.explosionParticles
                     .map(particle => {
                         const progress = timeSinceGameOver / deceleration;
@@ -2476,11 +2512,15 @@ export class Game {
                             opacity: 1 - (timeSinceGameOver / deceleration)
                         };
                     });
-            } else if (timeSinceGameOver >= deceleration) {
-                // Clear particles after deceleration
+            } else {
                 this.explosionParticles = [];
-                // Start fading in game over screen
-                this.gameOverAlpha = Math.min(1, (timeSinceGameOver - deceleration) / 1000);
+            }
+
+            if (timeSinceGameOver >= screenFadeStart) {
+                this.gameOverAlpha = Math.min(
+                    1,
+                    (timeSinceGameOver - screenFadeStart) / screenFadeMs
+                );
             }
         }
     }
@@ -2647,8 +2687,8 @@ export class Game {
                 return;
             }
 
-            // Handle name input modal
-            if (this.pendingHighScore?.shouldPromptName) {
+            // Handle name input modal (only once the end screen has settled).
+            if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1) {
                 if (this.isClickInButton(x, y, this.closeButton)) {
                     this.closeNameInputModal();
                     return;
@@ -2975,36 +3015,28 @@ export class Game {
     renderNameInputModal() {
         const ctx = this.ctx;
 
-        // Soft ink dim to focus attention while keeping the paper world visible.
+        // Soft ink dim — Mission Failed stays readable underneath.
         ctx.fillStyle = 'rgba(26, 26, 26, 0.42)';
         ctx.fillRect(0, 0, this.width, this.height);
 
-        // Framed motif-tile card, sized relative to the canvas.
-        const modalWidth = Math.min(384, this.width * 0.88);
-        const modalHeight = 344;
+        const modalWidth = Math.min(360, this.width * 0.88);
+        const modalHeight = 460;
         const modalX = (this.width - modalWidth) / 2;
         const modalY = (this.height - modalHeight) / 2;
-        const padding = 32;
+        const pad = 28;
+        const contentLeft = modalX + pad;
+        const contentRight = modalX + modalWidth - pad;
+        const contentWidth = contentRight - contentLeft;
 
         drawFramedTile(ctx, modalX, modalY, modalWidth, modalHeight, { surface: color.paperTint });
 
-        // Caption-bar hairline under the header.
-        ctx.save();
-        ctx.strokeStyle = color.ink12;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(modalX + 0.75, modalY + padding * 2 + 0.5);
-        ctx.lineTo(modalX + modalWidth - 0.75, modalY + padding * 2 + 0.5);
-        ctx.stroke();
-        ctx.restore();
-
-        // Close (×) button top-right — wired to the existing modal-close handler.
+        // Close (×)
         const closeSize = 26;
         this.closeButton = {
             x: modalX + modalWidth - closeSize - 12,
             y: modalY + 12,
             width: closeSize,
-            height: closeSize
+            height: closeSize,
         };
         ctx.save();
         ctx.strokeStyle = color.ink;
@@ -3019,82 +3051,88 @@ export class Game {
         ctx.stroke();
         ctx.restore();
 
-        let currentY = modalY + padding;
-
-        // Header — uppercase label + a mono rank micro-tag on the right.
+        // Caption
         ctx.save();
-        ctx.fillStyle = color.ink;
-        setLabelType(ctx, 13);
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText('SUBMIT SIGNAL', modalX + padding, currentY + 10);
-
-        setMonoType(ctx, 13);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = color.ink55;
-        ctx.fillText(`RANK #${this.pendingHighScore.rank}`, this.closeButton.x - 12, currentY + 10);
-        resetType(ctx);
-        ctx.restore();
-
-        currentY += padding * 2 + padding * 0.6;
-
-        // Big score — Space Mono figure + KM label.
-        ctx.save();
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        setMonoType(ctx, 34);
-        ctx.fillStyle = color.ink;
-        const scoreText = ScoreService.formatScore(this.finalScore);
-        const scoreWidth = ctx.measureText(scoreText).width;
-        ctx.fillText(scoreText, modalX + padding, currentY);
-
         setLabelType(ctx, 12);
-        ctx.fillStyle = color.ink55;
-        ctx.fillText('KM', modalX + padding + scoreWidth + 10, currentY);
-
-        currentY += padding * 0.9;
-
-        setLabelType(ctx, 10);
-        ctx.fillStyle = color.ink55;
-        ctx.fillText(`${this.obstaclesDestroyed} DESTROYED`, modalX + padding, currentY);
+        ctx.fillStyle = color.ink;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText('SUBMIT SIGNAL', contentLeft, modalY + pad + 8);
         resetType(ctx);
         ctx.restore();
 
-        currentY += padding * 1.4;
+        let currentY = modalY + pad * 2;
+        dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
+        currentY += pad;
 
-        // Name input (DOM element positioned over the canvas).
-        const inputWidth = modalWidth - padding * 2;
-        const inputHeight = 48;
-        const inputX = modalX + padding;
+        // Left-aligned value → label stacks: distance, destroyed, rank.
+        const drawStat = (value, unitLabel, caption) => {
+            ctx.save();
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            setMonoType(ctx, 28);
+            ctx.fillStyle = color.ink;
+            ctx.fillText(value, contentLeft, currentY);
+            const cursor = contentLeft + ctx.measureText(value).width;
+            if (unitLabel) {
+                setLabelType(ctx, 11);
+                ctx.fillStyle = color.ink55;
+                ctx.fillText(unitLabel, cursor + 8, currentY);
+            }
+            currentY += 18;
+            setLabelType(ctx, 10);
+            ctx.fillStyle = color.ink55;
+            ctx.fillText(caption, contentLeft, currentY);
+            resetType(ctx);
+            ctx.restore();
+            currentY += pad * 1.35;
+        };
+
+        drawStat(ScoreService.formatScore(this.finalScore), 'KM', 'DISTANCE');
+        drawStat(
+            ScoreService.formatScore(this.obstaclesDestroyed),
+            null,
+            'ASTEROIDS DESTROYED'
+        );
+        drawStat(`#${this.pendingHighScore.rank}`, null, 'YOUR RANK');
+
+        dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
+        currentY += pad * 0.7;
+
+        // Call sign — underline field (matches earlier brand treatment).
+        const inputWidth = contentWidth;
+        const inputHeight = 44;
+        const inputX = contentLeft;
+        const inputY = currentY;
 
         if (!this.nameInput) {
             const input = document.createElement('input');
             input.type = 'text';
-            input.maxLength = 15;
+            input.maxLength = CALL_SIGN_MAX_LEN;
             input.placeholder = 'ENTER CALL SIGN';
+            input.autocomplete = 'off';
+            input.spellcheck = false;
 
             const canvasRect = this.canvas.getBoundingClientRect();
-            const scaledX = canvasRect.left + (inputX * canvasRect.width / this.width);
-            const scaledY = canvasRect.top + (currentY * canvasRect.height / this.height);
-            const scaledWidth = inputWidth * canvasRect.width / this.width;
-            const scaledHeight = inputHeight * canvasRect.height / this.height;
+            const scaleX = canvasRect.width / this.width;
+            const scaleY = canvasRect.height / this.height;
 
             input.style.cssText = `
                 position: absolute;
-                left: ${scaledX}px;
-                top: ${scaledY}px;
-                width: ${scaledWidth}px;
-                height: ${scaledHeight}px;
+                left: ${canvasRect.left + inputX * scaleX}px;
+                top: ${canvasRect.top + inputY * scaleY}px;
+                width: ${inputWidth * scaleX}px;
+                height: ${inputHeight * scaleY}px;
                 box-sizing: border-box;
                 font-size: 16px;
                 border: none;
-                border-bottom: 2px solid #1A1A1A;
+                border-bottom: 2px solid var(--ss-ink, #1A1A1A);
                 border-radius: 0;
                 outline: none;
                 padding: 0 4px;
                 background: transparent;
-                color: #1A1A1A;
-                font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+                color: var(--ss-ink, #1A1A1A);
+                font-family: var(--ss-font-ui, 'Space Grotesk', 'Segoe UI', system-ui, sans-serif);
                 font-weight: 500;
                 letter-spacing: 0.04em;
             `;
@@ -3110,14 +3148,16 @@ export class Game {
             input.focus();
         }
 
-        currentY += inputHeight + padding;
+        currentY = inputY + inputHeight + pad * 0.75;
 
-        // Submit button (primary framed tile).
-        const buttonHeight = 52;
+        const buttonHeight = 50;
         this.submitButton = this.drawBrandButton(
-            modalX + padding, currentY, inputWidth, buttonHeight, 'Submit', { primary: true, tag: '\u2191' }
+            contentLeft, currentY, inputWidth, buttonHeight, 'Submit', {
+                primary: true,
+                tag: '\u2191',
+            }
         );
-        this.submitButton.enabled = this.nameInput && this.nameInput.value.trim().length > 0;
+        this.submitButton.enabled = !!(this.nameInput && this.nameInput.value.trim().length > 0);
 
         if (this.submitError) {
             ctx.save();
@@ -3125,7 +3165,7 @@ export class Game {
             ctx.fillStyle = color.signal;
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillText(this.submitError.toUpperCase(), modalX + padding, currentY + buttonHeight + 18);
+            ctx.fillText(this.submitError.toUpperCase(), contentLeft, currentY + buttonHeight + 16);
             resetType(ctx);
             ctx.restore();
         }
@@ -3170,7 +3210,7 @@ export class Game {
                 this.submitError = 'Could not submit. Try again.';
             }
             if (this.nameInput) {
-                this.nameInput.style.borderBottomColor = '#0000FF';
+                this.nameInput.style.borderBottomColor = color.signal;
             }
         }
     }

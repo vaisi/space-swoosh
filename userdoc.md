@@ -36,11 +36,12 @@ with hazards and boosts to fill your field manual.
 The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up. **This is the mode with the leaderboard** — if your run lands in the
-top 100, pick a short call sign on the mission-end screen and submit your
-distance. The board shows your call sign and the ship you flew
-(`Name, Ship` and the score). **High Scores** on the main menu browses up to
-100 runs (10 per page, with page arrows), by distance or obstacles smashed.
-Ranks 1–3 show trophy icons. No account required.
+top 100, after Mission Failed settles a Submit Signal card lists your distance,
+asteroids destroyed, and rank — type a short call sign and send it up. The board
+shows your call sign and the ship you flew (`Name, Ship` and the score).
+**High Scores** on the main menu browses up to 100 runs (10 per page, with page
+arrows), by distance or obstacles smashed. Ranks 1–3 show trophy icons. No
+account required.
 
 Every run — Journey or Open World — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades

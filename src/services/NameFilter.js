@@ -1,6 +1,8 @@
 // NameFilter.js
 // Call-sign validation for the online leaderboard (user-generated content).
 // Changes:
+// - Exported CALL_SIGN_MAX_LEN / CALL_SIGN_MIN_LEN so the Submit Signal UI
+//   character counter stays in sync with validation.
 // - Created file: Apple guideline 1.2 expects moderation for UGC. A short
 //   blocklist plus character/length rules is enough for a call sign — we are
 //   not building a chat app. Rejected names never hit Supabase.
@@ -15,8 +17,10 @@ const BLOCKED = [
     'hitler', 'nazi',
 ];
 
-const MAX_LEN = 15;
-const MIN_LEN = 2;
+export const CALL_SIGN_MAX_LEN = 15;
+export const CALL_SIGN_MIN_LEN = 2;
+const MAX_LEN = CALL_SIGN_MAX_LEN;
+const MIN_LEN = CALL_SIGN_MIN_LEN;
 // Letters, numbers, spaces, hyphen, underscore, period.
 const ALLOWED = /^[A-Za-z0-9 _.\-]+$/;
 

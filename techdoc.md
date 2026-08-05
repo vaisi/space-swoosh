@@ -70,7 +70,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql` |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
 | Fetch | `ScoreService.getTopScores(type, limit = 100)` — enough for 10 pages × 10 rows |
-| Submit prompt | Open World game-over prompts for a call sign when rank ≤ 100 |
+| Submit prompt | Open World game-over prompts for a call sign when rank ≤ 100. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: left-aligned distance → asteroids destroyed → rank, underline call sign, brand Submit |
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the

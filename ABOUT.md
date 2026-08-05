@@ -165,7 +165,7 @@ Timed flyover lines at set distances (see `GameConfig.milestones`), faded in/out
 - **HUD:** top‑left distance readout (`KM`) + `DESTROYED` count, Space Mono figures with small uppercase labels.
 - **Game Over / Mission Failed / Mission Complete:** reticle badge, title, Spock subtitle, big distance + destroyed stats, and three large framed‑tile buttons — **Play Again**, **Submit Score**, **High Scores** — vertically centered with generous spacing inside a faint framed panel.
 - **High Scores / Leaderboard:** Back button, `DISTANCE` / `OBSTACLES` tabs (active tab marked by a dotted trail), and a ranked list with dotted‑trail separators.
-- **Submit modal:** framed card with rank tag, the score, a DOM `<input>` for the call sign, and a primary Submit button.
+- **Submit modal:** light framed card; left-aligned distance → asteroids destroyed → rank; underline call-sign input; brand Submit. Opens only after the crash → Mission Failed transition has settled.
 - **Pause overlay:** paper wash + the two‑bar pause glyph + `MISSION PAUSED`.
 
 Shared drawing primitives live in `BrandDraw.js` (`drawFramedButton`, `drawFramedTile`, `drawReticle`, type presets) so every surface matches the brand.
