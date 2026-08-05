@@ -4,6 +4,10 @@
 >
 > Open World high scores are online (call sign, ship, + distance; top 100).
 > Your Open World personal best and Journey progress stay on your device.
+>
+> **Look (this build):** Options has a **Light Mode / Dark Mode** toggle (saved
+> on your device). Dark is night paper — charcoal ground, light ink, vivid mint
+> accents. Light is the classic cream paper with Signal Blue.
 
 ## The goal
 
@@ -257,11 +261,12 @@ Top-left, you'll see:
 In Journey the distance line shows **current / goal KM**, with a soft progress
 track underneath (no border) that fills as you close on the target.
 
-On a computer, the cream playfield sits centered on a dark ink page so you can
-see its edges. On phones the cream stage fills the safe area (ink may show in
-the notch / home-indicator strips). Turn arcs and cruise speed are meant to feel
-the same as on a computer — if a build ever feels half-speed with KM racing
-ahead, that build is wrong; report the menu stamp (e.g. `BUILD 23 · WEB`).
+On a computer, the dark charcoal playfield sits centered on a light bone page so
+you can see its edges. On phones the charcoal stage fills the safe area (bone
+ink may show in the notch / home-indicator strips). Turn arcs and cruise speed
+are meant to feel the same as on a computer — if a build ever feels half-speed
+with KM racing ahead, that build is wrong; report the menu stamp
+(e.g. `BUILD 23 · WEB`).
 
 **iPhone / iPad (Safari or Chrome):** the game targets a steadier ~60 frames per
 second and a slightly lighter retina resolution so motion stays cool and playable
@@ -274,14 +279,14 @@ keep the full high-refresh path — travel speed stays matched either way.
 There are a few ways to earn points:
 
 - **Destroy an asteroid → +1 point.** You can only destroy asteroids while your
-  **shield** is active. Grab a shield pickup (the pulsing blue "plus"), then fly
+  **shield** is active. Grab a shield pickup (the pulsing mint "plus"), then fly
   *through* asteroids to smash them for points.
-- **Collect a sparkle → +10 points.** A glowing **blue four-point sparkle**
+- **Collect a sparkle → +10 points.** A glowing **mint four-point sparkle**
   appears now and then, drifting down the screen. Fly into it to grab it — you'll
   hear a short chime. The sparkle is always safe to touch — blue means "good" in
   this universe (it's the same color as your shield).
 - **Thread a narrow gap → +15 style points.** Slip between two obstacles with
-  almost no room on either side — a **SWOOSH** flashes in signal blue and you
+  almost no room on either side — a **SWOOSH** flashes in soft mint and you
   bank style points. Risky, stylish, worth it.
 
 A little **+1**, **+10**, or **SWOOSH +15** floats up wherever you scored. Your
@@ -316,7 +321,7 @@ Under **Options → Controls** you can pick how the ship steers:
 ## Phones (especially iPhone)
 
 The game is tuned for phones: on iPhone/iPad it paints at a steadier rate and
-uses lighter drawing tricks (sharper enough for the paper look, smoother steering).
+uses lighter drawing tricks (sharper enough for the night-paper look, smoother steering).
 You don’t need to change any settings — just play. If a build ever feels off,
 the usual fix is to update the app or refresh the site.
 

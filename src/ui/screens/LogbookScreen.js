@@ -1,6 +1,7 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - Night paper: black-hole icon gradient uses inkRgb (bone) instead of near-black.
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Scrollable taller cards again (not a one-card pager). Real in-game obstacle
 //   silhouettes (circle / triangle / square / pentagon / star / cluster…).
@@ -252,7 +253,7 @@ export function drawEntryIcon(ctx, icon, cx, cy, size, dimmed) {
     ctx.save();
     ctx.translate(cx, cy);
     const ink = dimmed ? color.ink30 : color.ink;
-    const signal = dimmed ? 'rgba(0, 0, 255, 0.35)' : color.signal;
+    const signal = dimmed ? `rgba(${color.signalRgb}, 0.35)` : color.signal;
     ctx.fillStyle = ink;
     ctx.strokeStyle = ink;
     ctx.lineWidth = Math.max(2, size * 0.08);
@@ -342,8 +343,8 @@ export function drawEntryIcon(ctx, icon, cx, cy, size, dimmed) {
         case 'blackhole': {
             const g = ctx.createRadialGradient(0, 0, size * 0.05, 0, 0, size * 0.5);
             g.addColorStop(0, ink);
-            g.addColorStop(0.55, 'rgba(26,26,26,0.55)');
-            g.addColorStop(1, 'rgba(26,26,26,0)');
+            g.addColorStop(0.55, `rgba(${color.inkRgb}, 0.55)`);
+            g.addColorStop(1, `rgba(${color.inkRgb}, 0)`);
             ctx.fillStyle = g;
             ctx.beginPath();
             ctx.arc(0, 0, size * 0.5, 0, Math.PI * 2);

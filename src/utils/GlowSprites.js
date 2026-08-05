@@ -1,8 +1,12 @@
 // GlowSprites.js
 // Phase 1: pre-render soft radial glows once, blit with drawImage each frame.
 // Changes:
+// - Theme toggle: bakes read live `color.*Rgb`; clearGlowSpriteCache() on switch.
+// - Night paper: black-hole soft ring uses ink falloff (not pure black).
 // - Created: black-hole ring glow, collectible signal halo, style-swoosh flash.
 //   Replaces createRadialGradient / large soft fills on the cheap-Canvas path.
+
+import { color } from '../brand/tokens.js';
 
 /** @type {Map<string, HTMLCanvasElement>} */
 const cache = new Map();
@@ -39,9 +43,9 @@ function bakeSoftRing(ctx, size) {
     const mid = size / 2;
     const inner = mid * 0.25;
     const g = ctx.createRadialGradient(mid, mid, inner, mid, mid, mid);
-    g.addColorStop(0, 'rgba(0,0,0,0)');
-    g.addColorStop(0.15, 'rgba(0,0,0,0.4)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
+    g.addColorStop(0, `rgba(${color.inkRgb}, 0)`);
+    g.addColorStop(0.15, `rgba(${color.inkRgb}, 0.4)`);
+    g.addColorStop(1, `rgba(${color.inkRgb}, 0)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, size, size);
 }
@@ -52,8 +56,8 @@ function bakeSoftRing(ctx, size) {
  */
 export function drawSignalHaloSprite(ctx, x, y, radius, alpha = 1) {
     const size = 64;
-    const sprite = getSprite('signalHalo', size, (c, s) => {
-        bakeSoftDisc(c, s, 'rgba(0, 0, 255, 0.55)');
+    const sprite = getSprite(`signalHalo:${color.signalRgb}`, size, (c, s) => {
+        bakeSoftDisc(c, s, `rgba(${color.signalRgb}, 0.55)`);
     });
     const d = radius * 2;
     const prev = ctx.globalAlpha;
@@ -68,7 +72,7 @@ export function drawSignalHaloSprite(ctx, x, y, radius, alpha = 1) {
  */
 export function drawBlackHoleGlowSprite(ctx, x, y, holeRadius, outerRadius) {
     const size = 128;
-    const sprite = getSprite('bhGlow', size, (c, s) => bakeSoftRing(c, s));
+    const sprite = getSprite(`bhGlow:${color.inkRgb}`, size, (c, s) => bakeSoftRing(c, s));
     const d = outerRadius * 2;
     ctx.drawImage(sprite, x - outerRadius, y - outerRadius, d, d);
     // Keep the hard hole ink on top (caller draws the core before/after).
@@ -78,8 +82,8 @@ export function drawBlackHoleGlowSprite(ctx, x, y, holeRadius, outerRadius) {
 /** Style-swoosh flash — soft signal bloom. */
 export function drawSwooshFlashSprite(ctx, x, y, radius, alpha = 1) {
     const size = 96;
-    const sprite = getSprite('swooshFlash', size, (c, s) => {
-        bakeSoftDisc(c, s, 'rgba(0, 0, 255, 0.5)');
+    const sprite = getSprite(`swooshFlash:${color.signalRgb}`, size, (c, s) => {
+        bakeSoftDisc(c, s, `rgba(${color.signalRgb}, 0.5)`);
     });
     const d = radius * 2;
     const prev = ctx.globalAlpha;

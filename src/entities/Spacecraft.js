@@ -47,7 +47,7 @@
 // - Active-shield glow rings use the shared "shield blue" so they visually
 //   match the blue shield pickup + portals (reinforcing the mechanic connection).
 
-import { SHIELD_BLUE_RGB } from '../utils/DrawUtils.js';
+import { color } from '../brand/tokens.js';
 import { getSkin } from '../ships/skins.js';
 import { MAX_BANK } from '../ships/hulls.js';
 import { drawCachedHull } from '../ships/HullCache.js';
@@ -476,7 +476,7 @@ export class Spacecraft {
                 0,
                 Math.PI * 2
             );
-            ctx.strokeStyle = `rgba(${SHIELD_BLUE_RGB}, ${opacity})`;
+            ctx.strokeStyle = `rgba(${color.signalRgb}, ${opacity})`;
             ctx.lineWidth = this.radius * 0.2;
             ctx.stroke();
 
@@ -489,7 +489,7 @@ export class Spacecraft {
                 0,
                 Math.PI * 2
             );
-            ctx.strokeStyle = `rgba(${SHIELD_BLUE_RGB}, ${opacity * 0.5})`;
+            ctx.strokeStyle = `rgba(${color.signalRgb}, ${opacity * 0.5})`;
             ctx.lineWidth = this.radius * 0.1;
             ctx.stroke();
         }
@@ -498,7 +498,7 @@ export class Spacecraft {
     // Dev aid behind ?hitbox: outline what obstacles are actually tested against.
     renderHitCircles(ctx) {
         ctx.save();
-        ctx.strokeStyle = `rgba(${SHIELD_BLUE_RGB}, 0.9)`;
+        ctx.strokeStyle = `rgba(${color.signalRgb}, 0.9)`;
         ctx.lineWidth = 1;
         for (const circle of this.hitCircles) {
             ctx.beginPath();

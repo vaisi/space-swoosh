@@ -3,6 +3,11 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
+> **Night paper (`feat/night-paper`):** Dual theme via Options → **Light Mode /
+> Dark Mode** (`brand/theme.js`, key `ssTheme`). Dark: charcoal paper, bone ink,
+> vivid mint signal (`#3DFF9A`). Light: classic cream paper + Signal Blue.
+> `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
+>
 > **BUILD 23 + Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (~60 Hz paint, hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas** on
 > iPhone/iPad: DPR ≤ 1.5, baked hull `drawImage`, glow sprites (halos/black-hole/
@@ -17,7 +22,7 @@
 ## 1. Overview
 
 Space Swoosh is a vertical-scrolling "dodge" game rendered on a single HTML5
-`<canvas>`. The ship auto-flies upward through a *paper universe*; the player
+`<canvas>`. The ship auto-flies upward through a *night-paper universe*; the player
 steers left/right in arcs to dodge (or, with a shield, destroy) ink asteroids,
 grab shield pickups, and collect points.
 
@@ -161,7 +166,7 @@ sub-screen returns to the hub; Back from the hub returns to the main menu.
 ### Pause
 
 Pause isn't a screen in `appScreen`; it's `isPaused` layered over `playing`.
-`renderPauseOverlay()` draws a paper wash, the run's live stats, and three
+`renderPauseOverlay()` draws a night-paper wash, the run's live stats, and three
 buttons into `this.pauseButtons`:
 
 | Button | Effect |
@@ -186,7 +191,7 @@ All non-gameplay screens share one grid via `screenLayout(canvas, baseUnit)` in
 `top` / `bottom`) from a layout margin (no in-canvas gray border stroke), plus a
 named vertical rhythm — `section` (between bands), `block` (inside a band),
 `row` (label under a figure). Use these instead of ad-hoc `unit * n` gaps.
-The cream panel vs dark ink surround comes from the page shell in `index.html`
+The charcoal stage vs bone ink surround comes from the page shell in `index.html`
 only; `drawScreenFrame` was removed.
 
 - `Game.drawScreenHeader(title, { back })` draws the Back control + centred title
@@ -631,11 +636,12 @@ with a linear gradient along the wake's chord for the length-wise fade.
   all sizes/type, so the game is responsive across desktop/mobile.
 - Canvas DPR: **iOS ≤ 1.5×** (Phase 1); other Capicitor ≤ 2×; Android/desktop web ≤ 3×
   (`?dpr=N` override).
-  **Page shell:** `html`/`body` are brand **ink** (`#1A1A1A`); only
-  `#gameContainer` / canvas are **paper** cream, so the playfield edges read on
-  desktop (centered, max-width 500px, 2:3). Mobile fills the safe area with the
-  cream stage; ink shows in notch / home-indicator insets. `theme-color` is ink.
-  Menu stamp: `BUILD 23 · NATIVE` / `WEB`.
+  **Page shell (night paper):** `html`/`body` are brand **ink** (bone `#E1D9C1`);
+  only `#gameContainer` / canvas are **paper** charcoal (`#1C1A16`), so the
+  playfield edges read on desktop (centered, max-width 500px, 2:3). Mobile fills
+  the safe area with the charcoal stage; bone ink shows in notch / home-indicator
+  insets. `theme-color` matches the bone surround. Native status bar uses
+  `Style.Dark` + charcoal background. Menu stamp: `BUILD 23 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
@@ -702,12 +708,15 @@ Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
 
 ## 8. Brand system (how visuals stay consistent)
 
-`brand/tokens.js` is the single source of truth: warm **paper** ground, near-black
-**ink** shapes/text, and one accent **Signal Blue** (`#0000FF`) reserved for
-"good / active" things (shield, focus, teleport, **the points sparkle**, selected
-ship tile). Canvas code draws through `utils/BrandDraw.js` helpers so every
-surface matches. The points collectible is a four-point **sparkle** (`drawSparkle`)
-— deliberately distinct from the filled-ink 8-point "hostile" star.
+`brand/tokens.js` holds the live `color` object; `brand/theme.js` switches
+**dark** (charcoal `#1C1A16`, bone ink, vivid mint `#3DFF9A`) vs **light**
+(cream paper, near-black ink, Signal Blue). Options hub toggles and persists
+under `ssTheme`. Trail wakes / shields read tokens at draw time; milestone toasts
+use a paper-rgb plate so ink text stays readable on both themes. Canvas code draws through
+`utils/BrandDraw.js` helpers so every surface matches. Obstacles and VFX must use
+`color.ink` / `color.inkRgb` — not hard-coded black. The points collectible is a
+four-point **sparkle** (`drawSparkle`) — deliberately distinct from the filled-ink
+8-point "hostile" star.
 
 ### Spock copy (`brand/CopyBank.js`)
 

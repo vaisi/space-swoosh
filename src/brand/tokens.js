@@ -3,12 +3,17 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Theme toggle: `color` is mutated in place by brand/theme.js (light cream /
+//   dark night-paper). Defaults below are night paper until initTheme() runs.
+// - Night paper (feat/night-paper): inverted palette — warm deep charcoal ground,
+//   bone ink for shapes/text. Accent is vivid mint on dark; Signal Blue on light.
+//   Added `paperRgb` for canvas washes.
 // - Added `ember` / `emberRgb` — warm trail-only accent for special ship wakes
-//   (Cinder). Still paper-universe; not a second UI accent.
+//   (Cinder). Not a second UI accent.
 // - Added `inkRgb` so canvas VFX (e.g. wall BOOP) can build rgba() strings
 //   the same way Signal Blue does via `signalRgb`.
 // - Created file: the canonical brand kit for the game, distilled from the
-//   in-game aesthetic (warm paper, ink shapes, blue shield, dotted trail,
+//   in-game aesthetic (paper ground, ink shapes, blue shield, dotted trail,
 //   geometric obstacles, crosshair reticle). Replaces the ad-hoc constants that
 //   were scattered across DrawUtils.js / Game.js / index.html.
 // - Direction: "geometric minimalism". Retires the hand-drawn Comic Sans + Arial
@@ -25,33 +30,34 @@
 // -----------------------------------------------------------------------------
 
 // --- Color -------------------------------------------------------------------
-// A deliberately tiny, monochrome-plus-one palette. Warm paper ground, ink for
-// everything structural, and a single electric "signal" blue as the only accent.
+// Night paper: monochrome-plus-one inverted. Dark warm ground, light bone ink
+// for structure, and a single soft mint "signal" as the only accent.
 export const color = {
-    // Ground — warm bone/sand. The whole universe sits on this.
-    paper:        '#E1D9C1',
-    paperTint:    '#EAE4D2', // raised surfaces / cards
-    paperDeep:    '#D3C9AC', // recessed wells / pressed states
+    // Ground — warm deep charcoal. The whole universe sits on this.
+    paper:        '#1C1A16',
+    paperTint:    '#2A2620', // raised surfaces / cards
+    paperDeep:    '#12100E', // recessed wells / pressed states
+    paperRgb:     '28, 26, 22',
 
-    // Ink — near-black, never pure #000. Used for shapes, text, structure.
-    ink:          '#1A1A1A',
-    ink80:        'rgba(26, 26, 26, 0.80)', // secondary text
-    ink55:        'rgba(26, 26, 26, 0.55)', // muted text / hints
-    ink30:        'rgba(26, 26, 26, 0.30)', // dotted trails / dividers
-    ink12:        'rgba(26, 26, 26, 0.12)', // grid lines / fills
-    ink06:        'rgba(26, 26, 26, 0.06)', // faint pattern wash
-    inkRgb:       '26, 26, 26',
+    // Ink — warm bone (never pure white). Used for shapes, text, structure.
+    ink:          '#E1D9C1',
+    ink80:        'rgba(225, 217, 193, 0.80)', // secondary text
+    ink55:        'rgba(225, 217, 193, 0.55)', // muted text / hints
+    ink30:        'rgba(225, 217, 193, 0.30)', // dotted trails / dividers
+    ink12:        'rgba(225, 217, 193, 0.12)', // grid lines / fills
+    ink06:        'rgba(225, 217, 193, 0.06)', // faint pattern wash
+    inkRgb:       '225, 217, 193',
 
-    // Signal — the one accent. Reserved for meaning: shield, focus, "active".
-    signal:       '#0000FF',
-    signalSoft:   'rgba(0, 0, 255, 0.14)',
-    signalRgb:    '0, 0, 255',
+    // Signal — the one accent. Vivid mint on night paper (shield, focus, active).
+    signal:       '#3DFF9A',
+    signalSoft:   'rgba(61, 255, 154, 0.32)',
+    signalRgb:    '61, 255, 154',
 
     // Ember — warm trail heat for ship wakes only (never HUD / buttons).
-    // Muted copper that sits on paper without fighting Signal Blue.
-    ember:        '#A65D3F',
-    emberSoft:    'rgba(166, 93, 63, 0.18)',
-    emberRgb:     '166, 93, 63',
+    // Lifted copper so wakes still read on night paper without fighting Signal.
+    ember:        '#C47855',
+    emberSoft:    'rgba(196, 120, 85, 0.22)',
+    emberRgb:     '196, 120, 85',
 };
 
 // Semantic aliases — reference these in code so intent stays readable.
@@ -142,7 +148,7 @@ export const motif = {
 
     // The full in-game element vocabulary → shape + fill + meaning. Every entity
     // the game spawns maps to one of these; keep new content within this set.
-    // `fill: 'ink'` = solid #1A1A1A, `signal` = the blue accent, `ink30` = trail.
+    // `fill: 'ink'` = solid bone ink, `signal` = the blue accent, `ink30` = trail.
     elements: {
         // --- Asteroids & debris (obstacles; all solid ink) ---
         asteroid: { shape: 'circle',            fill: 'ink',    role: 'Basic asteroid' },

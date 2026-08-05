@@ -2,12 +2,14 @@
 // Which ship skins the player owns. Free skins are always owned; premium skins
 // unlock via RevenueCat and are cached in localStorage for offline play.
 // Changes:
+// - Night paper: SIGNAL_RGB follows brand `color.signalRgb` (soft orchid).
 // - UNLOCK_ALL_SKINS: every roster ship is playable without IAP (playtest). Flip
 //   to false before store release to restore premium gating.
 // - Created file: ownership is separate from "selected skin" (ships/skins.js).
 //   Selecting a locked skin starts a purchase; Restore Purchases refreshes the
 //   cache from the store. On the web (no IAP), premium skins stay locked.
 
+import { color } from '../brand/tokens.js';
 import { SKIN_DEFS } from '../ships/skinDefs.js';
 import {
     getOwnedEntitlementIds,
@@ -19,7 +21,11 @@ import {
 } from './Purchases.js';
 
 const CACHE_KEY = 'ownedSkinIds';
-const SIGNAL_RGB = '0, 0, 255';
+/** Live accent RGB — prefer `color.signalRgb` at call sites; kept for export. */
+export function getSignalRgb() {
+    return color.signalRgb;
+}
+const SIGNAL_RGB = color.signalRgb;
 
 /** Playtest unlock — set false to re-enable RevenueCat premium gating. */
 export const UNLOCK_ALL_SKINS = true;

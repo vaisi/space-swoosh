@@ -2,6 +2,9 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Theme toggle: trail defaults read `color.inkRgb` at draw time (no snapshot).
+// - Night paper: trail ink follows `color.inkRgb` (was hard-coded near-black,
+//   which vanished on charcoal).
 // - Nyan: `drawRainbowRibbonTrail` — stacked Nyan-Cat stripe bands along the
 //   path normals (parallel ribbons, tip fade). Cheap Canvas uses flat fills.
 // - Ink reverseBoop: stronger calligraphic pressure pulse + tip ink flecks
@@ -26,8 +29,6 @@
 
 import { color } from '../brand/tokens.js';
 import { withHeading, wallTrailDeform, WALL_JELLY_MS } from './hulls.js';
-
-const INK_RGB = '26, 26, 26';
 
 const wakeScratch = [];
 const ribbonLeft = [];
@@ -187,7 +188,7 @@ function ribbonPath(ctx, pts, widthAt) {
 }
 
 export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { rgb = INK_RGB, denseBoop = false } = opts;
+    const { rgb = color.inkRgb, denseBoop = false } = opts;
     const now = performance.now();
     const mode = trailMode(ship);
     const n = trail.length;
@@ -235,7 +236,7 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
         widthScale = 1,
         alpha = 0.8,
         smudge = true,
-        rgb = INK_RGB,
+        rgb = color.inkRgb,
         reverseBoop = false,
     } = opts;
     const pts = wakePoints(ship, trail, toScreenY);
@@ -913,7 +914,7 @@ export function drawCreaseTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
 /** Soft cloud of micro-dots that drift and re-condense — Mote. */
 export function drawCloudTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { alpha = 0.78, rgb = INK_RGB } = opts;
+    const { alpha = 0.78, rgb = color.inkRgb } = opts;
     const r = ship.radius;
     const now = performance.now();
     const mode = trailMode(ship);
@@ -1112,7 +1113,7 @@ export function drawLagEllipseTrail(ctx, ship, trail, toScreenY, opts = {}) {
 export function drawDashTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const {
         alpha = 0.9,
-        inkRgb = INK_RGB,
+        inkRgb = color.inkRgb,
         signalRgb = color.signalRgb,
     } = opts;
     const r = ship.radius;
@@ -1162,7 +1163,7 @@ export function drawDashTrail(ctx, ship, trail, toScreenY, opts = {}) {
 export function drawCinderTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const {
         alpha = 0.9,
-        inkRgb = INK_RGB,
+        inkRgb = color.inkRgb,
         emberRgb = color.emberRgb,
         signalRgb = color.signalRgb,
     } = opts;
