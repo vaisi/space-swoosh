@@ -8,8 +8,9 @@
 // - Difficulty stair lifted (stronger on early steps): simple 0.24, barriers
 //   0.34, complex 0.42, … finale still 1.00. Level 1 is 5,000 km; GOAL_KM.min
 //   5,500. Action onset is JourneyProfile.obstaclesFromScore (0 = with HUD).
-// - Star targets: L1–3 need 1 smash / 10 points; then smash climbs slowly to 6
-//   and points ~3 per 1,000 km (cap stays modest — not dozens of smashes).
+// - Star targets: L1–3 need 1 smash / 25 points; smash still climbs slowly to 6.
+//   Points after that scale ~6 per 1,000 km so the points star asks for real
+//   sparkle hunting without matching the old impossible bars.
 // - Third star is a smash mission (`smashTarget` asteroids destroyed with the
 //   shield), not "take no hits" — bumping rocks is the fantasy.
 // - `starLabels()` names the objectives only; the outcome screen prints each
@@ -60,10 +61,11 @@ const LEVEL_ONE_GOAL_KM = 5000;
 // Length still creeps up inside a plateau even though difficulty does not, so a
 // held difficulty never feels like the same level twice.
 const GOAL_KM_PER_LEVEL_IN_STEP = 300;
-// Points needed for the second star, per 1000 KM (levels 4+). L1–3 are flat 10.
-const POINTS_TARGET_PER_1000KM = 3;
+// Points needed for the second star, per 1000 KM (levels 4+). L1–3 are flat.
+// Sparkles are +10; targets sit above a single casual pickup.
+const POINTS_TARGET_PER_1000KM = 6;
 const EARLY_STAR_LEVELS = 3;
-const EARLY_POINTS_TARGET = 10;
+const EARLY_POINTS_TARGET = 25;
 const EARLY_SMASH_TARGET = 1;
 // After the early band: 2 smashes, +1 about every 7 levels, hard cap 6.
 const SMASH_AFTER_EARLY = 2;

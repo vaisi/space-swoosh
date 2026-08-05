@@ -1,8 +1,9 @@
 // LevelIntroSequence.js
 // Short run-start cinematic for Journey and Open World.
 // Changes:
-// - On handoff: title alone (no pause / HUD), ~3s title fade-out, then Game
-//   advances wait → chip fades. Spawning stays paused until chips begin.
+// - Title fade-out shortened to 900ms (was 3s). Game unpauses the belt as soon
+//   as the title line clears — no extra empty second before rocks.
+// - On handoff: title alone (no pause / HUD), then chip fades.
 // - Settle keeps the HUD dark; centre title is the first thing on screen.
 // - Slow centre roll up from below the frame; top-of-screen star shower that
 //   eases out over the beat. Exit flyout left unchanged.
@@ -24,7 +25,8 @@ const STREAK_BAND = 0.38;  // top fraction of the frame for the shower
 // Centre title ceremony (MilestoneManager timings).
 const TITLE_FADE_IN = 450;
 const TITLE_HOLD = 400;
-const TITLE_FADE_OUT = 3000;
+// Was 3000 — long empty sky after the line. Short fade, then the belt opens.
+const TITLE_FADE_OUT = 900;
 
 function easeOut(t) {
     return 1 - (1 - t) * (1 - t);
@@ -186,7 +188,7 @@ export class LevelIntroSequence {
         game.camera.totalDistance = Math.abs(game.camera.y);
 
         const om = game.obstacleManager;
-        // Stay paused until the HUD chip phase — title beat stays open sky.
+        // Paused through the title line; Game opens the belt when it clears.
         om.pauseSpawning = true;
         om.motionLines = [];
         om.motionLineAlpha = 0.3;

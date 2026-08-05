@@ -28,8 +28,8 @@
 // - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
 //   (ink fill, paler rest) spaced under the figure; aligned with pause.
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
-//   KM only accrues once the distance chip may show (title/wait no longer
-//   silently banks hundreds of km before the readout appears).
+//   KM accrues once the title clears (wait/chips) — belt opens at that same
+//   moment so rocks arrive with the first readable distance, not a second later.
 // - Run-start LevelIntroSequence (~1s fly-in + fade) for Journey and Open World;
 //   steering locked until it finishes; intro milestone deferred to handoff.
 // - Play mode-select blurbs pick once on enter from CopyBank modeJourney /
@@ -549,10 +549,11 @@ export class Game {
             const prevCameraY = this.camera.y;
             this.camera.update(1);
 
-            // KM from world travel — but only once the distance chip is allowed
-            // to show. Title/wait used to bank silent km so "1,200 on the HUD"
-            // arrived much later than internal score gates expected.
-            const kmLive = this.hudRevealPhase == null || this.hudRevealPhase === 'chips';
+            // KM once the title is gone (wait/chips). Title beat stays uncounted;
+            // belt opens in the same handoff so action matches the readout.
+            const kmLive = this.hudRevealPhase == null
+                || this.hudRevealPhase === 'wait'
+                || this.hudRevealPhase === 'chips';
             if (kmLive) {
                 this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
             }
@@ -574,24 +575,22 @@ export class Game {
         }
     }
 
-    // Title alone → wait 1s after it clears → chip fades (pause last).
+    // Title alone → as soon as it clears, open the belt and start chip fades.
     advanceHudReveal() {
         if (!this.hudRevealPhase) return;
 
         if (this.hudRevealPhase === 'title') {
             if (!this.milestoneManager?.currentMessage) {
-                this.hudRevealPhase = 'wait';
-                this.hudRevealWaitStart = performance.now();
+                this.beginHudChipsAndBelt();
             }
             this.updatePauseButtonVisibility();
             return;
         }
 
         if (this.hudRevealPhase === 'wait') {
-            if (performance.now() - (this.hudRevealWaitStart ?? 0) >= 1000) {
-                this.hudRevealPhase = 'chips';
-                this.hudRevealStart = performance.now();
-                this.obstacleManager.pauseSpawning = false;
+            // No-title runs (e.g. Open World): short calm, then same handoff.
+            if (performance.now() - (this.hudRevealWaitStart ?? 0) >= 200) {
+                this.beginHudChipsAndBelt();
             }
             this.updatePauseButtonVisibility();
             return;
@@ -599,6 +598,18 @@ export class Game {
 
         if (this.hudRevealPhase === 'chips') {
             this.updatePauseButtonVisibility();
+        }
+    }
+
+    /** Title/wait done — distance chips fade in and obstacle rows may spawn. */
+    beginHudChipsAndBelt() {
+        this.hudRevealPhase = 'chips';
+        this.hudRevealStart = performance.now();
+        this.hudRevealWaitStart = null;
+        if (this.obstacleManager) {
+            this.obstacleManager.pauseSpawning = false;
+            this.obstacleManager.nextSpawnY = this.camera.y;
+            this.obstacleManager._beltArmed = false;
         }
     }
 

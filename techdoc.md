@@ -264,8 +264,9 @@ Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 levels can place two rocks in a row. `goalKm` runs 5500→12000 plus 300 per
 level *inside* a plateau, except **level 1 is hard-capped at 5,000 km**. Every
 Journey level opens the belt and pickups at **0 HUD KM** via
-`obstaclesFromScore` (as soon as intro unpauses / the distance chip may show).
-Level 1 teach hints still run; only the short atmosphere cutscene holds spawns.
+`obstaclesFromScore` as soon as the centre title clears (~0.9s fade; no extra
+wait). Level 1 teach hints still run; only the short atmosphere cutscene holds
+spawns.
 Spawn cursor arms at `camera.y` (not 1.5 screens ahead) so rows are not born in
 the despawn band. Tutorial distances are HUD KM. Each step also introduces one
 obstacle type (rosters are cumulative) and each level picks a `focusType` it
@@ -279,12 +280,14 @@ append-only data, so more chapters are additive.
 ### Stars and progress
 
 Three per level, in fixed order: reach the goal, hit the points target, and
-**smash N asteroids** with the shield. Levels **1–3** need **10 points** and
-**1 smash**; after that points scale at ~3 per 1,000 km and smash climbs from 2
-toward a hard cap of **6** (about +1 every 7 levels). Shield bumps are the
-fantasy; there is no "no hits" star. `evaluateStars()` scores a finished run;
-all three require completion. The Journey HUD shows `destroyed / smashTarget`.
-Journey shields and sparkles open with the belt at 0 HUD KM.
+**smash N asteroids** with the shield. Levels **1–3** need **25 points** and
+**1 smash**; after that points scale at ~6 per 1,000 km and smash climbs from 2
+toward a hard cap of **6** (about +1 every 7 levels). The points star asks for
+active sparkle hunting; smash stays the lighter side quest. Shield bumps are
+the fantasy; there is no "no hits" star. `evaluateStars()` scores a finished
+run; all three require completion. The Journey HUD shows
+`destroyed / smashTarget`. Journey shields and sparkles open with the belt at
+0 HUD KM.
 
 `services/JourneyProgress.js` persists `{ version, unlocked, levels: { n: { stars,
 bestPoints } } }` under `journeyProgress`, guarded in try/catch like

@@ -24,13 +24,14 @@ at least one run.
 
 Deep space exploration starting from Day 1. **40 numbered levels**, each with a
 distance goal to reach. Level 1 is a 5,000 km first flight — learn the turn,
-then asteroids and pickups show up right away (same on every level). After that
+then asteroids and pickups show up as soon as the level title fades (same on
+every level). After that
 the runs stay long and the field stays busy. Levels get harder a step at a time
 and then hold there for a while, so you get room to master what just arrived
 before anything new does — and the further you go, the longer each of those
-stretches lasts. Early levels only ask for a single shield-smash and a handful
-of points for the side stars; those targets climb slowly later, not into the
-dozens.
+stretches lasts. Early levels only ask for a single shield-smash for that star;
+the points star wants you to chase sparkles, and both targets climb later
+without turning into a grind.
 
 Flying Journey is also how you **unlock Logbook entries** — observe and interact
 with hazards and boosts to fill your field manual.
