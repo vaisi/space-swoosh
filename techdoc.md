@@ -121,7 +121,7 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup below the hull. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playLogbook()`. |
+| `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -477,7 +477,7 @@ Obstacle probes are meant to hug the drawn ink:
 | Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render). Shield smash destroys only the part hit: a moon clip leaves the core; a core hit clears the whole cluster. Render cull uses full cluster radius so moons are never collidable while undrawn. |
 | Shooting star | 8-point star polygon + projectile circles (projectiles still drawn when the star body is culled). Shield smash clips only the shots you hit; body hit clears the star. |
 | Black hole | Core radius only (glow/pulse are VFX) |
-| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop |
+| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge |
 
 `ObstacleManager.update()` advances every obstacle (orbits, movers, shots)
 **before** running shield/fatal collision, so hit tests match the ink painted
@@ -676,6 +676,11 @@ it is included in the `game_over` GA event.
    on iPhone speakers under BGM) — and spawns an ink-only `BOOP` label below the
    hull (no glow/blot), inset from the wall so the full word stays on-screen.
    Applies to every skin; Square skins still also get `wallJelly` squash.
+5. **Portal hop:** `WormholeGate.transportSpacecraft()` calls
+   `SoundManager.playPortalEntry()` at hop start and `playPortalExit()` on
+   emerge — deeper space warps (low body/sub + swirl) through a delay-feedback
+   echo bus. `playShield()` follows ~90 ms after exit so the deflector gift
+   stays audible without masking the emerge cue.
 
 Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
 

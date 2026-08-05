@@ -1,7 +1,10 @@
 // SoundManager.js
 // Loads looping BGM + SFX from public/sounds/, and synthesizes short Web Audio
-// cues for sparkle pickups, style-swoosh near-misses, and sidewall wall-boops.
+// cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
+// and wormhole portal hops.
 // Changes:
+// - Portal SFX split into playPortalEntry / playPortalExit: deeper space warp
+//   with delay-feedback echo (suck-in vs emerge). playPortal() aliases entry.
 // - playBoop: phone-audible body (320→180 Hz) + short mid tick (~520 Hz);
 //   reused noise buffer (no per-hit alloc). Old 185→92 Hz was inaudible on
 //   iPhone speakers under BGM even though the BOOP popup fired.
@@ -446,6 +449,159 @@ export class SoundManager {
         } catch (error) {
             console.error("Error in playCrash:", error);
         }
+    }
+
+    // Deep space warp with delay-feedback echo. direction 'in' = suck into the
+    // gate; 'out' = emerge at the exit. Distinct from playSwoosh / playShield.
+    playPortalWarp(direction = 'in') {
+        if (!this.initialized || this.muted) return;
+
+        try {
+            const ctx = this.ensureAudioContext();
+            if (!ctx) return;
+
+            const now = ctx.currentTime;
+            const entering = direction !== 'out';
+            const duration = entering ? 0.42 : 0.38;
+            const tail = 0.55; // let echoes ring in the void
+
+            // Dry + wet bus. Wet path = delay with feedback for space echo.
+            const master = ctx.createGain();
+            master.gain.value = 1;
+            master.connect(ctx.destination);
+
+            const dry = ctx.createGain();
+            dry.gain.value = 0.7;
+            dry.connect(master);
+
+            const delay = ctx.createDelay(1.0);
+            delay.delayTime.value = entering ? 0.14 : 0.11;
+            const feedback = ctx.createGain();
+            feedback.gain.value = entering ? 0.42 : 0.34;
+            const wetFilter = ctx.createBiquadFilter();
+            wetFilter.type = 'lowpass';
+            wetFilter.frequency.value = entering ? 900 : 1200;
+            wetFilter.Q.value = 0.6;
+            const wet = ctx.createGain();
+            wet.gain.value = entering ? 0.55 : 0.45;
+
+            delay.connect(feedback);
+            feedback.connect(delay);
+            delay.connect(wetFilter);
+            wetFilter.connect(wet);
+            wet.connect(master);
+
+            const route = (node) => {
+                node.connect(dry);
+                node.connect(delay);
+            };
+
+            // Deep body tone — low enough to feel like vacuum, still phone-audible.
+            const body = ctx.createOscillator();
+            const bodyGain = ctx.createGain();
+            body.type = 'sine';
+            if (entering) {
+                body.frequency.setValueAtTime(420, now);
+                body.frequency.exponentialRampToValueAtTime(55, now + duration);
+            } else {
+                body.frequency.setValueAtTime(70, now);
+                body.frequency.exponentialRampToValueAtTime(360, now + duration);
+            }
+            bodyGain.gain.setValueAtTime(0.0001, now);
+            bodyGain.gain.exponentialRampToValueAtTime(entering ? 0.22 : 0.18, now + 0.03);
+            bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            body.connect(bodyGain);
+            route(bodyGain);
+
+            // Soft sub thump for "space depth" (phone speakers still hear the body).
+            const sub = ctx.createOscillator();
+            const subGain = ctx.createGain();
+            sub.type = 'sine';
+            if (entering) {
+                sub.frequency.setValueAtTime(180, now);
+                sub.frequency.exponentialRampToValueAtTime(48, now + duration * 0.9);
+            } else {
+                sub.frequency.setValueAtTime(55, now);
+                sub.frequency.exponentialRampToValueAtTime(160, now + duration * 0.85);
+            }
+            subGain.gain.setValueAtTime(0.0001, now);
+            subGain.gain.exponentialRampToValueAtTime(entering ? 0.14 : 0.1, now + 0.04);
+            subGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            sub.connect(subGain);
+            route(subGain);
+
+            // Quiet detuned fold layer.
+            const fold = ctx.createOscillator();
+            const foldGain = ctx.createGain();
+            fold.type = 'triangle';
+            if (entering) {
+                fold.frequency.setValueAtTime(310, now);
+                fold.frequency.exponentialRampToValueAtTime(70, now + duration);
+            } else {
+                fold.frequency.setValueAtTime(90, now);
+                fold.frequency.exponentialRampToValueAtTime(280, now + duration);
+            }
+            foldGain.gain.setValueAtTime(0.0001, now);
+            foldGain.gain.exponentialRampToValueAtTime(0.06, now + 0.04);
+            foldGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            fold.connect(foldGain);
+            route(foldGain);
+
+            // Swirling noise bed — filter travels with the warp direction.
+            const sampleCount = Math.floor(ctx.sampleRate * duration);
+            const buffer = ctx.createBuffer(1, sampleCount, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < sampleCount; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
+            }
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseFilter = ctx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            if (entering) {
+                noiseFilter.frequency.setValueAtTime(900, now);
+                noiseFilter.frequency.exponentialRampToValueAtTime(180, now + duration);
+            } else {
+                noiseFilter.frequency.setValueAtTime(220, now);
+                noiseFilter.frequency.exponentialRampToValueAtTime(1100, now + duration);
+            }
+            noiseFilter.Q.value = 1.2;
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.0001, now);
+            noiseGain.gain.exponentialRampToValueAtTime(entering ? 0.12 : 0.1, now + 0.04);
+            noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            route(noiseGain);
+
+            // Kill the feedback loop after the echo tail so nodes can GC.
+            feedback.gain.setValueAtTime(feedback.gain.value, now + duration + 0.15);
+            feedback.gain.exponentialRampToValueAtTime(0.0001, now + duration + tail);
+
+            body.start(now);
+            body.stop(now + duration + 0.02);
+            sub.start(now);
+            sub.stop(now + duration + 0.02);
+            fold.start(now);
+            fold.stop(now + duration + 0.02);
+            noise.start(now);
+            noise.stop(now + duration);
+        } catch (error) {
+            console.error('Error in playPortalWarp:', error);
+        }
+    }
+
+    playPortalEntry() {
+        this.playPortalWarp('in');
+    }
+
+    playPortalExit() {
+        this.playPortalWarp('out');
+    }
+
+    // Alias — older call sites / habits.
+    playPortal() {
+        this.playPortalEntry();
     }
 
     // Soft bridge chirp when the Journey logbook gains an entry —

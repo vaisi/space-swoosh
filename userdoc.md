@@ -290,9 +290,10 @@ smash what you hit: clip a moon or a shot and the main rock stays; ram the body
 and the whole thing goes. The shield pulses faster right before it runs out —
 pick your moment.
 
-Blue **portal** rings are also safe: fly into one and you hop ahead, then get a
-fresh shield. The rocks around a portal can still crash you if you miss the ring
-itself — aim for the blue.
+Blue **portal** rings are also safe: fly into one and you hear a deep echoing
+warp suck you in, then a second warp as you emerge ahead with a fresh shield.
+The rocks around a portal can still crash you if you miss the ring itself —
+aim for the blue.
 
 ## Flight style
 

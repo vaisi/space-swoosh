@@ -17,6 +17,8 @@
 // - First scored smash unlocks the DESTROYED HUD row (Game.noteHudDestroyedFromSmash).
 // - Motion-line streaks support count / speedFactor / motionLineAlpha / optional
 //   y-band wrap so the run-start intro can keep a top-of-frame shower that fades.
+// - Wormhole hop: playPortalEntry() on suck-in, playPortalExit() on emerge,
+//   then playShield() for the exit deflector gift.
 // - Journey Logbook hooks: observe on-screen obstacles; interact on smash /
 //   fatal hit / black-hole pull / wormhole teleport.
 // - Intro control hint matches flight style (zigzag: tap to flip; arc: bank
@@ -996,6 +998,7 @@ class WormholeGate extends BaseObstacle {
             spacecraft.isVisible = false;
             spacecraft.moveState = null;
             this.game.logbook?.onWormholeTeleport?.();
+            this.game.soundManager?.playPortalEntry?.();
 
             setTimeout(() => {
                 const ship = this.game.spacecraft;
@@ -1005,7 +1008,11 @@ class WormholeGate extends BaseObstacle {
                 ship.wormholeTransit = false;
                 this.partner.pulsePhase = 0;
                 ship.activateShield();
-                this.game.soundManager?.playShield?.();
+                // Exit warp first; shield cue follows so they don't mash together.
+                this.game.soundManager?.playPortalExit?.();
+                setTimeout(() => {
+                    this.game.soundManager?.playShield?.();
+                }, 90);
             }, 300);
         }
     }
