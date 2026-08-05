@@ -1,6 +1,13 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Spawn cursor arms at the camera top (`camera.y`), not 1.5 screens ahead —
+//   the old seat sat in the despawn band so early rows were deleted on spawn
+//   and the belt felt empty until well past 2,000 KM.
+// - Journey action-from-0: teach hints still run, but only the atmosphere
+//   cutscene holds spawns (tutorial phase no longer blanks the belt).
+// - Tutorial distances are HUD KM (`game.score`). Hint re-show checks the
+//   milestone manager (not a missing local `currentMessage`).
 // - Journey level-clear flyout smashes now award points / score / DESTROYED like
 //   normal play (SFX still throttled via canPlayCinematicCrash). Finalization
 //   waits until LevelClearSequence enters screenIn.
@@ -1102,16 +1109,15 @@ export class ObstacleManager {
         this.announcedTypes = new Set();
 
         this.tutorialPhase = game.profile.runsTutorial;
-        // Skipping the tutorial also skips the line that pushed the first row
-        // off-screen, so do it here instead and open every run with clear sky.
-        this.nextSpawnY = this.tutorialPhase
-            ? 0
-            : game.camera.y - game.height * 1.5;
+        // Seat the cursor at the top of the view; the spawn loop walks it further
+        // ahead. (A 1.5×height lead put rows straight into the despawn band.)
+        this.nextSpawnY = this.tutorialPhase ? 0 : game.camera.y;
 
         const zigzag = game.flightStyle === FLIGHT_STYLE.zigzag;
+        // Distances are HUD KM (`game.score`) — short teach, then rocks.
         this.tutorialMessages = [
             {
-                distance: 25,  // Half of previous distance
+                distance: 80,
                 message: zigzag
                     ? 'Tap or press {space} to change direction'
                     : 'Bank LEFT or RIGHT to move in arcs',
@@ -1119,7 +1125,7 @@ export class ObstacleManager {
                 completed: false
             },
             {
-                distance: 75,  // Half of previous distance
+                distance: 200,
                 message: "Breaking the atmosphere!",
                 requirement: () => true,
                 completed: false,
@@ -1187,10 +1193,11 @@ export class ObstacleManager {
     }
 
     update() {
-        const currentDistance = Math.abs(this.game.camera.totalDistance);
+        const scoreKm = this.game.score;
+        const tutorialUntilKm = this.tutorialMessages[this.tutorialMessages.length - 1]?.distance ?? 0;
 
         // Tutorial phase handling — only for runs that asked for it.
-        if (this.tutorialPhase && currentDistance < 75) {
+        if (this.tutorialPhase && scoreKm < tutorialUntilKm) {
             // Track player movements for tutorial
             if (this.game.spacecraft.moveState) {
                 this.trackMovement(this.game.spacecraft.moveState.direction);
@@ -1200,7 +1207,7 @@ export class ObstacleManager {
             for (let i = 0; i < this.tutorialMessages.length; i++) {
                 const msg = this.tutorialMessages[i];
                 if (!msg.completed && 
-                    currentDistance >= msg.distance && 
+                    scoreKm >= msg.distance && 
                     (i === 0 || this.tutorialMessages[i-1].completed)) {
                     
                     if (msg.requirement()) {
@@ -1217,7 +1224,7 @@ export class ObstacleManager {
                                 this.showTutorialMessage(this.tutorialMessages[i + 1].message);
                             }, 1500);
                         }
-                    } else if (!this.currentMessage) {
+                    } else if (!this.game.milestoneManager?.currentMessage) {
                         this.showTutorialMessage(msg.message);
                     }
                 }
@@ -1244,28 +1251,41 @@ export class ObstacleManager {
                 this.game.camera.shake = { x: 0, y: 0 }; // Reset shake
                 this.motionLines = []; // Clear motion lines
                 this.tutorialPhase = false;
-                this.nextSpawnY = this.game.camera.y - this.game.height * 1.5;
+                this.nextSpawnY = this.game.camera.y;
             }
 
-            // Don't spawn obstacles during tutorial or cutscene
-            if (this.tutorialPhase || this.inCutscene) return;
+            // Cutscene only — teach hints no longer blank the belt (action @ 0 KM).
+            if (this.inCutscene) return;
         }
 
-        // Normal obstacle spawning after tutorial
-        if (this.tutorialPhase) {
+        // Tutorial window ended without a cutscene finish — clear the flag.
+        if (this.tutorialPhase && scoreKm >= tutorialUntilKm) {
             this.tutorialPhase = false;
-            // Start spawning obstacles just above the screen
-            this.nextSpawnY = this.game.camera.y - this.game.height * 1.5;
+            this.nextSpawnY = this.game.camera.y;
+        }
+
+        const asteroidStartKm = this.game.profile.obstaclesFromScore ?? 0;
+        const beltOpen = scoreKm >= asteroidStartKm;
+        // Arm at the view top when the belt opens so the first rows enter soon.
+        if (beltOpen && this._beltArmed !== true) {
+            this._beltArmed = true;
+            this.nextSpawnY = this.game.camera.y;
+            this.lastSpawnY = null;
+        }
+        if (!beltOpen) {
+            this._beltArmed = false;
         }
 
         // Regular obstacle spawning logic. A row is skipped rather than delayed
         // when the field ahead is already full, so the gap the player flies
         // through stays where the spacing put it.
-        while (this.nextSpawnY > this.game.camera.y - this.game.height) {
-            const spacing = this.minVerticalGap + Math.random() * (this.maxVerticalGap - this.minVerticalGap);
-            this.nextSpawnY -= spacing;
-            if (!this.pauseSpawning && this.countAhead() < this.game.profile.maxOnScreen) {
-                this.spawnObstacleRow();
+        if (beltOpen) {
+            while (this.nextSpawnY > this.game.camera.y - this.game.height) {
+                const spacing = this.minVerticalGap + Math.random() * (this.maxVerticalGap - this.minVerticalGap);
+                this.nextSpawnY -= spacing;
+                if (!this.pauseSpawning && this.countAhead() < this.game.profile.maxOnScreen) {
+                    this.spawnObstacleRow();
+                }
             }
         }
 
@@ -1383,8 +1403,8 @@ export class ObstacleManager {
             }))
             .filter(particle => particle.opacity > 0);
 
-        // Spawn new obstacles
-        if (!this.inCutscene && !this.pauseSpawning
+        // Spawn new obstacles (same belt gate as the row cursor above).
+        if (beltOpen && !this.inCutscene && !this.pauseSpawning
             && this.countAhead() < this.game.profile.maxOnScreen) {
             const minSpawnInterval = this.game.height * 0.35; // Reduced from 0.4
             

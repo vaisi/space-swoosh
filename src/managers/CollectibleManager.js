@@ -3,6 +3,8 @@
 // gameplay, updates them, and awards points on pickup with a floating "+N"
 // popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
+// - Enable gate is profile score only (no tutorial hold) so Journey @ 0 KM can
+//   show sparkles with the belt; cutscene still pauses new spawns.
 // - First sparkle collect unlocks the POINTS HUD row (Game.noteHudPointsFromCollect).
 // - Journey Logbook: observe on-screen sparkles; interact on collect.
 // - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
@@ -27,10 +29,9 @@ export class CollectibleManager {
     }
 
     update() {
-        // Hold off until the player is past the intro tutorial / cutscene.
+        // Profile distance gate only — Journey opens at 0 KM with the belt.
         if (!this.enabled &&
-            this.game.score >= this.game.profile.collectiblesFromScore &&
-            !this.game.obstacleManager.tutorialPhase) {
+            this.game.score >= this.game.profile.collectiblesFromScore) {
             this.enabled = true;
             this.lastSpawnTime = performance.now();
         }

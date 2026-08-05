@@ -28,6 +28,8 @@
 // - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
 //   (ink fill, paler rest) spaced under the figure; aligned with pause.
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
+//   KM only accrues once the distance chip may show (title/wait no longer
+//   silently banks hundreds of km before the readout appears).
 // - Run-start LevelIntroSequence (~1s fly-in + fade) for Journey and Open World;
 //   steering locked until it finishes; intro milestone deferred to handoff.
 // - Play mode-select blurbs pick once on enter from CopyBank modeJourney /
@@ -547,8 +549,13 @@ export class Game {
             const prevCameraY = this.camera.y;
             this.camera.update(1);
 
-            // KM from world travel only — locked to camera motion this frame.
-            this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
+            // KM from world travel — but only once the distance chip is allowed
+            // to show. Title/wait used to bank silent km so "1,200 on the HUD"
+            // arrived much later than internal score gates expected.
+            const kmLive = this.hudRevealPhase == null || this.hudRevealPhase === 'chips';
+            if (kmLive) {
+                this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
+            }
 
             this.obstacleManager.update();
             this.milestoneManager.update();

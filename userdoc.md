@@ -23,10 +23,14 @@ at least one run.
 ### Journey
 
 Deep space exploration starting from Day 1. **40 numbered levels**, each with a
-distance goal to reach. Level 1 is a short 2,000 km first flight; after that the
-runs lengthen. Levels get harder a step at a time and then hold there for a
-while, so you get room to master what just arrived before anything new does —
-and the further you go, the longer each of those stretches lasts.
+distance goal to reach. Level 1 is a 5,000 km first flight — learn the turn,
+then asteroids and pickups show up right away (same on every level). After that
+the runs stay long and the field stays busy. Levels get harder a step at a time
+and then hold there for a while, so you get room to master what just arrived
+before anything new does — and the further you go, the longer each of those
+stretches lasts. Early levels only ask for a single shield-smash and a handful
+of points for the side stars; those targets climb slowly later, not into the
+dozens.
 
 Flying Journey is also how you **unlock Logbook entries** — observe and interact
 with hazards and boosts to fill your field manual.
@@ -323,8 +327,8 @@ the usual fix is to update the app or refresh the site.
 - Look for tight corridors between two rocks — threading them pays style points,
   but clipping either side still ends the run.
 - Steady, early turns beat frantic last-second ones.
-- New to the game? Start with Journey. Level 1 is slower and emptier than an Open
-  World run, and each level teaches you one thing at a time.
+- New to the game? Start with Journey. Level 1 teaches the turn, then the field
+  gets real quickly — each level still introduces one idea at a time.
 - Going for the smash star: grab shields and ram rocks on purpose. Points can
   wait for another run if you're hunting asteroids.
 

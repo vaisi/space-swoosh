@@ -1,6 +1,8 @@
 // MilestoneManager.js
 // Shows the timed milestone log lines during flight.
 // Changes:
+// - Rich `{space}` lines reset textAlign/fillStyle after the keycap so the
+//   trailing words ("to change direction") no longer draw centred on top of it.
 // - showMessage() accepts optional fadeIn / hold / fadeOut timings so the
 //   run-start level title can linger and fade out over ~3s.
 // - Tutorial / log lines can embed `{space}` — rendered as a bold SPACE keycap
@@ -117,11 +119,13 @@ export class MilestoneManager {
         const totalW = this.measureRichWidth(ctx, text, fontSize);
         let x = cx - totalW / 2;
 
-        ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = color.ink;
 
         for (let i = 0; i < parts.length; i++) {
+            // Keycap draw leaves textAlign=center; restore before each text run
+            // or the next words centre on the cursor and sit on top of the key.
+            ctx.textAlign = 'left';
+            ctx.fillStyle = color.ink;
             ctx.font = `500 ${fontSize}px ${font.ui}`;
             if (parts[i]) {
                 ctx.fillText(parts[i], x, cy);

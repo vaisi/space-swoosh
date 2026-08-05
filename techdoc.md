@@ -217,7 +217,7 @@ built by `createRunProfile()` and hung off `game.profile`:
 | Profile reads | Used by |
 | --- | --- |
 | `goalScore`, `isRunComplete()`, `progress()`, `isEndless` | `Game.update()` win check, HUD goal bar |
-| `density()`, `baseClusterCount()`, `maxOnScreen`, `gapRange()`, `simpleChance`, `focusType`, `unlocksBy()`, `advancedBlackHoles` | `ObstacleManager` |
+| `density()`, `baseClusterCount()`, `maxOnScreen`, `gapRange()`, `simpleChance`, `focusType`, `unlocksBy()`, `advancedBlackHoles`, `obstaclesFromScore` (default 0) | `ObstacleManager` |
 | `shieldsFromScore` / `collectiblesFromScore` | `PowerUpManager` / `CollectibleManager` |
 | `speedMultiplier` | `Spacecraft.baseSpeed` |
 | `runsTutorial` | `ObstacleManager` tutorial phase |
@@ -252,19 +252,25 @@ scalar `d` held flat for a run of levels, and the runs get **longer** as `d`
 rises — the "harder, then a plateau, then harder, then a longer plateau" shape:
 
 ```
-d       0.08 0.16 0.26 0.36 0.46 0.58 0.70 0.84 1.00
+d       0.24 0.34 0.42 0.50 0.58 0.68 0.78 0.90 1.00
 levels    2    3    3    4    4    5    5    6    8   = 40
 ```
 
+(Early steps got the larger relative lift so levels 1–10 pack more threat.)
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
-0.55→1.9, `maxOnScreen` 3→9, row gap 0.48→0.20 of screen height, `speedMultiplier`
-0.88→1.32, cluster size 1→4 (capped by `maxClusterCount` 2→4), `maxRowSpawns`
-1→3, `simpleChance` 0.78→0.50. Early levels therefore place a single rock per
-line. `goalKm` runs 4000→12000 plus 300 per level *inside* a plateau, except
-**level 1 is hard-capped at 2,000 km** as a short first flight. Each step also
-introduces one obstacle type (rosters are cumulative) and each level picks a
-`focusType` it leans on — the level that introduces a hazard focuses that hazard,
-later levels in the plateau rotate through the roster.
+1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
+(`gapSpread` 1.35), `speedMultiplier` 0.95→1.38, cluster size 1→4 (capped by
+`maxClusterCount` 3→5), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42. Early
+levels can place two rocks in a row. `goalKm` runs 5500→12000 plus 300 per
+level *inside* a plateau, except **level 1 is hard-capped at 5,000 km**. Every
+Journey level opens the belt and pickups at **0 HUD KM** via
+`obstaclesFromScore` (as soon as intro unpauses / the distance chip may show).
+Level 1 teach hints still run; only the short atmosphere cutscene holds spawns.
+Spawn cursor arms at `camera.y` (not 1.5 screens ahead) so rows are not born in
+the despawn band. Tutorial distances are HUD KM. Each step also introduces one
+obstacle type (rosters are cumulative) and each level picks a `focusType` it
+leans on — the level that introduces a hazard focuses that hazard, later levels
+in the plateau rotate through the roster.
 
 Chapters (Troposphere → Exosphere, names inherited from the deleted
 `PhaseManager`) group steps: 1-5, 6-12, 13-21, 22-32, 33-40. `STEPS` is
@@ -272,11 +278,13 @@ append-only data, so more chapters are additive.
 
 ### Stars and progress
 
-Three per level, in fixed order: reach the goal, hit the points target
-(`15 per 1000 km`, rounded to 5), and **smash N asteroids** with the shield
-(`smashTarget` lerps 3→14 with difficulty). Shield bumps are the fantasy —
-there is no "no hits" star. `evaluateStars()` scores a finished run; all three
-require completion. The Journey HUD shows `destroyed / smashTarget`.
+Three per level, in fixed order: reach the goal, hit the points target, and
+**smash N asteroids** with the shield. Levels **1–3** need **10 points** and
+**1 smash**; after that points scale at ~3 per 1,000 km and smash climbs from 2
+toward a hard cap of **6** (about +1 every 7 levels). Shield bumps are the
+fantasy; there is no "no hits" star. `evaluateStars()` scores a finished run;
+all three require completion. The Journey HUD shows `destroyed / smashTarget`.
+Journey shields and sparkles open with the belt at 0 HUD KM.
 
 `services/JourneyProgress.js` persists `{ version, unlocked, levels: { n: { stars,
 bestPoints } } }` under `journeyProgress`, guarded in try/catch like

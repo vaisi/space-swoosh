@@ -4,33 +4,38 @@
 // keeps the stair-with-plateaus curve honest: hold `d` and nothing gets harder,
 // however many levels pass.
 // Changes:
+// - Difficulty bump: denser soft/hard TUNING ends, tighter gaps, early
+//   maxRowSpawns 2, larger cluster ceiling — levels 1–10 pack more threat.
+// - Every Journey level opens rocks + pickups at HUD KM 0 (as soon as the
+//   distance chip is live / intro unpauses). L1 teach beat still holds spawns.
 // - Exposes `smashTarget` for the third-star shield-smash mission.
-// - Early levels lean beginner-friendly: thinner density, single-asteroid
-//   clusters at the soft end, and a hard cap on how many rocks may share a row
-//   so the opening never dumps a wall of four across the screen.
 // - Created file.
 
 import { lerp, lerpInt } from '../utils/math.js';
 import { getLevel } from '../config/JourneyConfig.js';
 import { PLAY_MODE, RunProfile } from './RunProfile.js';
 
-// The ends of every ramp, at difficulty 0 and 1. Level 1 sits a little below
-// the Open World baseline on purpose; the last levels sit well above it.
+// Action (asteroids, shields, sparkles) as soon as KM is live. Level 1's
+// tutorial phase still suppresses rows until the teach beat ends.
+const JOURNEY_ACTION_FROM_KM = 0;
+
+// The ends of every ramp, at difficulty 0 and 1. Soft end is a real field;
+// hard end sits a notch above the old ceiling.
 const TUNING = {
-    density: [0.55, 1.9],
-    maxOnScreen: [3, 9],
+    density: [1.15, 2.05],
+    maxOnScreen: [5, 10],
     // Fraction of canvas height between spawn rows — tighter as it gets harder.
-    minGap: [0.48, 0.2],
-    gapSpread: 1.55,
-    speed: [0.88, 1.32],
+    minGap: [0.30, 0.16],
+    gapSpread: 1.35,
+    speed: [0.95, 1.38],
     // Plain-asteroid clusters: one rock at the soft end, up to four at the hard.
     baseCluster: [1, 4],
-    // Absolute ceiling on rocks in one simple cluster — early levels stay at 2.
-    maxCluster: [2, 4],
-    // How many separate spawns a row may place. Early: always one.
-    maxRowSpawns: [1, 3],
+    // Absolute ceiling on rocks in one simple cluster.
+    maxCluster: [3, 5],
+    // How many separate spawns a row may place. Early: up to two.
+    maxRowSpawns: [2, 3],
     // Set pieces get more common as the roster grows.
-    simpleChance: [0.78, 0.5],
+    simpleChance: [0.70, 0.42],
 };
 
 export class JourneyProfile extends RunProfile {
@@ -93,17 +98,20 @@ export class JourneyProfile extends RunProfile {
     }
 
     // --- Pickups ---------------------------------------------------------
-    // Fractions of the level rather than absolute distances, so a short early
-    // level still gets its shields and sparkles.
+    // Same mark as the belt — no long empty cruise waiting on goal fractions.
     get shieldsFromScore() {
-        return this.goalScore * 0.12;
+        return this.obstaclesFromScore;
     }
 
     get collectiblesFromScore() {
-        return this.goalScore * 0.04;
+        return this.obstaclesFromScore;
     }
 
     // --- Obstacles -------------------------------------------------------
+    get obstaclesFromScore() {
+        return JOURNEY_ACTION_FROM_KM;
+    }
+
     get maxOnScreen() {
         return lerpInt(TUNING.maxOnScreen[0], TUNING.maxOnScreen[1], this.d);
     }

@@ -5,6 +5,8 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - `obstaclesFromScore` (default 0): Journey overrides to a shared early KM
+//   mark; Open World spawns as soon as intro ends.
 // - Open World on iOS draw LOD: soft maxOnScreen (18) so late-run fields
 //   cannot explode Safari draw cost; Android/desktop stay uncapped.
 // - Created file: RunProfile (the contract + shared defaults) and
@@ -106,6 +108,11 @@ export class RunProfile {
     }
 
     // --- Obstacles -------------------------------------------------------
+    /** HUD KM before obstacle rows may spawn. 0 = as soon as intro unpauses. */
+    get obstaclesFromScore() {
+        return 0;
+    }
+
     /**
      * How many obstacles may be waiting ahead of the ship at once. Open World
      * has never had an effective cap: the old `length < 7` test guarded a spawn

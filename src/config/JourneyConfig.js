@@ -5,9 +5,11 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
-// - Level 1 is a short tutorial run (2,000 km) rather than sitting on the same
-//   4,000+ km ramp as the rest of Troposphere — long enough to learn the turn,
-//   short enough that the first clear isn't a grind.
+// - Difficulty stair lifted (stronger on early steps): simple 0.24, barriers
+//   0.34, complex 0.42, … finale still 1.00. Level 1 is 5,000 km; GOAL_KM.min
+//   5,500. Action onset is JourneyProfile.obstaclesFromScore (0 = with HUD).
+// - Star targets: L1–3 need 1 smash / 10 points; then smash climbs slowly to 6
+//   and points ~3 per 1,000 km (cap stays modest — not dozens of smashes).
 // - Third star is a smash mission (`smashTarget` asteroids destroyed with the
 //   shield), not "take no hits" — bumping rocks is the fantasy.
 // - `starLabels()` names the objectives only; the outcome screen prints each
@@ -28,14 +30,14 @@ import { lerp } from '../utils/math.js';
 // Appending steps here (and topping up CHAPTERS to cover them) is all a new
 // chapter of the Journey takes.
 const STEPS = [
-    { d: 0.08, levels: 2, unlock: 'simple' },
-    { d: 0.16, levels: 3, unlock: 'sideBarrier' },
-    { d: 0.26, levels: 3, unlock: 'complex' },
-    { d: 0.36, levels: 4, unlock: 'moving' },
-    { d: 0.46, levels: 4, unlock: 'shooting' },
-    { d: 0.58, levels: 5, unlock: 'pulsating' },
-    { d: 0.70, levels: 5, unlock: 'wormhole' },
-    { d: 0.84, levels: 6, unlock: 'blackhole' },
+    { d: 0.24, levels: 2, unlock: 'simple' },
+    { d: 0.34, levels: 3, unlock: 'sideBarrier' },
+    { d: 0.42, levels: 3, unlock: 'complex' },
+    { d: 0.50, levels: 4, unlock: 'moving' },
+    { d: 0.58, levels: 4, unlock: 'shooting' },
+    { d: 0.68, levels: 5, unlock: 'pulsating' },
+    { d: 0.78, levels: 5, unlock: 'wormhole' },
+    { d: 0.90, levels: 6, unlock: 'blackhole' },
     { d: 1.00, levels: 8, unlock: null },
 ];
 
@@ -50,15 +52,23 @@ const CHAPTERS = [
 ];
 
 // Run length in KM. Both ends are wide because pace rises with difficulty too,
-// so a late level is longer *and* faster. Level 1 is overridden below — it is a
-// short first flight, not a full step on this ramp.
-const GOAL_KM = { min: 4000, max: 12000 };
-const LEVEL_ONE_GOAL_KM = 2000;
+// so a late level is longer *and* faster. Level 1 is overridden below — still a
+// dedicated first flight, but long enough that the asteroid belt has room to
+// matter after the calm open.
+const GOAL_KM = { min: 5500, max: 12000 };
+const LEVEL_ONE_GOAL_KM = 5000;
 // Length still creeps up inside a plateau even though difficulty does not, so a
 // held difficulty never feels like the same level twice.
 const GOAL_KM_PER_LEVEL_IN_STEP = 300;
-// Points needed for the second star, per 1000 KM of the run.
-const POINTS_TARGET_PER_1000KM = 15;
+// Points needed for the second star, per 1000 KM (levels 4+). L1–3 are flat 10.
+const POINTS_TARGET_PER_1000KM = 3;
+const EARLY_STAR_LEVELS = 3;
+const EARLY_POINTS_TARGET = 10;
+const EARLY_SMASH_TARGET = 1;
+// After the early band: 2 smashes, +1 about every 7 levels, hard cap 6.
+const SMASH_AFTER_EARLY = 2;
+const SMASH_LEVELS_PER_STEP = 7;
+const SMASH_TARGET_MAX = 6;
 
 function roundTo(value, step) {
     return Math.round(value / step) * step;
@@ -68,6 +78,20 @@ function pickFocus(introduces, setPieces, indexInStep) {
     if (introduces && introduces !== 'simple') return introduces;
     if (setPieces.length === 0) return null;
     return setPieces[indexInStep % setPieces.length];
+}
+
+function pointsTargetFor(levelNumber, goalKm) {
+    if (levelNumber <= EARLY_STAR_LEVELS) return EARLY_POINTS_TARGET;
+    return Math.max(
+        EARLY_POINTS_TARGET,
+        roundTo((goalKm / 1000) * POINTS_TARGET_PER_1000KM, 5)
+    );
+}
+
+function smashTargetFor(levelNumber) {
+    if (levelNumber <= EARLY_STAR_LEVELS) return EARLY_SMASH_TARGET;
+    const steps = Math.floor((levelNumber - EARLY_STAR_LEVELS - 1) / SMASH_LEVELS_PER_STEP);
+    return Math.min(SMASH_TARGET_MAX, SMASH_AFTER_EARLY + steps);
 }
 
 function buildLevels() {
@@ -107,13 +131,8 @@ function buildLevels() {
                 // one introducing a hazard, which shows off the new arrival.
                 focusType: pickFocus(introduces, setPieces, i),
                 introduces,
-                pointsTarget: Math.max(
-                    25,
-                    roundTo((goalKm / 1000) * POINTS_TARGET_PER_1000KM, 5)
-                ),
-                // Shield-smash side quest: a few early, a real hunt late.
-                // Soft end sits just under 3.5 so level 1 rounds to 3, not 4.
-                smashTarget: Math.max(3, Math.round(lerp(2.5, 14, step.d))),
+                pointsTarget: pointsTargetFor(levelNumber, goalKm),
+                smashTarget: smashTargetFor(levelNumber),
             });
         }
 
