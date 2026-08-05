@@ -373,10 +373,12 @@ Two things make it work:
 - **Scoring stays live through the flyout.** Shield smashes during `hold` /
   `boost` / `fadeOut` still award `points`, `score += 10`, `obstaclesDestroyed`,
   and the `+points` popup. `playShieldCrash()` is throttled to one per 120ms.
-  `pauseSpawning` stops new rows mid-flyout. When the sequence enters `screenIn`
-  (world no longer streams), it sets `finalScore` and calls
-  `finishJourneyLevel(true)` so stars, persistence, and `levelOutcome` use the
-  post-flyout totals.
+  Sparkles tick via `collectibleManager.update()` in the same `streamWorld()`
+  path and award `+perCollectible` (points star) with the usual chime / popup;
+  `pauseSpawning` stops new obstacle rows and new sparkle spawns mid-flyout.
+  When the sequence enters `screenIn` (world no longer streams), it sets
+  `finalScore` and calls `finishJourneyLevel(true)` so stars, persistence, and
+  `levelOutcome` use the post-flyout totals.
 
 The sequence owns `gameOverAlpha`, so the existing fade-in render path and the
 `gameOverAlpha < 0.6` click guard need no changes. Tap / key / hardware back are

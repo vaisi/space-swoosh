@@ -61,7 +61,8 @@
 //   holding the world for a beat: the sequence owns the `gameover` update/render
 //   branches while `levelClear` is live, and drives `gameOverAlpha` itself. Input
 //   is swallowed until it finishes (not skippable). `finishJourneyLevel(true)`
-//   waits until the flyout enters `screenIn` so post-gate smashes count.
+//   waits until the flyout enters `screenIn` so post-gate smashes and sparkle
+//   collects count.
 //   `renderWorld()` takes `{ hudAlpha }` so the readout can fade ahead of the
 //   world, and `drawBrandButton()` accepts a `labelPx` override for buttons too
 //   narrow for the default label size.
@@ -2288,8 +2289,9 @@ export class Game {
         this.updatePauseButtonVisibility();
         this.soundManager?.stopBGM?.();
         // Lock the finish line here so the ship can fly through a fixed mark.
-        // Journey results finalize when the flyout enters screenIn — smashes
-        // during hold/boost/fadeOut still count toward points / destroyed / stars.
+        // Journey results finalize when the flyout enters screenIn — smashes and
+        // sparkles during hold/boost/fadeOut still count toward points /
+        // destroyed / stars.
         this.logbook?.onFinishGateCrossed?.();
         this.finishLineWorldY = this.spacecraft.y;
         this.levelClear = new LevelClearSequence(this);

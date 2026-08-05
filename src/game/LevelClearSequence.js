@@ -5,6 +5,8 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
+// - streamWorld also ticks CollectibleManager so sparkles grabbed during the
+//   flyout award points (and the points star) before screenIn locks results.
 // - Entering screenIn finalizes the Journey result (finalScore + finishJourneyLevel)
 //   so shield smashes during hold/boost/fadeOut count toward the outcome.
 // - Flyout keeps the ship's lean (zigzag sign / captured arc heading) instead of
@@ -153,9 +155,11 @@ export class LevelClearSequence {
         camera.y += this.cameraSpeed * cameraFactor * dt;
         camera.totalDistance = Math.abs(camera.y);
 
-        // Obstacles tick on game.dt (set by Game.update) — smash VFX + scoring.
+        // Obstacles + sparkles tick on game.dt (set by Game.update) — smash /
+        // collect VFX + scoring stay live until screenIn locks the outcome.
         obstacleManager.update();
         obstacleManager.updateMotionLines();
+        this.game.collectibleManager.update();
         milestoneManager.update();
     }
 

@@ -139,9 +139,9 @@ a dotted rule with blue end ticks. Fly through it.
 Cross the goal and the game takes over. A shield snaps on, there's a short beat
 to take it in, then the ship keeps the lean you had and hyperspeeds off the top
 of the screen at that angle, the world fades out behind it, and the level screen
-fades in. Rocks you smash on the way out still count toward your points and
-destroyed total (and can tip stars) before the results lock in. Sit tight for the
-flyout; it isn't skippable.
+fades in. Rocks you smash and sparkles you grab on the way out still count
+toward your points and destroyed total (and can tip stars) before the results
+lock in. Sit tight for the flyout; it isn't skippable.
 
 The level screen lists the three objectives, each with the number it was measured
 against: your distance against the goal, your points against the target, and

@@ -3,6 +3,8 @@
 // gameplay, updates them, and awards points on pickup with a floating "+N"
 // popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
+// - Spawn also respects obstacleManager.pauseSpawning so the level-clear flyout
+//   can tick collection without planting new sparkles ahead of the exit.
 // - Enable gate is profile score only (no tutorial hold) so Journey @ 0 KM can
 //   show sparkles with the belt; cutscene still pauses new spawns.
 // - First sparkle collect unlocks the POINTS HUD row (Game.noteHudPointsFromCollect).
@@ -37,8 +39,10 @@ export class CollectibleManager {
         }
 
         const now = performance.now();
+        const om = this.game.obstacleManager;
         if (this.enabled &&
-            !this.game.obstacleManager.inCutscene &&
+            !om.inCutscene &&
+            !om.pauseSpawning &&
             now - this.lastSpawnTime > this.spawnInterval) {
             this.spawn();
             this.lastSpawnTime = now;
