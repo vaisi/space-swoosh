@@ -57,7 +57,11 @@ export const GameConfig = {
         interpolation: 0.28,
         deceleration: 2000,
         // Velocity ease — lower = snappier catch-up, higher = lazier.
-        smoothingFactor: 0.78
+        smoothingFactor: 0.78,
+        // Deadzone (× height) around the ideal seat where the camera just follows
+        // the ship's speed and applies no re-seating pull — so steady flight is
+        // pure smooth scroll and the camera only re-addresses on real drift.
+        deadzone: 0.12
     },
     obstacles: {
         minSize: 2.5,

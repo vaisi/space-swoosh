@@ -34,10 +34,20 @@ export class Camera {
         const floorPerTick = this.speed * (1 / 60);
         const matchShip = -Math.max(shipPerTick, floorPerTick);
 
-        // Soft catch-up / ease toward the ideal seat. Extra pull when the ship
-        // is well above ideal (common mid-turn) so direction changes stay crisp.
-        const lagBoost = 1 + Math.max(0, lag) / Math.max(1, this.game.height * 0.22);
-        const correction = -lag * this.interpolation * lagBoost;
+        // Deadzone follow: inside a band around the ideal seat the camera simply
+        // matches the ship's speed (pure smooth scroll, no re-seating pull), so
+        // steady flight and turns feel like butter. Only when the ship drifts
+        // past the band does it re-address — and only by the *excess* beyond it,
+        // so the pull eases in without a snap at the edge.
+        const deadzone = this.game.height * (this.game.config.camera.deadzone ?? 0);
+        let excessLag = 0;
+        if (lag > deadzone) excessLag = lag - deadzone;
+        else if (lag < -deadzone) excessLag = lag + deadzone;
+
+        // Extra pull when the ship is well past the band (fast forward drift) so
+        // it re-seats crisply rather than crawling back.
+        const lagBoost = 1 + Math.max(0, excessLag) / Math.max(1, this.game.height * 0.22);
+        const correction = -excessLag * this.interpolation * lagBoost;
         const targetVelocity = (matchShip + correction) * speedFactor;
 
         // Ease velocity — reads as "camera accelerates to catch up", not a snap.
