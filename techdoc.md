@@ -145,7 +145,7 @@ game build env. Journey progress and Open World personal best stay in
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, selected-skin preview, Play / Logbook / Options / High Scores |
+| `menu` | Title, selected-skin preview with Play-motif ▶/◀ cycle (owned skins via `cycleMenuShip`), Play / Logbook / Options / High Scores. ArrowLeft/Right also cycle when `appScreen === 'menu'`. |
 | `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open World footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
@@ -606,6 +606,10 @@ Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
 - `Spacecraft.render()` calls `skin.drawTrail` then hull (`HullCache` blit when
   `game.useHullCache`, else `skin.drawHull`); shield rings stay Signal Blue.
 - Active id: `game.shipSkinId` (storage key `shipSkinId`).
+- Main menu quick-cycle: `Game.cycleMenuShip(delta)` walks owned entries in
+  `SHIP_SKIN_LIST` (wraps), then `saveShipSkinId`. Wired from chevron hit-boxes
+  (`menuButtons.prevShip` / `nextShip`) and `setupMenuShipKeys()` (no key-repeat
+  spam). Locked skins are never equipped here; Options → Ship still owns IAP.
 
 ### Wake rendering
 

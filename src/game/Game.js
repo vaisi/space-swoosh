@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Main menu: Play-button ▶/◀ icons beside the ship + ArrowLeft/Right cycle
+//   owned skins via cycleMenuShip(); wide left/right tap zones for mobile.
 // - Options hub: Restore Purchases replaced by Light Mode / Dark Mode toggle
 //   (brand/theme.js). Choice persists in localStorage.
 // - Night paper: pause wash / goal-bar rest / crash particles / name-modal dim
@@ -361,7 +363,8 @@ export class Game {
         
         // Add pause button
         this.setupPauseButton();
-        
+        this.setupMenuShipKeys();
+
         this.loadHighScores();
 
         // Add visibility change handler
@@ -1308,13 +1311,44 @@ export class Game {
 
         y += taglinePx * 1.3 + L.section;
 
-        // Ship section — live preview of the current skin plus its name.
-        drawSkinPreview(ctx, this.shipSkinId, L.centerX, y + previewR * 1.2, previewR);
+        // Ship section — live preview + name, flanked by Play-button triangles.
+        // Hit zones span the left/right halves of this band for easy mobile taps.
+        this.menuButtons = {};
+        const previewCy = y + previewR * 1.2;
+        drawSkinPreview(ctx, this.shipSkinId, L.centerX, previewCy, previewR);
+
+        // Same glyph as Play's motif tag (\u25B6), mirrored for previous.
+        // Sit mid-figure (hull + wake), not on the nose.
+        const arrowPx = L.isMobile
+            ? Math.min(unit * 2.6, 30)
+            : Math.min(unit * 2.3, 26);
+        const arrowGap = previewR * 2.8 + unit * 1.8;
+        const arrowCy = previewCy + previewR * 1.7;
+        const prevX = L.centerX - arrowGap;
+        const nextX = L.centerX + arrowGap;
+        const midGap = unit * 2.4;
+        this.menuButtons.prevShip = {
+            x: L.left,
+            y,
+            width: Math.max(unit * 4, L.centerX - midGap - L.left),
+            height: shipH,
+        };
+        this.menuButtons.nextShip = {
+            x: L.centerX + midGap,
+            y,
+            width: Math.max(unit * 4, L.right - (L.centerX + midGap)),
+            height: shipH,
+        };
+
         ctx.save();
-        setLabelType(ctx, namePx);
-        ctx.fillStyle = color.ink55;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        ctx.fillStyle = color.ink;
+        ctx.font = `700 ${arrowPx}px ${font.mono}`;
+        ctx.fillText('\u25C0', prevX, arrowCy);
+        ctx.fillText('\u25B6', nextX, arrowCy);
+        setLabelType(ctx, namePx);
+        ctx.fillStyle = color.ink55;
         ctx.fillText(getSkin(this.shipSkinId).name.toUpperCase(), L.centerX, y + previewH + L.row);
         resetType(ctx);
         ctx.restore();
@@ -1322,7 +1356,6 @@ export class Game {
         y += shipH + L.section * 1.2;
 
         const bx = L.centerX - buttonWidth / 2;
-        this.menuButtons = {};
 
         this.menuButtons.play = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, 'Play', {
@@ -1701,6 +1734,32 @@ export class Game {
                 if (this.purchaseStatus === message) this.purchaseStatus = null;
             }, ms);
         }
+    }
+
+    /** Cycle equipped skin on the main menu (owned skins only; wraps). */
+    cycleMenuShip(delta) {
+        const owned = SHIP_SKIN_LIST.filter((skin) => isSkinOwned(skin.id));
+        if (owned.length < 2) return;
+
+        let index = owned.findIndex((skin) => skin.id === this.shipSkinId);
+        if (index < 0) index = 0;
+        const next = owned[(index + delta + owned.length) % owned.length];
+        this.shipSkinId = saveShipSkinId(next.id);
+    }
+
+    /** ArrowLeft / ArrowRight change ship on the main menu only. */
+    setupMenuShipKeys() {
+        window.addEventListener('keydown', (e) => {
+            if (this.appScreen !== 'menu') return;
+            if (e.repeat) return;
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                this.cycleMenuShip(-1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                this.cycleMenuShip(1);
+            }
+        });
     }
 
     async handleShipTileClick(skinId) {
@@ -2559,7 +2618,11 @@ export class Game {
             }
 
             if (this.appScreen === 'menu' && this.menuButtons) {
-                if (this.isClickInButton(x, y, this.menuButtons.play)) {
+                if (this.isClickInButton(x, y, this.menuButtons.prevShip)) {
+                    this.cycleMenuShip(-1);
+                } else if (this.isClickInButton(x, y, this.menuButtons.nextShip)) {
+                    this.cycleMenuShip(1);
+                } else if (this.isClickInButton(x, y, this.menuButtons.play)) {
                     this.goToModeSelect();
                 } else if (this.isClickInButton(x, y, this.menuButtons.logbook)) {
                     this.logbookCategory = 'obstacles';

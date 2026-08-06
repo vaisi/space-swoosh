@@ -90,6 +90,11 @@ When the game loads you land on the main menu. The tagline under the title
 changes each visit — dry science-officer commentary. Crash and level-clear
 screens do the same with their own lines.
 
+Under the title, your equipped ship is shown with its name. Tap the triangle
+arrows beside it (or press **Left** / **Right** on a keyboard) to cycle through
+ships you own — the choice is saved immediately. Options → Ship still has the
+full roster if you want the grid view.
+
 - **Play** — choose Open World or Journey.
 - **Logbook** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, and Sound (see below).
@@ -166,7 +171,7 @@ Options opens a short list:
 
 | Item | Status |
 | --- | --- |
-| **Ship** | Pick a ship from the roster (saved automatically). |
+| **Ship** | Pick a ship from the roster (saved automatically). You can also cycle ships from the main menu with the triangle arrows or the keyboard arrows. |
 | **Controls** | Flight style (Zigzag or Arc) and how steering works. |
 | **Sound** | Turn music and effects on or off (saved automatically). |
 
