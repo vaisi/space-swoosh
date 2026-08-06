@@ -29,9 +29,10 @@
 // - Phase 0+1: ?perf / ?nodraw / ?drawonly / ?kill= / ?fullvfx / ?cheap / ?dpr
 //   harness (PerfMonitor). iOS cheap Canvas: DPR 1.5, hull cache, glow sprites.
 //   iosDrawLod split from paint budget so sprites can restore soft VFX.
-// - iOS canvas budget: schedule ~60 Hz via setTimeout+rAF (no 120 Hz skip
-//   churn), tighter hitch clamp (≤1/30 s), skip getBoundingClientRect during
-//   active play. DPR ≤ 1.5 on iOS, opaque context, draw LOD — see platform.js.
+// - iOS canvas budget (fill-rate coolant only): DPR ≤ 1.5, cheap Canvas, draw
+//   LOD, opaque context, hitch clamp ≤1/30 s, skip getBoundingClientRect during
+//   active play — see platform.js. No paint throttle: iOS uses the same plain
+//   one-update-per-paint rAF loop as Android (setTimeout+rAF / early-drop removed).
 // - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
 //   (ink fill, paler rest) spaced under the figure; aligned with pause.
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
@@ -43,14 +44,14 @@
 //   modeOpenWorld pools via goToModeSelect().
 // - Journey Logbook: main-menu entry, logbook screen, toast HUD, Journey-only
 //   discovery hooks via LogbookManager (observe / interact / instant).
-// - Snappy pacing (Android + non-iOS web): one update per paint,
-//   `tickScale = dt * 120`. Ship updates before camera. Camera is a catch-up
-//   follower (cruise + accelerate when the ship rides too high) so climb feels
-//   smooth, not spring-sluggish. KM from abs(Δcamera.y) * (100/60).
+// - Snappy pacing (all platforms): one update per paint, `tickScale = dt * 120`.
+//   Ship updates before camera. Camera is a catch-up follower (cruise +
+//   accelerate when the ship rides too high) so climb feels smooth, not
+//   spring-sluggish. KM from abs(Δcamera.y) * (100/60).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
-//   3 on Android/desktop web / 2 on iOS + native) and scales the context so all
-//   game math stays in CSS pixels via this.width / this.height. Menu stamp is
-//   BUILD 23.
+//   3 on Android/desktop web / 1.5 on iOS / 2 on other Cap native) and scales
+//   the context so all game math stays in CSS pixels via this.width /
+//   this.height. Menu stamp is BUILD 23.
 // - Options → Ship: after picking a vessel, a "Play now" button jumps straight
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
@@ -275,17 +276,15 @@ export class Game {
         // Phase 0 / Phase 1 flags (URL query). Cheap Canvas defaults on for iOS.
         this.perfFlags = parsePerfFlags();
         this.perfMonitor = this.perfFlags.perf ? new PerfMonitor() : null;
-        // iOS (Safari + Capicitor WKWebView): ProMotion can fire rAF at 120 Hz
-        // and Canvas2D can't keep up. Cap worked frames to ~60 Hz; Android and
-        // non-iOS web stay unlocked (one update per paint).
+        // iOS (Safari + Capicitor WKWebView): Canvas2D heat comes from retina
+        // fill-rate + path VFX, not from the rAF scheduler. Budget pixels/VFX
+        // (DPR/cheap/LOD); keep the same one-update-per-paint rAF loop as Android.
         this.iosCanvasBudget = needsIosCanvasBudget();
         this.cheapCanvas = this.perfFlags.cheap ?? this.iosCanvasBudget;
         this.useHullCache = this.cheapCanvas;
         this.useGlowSprites = this.cheapCanvas;
         // Draw LOD (short trails, no path-radials, soft-cap) — off with ?fullvfx=1.
         this.iosDrawLod = this.iosCanvasBudget && !this.perfFlags.fullVfx;
-        this.iosPaintCap = this.iosCanvasBudget;
-        this.minFrameMs = 1000 / 60;
         if (this.perfMonitor) {
             const bits = [
                 this.cheapCanvas ? 'cheap' : 'full2d',
@@ -445,18 +444,9 @@ export class Game {
         return this.appScreen === 'playing' && !this.isGameOver;
     }
 
-    // iOS: delay until the next ~60 Hz slot so ProMotion doesn't wake JS at
-    // 120 Hz just to skip. Android/desktop: plain rAF.
+    // All platforms: vsync-aligned one-update-per-paint. iOS heat is governed
+    // by the canvas budget (DPR/cheap/LOD), not by pacing the scheduler.
     scheduleNextFrame() {
-        if (!this.iosPaintCap) {
-            requestAnimationFrame(() => this.gameLoop());
-            return;
-        }
-        const wait = Math.max(0, this.minFrameMs - (performance.now() - this.lastTime));
-        if (wait > 2) {
-            setTimeout(() => requestAnimationFrame(() => this.gameLoop()), wait);
-            return;
-        }
         requestAnimationFrame(() => this.gameLoop());
     }
 
@@ -465,12 +455,6 @@ export class Game {
         if (!document.hidden) {
             const currentTime = performance.now();
             const elapsedMs = currentTime - this.lastTime;
-
-            // iOS: if we woke early, reschedule without updating/rendering.
-            if (this.iosPaintCap && elapsedMs < this.minFrameMs) {
-                this.scheduleNextFrame();
-                return;
-            }
 
             const flags = this.perfFlags;
             const skipUpdate = flags.drawOnly;

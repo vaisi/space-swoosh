@@ -1,11 +1,12 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
+// - Budget is fill-rate only (DPR/opaque); pacing is plain rAF everywhere —
+//   Game.js no longer paint-throttles iOS.
 // - Phase 1: iOS (and native iOS) canvas DPR cap is 1.5 (~44% fewer pixels than
 //   2×; paper/ink hides the softness). Android Cap native stays ≤2; desktop ≤3.
 // - Created: iOS (Safari + Capicitor WKWebView) shares one Canvas2D budget —
-//   ProMotion + retina fill-rate is the lag source on spaceswoosh.app Safari.
-//   Android browser/app and desktop stay on the uncapped snappy path.
+//   retina fill-rate is the lag/heat source on spaceswoosh.app Safari.
 
 import { Capacitor } from '@capacitor/core';
 
@@ -25,7 +26,8 @@ export function isIosDevice() {
 
 /**
  * Canvas2D on Apple WebKit (Safari tab or Capicitor WKWebView) cannot sustain
- * 120 Hz × 3× DPR fills the way Chromium / desktop do. Budget those devices.
+ * full-retina (DPR 3) path fills the way Chromium / desktop do. Budget pixels
+ * and VFX on those devices; do not throttle the rAF scheduler.
  */
 export function needsIosCanvasBudget() {
     return isIosDevice();

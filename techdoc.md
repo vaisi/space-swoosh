@@ -14,9 +14,10 @@
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
 > **BUILD 23 + Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
-> (~60 Hz paint, hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas** on
-> iPhone/iPad: DPR ≤ 1.5, baked hull `drawImage`, glow sprites (halos/black-hole/
-> swoosh flash restored without path radials), flat ribbon fills. Phase 0 URL
+> (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
+> on iPhone/iPad: DPR ≤ 1.5, baked hull `drawImage`, glow sprites (halos/black-hole/
+> swoosh flash restored without path radials), flat ribbon fills. Same plain
+> one-update-per-paint rAF loop as Android (no paint throttle). Phase 0 URL
 > harness: `?perf=1`, `?nodraw=1`, `?drawonly=1`, `?kill=trails,glows,hud,hulls,obstacles,gradients`,
 > `?fullvfx=1`, `?cheap=0|1`, `?dpr=N`. See §6.
 >
@@ -634,15 +635,16 @@ with a linear gradient along the wake's chord for the length-wise fade.
   matches BUILD 16 web @ ~120 Hz.
 - **iOS canvas budget** (`core/platform.js` → `game.iosCanvasBudget`): true for
   iPhone/iPad (Safari **and** Chrome/WebKit, plus Capicitor WKWebView), including
-  iPadOS that reports as MacIntel. `scheduleNextFrame()` targets ~60 Hz with
-  `setTimeout` + rAF so ProMotion does not wake JS at 120 Hz just to skip paints
-  (that skip-churn caused heat + worse jitter). Android browser, Android app, and
-  desktop stay unlocked one-update-per-paint.
+  iPadOS that reports as MacIntel. Budget is fill-rate only (DPR ≤ 1.5, cheap
+  Canvas, draw LOD, opaque context). `scheduleNextFrame()` is plain
+  `requestAnimationFrame` on **all** platforms — one update per paint, same as
+  Android. A former ~60 Hz `setTimeout`+rAF paint throttle was removed; it could
+  drop jittered legitimate frames and worsen perceived fps without helping heat.
 - **`iosDrawLod` vs `cheapCanvas`:** draw LOD (short trails, smudge off, Open
   World `maxOnScreen` 18) is `iosCanvasBudget && !fullvfx`. Cheap Canvas defaults
   **on** for iOS (`?cheap=0` to force off): hull bitmaps (`ships/HullCache.js`),
   glow sprites (`utils/GlowSprites.js`) so soft VFX return without path radials,
-  ribbon fills skip `createLinearGradient`. Paint hitch clamps stay on `iosCanvasBudget`.
+  ribbon fills skip `createLinearGradient`. Hitch clamps stay on `iosCanvasBudget`.
 - **Phase 0 harness** (`core/perfFlags.js`, `core/PerfMonitor.js`): `?perf=1`
   overlays p50/p95/p99 + histogram (not average fps). `?nodraw=1` = full sim, paper
   clear only. `?drawonly=1` = freeze updates, keep drawing. `?kill=…` bisects

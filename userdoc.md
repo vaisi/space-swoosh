@@ -339,10 +339,11 @@ Under **Options → Controls** you can pick how the ship steers:
 
 ## Phones (especially iPhone)
 
-The game is tuned for phones: on iPhone/iPad it paints at a steadier rate and
-uses lighter drawing tricks (sharper enough for the night-paper look, smoother steering).
-You don’t need to change any settings — just play. If a build ever feels off,
-the usual fix is to update the app or refresh the site.
+The game is tuned for phones: on iPhone/iPad it uses lighter drawing tricks
+(fewer retina pixels, simpler trails and glows) so the device stays cooler while
+steering stays smooth — same frame pacing as Android. You don’t need to change
+any settings — just play. If a build ever feels off, the usual fix is to update
+the app or refresh the site.
 
 ## Tips
 
