@@ -472,8 +472,21 @@ export class Game {
                 // wall time onto the snappy ~120 Hz classic-tick reference.
                 // iOS hitch clamp 1/30 s (tickScale ≤ ~4); others keep 50 ms.
                 const maxFrame = this.iosCanvasBudget ? 1 / 30 : 0.05;
-                const frameTime = Math.min(elapsedMs / 1000, maxFrame);
+                const rawFrame = Math.min(elapsedMs / 1000, maxFrame);
                 this.lastTime = currentTime;
+                // Smooth uneven frame pacing: phones deliver frames at irregular
+                // intervals (perf overlay showed a mix of ~8 and ~16 ms), and
+                // time-scaled motion turns that unevenness into camera/scroll/spin
+                // jerk. A low-pass on the delta gives a near-constant advance per
+                // frame (smooth to the eye) while preserving average speed — the
+                // filter has unity DC gain, so there's no long-term drift. Steady
+                // high-refresh displays (desktop) are already even, so this is a
+                // near no-op there. FRAME_SMOOTH: higher = snappier/less filtered.
+                const FRAME_SMOOTH = 0.18;
+                this.smoothFrame = this.smoothFrame == null
+                    ? rawFrame
+                    : this.smoothFrame + (rawFrame - this.smoothFrame) * FRAME_SMOOTH;
+                const frameTime = this.smoothFrame;
                 this.tickScale = frameTime * this.snappyHz;
                 this.dt = (1 / 60) * this.tickScale;
                 this.update(frameTime);
