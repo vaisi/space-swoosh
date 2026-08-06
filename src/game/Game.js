@@ -446,14 +446,21 @@ export class Game {
 
     // All platforms: vsync-aligned one-update-per-paint. iOS heat is governed
     // by the canvas budget (DPR/cheap/LOD), not by pacing the scheduler.
+    // Pass the rAF timestamp through so frame timing is the vsync clock, not
+    // whenever the callback happened to run.
     scheduleNextFrame() {
-        requestAnimationFrame(() => this.gameLoop());
+        requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
-    gameLoop() {
+    gameLoop(ts) {
         // Only run the game loop if the tab is visible
         if (!document.hidden) {
-            const currentTime = performance.now();
+            // Use the rAF-provided vsync timestamp, not performance.now() read
+            // here: a tap's event handling delays *when* this callback runs, and
+            // reading the clock inside fed that delay straight into tickScale —
+            // one long frame that visibly sped up obstacle spin. The rAF
+            // timestamp is fixed by the frame's vsync, so the tap can't move it.
+            const currentTime = ts ?? performance.now();
             const elapsedMs = currentTime - this.lastTime;
 
             const flags = this.perfFlags;
