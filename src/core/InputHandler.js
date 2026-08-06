@@ -26,24 +26,20 @@ export class InputHandler {
         window.addEventListener('keyup', e => this.handleKeyUp(e));
 
         this.setupTouchControls();
-
-        // Kill browser pan/zoom over the game surface; journey-map scrolling
-        // still works because that listener runs on the canvas too and the map
-        // is never isPlaying().
-        document.addEventListener('touchmove', e => {
-            if (this.game.isPlaying()) e.preventDefault();
-        }, { passive: false });
+        // Scroll / pan / zoom / iOS rubber-band are blocked declaratively in CSS
+        // (body + #gameCanvas touch-action: none, body overscroll-behavior: none,
+        // #gameContainer overflow: hidden). So no non-passive touchmove JS is
+        // needed — a document-level preventDefault here only forced every touch
+        // onto the main-thread slow path and stalled the frame on tap.
     }
 
     setupTouchControls() {
         const canvas = this.game.canvas;
 
-        // Tap events (start/end/cancel) are passive: they never scroll, so no
-        // preventDefault is needed, and staying off the browser's non-passive
-        // path stops a tap from stalling the animation frame (obstacles hitched
-        // on every Zigzag flip). Scroll/zoom stay blocked by touch-action: none.
-        // touchmove is kept non-passive so Arc swipes + iOS page-bounce
-        // prevention are unchanged.
+        // All touch listeners are passive. Scroll/zoom/bounce are blocked in CSS
+        // (touch-action: none, overscroll-behavior: none), so preventDefault is
+        // redundant — and non-passive listeners stall the animation frame on
+        // every touch (the micro-touchmoves in a tap hitched Zigzag flips).
         canvas.addEventListener('touchstart', e => {
             if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchStart(e);
@@ -52,7 +48,7 @@ export class InputHandler {
         canvas.addEventListener('touchmove', e => {
             if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchMove(e);
-        }, { passive: false });
+        }, { passive: true });
 
         canvas.addEventListener('touchend', e => {
             if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
@@ -126,7 +122,7 @@ export class InputHandler {
 
     handleTouchMove(e) {
         if (!this.touch) return;
-        e.preventDefault();
+        // Passive listener — no preventDefault (CSS blocks scroll/zoom/bounce).
 
         // Zigzag already flipped on touchstart — ignore swipe/drag entirely.
         if (this.game.flightStyle === FLIGHT_STYLE.zigzag || this.touch.zigzagFlipped) {
