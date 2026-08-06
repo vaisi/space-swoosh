@@ -53,8 +53,9 @@ export const GameConfig = {
         // Floor cruise (× height). Catch-up accelerates above this when the ship
         // leads too high; ship speed is separate (spacecraft.speed).
         speed: 0.07,
-        // How hard the camera pulls when the ship is off the ideal seat.
-        interpolation: 0.28,
+        // How hard the camera pulls once the ship drifts past the deadzone.
+        // Gentle, so re-seating glides in rather than tugging on turns.
+        interpolation: 0.18,
         deceleration: 2000,
         // Velocity ease — lower = snappier catch-up, higher = lazier.
         smoothingFactor: 0.78,
