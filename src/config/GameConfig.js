@@ -61,7 +61,7 @@ export const GameConfig = {
         // Deadzone (× height) around the ideal seat where the camera just follows
         // the ship's speed and applies no re-seating pull — so steady flight is
         // pure smooth scroll and the camera only re-addresses on real drift.
-        deadzone: 0.12
+        deadzone: 0.16
     },
     obstacles: {
         minSize: 2.5,
