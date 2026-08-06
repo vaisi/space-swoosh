@@ -362,7 +362,14 @@ export class Spacecraft {
         }
 
         const target = Math.max(-MAX_BANK, Math.min(MAX_BANK, this.tangent));
-        this.bank += wrapAngle(target - this.bank) * BANK_SMOOTHING;
+        // Framerate-independent lean ease. This was a flat per-frame factor, so
+        // the hull snapped to its turn-lean at a different rate per framerate and
+        // stepped unevenly on the phone's wobbly cadence — a jerk felt on every
+        // turn, smooth on a steady 165 Hz desktop. Match the camera's
+        // pow(keep, tickScale) form so it eases by elapsed time, not frame count.
+        const tickScale = this.game?.tickScale ?? 1;
+        const bankKeep = Math.pow(1 - BANK_SMOOTHING, tickScale);
+        this.bank += wrapAngle(target - this.bank) * (1 - bankKeep);
     }
 
     // The active skin's hitbox, rotated by the bank into world space. Obstacles
