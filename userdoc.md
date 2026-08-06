@@ -245,8 +245,9 @@ backing out to the menu.
 
 In Arc, each bank is a smooth swoosh that curves out and back to the same lane
 you started from, then you fly straight again. Press mid-turn and a full new arc
-starts from where you are — left and right feel the same. You also bounce off the
-side walls (with a **BOOP**), so plan your turns a little ahead.
+starts from where you are — left and right feel the same. Turn taps play a short
+cue without hitching the flight. You also bounce off the side walls (with a
+**BOOP**), so plan your turns a little ahead.
 
 ## Pausing and quitting
 

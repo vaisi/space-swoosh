@@ -132,7 +132,7 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup below the hull. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. |
+| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -187,8 +187,11 @@ it's up. `Space` and `Escape` both toggle pause, and the DOM pause button hides
 while the menu is up since the menu carries its own Resume.
 
 `SoundManager` mute sets `.muted` on every `<audio>` element (so each cue keeps
-its own mix level) and short-circuits the synthesized Web Audio cues; the state
-persists under the `soundMuted` key.
+its own mix level) and short-circuits Web Audio cues (synthesized + decoded
+buffer one-shots like turn/move); the state persists under the `soundMuted` key.
+Turn/move used to restart shared HTMLAudioElements (`currentTime = 0`) on every
+bank/flip — that media seek caused a tap micro-freeze. They now fire throwaway
+`AudioBufferSourceNode`s from buffers decoded once in `initialize()`.
 
 ### Screen layout system
 

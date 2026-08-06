@@ -3,6 +3,8 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
+// - playTurn / playMove use pre-decoded Web Audio buffer sources (no HTMLAudio
+//   seek on tap). Removes direction-change micro-freeze; move.mp3 optional.
 // - Portal SFX split into playPortalEntry / playPortalExit: deeper space warp
 //   with delay-feedback echo (suck-in vs emerge). playPortal() aliases entry.
 // - playBoop: phone-audible body (320→180 Hz) + short mid tick (~520 Hz);
@@ -19,6 +21,8 @@
 //   (powerup.mp3 was referenced but missing, so diamond collects were silent).
 
 const MUTE_STORAGE_KEY = 'soundMuted';
+const TURN_VOLUME = 0.3;
+const MOVE_VOLUME = 0.15;
 
 function loadMuted() {
     try {
@@ -31,13 +35,13 @@ function loadMuted() {
 export class SoundManager {
     constructor() {
         const base = '/';
+        // Rare / looping cues stay on <audio>. Rapid-retrigger turn/move use
+        // decoded AudioBuffers (sfxBuffers) so taps never seek a media element.
         this.sounds = {
             bgm: new Audio(`${base}sounds/background.mp3`),
             shield: new Audio(`${base}sounds/shield.mp3`),
             explosion: new Audio(`${base}sounds/explosion.mp3`),
             powerup: new Audio(`${base}sounds/powerup.mp3`),
-            move: new Audio(`${base}sounds/move.mp3`),
-            turn: new Audio(`${base}sounds/turn.mp3`),
             shieldCrash: new Audio(`${base}sounds/crash_with_shield.mp3`),
             crash: new Audio(`${base}sounds/crash.mp3`)
         };
@@ -50,10 +54,12 @@ export class SoundManager {
         this.sounds.shield.volume = 0.4;
         this.sounds.explosion.volume = 0.4;
         this.sounds.powerup.volume = 0.3;
-        this.sounds.move.volume = 0.15;
-        this.sounds.turn.volume = 0.3;
         this.sounds.shieldCrash.volume = 0.4;
         this.sounds.crash.volume = 0.4;
+
+        this.turnVolume = TURN_VOLUME;
+        this.moveVolume = MOVE_VOLUME;
+        this.sfxBuffers = { turn: null, move: null };
 
         this.initialized = false;
         this.bgmPlaying = false;
@@ -75,15 +81,16 @@ export class SoundManager {
         if (this.initialized) return;
         
         try {
-            // Pre-load all sounds
+            // Pre-load all HTMLAudio cues (unlock + buffer in media pipeline).
             for (const sound of Object.values(this.sounds)) {
                 await sound.play().catch(() => {});
                 sound.pause();
                 sound.currentTime = 0;
             }
 
-            // Unlock Web Audio for synthesized SFX (collect chime).
+            // Unlock Web Audio for synthesized + decoded one-shot SFX.
             this.ensureAudioContext();
+            await this.loadSfxBuffers();
             
             this.initialized = true;
         } catch (error) {
@@ -91,8 +98,56 @@ export class SoundManager {
         }
     }
 
+    /** Fetch + decode a one-shot SFX; returns null on 404 / decode failure. */
+    async decodeSfxBuffer(url) {
+        const ctx = this.audioCtx;
+        if (!ctx) return null;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) {
+                console.warn(`SFX missing or unreachable: ${url} (${res.status})`);
+                return null;
+            }
+            const raw = await res.arrayBuffer();
+            // Copy so decodeAudioData can detach without racing the response body.
+            return await ctx.decodeAudioData(raw.slice(0));
+        } catch (error) {
+            console.warn(`Failed to decode SFX ${url}:`, error);
+            return null;
+        }
+    }
+
+    async loadSfxBuffers() {
+        const [turn, move] = await Promise.all([
+            this.decodeSfxBuffer('/sounds/turn.mp3'),
+            this.decodeSfxBuffer('/sounds/move.mp3'),
+        ]);
+        this.sfxBuffers.turn = turn;
+        this.sfxBuffers.move = move;
+    }
+
+    /** Fire-and-forget buffer source — no seek, safe to retrigger every tap. */
+    playBuffer(buffer, volume) {
+        if (!this.initialized || this.muted || !buffer) return;
+
+        try {
+            const ctx = this.ensureAudioContext();
+            if (!ctx) return;
+
+            const src = ctx.createBufferSource();
+            const gain = ctx.createGain();
+            src.buffer = buffer;
+            gain.gain.value = volume;
+            src.connect(gain);
+            gain.connect(ctx.destination);
+            src.start(0);
+        } catch (error) {
+            console.error('Error in playBuffer:', error);
+        }
+    }
+
     // Muting the elements rather than zeroing their volume keeps each cue's
-    // mix intact, so unmuting doesn't need to remember eight base levels.
+    // mix intact, so unmuting doesn't need to remember base levels.
     applyMute() {
         for (const sound of Object.values(this.sounds)) {
             sound.muted = this.muted;
@@ -391,28 +446,11 @@ export class SoundManager {
     }
 
     playMove() {
-        if (!this.sounds.move.playing) {
-            this.sounds.move.currentTime = 0;
-            this.sounds.move.play().catch(() => {});
-        }
+        this.playBuffer(this.sfxBuffers.move, this.moveVolume);
     }
 
     playTurn() {
-        if (!this.initialized) return;
-        
-        try {
-            const turnSound = this.sounds.turn;
-            turnSound.currentTime = 0;
-            const playPromise = turnSound.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Error playing turn sound:", error);
-                });
-            }
-        } catch (error) {
-            console.error("Error in playTurn:", error);
-        }
+        this.playBuffer(this.sfxBuffers.turn, this.turnVolume);
     }
 
     playShieldCrash() {
