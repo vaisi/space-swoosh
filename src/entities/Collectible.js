@@ -28,8 +28,11 @@ export class Collectible {
     }
 
     update() {
-        this.pulsePhase += 0.06;
-        this.rotation += 0.01;
+        // Time-scale spin + pulse so they run at a framerate-independent rate
+        // (were per-frame, so they jittered when the phone's cadence wobbled).
+        const tickScale = this.game?.tickScale ?? 1;
+        this.pulsePhase += 0.06 * tickScale;
+        this.rotation += 0.01 * tickScale;
     }
 
     render(ctx) {

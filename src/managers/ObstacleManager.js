@@ -108,7 +108,12 @@ class BaseObstacle {
     }
 
     update() {
-        this.rotation += this.rotationSpeed;
+        // Time-scale the spin like every other motion (ship/camera/scroll). Left
+        // unscaled, rotation advanced per FRAME, so it ran at a different rate per
+        // framerate and jittered whenever the phone's cadence wobbled between
+        // 60/120 Hz — while the time-scaled scroll stayed smooth.
+        const tickScale = this.game?.tickScale ?? 1;
+        this.rotation += this.rotationSpeed * tickScale;
         if (this.rotation > Math.PI * 2) this.rotation -= Math.PI * 2;
         if (this.rotation < 0) this.rotation += Math.PI * 2;
     }
@@ -476,9 +481,10 @@ class ComplexAsteroid extends BaseObstacle {
 
     update() {
         super.update();
-        // Update satellite positions
+        // Time-scale the orbit so satellites spin at a framerate-independent rate.
+        const tickScale = this.game?.tickScale ?? 1;
         this.satellites.forEach(satellite => {
-            satellite.angle += satellite.speed;
+            satellite.angle += satellite.speed * tickScale;
         });
     }
 }
