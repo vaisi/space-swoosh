@@ -1,6 +1,8 @@
 // HullCache.js
 // Phase 1: bake each skin's resting hull to an offscreen canvas; blit via drawImage.
 // Changes:
+// - Bake at the live canvas DPR (game.dpr) instead of a hardcoded 2, so the ship
+//   stays as sharp as the vector-drawn scene at any DPR. Cache key includes DPR.
 // - Nyan uses the same tear bake meta as Quill/Ink (default profile).
 // - Created: per-skin/radius cache; live bank + wall-jelly via beginHullFrame.
 //   Breath/orbit micro-animation is frozen in the bake (acceptable iOS tradeoff).
@@ -40,17 +42,18 @@ const HULL_META = {
 // Mid breath / scale so the bake isn't at a trough or peak.
 const BAKE_TIME = 100000;
 
-function cacheKey(skinId, radius) {
-    return `${skinId}:${radius.toFixed(2)}`;
+function cacheKey(skinId, radius, bakeDpr) {
+    return `${skinId}:${radius.toFixed(2)}:${bakeDpr.toFixed(2)}`;
 }
 
 /**
  * @param {string} skinId
  * @param {number} radius  ship.radius in CSS px
- * @param {number} [bakeDpr=2]
+ * @param {number} [bakeDpr=2]  device pixels per CSS px (game.dpr); clamped 1–3
  */
 export function getHullBake(skinId, radius, bakeDpr = 2) {
-    const key = cacheKey(skinId, radius);
+    bakeDpr = Math.min(3, Math.max(1, bakeDpr || 2));
+    const key = cacheKey(skinId, radius, bakeDpr);
     const hit = cache.get(key);
     if (hit) return hit;
 
@@ -90,7 +93,7 @@ export function getHullBake(skinId, radius, bakeDpr = 2) {
 export function drawCachedHull(ctx, ship, screenY, time = performance.now()) {
     const skinId = ship.game?.shipSkinId;
     const meta = HULL_META[skinId] || { profile: 'default', halfScale: 0.85 };
-    const bake = getHullBake(skinId, ship.radius);
+    const bake = getHullBake(skinId, ship.radius, ship.game?.dpr ?? 2);
     beginHullFrame(
         ctx,
         ship,

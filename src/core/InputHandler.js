@@ -38,10 +38,16 @@ export class InputHandler {
     setupTouchControls() {
         const canvas = this.game.canvas;
 
+        // Tap events (start/end/cancel) are passive: they never scroll, so no
+        // preventDefault is needed, and staying off the browser's non-passive
+        // path stops a tap from stalling the animation frame (obstacles hitched
+        // on every Zigzag flip). Scroll/zoom stay blocked by touch-action: none.
+        // touchmove is kept non-passive so Arc swipes + iOS page-bounce
+        // prevention are unchanged.
         canvas.addEventListener('touchstart', e => {
             if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchStart(e);
-        }, { passive: false });
+        }, { passive: true });
 
         canvas.addEventListener('touchmove', e => {
             if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
@@ -51,12 +57,12 @@ export class InputHandler {
         canvas.addEventListener('touchend', e => {
             if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchEnd(e);
-        }, { passive: false });
+        }, { passive: true });
 
         canvas.addEventListener('touchcancel', e => {
             if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
             this.handleTouchEnd(e);
-        }, { passive: false });
+        }, { passive: true });
     }
 
     handleKeyDown(e) {
@@ -86,7 +92,7 @@ export class InputHandler {
     }
 
     handleTouchStart(e) {
-        e.preventDefault();
+        // Passive listener — no preventDefault (touch-action: none blocks scroll).
         const t = e.changedTouches[0] || e.touches[0];
         if (!t) return;
 
@@ -155,7 +161,7 @@ export class InputHandler {
 
     handleTouchEnd(e) {
         if (!this.touch) return;
-        e.preventDefault();
+        // Passive listener — no preventDefault (touch-action: none blocks scroll).
 
         const t = this.findTouch(e.changedTouches, this.touch.id) || e.changedTouches[0];
         const gesture = this.touch;
