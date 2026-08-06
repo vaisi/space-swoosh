@@ -17,8 +17,9 @@
 //   every finished Open World run and feeds the mode-select card footer.
 // - Leaderboard: 10 rows/page (max 10 pages / 100 scores), wider taller rows,
 //   🥇🥈🥉 for ranks 1–3, sharper dotted row separators (no ship–score leaders),
-//   PAGE n/m arrows centered in the gap under the list; submit prompt for top
-//   100. Removed drawScreenFrame chrome.
+//   PAGE n/m arrows centered in the gap under the list; auto call-sign prompt
+//   only for top 10 (manual Submit Score still available). Removed
+//   drawScreenFrame chrome.
 // - Leaderboard rows show "CallSign, Ship"; submits write `ship_id` from the
 //   active skin.
 // - Submit-score errors distinguish LeaderboardUnavailableError (missing
@@ -2420,10 +2421,11 @@ export class Game {
                 // Store rank separately so it persists even if modal is closed
                 this.currentRank = rank;
                 
-                // Prompt for a call sign when the run lands in the top 100.
-                const isTop100 = rank <= 100;
+                // Auto-prompt for a call sign only when the run lands in the top 10.
+                // Ranks 11+ can still submit via the manual Submit Score button.
+                const isTop10 = rank <= 10;
 
-                this.pendingHighScore = isTop100 ? {
+                this.pendingHighScore = isTop10 ? {
                     score: this.finalScore,
                     obstaclesDestroyed: this.obstaclesDestroyed,
                     isWinner: this.hasWon,
