@@ -2,6 +2,13 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Journey lore screen (`appScreen === 'lore'`): one-time Signal Story brief
+//   before the map; Continue unlocks Logbook `signalCall`.
+// - Submit Signal + Android keyboard: Cap Keyboard plugin tracks IME height;
+//   when the call-sign field is focused the card pins to the top with input +
+//   Submit first (stats below) so Gboard never covers the field. DOM input on
+//   #gameContainer, repositioned every frame. resizeOnFullScreen in capacitor
+//   config works around Android edge-to-edge ignoring adjustResize.
 // - Main menu: Play-button ▶/◀ icons beside the ship + ArrowLeft/Right cycle
 //   owned skins via cycleMenuShip(); wide left/right tap zones for mobile.
 // - Options hub: Restore Purchases replaced by Light Mode / Dark Mode toggle
@@ -38,6 +45,8 @@
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
 //   KM accrues once the title clears (wait/chips) — belt opens at that same
 //   moment so rocks arrive with the first readable distance, not a second later.
+// - Journey levels 1–5: IntroNarration chains one-sentence beats with
+//   /sounds/voice/level-N.mp3 at intro handoff; belt waits for beats + voice.
 // - Run-start LevelIntroSequence (~1s fly-in + fade) for Journey and Open World;
 //   steering locked until it finishes; intro milestone deferred to handoff.
 // - Play mode-select blurbs pick once on enter from CopyBank modeJourney /
@@ -193,6 +202,10 @@ import {
     handleModeSelectClick,
 } from '../ui/screens/ModeSelectScreen.js';
 import {
+    renderLoreScreen,
+    handleLoreScreenClick,
+} from '../ui/screens/LoreScreen.js';
+import {
     renderJourneyMap,
     handleJourneyMapClick,
 } from '../ui/screens/JourneyMapScreen.js';
@@ -297,6 +310,8 @@ export class Game {
         }
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
+        // Set by native/index.js Keyboard listeners (CSS px). 0 on web.
+        this.softKeyboardHeight = 0;
         this.highScoreTab = 'distance'; // Add tab state
         this.highScorePage = 0; // 0-based page index (10 scores per page)
 
@@ -313,7 +328,9 @@ export class Game {
         this.runOutcome = null; // 'crashed' | 'completed' while on the end screen
         this.levelClear = null; // the flyout cinematic, while it's running
         this.levelIntro = null; // short run-start fly-in, while it's running
-        this.pendingIntroMessage = null; // shown when the intro hands off control
+        this.pendingIntroMessage = null; // legacy single-line handoff
+        this.pendingIntroBeats = null; // string[] shown when intro hands off
+        this.introNarration = null; // sentence beats + voice while title phase
         // Post-intro HUD reveal: 'title' | 'wait' | 'chips' | null (done).
         this.hudRevealPhase = null;
         this.hudRevealStart = null; // performance.now() when chip fades begin
@@ -330,6 +347,23 @@ export class Game {
         this.initializeGame();
         
         window.addEventListener('resize', () => this.setupCanvas());
+        // Soft keyboard: adjustResize changes container size (rebuild canvas);
+        // adjustPan only changes visualViewport inset — the Submit Signal modal
+        // reads that every frame, so skip setupCanvas unless CSS size moved.
+        if (window.visualViewport) {
+            const onViewportChange = () => {
+                const container = this.canvas?.parentElement;
+                if (!container) return;
+                if (
+                    container.clientWidth !== this.width ||
+                    container.clientHeight !== this.height
+                ) {
+                    this.setupCanvas();
+                }
+            };
+            window.visualViewport.addEventListener('resize', onViewportChange);
+            window.visualViewport.addEventListener('scroll', onViewportChange);
+        }
         this.setupEventListeners();
         this.powerUpManager = new PowerUpManager(this);
         this.collectibleManager = new CollectibleManager(this);
@@ -682,7 +716,13 @@ export class Game {
         if (!this.hudRevealPhase) return;
 
         if (this.hudRevealPhase === 'title') {
-            if (!this.milestoneManager?.currentMessage) {
+            if (this.introNarration) {
+                if (this.introNarration.update()) {
+                    this.introNarration.dispose();
+                    this.introNarration = null;
+                    this.beginHudChipsAndBelt();
+                }
+            } else if (!this.milestoneManager?.currentMessage) {
                 this.beginHudChipsAndBelt();
             }
             this.updatePauseButtonVisibility();
@@ -729,6 +769,10 @@ export class Game {
         }
         if (this.appScreen === 'modeSelect') {
             this.modeSelectButtons = renderModeSelect(this);
+            return;
+        }
+        if (this.appScreen === 'lore') {
+            this.loreScreenButtons = renderLoreScreen(this);
             return;
         }
         if (this.appScreen === 'journeyMap') {
@@ -1902,8 +1946,13 @@ export class Game {
         this.appScreen = 'playing';
         this.isPaused = false;
 
-        // Defer the milestone line until the intro hands off the controls.
+        // Defer navigator beats until the intro hands off the controls.
+        const beats = this.profile.introBeats
+            || (this.profile.introMessage ? [this.profile.introMessage] : null);
+        this.pendingIntroBeats = beats;
         this.pendingIntroMessage = this.profile.introMessage || null;
+        this.introNarration?.dispose?.();
+        this.introNarration = null;
         // Create intro BEFORE pause visibility — otherwise the button flashes on
         // for a playing run with no levelIntro yet.
         this.levelIntro = new LevelIntroSequence(this);
@@ -1922,10 +1971,7 @@ export class Game {
 
     // Tear down whatever the run left behind and land on `nextScreen`.
     leaveRun(nextScreen) {
-        if (this.nameInput) {
-            document.body.removeChild(this.nameInput);
-            this.nameInput = null;
-        }
+        this.removeNameInput();
         this.pendingHighScore = null;
         this.isGameOver = false;
         this.isPaused = false;
@@ -1937,7 +1983,10 @@ export class Game {
         this.levelOutcomeButtons = null;
         this.levelClear = null;
         this.levelIntro = null;
+        this.introNarration?.dispose?.();
+        this.introNarration = null;
         this.pendingIntroMessage = null;
+        this.pendingIntroBeats = null;
         this.hudRevealPhase = null;
         this.hudRevealStart = null;
         this.hudRevealWaitStart = null;
@@ -1945,6 +1994,7 @@ export class Game {
         this.hudDestroyedRevealStart = null;
         this.finishLineWorldY = null;
         this.appScreen = nextScreen;
+        this.soundManager?.stopLevelVoice?.({ notify: false });
         this.soundManager?.stopBGM?.();
         this.updatePauseButtonVisibility();
     }
@@ -1979,7 +2029,10 @@ export class Game {
         this.levelOutcome = null;
         this.levelClear = null;
         this.levelIntro = null;
+        this.introNarration?.dispose?.();
+        this.introNarration = null;
         this.pendingIntroMessage = null;
+        this.pendingIntroBeats = null;
         this.hudRevealPhase = null;
         this.hudRevealStart = null;
         this.hudRevealWaitStart = null;
@@ -1992,11 +2045,7 @@ export class Game {
         this.levelOutcomeButtons = null;
         this.scoreSubmitted = false;
         this.pendingHighScore = null;
-
-        if (this.nameInput) {
-            document.body.removeChild(this.nameInput);
-            this.nameInput = null;
-        }
+        this.removeNameInput();
 
         this.camera = new Camera(this);
         this.spacecraft = new Spacecraft(this);
@@ -2410,6 +2459,9 @@ export class Game {
         this.gameOverAlpha = 0;
         this.hasWon = true;
         this.updatePauseButtonVisibility();
+        this.introNarration?.dispose?.();
+        this.introNarration = null;
+        this.soundManager?.stopLevelVoice?.({ notify: false });
         this.soundManager?.stopBGM?.();
         // Lock the finish line here so the ship can fly through a fixed mark.
         // Journey results finalize when the flyout enters screenIn — smashes and
@@ -2463,7 +2515,7 @@ export class Game {
             'level': descriptor.level,
             'chapter': descriptor.chapterId,
             'completed': completed,
-            'stars': result.stars.filter(Boolean).length,
+            'stars': result.stars.slice(0, descriptor.starSlots ?? 3).filter(Boolean).length,
             'points': this.points,
             'distance': Math.floor(this.score),
         });
@@ -2527,6 +2579,9 @@ export class Game {
 
     async gameOver() {
         if (!this.isGameOver) {
+            this.introNarration?.dispose?.();
+            this.introNarration = null;
+            this.soundManager.stopLevelVoice?.({ notify: false });
             this.soundManager.stopBGM();
             this.soundManager.playCrash();
             this.soundManager.playExplosion();
@@ -2697,6 +2752,11 @@ export class Game {
 
             if (this.appScreen === 'modeSelect') {
                 handleModeSelectClick(this, x, y);
+                return;
+            }
+
+            if (this.appScreen === 'lore') {
+                handleLoreScreenClick(this, x, y);
                 return;
             }
 
@@ -3125,13 +3185,69 @@ export class Game {
     // Tear down the submit-score modal. Shared by its close button and by
     // hardware back, which must dismiss the same way.
     closeNameInputModal() {
-        if (this.nameInput) {
-            this.nameInput.remove();
-            this.nameInput = null;
-        }
+        this.removeNameInput();
         this.pendingHighScore = null;
         this.scoreSubmitted = false;
         this.gameOverScreen = 'main';
+    }
+
+    // Safe DOM teardown — input is mounted on #gameContainer, not always body.
+    removeNameInput() {
+        if (!this.nameInput) return;
+        this.nameInput.remove();
+        this.nameInput = null;
+    }
+
+    // True while the call-sign field has focus (IME likely up even before the
+    // Keyboard plugin fires) or the plugin reports a non-zero IME height.
+    isSoftKeyboardOpen() {
+        if ((this.softKeyboardHeight || 0) > 0) return true;
+        return !!(this.nameInput && document.activeElement === this.nameInput);
+    }
+
+    // Canvas-space rectangle still clear of the soft keyboard.
+    // Prefer Cap Keyboard height (reliable on Android edge-to-edge); fall back
+    // to visualViewport; when the field is focused but height is unknown, keep
+    // the top ~58% of the stage so the pinned card still fits.
+    getVisibleCanvasBounds() {
+        let top = 0;
+        let height = this.height;
+        if (this.height <= 0) return { top, height };
+
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const scaleY = canvasRect.height / this.height;
+        if (!(scaleY > 0)) return { top, height };
+
+        const kbCss = this.softKeyboardHeight || 0;
+        if (kbCss > 0) {
+            const overlapCss = Math.max(
+                0,
+                (canvasRect.top + canvasRect.height) - (window.innerHeight - kbCss)
+            );
+            const inset = Math.min(this.height * 0.62, overlapCss / scaleY);
+            return { top: 0, height: Math.max(200, this.height - inset) };
+        }
+
+        const vv = window.visualViewport;
+        if (vv) {
+            const visibleTop = Math.max(0, -canvasRect.top) / scaleY;
+            const visibleBottom = Math.min(
+                this.height,
+                (vv.height - canvasRect.top) / scaleY
+            );
+            if (visibleBottom > visibleTop + 1) {
+                const slice = visibleBottom - visibleTop;
+                // Ignore tiny viewport jitter; only trust a real keyboard-sized cut.
+                if (slice < this.height * 0.92) {
+                    return { top: visibleTop, height: slice };
+                }
+            }
+        }
+
+        if (this.isSoftKeyboardOpen()) {
+            return { top: 0, height: this.height * 0.58 };
+        }
+        return { top, height };
     }
 
     togglePause() {
@@ -3174,11 +3290,21 @@ export class Game {
         ctx.fillStyle = `rgba(${color.paperRgb}, 0.72)`;
         ctx.fillRect(0, 0, this.width, this.height);
 
+        // Keyboard open: pin the card to the top and put call sign + Submit
+        // first. Android edge-to-edge often leaves the WebView full-bleed, so
+        // centering a bottom-heavy form always loses the field under Gboard.
+        // `!this.nameInput` covers the first frame before auto-focus lands.
+        const keyboardOpen = this.isSoftKeyboardOpen() || !this.nameInput;
+        const view = this.getVisibleCanvasBounds();
         const modalWidth = Math.min(360, this.width * 0.88);
-        const modalHeight = 460;
+        const idealHeight = keyboardOpen ? 340 : 460;
+        const modalHeight = Math.min(idealHeight, Math.max(240, view.height - 12));
+        const compact = keyboardOpen || modalHeight < 400;
+        const pad = compact ? 16 : 28;
         const modalX = (this.width - modalWidth) / 2;
-        const modalY = (this.height - modalHeight) / 2;
-        const pad = 28;
+        const modalY = keyboardOpen
+            ? view.top + 8
+            : view.top + Math.max(8, (view.height - modalHeight) / 2);
         const contentLeft = modalX + pad;
         const contentRight = modalX + modalWidth - pad;
         const contentWidth = contentRight - contentLeft;
@@ -3218,48 +3344,14 @@ export class Game {
 
         let currentY = modalY + pad * 2;
         dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
-        currentY += pad;
+        currentY += compact ? pad * 0.75 : pad;
 
-        // Left-aligned value → label stacks: distance, destroyed, rank.
-        const drawStat = (value, unitLabel, caption) => {
-            ctx.save();
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
-            setMonoType(ctx, 28);
-            ctx.fillStyle = color.ink;
-            ctx.fillText(value, contentLeft, currentY);
-            const cursor = contentLeft + ctx.measureText(value).width;
-            if (unitLabel) {
-                setLabelType(ctx, 11);
-                ctx.fillStyle = color.ink55;
-                ctx.fillText(unitLabel, cursor + 8, currentY);
-            }
-            currentY += 18;
-            setLabelType(ctx, 10);
-            ctx.fillStyle = color.ink55;
-            ctx.fillText(caption, contentLeft, currentY);
-            resetType(ctx);
-            ctx.restore();
-            currentY += pad * 1.35;
-        };
-
-        drawStat(ScoreService.formatScore(this.finalScore), 'KM', 'DISTANCE');
-        drawStat(
-            ScoreService.formatScore(this.obstaclesDestroyed),
-            null,
-            'ASTEROIDS DESTROYED'
-        );
-        drawStat(`#${this.pendingHighScore.rank}`, null, 'YOUR RANK');
-
-        dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
-        currentY += pad * 0.7;
-
-        // Call sign — underline field (matches earlier brand treatment).
         const inputWidth = contentWidth;
-        const inputHeight = 44;
-        const inputX = contentLeft;
-        const inputY = currentY;
+        const inputHeight = compact ? 40 : 44;
+        const buttonHeight = compact ? 44 : 50;
+        const container = this.canvas.parentElement;
 
+        // Ensure the DOM field exists before we place it (focus ⇒ keyboard).
         if (!this.nameInput) {
             const input = document.createElement('input');
             input.type = 'text';
@@ -3267,17 +3359,14 @@ export class Game {
             input.placeholder = 'ENTER CALL SIGN';
             input.autocomplete = 'off';
             input.spellcheck = false;
-
-            const canvasRect = this.canvas.getBoundingClientRect();
-            const scaleX = canvasRect.width / this.width;
-            const scaleY = canvasRect.height / this.height;
-
+            input.enterKeyHint = 'done';
+            // 16px minimum avoids Android WebView zoom-on-focus.
             input.style.cssText = `
                 position: absolute;
-                left: ${canvasRect.left + inputX * scaleX}px;
-                top: ${canvasRect.top + inputY * scaleY}px;
-                width: ${inputWidth * scaleX}px;
-                height: ${inputHeight * scaleY}px;
+                left: 0;
+                top: 0;
+                width: 0;
+                height: 0;
                 box-sizing: border-box;
                 font-size: 16px;
                 border: none;
@@ -3290,6 +3379,7 @@ export class Game {
                 font-family: var(--ss-font-ui, 'Space Grotesk', 'Segoe UI', system-ui, sans-serif);
                 font-weight: 500;
                 letter-spacing: 0.04em;
+                z-index: 5;
             `;
 
             input.addEventListener('keydown', (e) => {
@@ -3299,30 +3389,91 @@ export class Game {
             });
 
             this.nameInput = input;
-            document.body.appendChild(input);
-            input.focus();
+            (container || document.body).appendChild(input);
+            input.focus({ preventScroll: true });
+            window.scrollTo(0, 0);
         }
 
-        currentY = inputY + inputHeight + pad * 0.75;
+        // Keyboard / focused: call sign + Submit first (safe above Gboard).
+        // Idle: stats first, then field + Submit (original reading order).
+        const drawCallSignAndSubmit = () => {
+            const inputX = contentLeft;
+            const inputY = currentY;
+            const input = this.nameInput;
+            input.style.left = `${inputX}px`;
+            input.style.top = `${inputY}px`;
+            input.style.width = `${inputWidth}px`;
+            input.style.height = `${inputHeight}px`;
 
-        const buttonHeight = 50;
-        this.submitButton = this.drawBrandButton(
-            contentLeft, currentY, inputWidth, buttonHeight, 'Submit', {
-                primary: true,
-                tag: '\u2191',
+            currentY = inputY + inputHeight + pad * 0.7;
+            this.submitButton = this.drawBrandButton(
+                contentLeft, currentY, inputWidth, buttonHeight, 'Submit', {
+                    primary: true,
+                    tag: '\u2191',
+                }
+            );
+            this.submitButton.enabled = !!(input.value && input.value.trim().length > 0);
+            currentY += buttonHeight;
+
+            if (this.submitError) {
+                currentY += 14;
+                ctx.save();
+                setLabelType(ctx, 10);
+                ctx.fillStyle = color.signal;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText(this.submitError.toUpperCase(), contentLeft, currentY);
+                resetType(ctx);
+                ctx.restore();
+                currentY += 8;
             }
-        );
-        this.submitButton.enabled = !!(this.nameInput && this.nameInput.value.trim().length > 0);
+            currentY += pad * 0.55;
+        };
 
-        if (this.submitError) {
+        const valuePx = compact ? 20 : 28;
+        const stackGap = compact ? pad * 0.7 : pad * 1.35;
+        const drawStat = (value, unitLabel, caption) => {
             ctx.save();
-            setLabelType(ctx, 10);
-            ctx.fillStyle = color.signal;
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillText(this.submitError.toUpperCase(), contentLeft, currentY + buttonHeight + 16);
+            setMonoType(ctx, valuePx);
+            ctx.fillStyle = color.ink;
+            ctx.fillText(value, contentLeft, currentY);
+            const cursor = contentLeft + ctx.measureText(value).width;
+            if (unitLabel) {
+                setLabelType(ctx, 11);
+                ctx.fillStyle = color.ink55;
+                ctx.fillText(unitLabel, cursor + 8, currentY);
+            }
+            currentY += compact ? 12 : 18;
+            setLabelType(ctx, 10);
+            ctx.fillStyle = color.ink55;
+            ctx.fillText(caption, contentLeft, currentY);
             resetType(ctx);
             ctx.restore();
+            currentY += stackGap;
+        };
+
+        const drawStats = () => {
+            drawStat(ScoreService.formatScore(this.finalScore), 'KM', 'DISTANCE');
+            drawStat(
+                ScoreService.formatScore(this.obstaclesDestroyed),
+                null,
+                'ASTEROIDS DESTROYED'
+            );
+            drawStat(`#${this.pendingHighScore.rank}`, null, 'YOUR RANK');
+        };
+
+        if (keyboardOpen) {
+            drawCallSignAndSubmit();
+            dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
+            currentY += pad * 0.65;
+            drawStats();
+        } else {
+            drawStats();
+            dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
+            currentY += pad * 0.7;
+            drawCallSignAndSubmit();
         }
     }
 
@@ -3346,10 +3497,7 @@ export class Game {
                 'rank': this.currentRank
             });
 
-            if (this.nameInput) {
-                this.nameInput.remove();
-                this.nameInput = null;
-            }
+            this.removeNameInput();
 
             this.pendingHighScore = null;
             this.scoreSubmitted = true;
@@ -3372,10 +3520,7 @@ export class Game {
 
     // Clean up input when game restarts or component unmounts
     cleanup() {
-        if (this.nameInput) {
-            document.body.removeChild(this.nameInput);
-            this.nameInput = null;
-        }
+        this.removeNameInput();
     }
 
     showScoreModal() {

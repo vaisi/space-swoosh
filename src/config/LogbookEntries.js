@@ -1,6 +1,9 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Levels tab: pre-Journey lore entry (`signalCall`) first, then level_N
+//   entries fed from JourneyNarrative voice lines (no more lorem placeholders).
+//   Level 4 definition follows the updated blue-light “left for you” script.
 // - Added wallBoost: thin Signal-Blue edge slab → shield + speed refresh.
 // - Deflector Smash / Finish Gate copy: flyout smashes still score; results
 //   finalize when the level-clear sequence enters screenIn.
@@ -12,6 +15,14 @@
 //   stub category. Levels use lorem ipsum until story prose ships.
 
 import { TOTAL_LEVELS } from './JourneyConfig.js';
+import {
+    LEVEL_MESSAGES,
+    PRE_LEVEL_1_LORE,
+    PRE_LEVEL_1_LORE_TITLE,
+} from './JourneyNarrative.js';
+
+/** First Levels-tab entry — unlocked when the player Continues past the lore screen. */
+export const LORE_ENTRY_ID = 'signalCall';
 
 /** @typedef {'obstacles' | 'boosts' | 'levels' | 'void'} LogbookCategory */
 /** @typedef {'observeThenInteract' | 'instant'} UnlockMode */
@@ -259,17 +270,27 @@ const BOOST_ENTRIES = [
 
 function buildLevelEntries() {
     /** @type {LogbookEntryDef[]} */
-    const entries = [];
+    const entries = [
+        {
+            id: LORE_ENTRY_ID,
+            category: 'levels',
+            name: PRE_LEVEL_1_LORE_TITLE,
+            definition: PRE_LEVEL_1_LORE,
+            remark: 'NODE ZERO is ahead. Keep listening.',
+            unlockMode: 'instant',
+            icon: 'level',
+        },
+    ];
     for (let level = 1; level <= TOTAL_LEVELS; level++) {
+        const line = LEVEL_MESSAGES[level] ?? `Level ${level} transmission.`;
         entries.push({
             id: `level_${level}`,
             category: 'levels',
             name: `Level ${level}`,
-            definition:
-                `Lorem ipsum dolor sit amet, level ${level} flight report. ` +
-                'Consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
-                'Placeholder story entry pending narrative pass.',
-            remark: 'Fascinating. The prose is incomplete.',
+            definition: line,
+            remark: level <= 5
+                ? 'Early flight. The voice is teaching.'
+                : 'Logged from the navigator’s open channel.',
             unlockMode: 'observeThenInteract',
             icon: 'level',
         });

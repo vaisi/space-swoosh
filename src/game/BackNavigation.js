@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Lore screen retreats to mode select (without marking loreSeen).
 // - Run-start intro does not skip on back — pause/resume like a normal run.
 // - Journey map back uses goToModeSelect() so Play card blurbs re-roll.
 // - Logbook screen retreats to the main menu.
@@ -18,6 +19,7 @@
  */
 const PARENT_SCREEN = {
     modeSelect: 'menu',
+    lore: 'modeSelect',
     journeyMap: 'modeSelect',
     logbook: 'menu',
     options: 'menu',

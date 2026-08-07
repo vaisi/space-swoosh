@@ -3,6 +3,16 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
+> **Signal Story (Journey):** Full prose in
+> [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
+> copy in `config/JourneyNarrative.js`. First Journey visit shows `ui/screens/LoreScreen.js`
+> once (`journeyProgress.loreSeen`); Continue unlocks Logbook `signalCall` and
+> opens the map. Levels 1–5 are a staged teach band (empty → simple → moving →
+> sparkles → shields). Per-level intro lines come from `LEVEL_MESSAGES`; levels
+> 1–5 also use `LEVEL_INTRO_BEATS` (one sentence at a time) plus navigator MP3s
+> in `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`.
+> Level logbook entries unlock to KNOWN on level start (intro heard).
+>
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
 > (random L/R, ~22s) only after `wallBoostsFromScore` (12000 KM). Collect →
 > `activateShield()` + `activateSpeedBoost()` (1.82× gameplay speed for 5s;
@@ -86,7 +96,7 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql` |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
 | Fetch | `ScoreService.getTopScores(type, limit = 100)` — enough for 10 pages × 10 rows |
-| Submit prompt | Open World game-over auto-prompts for a call sign only when rank ≤ 10. Manual **Submit Score** still opens the modal for any unfinished Open World run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: left-aligned distance → asteroids destroyed → rank, underline call sign, brand Submit |
+| Submit prompt | Open World game-over auto-prompts for a call sign only when rank ≤ 10. Manual **Submit Score** still opens the modal for any unfinished Open World run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: left-aligned distance → asteroids destroyed → rank, underline call sign, brand Submit. Soft keyboard: `@capacitor/keyboard` (`resizeOnFullScreen`) + `game.softKeyboardHeight`; while the IME is up the card pins to the top with call sign + Submit first (stats below). DOM input on `#gameContainer`, repositioned every frame. |
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
@@ -98,7 +108,7 @@ game build env. Journey progress and Open World personal best stay in
 | Path | Responsibility |
 | --- | --- |
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
-| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics. |
+| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics, Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
@@ -109,22 +119,25 @@ game build env. Journey progress and Open World personal best stay in
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes, `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
-| `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules. |
+| `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
+| `config/JourneyNarrative.js` | Signal Story: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..5]`. |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
-| `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables. |
+| `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
-| `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points. |
+| `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points, `loreSeen`. |
 | `services/OpenWorldProgress.js` | `localStorage` personal-best Open World distance (device-only). |
-| `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, level placeholders, From the Void stub. |
+| `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "Logbook updated" chip (~2s). |
 | `ui/screens/LogbookScreen.js` | Logbook menu: category tabs, tall scrollable cards (1/3 icon, 2/3 text). |
-| `ui/screens/ModeSelectScreen.js` | Play → Open World / Journey. |
+| `ui/screens/ModeSelectScreen.js` | Play → Open World / Journey (Journey may open lore first). |
+| `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles. |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
 | `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost off the top, fade world, fade screen in. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
+| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–5 voice; holds belt until done. |
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
@@ -137,7 +150,7 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. |
+| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey levels 1–5: `playLevelVoice` / `stopLevelVoice` for `/sounds/voice/level-N.mp3` (ducks BGM; respects mute). |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -152,7 +165,8 @@ game build env. Journey progress and Open World personal best stay in
 | Screen | Role |
 | --- | --- |
 | `menu` | Title, selected-skin preview with Play-motif ▶/◀ cycle (owned skins via `cycleMenuShip`), Play / Logbook / Options / High Scores. ArrowLeft/Right also cycle when `appScreen === 'menu'`. |
-| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open World footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. |
+| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open World footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. Journey card → lore if `!loreSeen`, else map. |
+| `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
 | `options` | Options hub: Ship / Controls / Sound |
@@ -240,7 +254,7 @@ built by `createRunProfile()` and hung off `game.profile`:
 | `shieldsFromScore` / `wallBoostsFromScore` / `collectiblesFromScore` | `PowerUpManager` / `CollectibleManager` |
 | `speedMultiplier` | `Spacecraft.baseSpeed` |
 | `runsTutorial` | `ObstacleManager` tutorial phase |
-| `submitsScore`, `introMessage`, `title` | `Game` end-of-run flow, milestone log |
+| `submitsScore`, `introMessage`, `introBeats`, `title` | `Game` end-of-run flow, milestone / intro narration |
 
 `OpenWorldProfile` reproduces the pre-existing numbers exactly, including the
 obstacle unlock table (`OPEN_WORLD_UNLOCKS`) that `ObstacleManager` used to keep
@@ -271,67 +285,77 @@ scalar `d` held flat for a run of levels, and the runs get **longer** as `d`
 rises — the "harder, then a plateau, then harder, then a longer plateau" shape:
 
 ```
-d       0.24 0.34 0.42 0.50 0.58 0.68 0.78 0.90 1.00
-levels    2    3    3    4    4    5    5    6    8   = 40
+d       0.16 0.22 0.28 0.30 0.32 0.42 0.50 0.58 0.68 0.78 0.90 1.00
+levels    1    1    1    1    1    3    3    4    5    5    6    9   = 40
+unlock  —  simple moving  —    —  barrier complex shoot pulse worm  BH   —
 ```
 
-(Early steps got the larger relative lift so levels 1–10 pack more threat.)
+**Levels 1–5 (Troposphere teach band)** match the Signal Story voice lines:
+
+| Level | Roster | Collectibles | Shields |
+| --- | --- | --- | --- |
+| 1 | none (empty corridor) | off | off |
+| 2 | `simple` | off | off |
+| 3 | `simple` + `moving` | off | off |
+| 4 | same | on from 0 KM | off |
+| 5 | same | on | on from 0 KM |
+
+`JourneyProfile` gates with `Number.POSITIVE_INFINITY` until
+`POINTS_FROM_LEVEL` (4) / `SHIELDS_FROM_LEVEL` (5); L1 also seals
+`obstaclesFromScore`. `runsTutorial` is false — no competing HUD tips; the
+navigator line is the teach beat. Full intro copy comes from
+`JourneyNarrative.LEVEL_MESSAGES` (also Logbook level entries). Levels 1–5
+on-screen beats come from `LEVEL_INTRO_BEATS` (Level 4 screen beat 3 is shorter
+than the spoken/logbook line). Voice clips: `public/sounds/voice/level-1.mp3` …
+`level-5.mp3`.
+
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
 (`gapSpread` 1.35), `speedMultiplier` 0.95→1.38, cluster size 1→4 (capped by
-`maxClusterCount` 3→5), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42. Early
-levels can place two rocks in a row. `goalKm` runs 5500→12000 plus 300 per
-level *inside* a plateau, except **level 1 is hard-capped at 5,000 km**. Every
-Journey level opens the belt and pickups at **0 HUD KM** via
-`obstaclesFromScore` as soon as the centre title clears (~0.9s fade; no extra
-wait). Level 1 teach hints still run; only the short atmosphere cutscene holds
-spawns.
-Spawn cursor arms at `camera.y` (not 1.5 screens ahead) so rows are not born in
-the despawn band. Tutorial distances are HUD KM. Each step also introduces one
-obstacle type (rosters are cumulative) and each level picks a `focusType` it
-leans on — the level that introduces a hazard focuses that hazard, later levels
-in the plateau rotate through the roster.
+`maxClusterCount` 3→5), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42.
+Teach band goals are fixed: **L1 1000 / L2 2000 / L3 3000 / L4 4000 /
+L5 7500**. From L6 onward each level adds **+500 KM**; levels **10 / 15 / 20 /
+25 / 30 / 35 / 40** also add **+1000 KM**. From L2 onward the belt opens at
+**0 HUD KM** when the centre title clears. Spawn cursor arms at `camera.y`.
+Each step may introduce one obstacle type (rosters cumulative); each level
+picks a `focusType`.
 
-Chapters (Troposphere → Exosphere, names inherited from the deleted
-`PhaseManager`) group steps: 1-5, 6-12, 13-21, 22-32, 33-40. `STEPS` is
-append-only data, so more chapters are additive.
+Chapters (Troposphere → Exosphere) group steps: 1–5, 6–11, 12–20, 21–31, 32–40.
 
 ### Stars and progress
 
-Three per level, in fixed order: reach the goal, hit the points target, and
-**smash N asteroids** with the shield. Levels **1–3** need **25 points** and
-**1 smash**; after that points scale at ~6 per 1,000 km and smash climbs from 2
-toward a hard cap of **6** (about +1 every 7 levels). The points star asks for
-active sparkle hunting; smash stays the lighter side quest. Shield bumps are
-the fantasy; there is no "no hits" star. `evaluateStars()` scores a finished
-run; all three require completion. The Journey HUD shows
-`destroyed / smashTarget`. Journey shields and sparkles open with the belt at
-0 HUD KM.
+Star **slots** scale with the teach band: **L1–3 → 1**, **L4 → 2**, **L5+ → 3**
+(distance / points / smash). Outcome and map show `earned / slots` (e.g. `1/1`,
+`2/2`, `3/3`). Storage still holds three booleans per level; unused slots stay
+false. Points star opens at L4 (floor 25, then ~6 per 1,000 km). Smash star
+opens at L5 (1 smash, then from 2 toward a hard cap of **6**). Mode select /
+map tallies use `TOTAL_STARS` (sum of `starSlots`).
 
-`services/JourneyProgress.js` persists `{ version, unlocked, levels: { n: { stars,
-bestPoints } } }` under `journeyProgress`, guarded in try/catch like
-`ships/skins.js`. Stars are **cumulative** across attempts, so a later run can add
-the points star without repeating a no-hit run, and only clearing the frontier
-level advances `unlocked`. Journey never writes to Supabase.
+`services/JourneyProgress.js` persists
+`{ version, unlocked, loreSeen, levels: { n: { stars, bestPoints } } }` under
+`journeyProgress`. Stars are **cumulative** across attempts; only clearing the
+frontier level advances `unlocked`. Journey never writes to Supabase.
 
 ### Journey Logbook
 
-A science-journal discovery system. **Writes only during Journey runs**
-(`game.isJourney()`). Open World never updates it. Menu item is always available.
+A science-journal discovery system. **Gameplay writes only during Journey runs**
+(`game.isJourney()`). The pre-Journey lore screen unlocks `signalCall` via
+`LogbookProgress.revealInstant` even before a run starts. Open World never
+updates the logbook. Menu item is always available.
 
 | Piece | Role |
 | --- | --- |
-| `config/LogbookEntries.js` | Catalog + copy. Categories: Obstacles, Boosts, Levels (lorem ipsum placeholders), From the Void (stub). |
+| `config/LogbookEntries.js` | Catalog + copy. Categories: Obstacles, Boosts, Levels (`signalCall` + voice lines), From the Void (stub). |
 | `services/LogbookProgress.js` | Key `logbookProgress`: `{ version, entries: { [id]: 'observed' \| 'known' } }`. |
 | `managers/LogbookManager.js` | `observe` / `interact` / `revealInstant`; same-frame toast debounce via `flushToast()`. |
 | `managers/LogbookToastManager.js` | Top-center chip, independent of MilestoneManager. |
 | `SoundManager.playLogbook()` | Soft Enterprise-style bridge chirp (two quiet filtered sines) on update. |
 
-**State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`spaceBoop`, `styleSwoosh`, `deflectorSmash`, `spaceTravelBoost`) jump straight to `known`.
+**State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`signalCall`, `spaceBoop`, `styleSwoosh`, `deflectorSmash`, `spaceTravelBoost`) jump straight to `known`.
 
-**Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash / clear-boost phase → instant.
+**Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash / clear-boost phase → instant. Lore Continue → instant `signalCall`.
 
-**Future:** From the Void will hold beta-tester messages picked up around 11 km in endless Journey — category shell only for now.
+**Future:** From the Void will hold beta-tester messages picked up around 11 km in endless Journey — category shell only for now. Levels 6–40 spawn beats still follow the difficulty stair; story lines are already wired for intros.
 
 ### The run-start intro
 
@@ -348,19 +372,21 @@ locked. Calm centre-lane roll — the angled hyperspeed language stays on the
 Shower fade is time-based over the whole intro (short hold, then ease-out): drives
 `motionLineAlpha`, pool size, and scroll speed. Lines wrap inside the top band via
 `ObstacleManager.motionLineBand`. On `finish()` camera velocity is reseeded,
-spawning resumes, deferred `pendingIntroMessage` shows, streaks clear, and
+streaks clear, and deferred `pendingIntroBeats` start `IntroNarration` (or
+`wait` if there is no line). Spawning stays paused through the title phase.
 After the ship intro, `hudRevealPhase` runs a calm onboarding beat (controls
 live; pause button and spawning stay off until chips):
 
 | Phase | What happens |
 | --- | --- |
-| `title` | Centre milestone title alone (fade in, short hold, **~3s fade out**). No HUD, no pause. |
-| `wait` | 1s empty beat after the title clears |
+| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, ~400ms gap). Levels 1–5 also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
+| `wait` | Short calm beat when there is no intro line (e.g. Open World). |
 | `chips` | Timed 1s fades: KM → **pause last**. Points / Destroyed stay dark until first sparkle collect / first smash, then each fades in ~1s. Journey distance reads `current / goal KM` with a borderless progress track (no LEVEL chip). |
 
 Open World with no intro line skips straight to `wait`. Spawning resumes when
 `chips` starts. `Game.hudRevealAlpha(slot)` drives HUD + pause opacity. Input
-locked during the ship intro itself except Escape→pause.
+locked during the ship intro itself except Escape→pause. Voice stops on
+`leaveRun` / crash / level clear.
 
 ### The level-clear flyout
 

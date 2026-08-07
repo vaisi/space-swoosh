@@ -3,20 +3,27 @@
 // points banked per level. Local only — the Supabase leaderboard stays purely
 // Open World, so this needs no schema anywhere.
 // Changes:
+// - starCount / totalStars only count slots a level actually exposes (1/2/3).
+// - Persists `loreSeen` so the pre-Journey Signal Story lore screen shows once.
 // - Created file. Reads/writes are guarded the same way ships/skins.js guards
 //   its preference, so private mode or a full quota degrades to "no progress"
 //   rather than throwing mid-run.
 
-import { clampLevel, STARS_PER_LEVEL, TOTAL_LEVELS } from '../config/JourneyConfig.js';
+import {
+    clampLevel,
+    STARS_PER_LEVEL,
+    TOTAL_LEVELS,
+    starsAvailableFor,
+} from '../config/JourneyConfig.js';
 
 export const JOURNEY_STORAGE_KEY = 'journeyProgress';
 const VERSION = 1;
 
 function emptyProgress() {
-    return { version: VERSION, unlocked: 1, levels: {} };
+    return { version: VERSION, unlocked: 1, loreSeen: false, levels: {} };
 }
 
-/** @returns {{ version: number, unlocked: number, levels: Record<string, { stars: boolean[], bestPoints: number }> }} */
+/** @returns {{ version: number, unlocked: number, loreSeen: boolean, levels: Record<string, { stars: boolean[], bestPoints: number }> }} */
 export function loadJourneyProgress() {
     try {
         const raw = localStorage.getItem(JOURNEY_STORAGE_KEY);
@@ -28,6 +35,7 @@ export function loadJourneyProgress() {
         return {
             version: VERSION,
             unlocked: clampLevel(parsed.unlocked),
+            loreSeen: Boolean(parsed.loreSeen),
             levels: sanitizeLevels(parsed.levels),
         };
     } catch {
@@ -74,7 +82,8 @@ export function levelStars(progress, level) {
 }
 
 export function starCount(progress, level) {
-    return levelStars(progress, level).filter(Boolean).length;
+    const slots = starsAvailableFor(level);
+    return levelStars(progress, level).slice(0, slots).filter(Boolean).length;
 }
 
 export function isLevelUnlocked(progress, level) {
@@ -93,6 +102,23 @@ export function totalStars(progress) {
 /** The furthest level the player can play, for "Continue". */
 export function nextPlayableLevel(progress) {
     return clampLevel(progress.unlocked);
+}
+
+export function hasSeenJourneyLore(progress) {
+    return Boolean(progress?.loreSeen);
+}
+
+/** Mark the pre-Journey lore screen as completed and persist. */
+export function markJourneyLoreSeen(progress) {
+    const next = {
+        ...progress,
+        version: VERSION,
+        loreSeen: true,
+        unlocked: clampLevel(progress.unlocked ?? 1),
+        levels: progress.levels ?? {},
+    };
+    saveJourneyProgress(next);
+    return next;
 }
 
 /**
@@ -116,6 +142,7 @@ export function recordLevelResult(progress, { level, stars, points, completed })
     const next = {
         version: VERSION,
         unlocked: shouldUnlock ? target + 1 : progress.unlocked,
+        loreSeen: Boolean(progress.loreSeen),
         levels: { ...progress.levels, [target]: { stars: merged, bestPoints } },
     };
 

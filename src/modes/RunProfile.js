@@ -5,6 +5,7 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - Default `introBeats` wraps `introMessage` as a one-element array.
 // - `wallBoostsFromScore` (default 12000): deep-run wall-boost slab gate.
 // - `obstaclesFromScore` (default 0): Journey overrides to a shared early KM
 //   mark; Open World spawns as soon as intro ends.
@@ -82,6 +83,12 @@ export class RunProfile {
     /** A line for the milestone log as the run opens, or null for none. */
     get introMessage() {
         return null;
+    }
+
+    /** On-screen intro beats; default is a single introMessage line if any. */
+    get introBeats() {
+        const line = this.introMessage;
+        return line ? [line] : null;
     }
 
     /** Whether finishing this run offers the leaderboard. */

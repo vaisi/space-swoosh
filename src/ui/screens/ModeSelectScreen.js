@@ -3,6 +3,8 @@
 // (endless run + leaderboard). Two description cards rather than two bare
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
+// - Journey card routes through enterJourneyFromModeSelect (one-time lore
+//   screen before the map when loreSeen is false).
 // - Open World card footer shows this device's personal best distance (with KM)
 //   when one exists (from OpenWorldProgress), matching Journey's level/stars footer.
 // - No longer draws the gray inset screen frame (removed app-wide).
@@ -15,10 +17,11 @@ import { color, font } from '../../brand/tokens.js';
 import { drawFramedTile, setLabelType, resetType } from '../../utils/BrandDraw.js';
 import { screenLayout, fitPx, wrapLines } from '../ScreenKit.js';
 import { PLAY_MODE } from '../../modes/index.js';
-import { STARS_PER_LEVEL, TOTAL_LEVELS } from '../../config/JourneyConfig.js';
+import { TOTAL_STARS } from '../../config/JourneyConfig.js';
 import { nextPlayableLevel, totalStars } from '../../services/JourneyProgress.js';
 import { personalBest } from '../../services/OpenWorldProgress.js';
 import { ScoreService } from '../../services/ScoreService.js';
+import { enterJourneyFromModeSelect } from './LoreScreen.js';
 
 /** Draws the screen and returns the hit-boxes Game routes clicks against. */
 export function renderModeSelect(game) {
@@ -49,7 +52,7 @@ export function renderModeSelect(game) {
         blurb: game.modeJourneyBlurb || 'Deep space. Level by level.',
         tag: 'RECOMMENDED',
         signal: true,
-        footer: `LEVEL ${level}  ·  ${stars} / ${TOTAL_LEVELS * STARS_PER_LEVEL} STARS`,
+        footer: `LEVEL ${level}  ·  ${stars} / ${TOTAL_STARS} STARS`,
     });
 
     buttons.openWorld = drawModeCard(game, {
@@ -138,7 +141,7 @@ export function handleModeSelectClick(game, x, y) {
         return true;
     }
     if (game.isClickInButton(x, y, buttons.journey)) {
-        game.goToJourneyMap();
+        enterJourneyFromModeSelect(game);
         return true;
     }
     return false;

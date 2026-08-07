@@ -2,6 +2,11 @@
 
 > How to play. No spoilers, just the essentials.
 >
+> **Journey opening:** The first time you pick Journey, a short Signal brief
+> appears. Tap **Continue** — that message is saved in your Logbook (Levels →
+> The Call). Then the level map opens. Early levels teach one thing at a time:
+> turn, rocks, moving rocks, blue lights, then the shield.
+>
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
 > sometimes lights up on the left or right edge. Bank into it for a fresh shield
 > and a strong speed rush. Black side barriers are still deadly — only the blue
@@ -33,18 +38,27 @@ at least one run.
 ### Journey
 
 Deep space exploration starting from Day 1. **40 numbered levels**, each with a
-distance goal to reach. Level 1 is a 5,000 km first flight — learn the turn,
-then asteroids and pickups show up as soon as the level title fades (same on
-every level). After that
-the runs stay long and the field stays busy. Levels get harder a step at a time
-and then hold there for a while, so you get room to master what just arrived
-before anything new does — and the further you go, the longer each of those
-stretches lasts. Early levels only ask for a single shield-smash for that star;
-the points star wants you to chase sparkles, and both targets climb later
-without turning into a grind.
+distance goal to reach. A calm navigator speaks at the start of each level (no
+chatter mid-flight). On **levels 1–5** you also hear the spoken line, and the
+words appear **one sentence at a time** so you can read along.
+
+**Levels 1–5 teach the basics**, in order:
+
+1. Empty sky — practice your turn.
+2. Simple asteroids.
+3. A rock that drifts sideways.
+4. Blue point lights (sparkles) — “everything blue out here was left for you.”
+5. The shield — survive a hit, smash rocks for the third star.
+
+After that the runs stay longer and the field gets busier. Levels get harder a
+step at a time and then hold there for a while, so you get room to master what
+just arrived before anything new does. The points star opens when sparkles do
+(level 4); the smash star opens with the shield (level 5). Both targets climb
+later without turning into a grind.
 
 Flying Journey is also how you **unlock Logbook entries** — observe and interact
-with hazards and boosts to fill your field manual.
+with hazards and boosts to fill your field manual. The opening Signal brief is
+the first Levels entry.
 
 ### Open World
 
@@ -52,32 +66,35 @@ The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up. **This is the mode with the leaderboard** — if your run lands in the
 top 10, after Mission Failed settles a Submit Signal card lists your distance,
-asteroids destroyed, and rank — type a short call sign and send it up. Outside
-the top 10 you can still tap **Submit Score** to send a signal. The board shows
-your call sign and the ship you flew (`Name, Ship` and the score).
+asteroids destroyed, and rank — type a short call sign and send it up. On phones
+the card stays above the keyboard so the call-sign field does not jump outside
+the frame. Outside the top 10 you can still tap **Submit Score** to send a
+signal. The board shows your call sign and the ship you flew (`Name, Ship` and
+the score).
 **High Scores** on the main menu browses up to 100 runs (10 per page, with page
 arrows), by distance or obstacles smashed. Ranks 1–3 show trophy icons. No
 account required.
 
 Every run — Journey or Open World — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
-out. Then just the level title sits on screen and slowly fades away; a moment
-later distance and pause ease in. Points appear when you collect your first
-sparkle; destroyed appears when you smash your first asteroid. The ship intro
-itself can't be skipped.
+out. Then the navigator’s line (Journey) sits on screen — early levels show it
+sentence by sentence with voice — and fades; a moment later distance and pause
+ease in. Points appear when you collect your first sparkle; destroyed appears
+when you smash your first asteroid. The ship intro itself can't be skipped.
 
 The levels are grouped into five chapters as you climb out of the atmosphere:
-**Troposphere → Stratosphere → Mesosphere → Thermosphere → Exosphere**. Each new
-step of the climb introduces one new hazard, and the level that introduces it
-leans on it heavily so you can learn it.
+**Troposphere → Stratosphere → Mesosphere → Thermosphere → Exosphere**. The first
+chapter is the teach band; later chapters introduce new hazards one step at a
+time, and the level that introduces a hazard leans on it heavily so you can
+learn it.
 
-Every level has **three stars**:
+Stars unlock with the teach band — early levels only ask for what you’ve learned:
 
-| Star | How to earn it |
-| --- | --- |
-| 1 | Reach the level's distance goal. |
-| 2 | Finish with at least the level's points target (shown on the end screen). |
-| 3 | Smash enough asteroids with the shield (the HUD shows destroyed / target). |
+| Levels | Stars | How to earn them |
+| --- | --- | --- |
+| 1–3 | 1 / 1 | Reach the distance goal. |
+| 4 | 2 / 2 | Goal + points target (sparkles). |
+| 5+ | 3 / 3 | Goal + points + smash asteroids with the shield. |
 
 Stars add up across attempts, so you can go back for the points or smash star
 later without repeating the others in the same go. Clearing a level unlocks the

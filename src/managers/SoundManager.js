@@ -3,6 +3,8 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
+// - playLevelVoice / stopLevelVoice for Journey levels 1–5 navigator MP3s
+//   under /sounds/voice/; ducks BGM while speaking; honors mute.
 // - playTurn / playMove use pre-decoded Web Audio buffer sources (no HTMLAudio
 //   seek on tap). Removes direction-change micro-freeze; move.mp3 optional.
 // - Portal SFX split into playPortalEntry / playPortalExit: deeper space warp
@@ -23,6 +25,11 @@
 const MUTE_STORAGE_KEY = 'soundMuted';
 const TURN_VOLUME = 0.3;
 const MOVE_VOLUME = 0.15;
+const BGM_VOLUME = 0.4;
+const BGM_DUCK_VOLUME = 0.14;
+const VOICE_VOLUME = 0.85;
+const VOICE_LEVEL_MIN = 1;
+const VOICE_LEVEL_MAX = 5;
 
 function loadMuted() {
     try {
@@ -48,7 +55,7 @@ export class SoundManager {
 
         // Set up background music
         this.sounds.bgm.loop = true;
-        this.sounds.bgm.volume = 0.4;
+        this.sounds.bgm.volume = BGM_VOLUME;
 
         // Set up other sound volumes
         this.sounds.shield.volume = 0.4;
@@ -67,6 +74,11 @@ export class SoundManager {
         this.audioCtx = null;
         this.boopNoiseBuffer = null; // reused by playBoop (no per-hit GC)
         this.muted = loadMuted();
+        /** @type {HTMLAudioElement | null} */
+        this.levelVoice = null;
+        this.levelVoicePlaying = false;
+        this.bgmDucked = false;
+        this.onLevelVoiceEnded = null;
         this.applyMute();
 
         // Add error handling for sound loading
@@ -152,6 +164,7 @@ export class SoundManager {
         for (const sound of Object.values(this.sounds)) {
             sound.muted = this.muted;
         }
+        if (this.levelVoice) this.levelVoice.muted = this.muted;
     }
 
     isMuted() {
@@ -161,12 +174,129 @@ export class SoundManager {
     setMuted(muted) {
         this.muted = !!muted;
         this.applyMute();
+        if (this.muted) this.stopLevelVoice({ notify: true });
         try {
             localStorage.setItem(MUTE_STORAGE_KEY, this.muted ? '1' : '0');
         } catch {
             /* ignore quota / private mode */
         }
         return this.muted;
+    }
+
+    duckBgmForVoice() {
+        if (this.bgmDucked) return;
+        this.sounds.bgm.volume = BGM_DUCK_VOLUME;
+        this.bgmDucked = true;
+    }
+
+    restoreBgmAfterVoice() {
+        if (!this.bgmDucked) return;
+        this.sounds.bgm.volume = BGM_VOLUME;
+        this.bgmDucked = false;
+    }
+
+    isLevelVoicePlaying() {
+        return !!this.levelVoicePlaying;
+    }
+
+    /**
+     * Play navigator line for Journey levels 1–5. No-op outside that range,
+     * when muted, or when the clip fails to load.
+     * @param {number} level
+     * @param {{ onEnded?: () => void }} [opts]
+     */
+    playLevelVoice(level, opts = {}) {
+        const n = Math.floor(Number(level) || 0);
+        // Replace without firing the previous clip's onEnded.
+        this.stopLevelVoice({ notify: false });
+        this.onLevelVoiceEnded = typeof opts.onEnded === 'function' ? opts.onEnded : null;
+
+        if (!this.initialized || this.muted) {
+            this.notifyLevelVoiceEnded();
+            return;
+        }
+        if (n < VOICE_LEVEL_MIN || n > VOICE_LEVEL_MAX) {
+            this.notifyLevelVoiceEnded();
+            return;
+        }
+
+        try {
+            const voice = new Audio(`/sounds/voice/level-${n}.mp3`);
+            voice.volume = VOICE_VOLUME;
+            voice.muted = this.muted;
+            this.levelVoice = voice;
+            this.levelVoicePlaying = true;
+            this.duckBgmForVoice();
+
+            const finish = () => {
+                if (this.levelVoice !== voice) return;
+                this.levelVoicePlaying = false;
+                this.restoreBgmAfterVoice();
+                this.levelVoice = null;
+                this.notifyLevelVoiceEnded();
+            };
+
+            voice.addEventListener('ended', finish);
+            voice.addEventListener('error', () => {
+                console.warn(`Level voice missing or failed: level-${n}.mp3`);
+                finish();
+            });
+
+            const playPromise = voice.play();
+            if (playPromise !== undefined) {
+                playPromise.catch((error) => {
+                    console.error('Error playing level voice:', error);
+                    finish();
+                });
+            }
+        } catch (error) {
+            console.error('Error in playLevelVoice:', error);
+            this.levelVoicePlaying = false;
+            this.restoreBgmAfterVoice();
+            this.notifyLevelVoiceEnded();
+        }
+    }
+
+    /**
+     * @param {{ notify?: boolean }} [opts] notify=true fires onEnded (mute /
+     * mid-run stop so the intro title phase can finish).
+     */
+    stopLevelVoice(opts = {}) {
+        const notify = !!opts.notify;
+        const voice = this.levelVoice;
+        const wasPlaying = this.levelVoicePlaying;
+        const cb = this.onLevelVoiceEnded;
+        this.levelVoice = null;
+        this.levelVoicePlaying = false;
+        this.onLevelVoiceEnded = null;
+        this.restoreBgmAfterVoice();
+        if (voice) {
+            try {
+                voice.pause();
+                voice.currentTime = 0;
+            } catch {
+                /* ignore */
+            }
+        }
+        if (notify && wasPlaying && cb) {
+            try {
+                cb();
+            } catch (error) {
+                console.error('Error in level voice onEnded:', error);
+            }
+        }
+    }
+
+    notifyLevelVoiceEnded() {
+        const cb = this.onLevelVoiceEnded;
+        this.onLevelVoiceEnded = null;
+        if (cb) {
+            try {
+                cb();
+            } catch (error) {
+                console.error('Error in level voice onEnded:', error);
+            }
+        }
     }
 
     toggleMuted() {

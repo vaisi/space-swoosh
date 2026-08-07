@@ -4,6 +4,10 @@
 // keeps the stair-with-plateaus curve honest: hold `d` and nothing gets harder,
 // however many levels pass.
 // Changes:
+// - introBeats exposes LEVEL_INTRO_BEATS for levels 1–5 (sentence-at-a-time
+//   intro with voice); introMessage stays the full LEVEL_MESSAGES line.
+// - Levels 1–5 teach gates: L1 no belt; collectibles from L4; shields from L5.
+// - introMessage uses Signal Story LEVEL_MESSAGES (JourneyNarrative).
 // - Difficulty bump: denser soft/hard TUNING ends, tighter gaps, early
 //   maxRowSpawns 2, larger cluster ceiling — levels 1–10 pack more threat.
 // - Every Journey level opens rocks + pickups at HUD KM 0 (as soon as the
@@ -12,12 +16,18 @@
 // - Created file.
 
 import { lerp, lerpInt } from '../utils/math.js';
-import { getLevel } from '../config/JourneyConfig.js';
+import {
+    getLevel,
+    POINTS_FROM_LEVEL,
+    SHIELDS_FROM_LEVEL,
+} from '../config/JourneyConfig.js';
+import { levelIntroBeats, levelMessage } from '../config/JourneyNarrative.js';
 import { PLAY_MODE, RunProfile } from './RunProfile.js';
 
-// Action (asteroids, shields, sparkles) as soon as KM is live. Level 1's
-// tutorial phase still suppresses rows until the teach beat ends.
+// Action (asteroids, shields, sparkles) as soon as KM is live — except when a
+// teach gate pushes the threshold to Infinity for that level.
 const JOURNEY_ACTION_FROM_KM = 0;
+const NEVER_FROM_KM = Number.POSITIVE_INFINITY;
 
 // The ends of every ramp, at difficulty 0 and 1. Soft end is a real field;
 // hard end sits a notch above the old ceiling.
@@ -74,14 +84,16 @@ export class JourneyProfile extends RunProfile {
         return this.descriptor.smashTarget;
     }
 
-    // A level's whole roster is live from its first metre, so there is no unlock
-    // to announce mid-flight; the opening line carries the news instead.
+    // Navigator voice line from the Signal Story — one compact transmission.
     get introMessage() {
-        const { level, chapterName, introduces } = this.descriptor;
-        if (introduces && introduces !== 'simple') {
-            return `Level ${level} — new hazard: ${HAZARD_NAMES[introduces] ?? introduces}`;
-        }
-        return `Level ${level} — ${chapterName}`;
+        return levelMessage(this.descriptor.level)
+            ?? `Level ${this.descriptor.level} — ${this.descriptor.chapterName}`;
+    }
+
+    /** On-screen intro beats (one sentence each for levels 1–5). */
+    get introBeats() {
+        return levelIntroBeats(this.descriptor.level)
+            ?? [this.introMessage];
     }
 
     get submitsScore() {
@@ -89,8 +101,9 @@ export class JourneyProfile extends RunProfile {
     }
 
     // --- Flight ----------------------------------------------------------
+    // L1 is the empty teach corridor; no competing HUD tips / atmosphere cutscene.
     get runsTutorial() {
-        return this.descriptor.level === 1;
+        return false;
     }
 
     get speedMultiplier() {
@@ -98,17 +111,20 @@ export class JourneyProfile extends RunProfile {
     }
 
     // --- Pickups ---------------------------------------------------------
-    // Same mark as the belt — no long empty cruise waiting on goal fractions.
     get shieldsFromScore() {
-        return this.obstaclesFromScore;
+        if (this.level < SHIELDS_FROM_LEVEL) return NEVER_FROM_KM;
+        return JOURNEY_ACTION_FROM_KM;
     }
 
     get collectiblesFromScore() {
-        return this.obstaclesFromScore;
+        if (this.level < POINTS_FROM_LEVEL) return NEVER_FROM_KM;
+        return JOURNEY_ACTION_FROM_KM;
     }
 
     // --- Obstacles -------------------------------------------------------
     get obstaclesFromScore() {
+        // Empty first flight — roster is also [], but keep the belt sealed.
+        if (this.level <= 1) return NEVER_FROM_KM;
         return JOURNEY_ACTION_FROM_KM;
     }
 
@@ -158,14 +174,3 @@ export class JourneyProfile extends RunProfile {
         return this.descriptor.types.map((type) => ({ type, message: null }));
     }
 }
-
-const HAZARD_NAMES = {
-    simple: 'asteroids',
-    sideBarrier: 'side barriers',
-    complex: 'orbiting debris',
-    moving: 'moving asteroids',
-    shooting: 'hostile asteroids',
-    pulsating: 'unstable asteroids',
-    wormhole: 'spatial anomalies',
-    blackhole: 'gravity wells',
-};

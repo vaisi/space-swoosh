@@ -1,6 +1,9 @@
 // LogbookManager.js
 // Journey-only façade: maps gameplay events → logbook progress + toast.
 // Changes:
+// - Level start now fully unlocks the level entry (interact): the navigator
+//   line is already heard, so the Logbook shows the real transmission instead
+//   of an OBSERVED placeholder until clear.
 // - Wall boost pickups: observe by kind on-screen; interact on collect.
 // - Created file: observe / interact / instant, same-frame toast debounce,
 //   on-screen visibility helpers for obstacles and pickups.
@@ -193,7 +196,9 @@ export class LogbookManager {
     }
 
     onLevelStarted(level) {
-        this.observe(levelEntryId(level));
+        // Hearing the intro transmission completes the entry — don't leave
+        // Spock "pending" copy in the Levels tab until the finish gate.
+        this.interact(levelEntryId(level));
     }
 
     onLevelCleared(level) {

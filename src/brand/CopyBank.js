@@ -167,6 +167,7 @@ export function copyPool(poolKey) {
 export function journeyFlavorPool(outcome, totalLevels) {
     if (!outcome.completed) return 'fail';
     if (outcome.descriptor.level >= totalLevels) return 'journeyComplete';
-    if (outcome.stars.every(Boolean)) return 'clearFlawless';
+    const slots = outcome.descriptor.starSlots ?? outcome.stars.length;
+    if (outcome.stars.slice(0, slots).every(Boolean)) return 'clearFlawless';
     return 'clearPartial';
 }

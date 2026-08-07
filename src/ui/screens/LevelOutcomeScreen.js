@@ -3,6 +3,8 @@
 // against each, and where to go next. Replaces the Open World game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
+// - Outcome tallies / rows use descriptor.starSlots (1/1, 2/2, or 3/3).
+// - Points/smash rows only appear when that slot exists for the level.
 // - Stopped calling removed `game.drawScreenFrame()` — that threw after the
 //   flyout and left a blank paper end screen (dead end after level clear).
 // - Third objective value is smash count vs `smashTarget` (shield destroy mission).
@@ -27,19 +29,20 @@ import {
     resetType,
 } from '../../utils/BrandDraw.js';
 import { screenLayout, fitPx, drawDivider, drawRuledLabel } from '../ScreenKit.js';
-import { starLabels, STARS_PER_LEVEL, TOTAL_LEVELS } from '../../config/JourneyConfig.js';
+import { starLabelsFor, TOTAL_LEVELS } from '../../config/JourneyConfig.js';
 import { ScoreService } from '../../services/ScoreService.js';
 
 // Every vertical size on the screen, derived from one unit so the whole thing can
 // be scaled to fit in a single pass. `baseUnit` is width-derived on desktop, which
 // a short window can't afford — measure, then shrink if it doesn't fit.
-function metrics(unit, { isMobile, actionRows: rowCount }) {
+function metrics(unit, { isMobile, actionRows: rowCount, starSlots }) {
     const titlePx = isMobile ? Math.min(unit * 3, 34) : unit * 2.8;
     const subPx = isMobile ? Math.min(unit * 1.4, 16) : unit * 1.3;
     const tallyPx = Math.max(9, unit * 0.92);
     const objectiveH = Math.max(unit * 2.3, tallyPx * 2.4);
     const buttonGap = unit * 1.3;
     const buttonHeight = isMobile ? unit * 5.2 : unit * 4.7;
+    const slots = Math.max(1, starSlots || 1);
 
     const m = {
         unit,
@@ -47,12 +50,13 @@ function metrics(unit, { isMobile, actionRows: rowCount }) {
         subPx,
         tallyPx,
         objectiveH,
-        objectivesH: objectiveH * STARS_PER_LEVEL,
+        objectivesH: objectiveH * slots,
         titleGap: unit * 1.4,
         bandGap: unit * 2.4,
         buttonGap,
         buttonHeight,
         buttonsH: buttonHeight * rowCount + buttonGap * (rowCount - 1),
+        starSlots: slots,
     };
     m.verdictH = titlePx * 1.1 + m.titleGap + subPx * 1.3;
     m.totalH = m.verdictH + m.bandGap * 3 + tallyPx * 1.9 + m.objectivesH + m.buttonsH;
@@ -65,8 +69,9 @@ export function renderLevelOutcome(game) {
     const outcome = game.levelOutcome;
     if (!outcome) return {};
 
+    const starSlots = outcome.descriptor.starSlots ?? 3;
     const rows = actionRows(outcomeActions(outcome));
-    const shape = { isMobile: L.isMobile, actionRows: rows.length };
+    const shape = { isMobile: L.isMobile, actionRows: rows.length, starSlots };
     const available = L.bottom - L.top - game.baseUnit * 0.5;
 
     let m = metrics(game.baseUnit, shape);
@@ -101,9 +106,9 @@ export function renderLevelOutcome(game) {
     // The ruled label doubles as the band header and the tally, so the band
     // needs no divider above it.
     y += subPx * 1.3 + m.bandGap;
-    const earned = outcome.stars.filter(Boolean).length;
+    const earned = outcome.stars.slice(0, starSlots).filter(Boolean).length;
     drawRuledLabel(ctx, {
-        text: `${earned} / ${STARS_PER_LEVEL} STARS`,
+        text: `${earned} / ${starSlots} STARS`,
         centerX: L.centerX,
         y,
         width: L.width,
@@ -111,9 +116,9 @@ export function renderLevelOutcome(game) {
     });
 
     y += tallyPx * 1.9;
-    const labels = starLabels();
-    const values = starValues(outcome);
-    for (let i = 0; i < STARS_PER_LEVEL; i++) {
+    const labels = starLabelsFor(outcome.descriptor);
+    const values = starValues(outcome, starSlots);
+    for (let i = 0; i < starSlots; i++) {
         drawObjectiveRow(game, {
             L,
             unit,
@@ -170,19 +175,21 @@ function verdictSubtitle(outcome) {
     if (outcome.flavor) return outcome.flavor;
     if (!outcome.completed) return 'Try again.';
     if (outcome.descriptor.level >= TOTAL_LEVELS) return 'You are away. Live long and prosper.';
-    if (outcome.stars.every(Boolean)) return 'Flawless. Fascinating.';
+    const slots = outcome.descriptor.starSlots ?? 3;
+    if (outcome.stars.slice(0, slots).every(Boolean)) return 'Flawless. Fascinating.';
     return outcome.descriptor.chapterName;
 }
 
 // What each objective was actually measured against — the reason the star did or
 // didn't land, which is why the screen no longer needs a separate stats band.
-function starValues(outcome) {
+function starValues(outcome, starSlots) {
     const { descriptor, score, points, obstaclesDestroyed } = outcome;
-    return [
+    const all = [
         `${ScoreService.formatScore(Math.floor(score))} / ${ScoreService.formatScore(descriptor.goalKm)}`,
         `${ScoreService.formatScore(points)} / ${ScoreService.formatScore(descriptor.pointsTarget)}`,
         `${obstaclesDestroyed} / ${descriptor.smashTarget}`,
     ];
+    return all.slice(0, starSlots);
 }
 
 // One objective: sparkle, label, and its figure on the right. Earned rows are

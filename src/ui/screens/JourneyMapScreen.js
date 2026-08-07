@@ -1,9 +1,10 @@
 // JourneyMapScreen.js
 // The Journey level select: chapter bands of numbered tiles, each showing its
-// three stars, with everything past the furthest cleared level locked. The list
-// is taller than the screen, so it scrolls (wheel or drag — Game owns the
-// gesture and hands us the offset).
+// star pips (1–3 by teach band), with everything past the furthest cleared
+// level locked. The list is taller than the screen, so it scrolls (wheel or
+// drag — Game owns the gesture and hands us the offset).
 // Changes:
+// - Star tally / tile pips use per-level starSlots (L1–3: one, L4: two, L5+: three).
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Tile star pips are solid when earned and hollow when not (they used to be a
 //   faint fill), matching the outcome screen's objective rows.
@@ -20,8 +21,7 @@ import {
 import { screenLayout, drawDivider } from '../ScreenKit.js';
 import {
     JOURNEY_CHAPTERS,
-    STARS_PER_LEVEL,
-    TOTAL_LEVELS,
+    TOTAL_STARS,
 } from '../../config/JourneyConfig.js';
 import {
     isLevelUnlocked,
@@ -45,7 +45,7 @@ export function renderJourneyMap(game) {
     // Star tally, pinned to the header band on the right.
     const tallyPx = Math.max(9, unit * 0.95);
     const tallyY = L.top + (L.isMobile ? unit * 2.1 : unit * 1.9);
-    const tally = `${totalStars(game.journeyProgress)} / ${TOTAL_LEVELS * STARS_PER_LEVEL}`;
+    const tally = `${totalStars(game.journeyProgress)} / ${TOTAL_STARS}`;
     ctx.save();
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -198,14 +198,15 @@ function drawLevelTile(game, { descriptor, x, y, w, h, unlocked, current, stars 
     ctx.fillText(`${descriptor.level}`, x + w / 2, y + h * 0.4);
     resetType(ctx);
 
+    const slots = descriptor.starSlots ?? 3;
     const pipR = Math.max(2.5, w * 0.075);
     const pipGap = pipR * 2.6;
     const pipY = y + h * 0.74;
-    const pipStart = x + w / 2 - pipGap;
+    const pipStart = x + w / 2 - ((slots - 1) * pipGap) / 2;
 
     // Earned stars are solid Signal Blue, the rest hollow — the same language the
     // outcome screen uses, so a tile and its level screen agree.
-    for (let i = 0; i < STARS_PER_LEVEL; i++) {
+    for (let i = 0; i < slots; i++) {
         drawSparkle(ctx, pipStart + i * pipGap, pipY, pipR, {
             fill: color.signal,
             stroke: stars[i] ? null : unlocked ? color.ink30 : color.ink12,

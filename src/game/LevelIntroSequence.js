@@ -1,6 +1,9 @@
 // LevelIntroSequence.js
 // Short run-start cinematic for Journey and Open World.
 // Changes:
+// - Handoff starts IntroNarration (sentence beats + level 1–5 voice) instead of
+//   a single showMessage call.
+// - Title hold stretched (~1.1s) so Signal Story two-sentence lines can be read.
 // - Title fade-out shortened to 900ms (was 3s). Game unpauses the belt as soon
 //   as the title line clears — no extra empty second before rocks.
 // - On handoff: title alone (no pause / HUD), then chip fades.
@@ -12,6 +15,7 @@
 
 import { clamp01, lerp } from '../utils/math.js';
 import { REF_FPS } from './cinematicFlight.js';
+import { IntroNarration } from './IntroNarration.js';
 
 // Wall-clock timings — keep these the single source of "how the intro feels".
 const ARRIVE_MS = 720;   // slow roll into the cruise seat + world fade
@@ -21,12 +25,6 @@ const STREAK_COUNT = 18;
 const START_SCREEN = 1.14; // just below the bottom of the frame
 const CRUISE_SCREEN = 0.80; // matches Spacecraft constructor seat
 const STREAK_BAND = 0.38;  // top fraction of the frame for the shower
-
-// Centre title ceremony (MilestoneManager timings).
-const TITLE_FADE_IN = 450;
-const TITLE_HOLD = 400;
-// Was 3000 — long empty sky after the line. Short fade, then the belt opens.
-const TITLE_FADE_OUT = 900;
 
 function easeOut(t) {
     return 1 - (1 - t) * (1 - t);
@@ -194,18 +192,18 @@ export class LevelIntroSequence {
         om.motionLineAlpha = 0.3;
         om.motionLineBand = null;
 
-        const title = game.pendingIntroMessage;
+        const beats = game.pendingIntroBeats;
+        game.pendingIntroBeats = null;
         game.pendingIntroMessage = null;
 
-        if (title) {
+        if (beats?.length) {
             game.hudRevealPhase = 'title';
             game.hudRevealStart = null;
             game.hudRevealWaitStart = null;
-            game.milestoneManager?.showMessage?.(title, {
-                fadeIn: TITLE_FADE_IN,
-                hold: TITLE_HOLD,
-                fadeOut: TITLE_FADE_OUT,
-            });
+            const level = game.isJourney?.() ? game.journeyLevel : null;
+            const voiceLevel = level != null && level >= 1 && level <= 5 ? level : null;
+            const narration = new IntroNarration(game, beats, voiceLevel);
+            narration.start();
         } else {
             // Open World / no line — short calm beat, then chips.
             game.hudRevealPhase = 'wait';
