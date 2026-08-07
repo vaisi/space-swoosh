@@ -378,6 +378,12 @@ export class Game {
                 this.togglePause();
                 this.wasAutoPaused = false;
             }
+            if (!document.hidden) {
+                // Coming back from a hidden tab: the elapsed gap is not a
+                // frame. Without this, one huge (clamped) delta enters the
+                // frame EMA and motion wobbles for ~20 frames after resume.
+                this.resetFramePacing();
+            }
         });
     }
 
@@ -452,6 +458,15 @@ export class Game {
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
+    // Frame pacing has per-screen state (the delta EMA). Reset it at screen
+    // changes and on tab return so a stale smoothed delta can never bleed
+    // into a fresh run as a speed transient.
+    resetFramePacing(now = performance.now()) {
+        this.lastTime = now;
+        this.smoothFrame = null;
+        this.hitchRun = 0;
+    }
+
     gameLoop(ts) {
         // Only run the game loop if the tab is visible
         if (!document.hidden) {
@@ -461,6 +476,14 @@ export class Game {
             // one long frame that visibly sped up obstacle spin. The rAF
             // timestamp is fixed by the frame's vsync, so the tap can't move it.
             const currentTime = ts ?? performance.now();
+
+            // Screen change: pacing state from the old screen must not seed
+            // the new one's motion (menu cadence differs from run cadence).
+            if (this.pacedScreen !== this.appScreen) {
+                this.pacedScreen = this.appScreen;
+                this.resetFramePacing(currentTime);
+            }
+
             const elapsedMs = currentTime - this.lastTime;
 
             const flags = this.perfFlags;
@@ -483,9 +506,13 @@ export class Game {
                 // high-refresh displays (desktop) are already even, so this is a
                 // near no-op there. FRAME_SMOOTH: higher = snappier/less filtered.
                 const FRAME_SMOOTH = 0.18;
-                this.smoothFrame = this.smoothFrame == null
-                    ? rawFrame
-                    : this.smoothFrame + (rawFrame - this.smoothFrame) * FRAME_SMOOTH;
+                // Seed guard: the frame right after a pacing reset has ~0
+                // elapsed; seeding the filter with it would play several
+                // slow-motion frames while it climbs back. Seed 60 Hz instead.
+                if (this.smoothFrame == null) {
+                    this.smoothFrame = rawFrame > 0.002 ? rawFrame : 1 / 60;
+                }
+                this.smoothFrame += (rawFrame - this.smoothFrame) * FRAME_SMOOTH;
                 const frameTime = this.smoothFrame;
                 this.tickScale = frameTime * this.snappyHz;
                 this.dt = (1 / 60) * this.tickScale;
