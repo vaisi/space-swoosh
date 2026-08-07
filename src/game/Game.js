@@ -385,6 +385,15 @@ export class Game {
                 this.resetFramePacing();
             }
         });
+
+        // Idle-governor input tracking: any interaction lifts the menu 30 Hz
+        // cap for the next ~half second. Capture phase + passive so nothing
+        // downstream is affected; events fire before rAF, so the very next
+        // paint after a tap is always full-rate.
+        const noteInteraction = () => { this.lastInteractionAt = performance.now(); };
+        for (const type of ['pointerdown', 'pointermove', 'touchstart', 'touchmove', 'wheel', 'keydown']) {
+            window.addEventListener(type, noteInteraction, { capture: true, passive: true });
+        }
     }
 
     setupCanvas() {
@@ -482,6 +491,26 @@ export class Game {
             if (this.pacedScreen !== this.appScreen) {
                 this.pacedScreen = this.appScreen;
                 this.resetFramePacing(currentTime);
+            }
+
+            // Idle governor: non-gameplay screens repaint at ~30 Hz once the
+            // player stops interacting. Menus animate gently (ship preview),
+            // so this is invisible — but it halves fill-rate and CPU while
+            // people sit on menus, which keeps the phone cool. On iPhone,
+            // heat is what eventually throttles mid-run smoothness, so the
+            // cheapest butter for the run is not spending it on the menu.
+            // Any input lifts the cap instantly (the event fires before rAF),
+            // so taps and scroll-drags always see full refresh.
+            if (this.appScreen !== 'playing' && this.appScreen !== 'gameover') {
+                const idleMs = currentTime - (this.lastInteractionAt ?? 0);
+                const sinceDraw = currentTime - (this.lastGovernedDraw ?? 0);
+                if (idleMs > 450 && sinceDraw < 30) {
+                    // Skip this paint. Leave lastTime alone so the next worked
+                    // frame sees the true elapsed time (motion stays correct).
+                    this.scheduleNextFrame();
+                    return;
+                }
+                this.lastGovernedDraw = currentTime;
             }
 
             const elapsedMs = currentTime - this.lastTime;
