@@ -512,8 +512,33 @@ export class Game {
                 if (this.smoothFrame == null) {
                     this.smoothFrame = rawFrame > 0.002 ? rawFrame : 1 / 60;
                 }
-                this.smoothFrame += (rawFrame - this.smoothFrame) * FRAME_SMOOTH;
-                const frameTime = this.smoothFrame;
+                // Hitch passthrough: the EMA is right for cadence jitter
+                // (8/16 ms alternation stays well under the ratio), but wrong
+                // for a single long frame — a tap's event work, a GC pause.
+                // Filtering a hitch under-simulates it and then pays the time
+                // back over the next ~8 frames: a speed wobble felt exactly
+                // when tapping. Instead, simulate a genuine hitch frame at its
+                // true elapsed time (the world stays glued to the clock — it
+                // reads as one momentary frame drop, like an unfiltered
+                // desktop) and keep it out of the filter so the following
+                // frames aren't smeared. A sustained slowdown (thermal
+                // throttle, Low Power Mode) shows up as a long passthrough
+                // run; reseed the filter at the new cadence — motion was
+                // clock-true the whole way, so the handoff is seamless.
+                const HITCH_RATIO = 1.75;
+                let frameTime;
+                if (rawFrame > this.smoothFrame * HITCH_RATIO) {
+                    frameTime = rawFrame;
+                    this.hitchRun = (this.hitchRun ?? 0) + 1;
+                    if (this.hitchRun >= 30) {
+                        this.smoothFrame = rawFrame;
+                        this.hitchRun = 0;
+                    }
+                } else {
+                    this.hitchRun = 0;
+                    this.smoothFrame += (rawFrame - this.smoothFrame) * FRAME_SMOOTH;
+                    frameTime = this.smoothFrame;
+                }
                 this.tickScale = frameTime * this.snappyHz;
                 this.dt = (1 / 60) * this.tickScale;
                 this.update(frameTime);
