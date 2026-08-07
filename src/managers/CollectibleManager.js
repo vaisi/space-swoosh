@@ -62,19 +62,16 @@ export class CollectibleManager {
 
         this.game.logbook?.scanCollectiblesVisible?.();
 
-        // Float popups upward and fade them out — in place, so the hot loop
-        // allocates nothing (per-frame object churn is what turns into GC
-        // hitches mid-run).
+        // Float popups upward and fade them out.
         const dt = this.game.dt ?? (1 / 60);
         const tickScale = dt * 60;
-        let w = 0;
-        for (let i = 0; i < this.popups.length; i++) {
-            const p = this.popups[i];
-            p.y += p.vy * dt;
-            p.opacity -= 0.02 * tickScale;
-            if (p.opacity > 0) this.popups[w++] = p;
-        }
-        this.popups.length = w;
+        this.popups = this.popups
+            .map(p => ({
+                ...p,
+                y: p.y + p.vy * dt,
+                opacity: p.opacity - 0.02 * tickScale,
+            }))
+            .filter(p => p.opacity > 0);
     }
 
     collect(collectible) {

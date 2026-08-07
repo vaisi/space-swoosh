@@ -777,22 +777,16 @@ class ShootingAsteroid extends BaseObstacle {
             this.lastShootTime = currentTime;
         }
 
-        // Update projectiles in place — the map(...{...p}) version allocated a
-        // fresh object per projectile per frame, and steady allocation in the
-        // hot loop is what shows up later as GC hitches (the 33–50 ms bucket
-        // in the ?perf=1 histogram). Mutate and compact instead: zero garbage.
+        // Update projectiles
         const dt = this.game.dt ?? (1 / 60);
-        let pw = 0;
-        for (let i = 0; i < this.projectiles.length; i++) {
-            const p = this.projectiles[i];
-            p.x += p.vx * dt;
-            p.y += p.vy * dt;
+        this.projectiles = this.projectiles.map(p => ({
+            ...p,
+            x: p.x + p.vx * dt,
+            y: p.y + p.vy * dt
+        })).filter(p => {
             const relativeY = this.game.camera.getRelativeY(p.y);
-            if (relativeY > -this.size && relativeY < this.game.height + this.size) {
-                this.projectiles[pw++] = p;
-            }
-        }
-        this.projectiles.length = pw;
+            return relativeY > -this.size && relativeY < this.game.height + this.size;
+        });
     }
 }
 
@@ -823,18 +817,15 @@ class CometObstacle extends BaseObstacle {
             opacity: 1
         });
         
-        // Update trail in place (comets pushed + rebuilt this array every
-        // frame — steady per-frame allocation is GC-hitch fuel).
+        // Update trail
         const tickScale = dt * 60;
-        const sizeDecay = Math.pow(0.95, tickScale);
-        let tw = 0;
-        for (let i = 0; i < this.trailParticles.length; i++) {
-            const p = this.trailParticles[i];
-            p.opacity -= 0.05 * tickScale;
-            p.size *= sizeDecay;
-            if (p.opacity > 0) this.trailParticles[tw++] = p;
-        }
-        this.trailParticles.length = tw;
+        this.trailParticles = this.trailParticles
+            .map(p => ({
+                ...p,
+                opacity: p.opacity - 0.05 * tickScale,
+                size: p.size * Math.pow(0.95, tickScale)
+            }))
+            .filter(p => p.opacity > 0);
         
         return this.isOffScreen();
     }
@@ -1408,22 +1399,18 @@ export class ObstacleManager {
 
         this.game.logbook?.scanObstaclesVisible?.();
 
-        // Update destruction particles in place — a shield run bursts dozens
-        // of these at once, and the map(...{...}) rebuild allocated every one
-        // of them again every frame. Mutate + compact: zero garbage.
+        // Update destruction particles
         const dt = this.game.dt ?? (1 / 60);
         const tickScale = dt * 60;
-        const dpDecay = Math.pow(0.98, tickScale);
-        let dw = 0;
-        for (let i = 0; i < this.destructionParticles.length; i++) {
-            const particle = this.destructionParticles[i];
-            particle.x += particle.vx * dt;
-            particle.y += particle.vy * dt;
-            particle.opacity -= 0.02 * tickScale;
-            particle.size *= dpDecay;
-            if (particle.opacity > 0) this.destructionParticles[dw++] = particle;
-        }
-        this.destructionParticles.length = dw;
+        this.destructionParticles = this.destructionParticles
+            .map(particle => ({
+                ...particle,
+                x: particle.x + particle.vx * dt,
+                y: particle.y + particle.vy * dt,
+                opacity: particle.opacity - 0.02 * tickScale,
+                size: particle.size * Math.pow(0.98, tickScale)
+            }))
+            .filter(particle => particle.opacity > 0);
 
         // Spawn new obstacles (same belt gate as the row cursor above).
         if (beltOpen && !this.inCutscene && !this.pauseSpawning

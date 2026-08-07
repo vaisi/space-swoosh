@@ -201,15 +201,13 @@ export class StyleSwooshManager {
 
         const dt = this.game.dt ?? (1 / 60);
         const tickScale = dt * 60;
-        // In place — no per-frame object churn (GC-hitch fuel).
-        let w = 0;
-        for (let i = 0; i < this.popups.length; i++) {
-            const p = this.popups[i];
-            p.y += p.vy * dt;
-            p.opacity -= 0.018 * tickScale;
-            if (p.opacity > 0) this.popups[w++] = p;
-        }
-        this.popups.length = w;
+        this.popups = this.popups
+            .map(p => ({
+                ...p,
+                y: p.y + p.vy * dt,
+                opacity: p.opacity - 0.018 * tickScale,
+            }))
+            .filter(p => p.opacity > 0);
 
         // Drop awarded keys once few remain (obstacles long gone) to avoid unbounded Set.
         if (this.awardedPairs.size > 40) {

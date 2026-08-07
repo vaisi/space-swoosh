@@ -223,17 +223,6 @@ import { parsePerfFlags, isKilled } from '../core/perfFlags.js';
 import { PerfMonitor } from '../core/PerfMonitor.js';
 import { clearHullCache } from '../ships/HullCache.js';
 
-// Screens with no ambient animation — nothing on them moves on its own, so
-// once painted they stay pixel-identical until the player does something.
-// These can freeze completely (0 Hz) instead of merely running the idle
-// governor's 30 Hz. Deliberately excludes `menu` and `optionsShip`: both
-// animate a live ship preview (drawSkinPreview is time-driven), so they keep
-// the 30 Hz cap instead. `playing`/`gameover` are never governed at all.
-const STATIC_SCREENS = new Set([
-    'modeSelect', 'journeyMap', 'logbook',
-    'options', 'optionsControls', 'optionsSound', 'highscores',
-]);
-
 export class Game {
     constructor(config) {
         console.log('Game initializing...'); // Debug log
@@ -241,8 +230,6 @@ export class Game {
         this.canvas = document.getElementById('gameCanvas');
         // Opaque buffer when we always paint paper first — native + iOS Safari
         // skip alpha compositing. Android/desktop web keep the default context.
-        // (A `desynchronized` hint was tried here for lower touch latency but
-        // regressed motion on Android compositors — reverted.)
         const ctxOpts = preferOpaqueCanvas() ? { alpha: false } : undefined;
         this.ctx = this.canvas.getContext('2d', ctxOpts);
         this.baseUnit = 0;
@@ -255,10 +242,6 @@ export class Game {
         // menu | modeSelect | journeyMap | logbook | options | optionsShip |
         // optionsControls | optionsSound | highscores | playing | gameover
         this.appScreen = 'menu';
-        // Dirty flag for the static-screen freeze (see STATIC_SCREENS). Starts
-        // true so the first paint of any screen always happens; invalidateScreen()
-        // re-arms it on input, screen change, resize, or async data landing.
-        this.needsPaint = true;
         this.menuFlavor = pickCopy('menu');
         this.modeJourneyBlurb = pickCopy('modeJourney');
         this.modeOpenWorldBlurb = pickCopy('modeOpenWorld');
@@ -395,27 +378,7 @@ export class Game {
                 this.togglePause();
                 this.wasAutoPaused = false;
             }
-            if (!document.hidden) {
-                // Coming back from a hidden tab: the elapsed gap is not a
-                // frame. Without this, one huge (clamped) delta enters the
-                // frame EMA and motion wobbles for ~20 frames after resume.
-                this.resetFramePacing();
-            }
         });
-
-        // Idle-governor input tracking: any interaction lifts the menu 30 Hz
-        // cap for the next ~half second. Capture phase + passive so nothing
-        // downstream is affected; events fire before rAF, so the very next
-        // paint after a tap is always full-rate.
-        const noteInteraction = () => {
-            this.lastInteractionAt = performance.now();
-            // Any interaction earns a repaint, so a frozen static screen wakes
-            // for the very next frame (scroll, button press, toggle, keystroke).
-            this.needsPaint = true;
-        };
-        for (const type of ['pointerdown', 'pointermove', 'touchstart', 'touchmove', 'wheel', 'keydown']) {
-            window.addEventListener(type, noteInteraction, { capture: true, passive: true });
-        }
     }
 
     setupCanvas() {
@@ -447,9 +410,6 @@ export class Game {
         }
         // Hull bitmaps are sized to radius — drop them when the layout unit changes.
         clearHullCache();
-        // Assigning canvas.width above cleared the backing store; a frozen
-        // static screen must repaint or it comes back blank after a resize.
-        this.needsPaint = true;
     }
 
     // Re-assert the HiDPI transform each frame. Assigning canvas.width resets
@@ -492,21 +452,6 @@ export class Game {
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
-    // Frame pacing has per-screen state (EMA + shift detector). Reset it at
-    // screen changes, on tab return, and after governor idling so a stale
-    // smoothed delta can never bleed into a fresh run as a speed transient.
-    resetFramePacing(now = performance.now()) {
-        this.lastTime = now;
-        this.smoothFrame = null;
-    }
-
-    // Request one more paint of a frozen static screen. Cheap and idempotent —
-    // call it from anything that changes what a static screen should show:
-    // input, screen switch, resize, or async data (e.g. high scores landing).
-    invalidateScreen() {
-        this.needsPaint = true;
-    }
-
     gameLoop(ts) {
         // Only run the game loop if the tab is visible
         if (!document.hidden) {
@@ -516,53 +461,6 @@ export class Game {
             // one long frame that visibly sped up obstacle spin. The rAF
             // timestamp is fixed by the frame's vsync, so the tap can't move it.
             const currentTime = ts ?? performance.now();
-
-            // Screen change: pacing state from the old screen (e.g. a menu
-            // idling at 30 Hz) must not seed the new one's motion.
-            if (this.pacedScreen !== this.appScreen) {
-                this.pacedScreen = this.appScreen;
-                this.resetFramePacing(currentTime);
-                // New screen: always paint it at least once, even if the old
-                // one had gone frozen.
-                this.needsPaint = true;
-            }
-
-            if (this.appScreen !== 'playing' && this.appScreen !== 'gameover') {
-                // Static-screen freeze: screens with no ambient animation paint
-                // once and then stop entirely until something invalidates them.
-                // update() is a no-op on these screens, so skipping the whole
-                // frame is safe — and it spends zero battery/heat while a player
-                // reads the high-score table or sits in Options. On iPhone the
-                // run that follows is smoother for it, since heat is what
-                // eventually throttles mid-run. Input, screen change, resize and
-                // async data all call invalidateScreen(), so nothing goes stale.
-                if (STATIC_SCREENS.has(this.appScreen)) {
-                    if (!this.needsPaint) {
-                        // Leave lastTime alone so a later worked frame still sees
-                        // true elapsed time. scheduleNextFrame keeps rAF alive to
-                        // notice the flag flipping back on.
-                        this.scheduleNextFrame();
-                        return;
-                    }
-                    // Committing to this paint. Anything that changes the screen
-                    // after this point re-arms the flag and earns another frame.
-                    this.needsPaint = false;
-                } else {
-                    // Idle governor: animated non-gameplay screens (menu / ship
-                    // preview) can't freeze, but still don't need full refresh —
-                    // cap them at ~30 Hz once the player stops interacting. Any
-                    // input lifts the cap instantly (the event fires before rAF),
-                    // so taps and scroll-drags always see full refresh.
-                    const idleMs = currentTime - (this.lastInteractionAt ?? 0);
-                    const sinceDraw = currentTime - (this.lastGovernedDraw ?? 0);
-                    if (idleMs > 450 && sinceDraw < 30) {
-                        this.scheduleNextFrame();
-                        return;
-                    }
-                    this.lastGovernedDraw = currentTime;
-                }
-            }
-
             const elapsedMs = currentTime - this.lastTime;
 
             const flags = this.perfFlags;
@@ -584,12 +482,6 @@ export class Game {
                 // filter has unity DC gain, so there's no long-term drift. Steady
                 // high-refresh displays (desktop) are already even, so this is a
                 // near no-op there. FRAME_SMOOTH: higher = snappier/less filtered.
-                //
-                // (An adaptive "snap" variant was tried — fast-converge on a
-                // detected sustained rate change — but on phones with bursty
-                // frame delivery it misread noise as a rate change and de-
-                // filtered, reintroducing motion jerk. Reverted to the plain
-                // low-pass, which was smooth on phones.)
                 const FRAME_SMOOTH = 0.18;
                 this.smoothFrame = this.smoothFrame == null
                     ? rawFrame
@@ -2625,9 +2517,6 @@ export class Game {
             : Math.min(10, Math.max(1, Math.ceil(this.highScores.length / 10)));
         if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
         if (this.highScorePage < 0) this.highScorePage = 0;
-        // Scores arrive async — if the high-score screen is already up and
-        // frozen, it needs one repaint to show them.
-        this.invalidateScreen();
     }
 
     createExplosionParticles(x, y) {
