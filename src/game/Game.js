@@ -145,7 +145,7 @@ import {
     isSkinPremium,
     purchaseSkin,
 } from '../services/Entitlements.js';
-import { syncKeepAwake, syncStatusBarTheme } from '../native/index.js';
+import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { color, font } from '../brand/tokens.js';
 import { themeLabel, toggleTheme } from '../brand/theme.js';
@@ -3117,6 +3117,9 @@ export class Game {
         // it the one reliable place to tell the native shell whether a run is
         // on screen and the display must stay awake. No-ops on the web.
         syncKeepAwake(this);
+        // Same funnel: pin the Android display at its highest refresh mode
+        // while a run is on screen (60<->120 VRR flaps read as jerk).
+        syncHighRefresh(this);
     }
 
     // Tear down the submit-score modal. Shared by its close button and by

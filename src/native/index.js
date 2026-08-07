@@ -11,7 +11,7 @@
 // the web bundle never pays for native code it cannot use, and so a browser
 // build has no chance of invoking an unimplemented plugin.
 
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
 import { goBack } from '../game/BackNavigation.js';
 import { color } from '../brand/tokens.js';
@@ -48,6 +48,31 @@ export async function syncKeepAwake(game) {
         keepAwakeHeld = shouldHold;
     } catch {
         // A missing wake lock is a papercut, never a reason to break a run.
+    }
+}
+
+// --- Display refresh pin (Android only) --------------------------------------
+// Android VRR panels rest at 60 Hz and boost to 120 only while a finger is
+// down, so sparse taps flap the display 60<->120 mid-run — visible as a
+// smoothness texture change even with clock-true pacing (?perf=1 histogram:
+// 8-12 ms bucket fills while tapping, 16-20 ms at rest). Pin the panel's
+// highest mode for the whole run so the boost cadence is permanent. iOS is a
+// no-op: WKWebView rAF is capped at 60 Hz, so there is nothing to pin.
+let refreshRatePlugin = null;
+let highRefreshHeld = false;
+
+export async function syncHighRefresh(game) {
+    if (!isNative() || Capacitor.getPlatform() !== 'android') return;
+
+    const shouldHold = game.appScreen === 'playing';
+    if (shouldHold === highRefreshHeld) return;
+
+    try {
+        refreshRatePlugin ??= registerPlugin('RefreshRate');
+        await (shouldHold ? refreshRatePlugin.pinHigh() : refreshRatePlugin.release());
+        highRefreshHeld = shouldHold;
+    } catch {
+        // A refresh pin is a nicety — the system rate is never a broken run.
     }
 }
 
