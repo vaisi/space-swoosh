@@ -501,7 +501,8 @@ export class Game {
             // cheapest butter for the run is not spending it on the menu.
             // Any input lifts the cap instantly (the event fires before rAF),
             // so taps and scroll-drags always see full refresh.
-            if (this.appScreen !== 'playing' && this.appScreen !== 'gameover') {
+            if (!this.perfFlags?.noGovernor
+                && this.appScreen !== 'playing' && this.appScreen !== 'gameover') {
                 const idleMs = currentTime - (this.lastInteractionAt ?? 0);
                 const sinceDraw = currentTime - (this.lastGovernedDraw ?? 0);
                 if (idleMs > 450 && sinceDraw < 30) {
@@ -556,7 +557,8 @@ export class Game {
                 // clock-true the whole way, so the handoff is seamless.
                 const HITCH_RATIO = 1.75;
                 let frameTime;
-                if (rawFrame > this.smoothFrame * HITCH_RATIO) {
+                if (!this.perfFlags?.noHitchPass
+                    && rawFrame > this.smoothFrame * HITCH_RATIO) {
                     frameTime = rawFrame;
                     this.hitchRun = (this.hitchRun ?? 0) + 1;
                     if (this.hitchRun >= 30) {

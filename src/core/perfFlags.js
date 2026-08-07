@@ -13,6 +13,8 @@
  * @property {boolean} fullVfx
  * @property {boolean|null} cheap  force cheap Canvas on/off; null = auto (iOS)
  * @property {number|null} dprOverride
+ * @property {boolean} noHitchPass  ?nohitchpass=1: disable hitch passthrough (plain EMA, pre-experiment behavior)
+ * @property {boolean} noGovernor   ?nogovernor=1: disable the menu 30 Hz idle governor
  */
 
 /** @returns {PerfFlags} */
@@ -46,6 +48,8 @@ export function parsePerfFlags(search = typeof location !== 'undefined' ? locati
         fullVfx: params.has('fullvfx'),
         cheap,
         dprOverride,
+        noHitchPass: params.has('nohitchpass'),
+        noGovernor: params.has('nogovernor'),
     };
 }
 
