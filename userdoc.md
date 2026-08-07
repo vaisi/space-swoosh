@@ -47,7 +47,7 @@ words appear **one sentence at a time** so you can read along.
 1. Empty sky — practice your turn.
 2. Simple asteroids.
 3. A rock that drifts sideways.
-4. Blue point lights (sparkles) — “everything blue out here was left for you.”
+4. Blue point lights (sparkles) — take them; they help hold the signal.
 5. The shield — survive a hit, smash rocks for the third star.
 
 After that the runs stay longer and the field gets busier. Levels get harder a

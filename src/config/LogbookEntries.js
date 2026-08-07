@@ -3,7 +3,7 @@
 // Changes:
 // - Levels tab: pre-Journey lore entry (`signalCall`) first, then level_N
 //   entries fed from JourneyNarrative voice lines (no more lorem placeholders).
-//   Level 4 definition follows the updated blue-light “left for you” script.
+//   Level definitions follow JourneyNarrative LEVEL_MESSAGES (ElevenLabs script).
 // - Added wallBoost: thin Signal-Blue edge slab → shield + speed refresh.
 // - Deflector Smash / Finish Gate copy: flyout smashes still score; results
 //   finalize when the level-clear sequence enters screenIn.

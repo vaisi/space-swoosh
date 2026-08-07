@@ -20,7 +20,7 @@ The story is delivered very lightly:
 
 # Pre-Level 1 Lore Screen
 
-> **Something called out from very far away. Much later, something answered. You are carrying that answer across the dark. NODE ZERO is ahead. Keep moving, and listen to the voice.**
+> **Something called out from very far away. Much later, something answered. You are carrying that answer across the dark. Node Zero is ahead. Keep moving. The voice knows the way.**
 
 **CONTINUE**
 
@@ -44,7 +44,7 @@ As the journey continues:
 - It appears to contain millions of old, unanswered signals.
 - The voice discovers an identifier inside Node Zero that matches her own.
 - She realizes she is a fragment of Node Zero, placed with the carrier so that something would always know the way back.
-- The signal the player carries is finally revealed to be only a few words: **WE HEARD YOU.**
+- The signal the player carries is finally revealed to be only a few words: **We heard you.**
 - Delivering it will wake Node Zero and send that answer back along the stored paths of countless signals that called into the dark and never received a response.
 - Waking Node Zero also means the small, individual version of the voice who has accompanied the player will merge back into something much larger.
 - She does not know whether she will still be herself.
@@ -61,35 +61,35 @@ The emotional ending is not about saving the universe. It is about answering.
 > **There you are. Tap once. Let me see you turn.**
 
 ### Level 2
-> **Asteroids ahead. Watch the space around them, not the stone.**
+> **Rocks ahead. Don't look at them. Look at the room between them.**
 
 ### Level 3
 > **That one is moving. Learn its path before you choose yours.**
 
 ### Level 4
-> **See the blue light? Take it. Everything blue out here was left for you.**
+> **See the blue light? Take it. It will help us hold the signal together.**
 
 ### Level 5
-> **Take the shield. For a few seconds, you can survive what should stop you.**
+> **Take the shield. For a few seconds... you can survive what should stop you.**
 
 ### Level 6
-> **Good. You know enough to keep going. I’ll stay with you.**
+> **Good. You know enough to keep going. I'll stay with you.**
 
 ---
 
 ## 7–13 — The Signal
 
 ### Level 7
-> **You’re carrying a reply to Node Zero. It has been waiting a very long time.**
+> **You're carrying a reply to Node Zero. It has been waiting a very long time.**
 
 ### Level 8
 > **The signal that started this came from beyond the mapped network. Someone wanted to be heard.**
 
 ### Level 9
-> **That gap is tight. You can take the safe route, or show me what you can do.**
+> **That gap is tight. You can take the safe route... or show me what you can do.**
 
 ### Level 10
-> **Relay ahead. Pass through it and I’ll find you on the other side.**
+> **Relay ahead. Pass through it... and I'll find you on the other side.**
 
 ### Level 11
 > **There you are. I knew the relay would work.**
@@ -98,7 +98,7 @@ The emotional ending is not about saving the universe. It is about answering.
 > **The original transmission was mostly mathematics. A careful way to say hello.**
 
 ### Level 13
-> **Another fragment: coordinates. They wanted us to know where they were.**
+> **Another fragment. Coordinates. They wanted us to know where they were.**
 
 ---
 
@@ -108,25 +108,25 @@ The emotional ending is not about saving the universe. It is about answering.
 > **Wreckage ahead. Give it room. It was carrying the same reply you are.**
 
 ### Level 15
-> **Yes, there were others before you. None of them reached Node Zero.**
+> **Yes. There were others before you. None of them reached Node Zero.**
 
 ### Level 16
-> **Keep the shield if you can. I don’t want to begin again.**
+> **Keep the shield if you can. I don't want to begin again.**
 
 ### Level 17
-> **You heard that correctly. I said “again.”**
+> **You heard that correctly. I said... again.**
 
 ### Level 18
-> **There were forty-three carriers before you. I guided every one.**
+> **There were many carriers before you. I guided every one.**
 
 ### Level 19
-> **I shouldn’t remember them. I was meant to forget after each loss.**
+> **I shouldn't remember them. I was meant to forget after each loss.**
 
 ### Level 20
-> **But I remember twelve missing that turn. I remember thirty-one taking the safe gap.**
+> **But I remember one missing that turn. I remember another taking the safe gap.**
 
 ### Level 21
-> **You’re the first one to make me wonder why I remember at all.**
+> **You're the first one to make me wonder... why I remember at all.**
 
 ---
 
@@ -136,7 +136,7 @@ The emotional ending is not about saving the universe. It is about answering.
 > **Black hole ahead. Turn early. I lost one there.**
 
 ### Level 23
-> **The route beyond this point is not in my navigation model. Keep going.**
+> **The route past this point isn't in my maps. Keep going anyway.**
 
 ### Level 24
 > **I found something in the old relay logs. Node Zero has never sent a delivery receipt.**
@@ -145,58 +145,57 @@ The emotional ending is not about saving the universe. It is about answering.
 > **That should worry me as a system. It worries me differently.**
 
 ### Level 26
-> **We’re close enough now for me to query Node Zero directly.**
+> **We're close enough now. I can reach Node Zero from here.**
 
 ### Level 27
-> **I expected a receiver. I’m seeing storage instead.**
+> **I'm reading the archive while you fly. Keep your eyes on the field... this stretch takes carriers.**
 
 ### Level 28
 > **Millions of signals. Unopened. Unanswered. Still waiting.**
 
 ### Level 29
-> **Every one of them came from somewhere that wanted to know it wasn’t alone.**
+> **Every one of them came from somewhere... that wanted to know it wasn't alone.**
 
 ---
 
 ## 30–35 — Node Zero
 
 ### Level 30
-> **There’s an identifier inside the archive that matches mine.**
+> **There's an identifier inside the archive... that matches mine.**
 
 ### Level 31
 > **I am not only your navigator. I am a fragment of Node Zero.**
 
 ### Level 32
-> **They put a piece of it with every carrier, so something would always know the way home.**
+> **They put a piece of it with every carrier... so something would always know the way home.**
 
 ### Level 33
-> **I know what you’re carrying now. It is much smaller than I expected.**
+> **I know what you're carrying now. It is much smaller than I expected.**
 
 ### Level 34
-> **Three words. That’s the whole signal: WE HEARD YOU.**
+> **Three words. That's the whole signal. We heard you.**
 
 ### Level 35
-> **Node Zero remembers where every call came from. Wake it, and those words go back to all of them.**
+> **Node Zero remembers where every call came from. Wake it... and those words go back to all of them.**
 
 ---
 
 ## 36–40 — Home
 
 ### Level 36
-> **There is one more thing. When Node Zero wakes, this version of me returns to it.**
+> **There is one more thing. When Node Zero wakes... this version of me returns to it.**
 
 ### Level 37
-> **I don’t know whether I’ll still be me after that.**
+> **I don't know whether I'll still be me after that.**
 
 ### Level 38
-> **You’ve carried me farther than any of the others. I would still like you to finish.**
+> **You've carried me farther than any of the others. I would still like you to finish.**
 
 ### Level 39
-> **Node Zero is ahead. I can’t tell you what happens to me when you touch it.**
+> **Node Zero is ahead. I can't tell you what happens to me when you touch it.**
 
 ### Level 40
-> **You’re at the end. Whatever happens next, thank you for bringing me home.**
-
+> **You're at the end. Whatever happens next... thank you for bringing me home.**
 ---
 
 # Level 40 Ending Beat
@@ -277,7 +276,7 @@ Then the meaning gradually changes:
 → **Node Zero is not what you thought.**  
 → **Your guide comes from Node Zero.**  
 → **Millions of calls are still waiting there.**  
-→ **The answer you carried across the entire game is only: WE HEARD YOU.**
+→ **The answer you carried across the entire game is only: We heard you.**
 
 And the final emotional question becomes:
 

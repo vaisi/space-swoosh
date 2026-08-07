@@ -305,9 +305,9 @@ unlock  —  simple moving  —    —  barrier complex shoot pulse worm  BH   �
 `obstaclesFromScore`. `runsTutorial` is false — no competing HUD tips; the
 navigator line is the teach beat. Full intro copy comes from
 `JourneyNarrative.LEVEL_MESSAGES` (also Logbook level entries). Levels 1–5
-on-screen beats come from `LEVEL_INTRO_BEATS` (Level 4 screen beat 3 is shorter
-than the spoken/logbook line). Voice clips: `public/sounds/voice/level-1.mp3` …
-`level-5.mp3`.
+on-screen beats come from `LEVEL_INTRO_BEATS` (sentence-at-a-time for L1–5).
+Copy matches the ElevenLabs narrator script (SSML/stage directions stripped).
+Voice clips: `public/sounds/voice/level-1.mp3` … `level-5.mp3`.
 
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
