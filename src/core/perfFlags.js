@@ -15,6 +15,7 @@
  * @property {number|null} dprOverride
  * @property {boolean} noHitchPass  ?nohitchpass=1: disable hitch passthrough (plain EMA, pre-experiment behavior)
  * @property {boolean} noGovernor   ?nogovernor=1: disable the menu 30 Hz idle governor
+ * @property {boolean} noInputRaw   ?noinputraw=1: disable clock-true pacing in the post-touch window
  */
 
 /** @returns {PerfFlags} */
@@ -50,6 +51,7 @@ export function parsePerfFlags(search = typeof location !== 'undefined' ? locati
         dprOverride,
         noHitchPass: params.has('nohitchpass'),
         noGovernor: params.has('nogovernor'),
+        noInputRaw: params.has('noinputraw'),
     };
 }
 

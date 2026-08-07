@@ -557,12 +557,27 @@ export class Game {
                 // clock-true the whole way, so the handoff is seamless.
                 const HITCH_RATIO = 1.75;
                 let frameTime;
+                // Input-window raw pacing: for a short window after a touch
+                // during a run, simulate true elapsed time unconditionally
+                // and leave the filter untouched. Tap frames are where the
+                // hitches live (event work; sparse taps land on a down-
+                // clocked CPU, so their hitches are bigger but can fall
+                // under the ratio) — and they're where the eye is fixed on
+                // the flip, so clock-true beats smoothed there whatever the
+                // hitch size. lastInteractionAt is set in the capture-phase
+                // listener, which fires before this rAF.
+                const INPUT_RAW_MS = 70;
+                const inputRaw = !this.perfFlags?.noInputRaw
+                    && this.appScreen === 'playing'
+                    && currentTime - (this.lastInteractionAt ?? -Infinity) < INPUT_RAW_MS;
                 // Symmetric: a suddenly-short frame is the display stepping
                 // *up* (VRR phones bounce 60↔120 around sparse taps);
                 // filtering it keeps simulating the old longer delta for ~a
                 // dozen frames — a slight fast-forward on tap resume. Treat
                 // it like the slow side: run clock-true, don't feed the EMA.
-                if (!this.perfFlags?.noHitchPass
+                if (inputRaw) {
+                    frameTime = rawFrame;
+                } else if (!this.perfFlags?.noHitchPass
                     && (rawFrame > this.smoothFrame * HITCH_RATIO
                         || rawFrame < this.smoothFrame / HITCH_RATIO)) {
                     frameTime = rawFrame;
