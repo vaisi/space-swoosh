@@ -216,7 +216,6 @@ import {
 } from '../config/flightStyle.js';
 import {
     canvasMaxDpr,
-    isIosDevice,
     needsIosCanvasBudget,
     preferOpaqueCanvas,
 } from '../core/platform.js';
@@ -242,15 +241,9 @@ export class Game {
         this.canvas = document.getElementById('gameCanvas');
         // Opaque buffer when we always paint paper first — native + iOS Safari
         // skip alpha compositing. Android/desktop web keep the default context.
-        // `desynchronized` lets Chromium present the canvas off the DOM
-        // compositor path (lower input-to-photon latency — touch steering
-        // lands a frame sooner on Android). WebKit ignores the hint. Safe
-        // here because every frame repaints the full paper, so there is no
-        // partial-frame tearing to expose.
-        const ctxOpts = {
-            desynchronized: !isIosDevice(),
-            ...(preferOpaqueCanvas() ? { alpha: false } : null),
-        };
+        // (A `desynchronized` hint was tried here for lower touch latency but
+        // regressed motion on Android compositors — reverted.)
+        const ctxOpts = preferOpaqueCanvas() ? { alpha: false } : undefined;
         this.ctx = this.canvas.getContext('2d', ctxOpts);
         this.baseUnit = 0;
         this.score = 0;
@@ -505,7 +498,6 @@ export class Game {
     resetFramePacing(now = performance.now()) {
         this.lastTime = now;
         this.smoothFrame = null;
-        this.frameShiftRun = 0;
     }
 
     // Request one more paint of a frozen static screen. Cheap and idempotent —
@@ -593,31 +585,15 @@ export class Game {
                 // high-refresh displays (desktop) are already even, so this is a
                 // near no-op there. FRAME_SMOOTH: higher = snappier/less filtered.
                 //
-                // Adaptive twist: a slow filter is right for stochastic jitter
-                // (alternating 8/16 ms flips sign every frame), but wrong for a
-                // *sustained* rate change — thermal 120→60 or Low Power 60→30
-                // used to leave the game running at the wrong speed for ~25
-                // frames while the EMA crawled over. Detect "same side of the
-                // filter, persistently, by a lot" and converge fast; noise
-                // never trips it because its sign alternates.
+                // (An adaptive "snap" variant was tried — fast-converge on a
+                // detected sustained rate change — but on phones with bursty
+                // frame delivery it misread noise as a rate change and de-
+                // filtered, reintroducing motion jerk. Reverted to the plain
+                // low-pass, which was smooth on phones.)
                 const FRAME_SMOOTH = 0.18;
-                const FRAME_SNAP = 0.5;
-                // Seed guard: the frame right after a pacing reset has ~0
-                // elapsed; seeding the filter with it would play several
-                // slow-motion frames while it climbs back. Seed 60 Hz instead
-                // — the fast path corrects to the true rate within ~5 frames.
-                if (this.smoothFrame == null) {
-                    this.smoothFrame = rawFrame > 0.002 ? rawFrame : 1 / 60;
-                }
-                const frameDev = rawFrame - this.smoothFrame;
-                if (Math.abs(frameDev) > this.smoothFrame * 0.15) {
-                    const side = frameDev > 0 ? 1 : -1;
-                    this.frameShiftRun = (this.frameShiftRun ?? 0) * (Math.sign(this.frameShiftRun) === side ? 1 : 0) + side;
-                } else {
-                    this.frameShiftRun = 0;
-                }
-                const sustainedShift = Math.abs(this.frameShiftRun ?? 0) >= 4;
-                this.smoothFrame += frameDev * (sustainedShift ? FRAME_SNAP : FRAME_SMOOTH);
+                this.smoothFrame = this.smoothFrame == null
+                    ? rawFrame
+                    : this.smoothFrame + (rawFrame - this.smoothFrame) * FRAME_SMOOTH;
                 const frameTime = this.smoothFrame;
                 this.tickScale = frameTime * this.snappyHz;
                 this.dt = (1 / 60) * this.tickScale;
