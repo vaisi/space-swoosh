@@ -51,7 +51,7 @@
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on Android/desktop web / 1.5 on iOS / 2 on other Cap native) and scales
 //   the context so all game math stays in CSS pixels via this.width /
-//   this.height. Menu stamp is BUILD 23.
+//   this.height. Menu stamp is BUILD 24.
 // - Options → Ship: after picking a vessel, a "Play now" button jumps straight
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
@@ -1389,8 +1389,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 23 · NATIVE'
-            : 'BUILD 23 · WEB';
+            ? 'BUILD 24 · NATIVE'
+            : 'BUILD 24 · WEB';
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;

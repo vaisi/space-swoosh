@@ -1,6 +1,8 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
+// - hapticWallBoop(): light impact on sidewall bounce (Cap Haptics on native;
+//   short navigator.vibrate on supporting browsers). Fire-and-forget.
 // - Theme toggle: syncStatusBarTheme() matches light/dark paper + glyph style.
 // - Night paper: status bar uses Style.Dark + charcoal paper background so light
 //   glyphs read on the dark stage.
@@ -21,6 +23,34 @@ export const isNative = () => Capacitor.isNativePlatform();
 
 /** @type {{ StatusBar: import('@capacitor/status-bar').StatusBarPlugin, Style: typeof import('@capacitor/status-bar').Style } | null} */
 let statusBarApi = null;
+
+/** @type {typeof import('@capacitor/haptics') | null} */
+let hapticsApi = null;
+
+/**
+ * Soft tick when the ship bounces off a sidewall. Safe on web (no-op or short
+ * vibrate). Never awaited from the game loop — missing haptics must not stall
+ * a frame.
+ */
+export function hapticWallBoop() {
+    if (!isNative()) {
+        try {
+            navigator.vibrate?.(14);
+        } catch {
+            /* no vibrator */
+        }
+        return;
+    }
+
+    void (async () => {
+        try {
+            hapticsApi ??= await import('@capacitor/haptics');
+            await hapticsApi.Haptics.impact({ style: hapticsApi.ImpactStyle.Light });
+        } catch {
+            /* missing plugin / no vibrator */
+        }
+    })();
+}
 
 // --- Screen wake lock --------------------------------------------------------
 // The ship flies itself, so a player threading a dense field can go a long time

@@ -220,11 +220,11 @@ signature per vessel — pile, spring, whip, scatter, shatter, bubble, blot, and
 more.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
-to the wall, not on it) and a soft space-boop sound.
+to the wall, not on it), a soft space-boop sound, and a light phone buzz on
+devices that support haptics.
 
-Pulse and Quill can be store unlocks later; Nyan, Ink, and the rest of the roster
-are free. Right now every ship in **Options → Ship** is available so you can try
-them all.
+Pulse and Quill are store unlocks on the apps (IAP); Nyan, Ink, and the rest of
+the roster are free.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
 along the path you actually flew. You only crash where the hull actually is —
@@ -279,7 +279,7 @@ you can see its edges. On phones the charcoal stage fills the safe area (bone
 ink may show in the notch / home-indicator strips). Turn arcs and cruise speed
 are meant to feel the same as on a computer — if a build ever feels half-speed
 with KM racing ahead, that build is wrong; report the menu stamp
-(e.g. `BUILD 23 · WEB`).
+(e.g. `BUILD 24 · WEB`).
 
 **iPhone / iPad (Safari or Chrome):** the game targets a steadier ~60 frames per
 second and a slightly lighter retina resolution so motion stays cool and playable

@@ -3,8 +3,8 @@
 // unlock via RevenueCat and are cached in localStorage for offline play.
 // Changes:
 // - Night paper: SIGNAL_RGB follows brand `color.signalRgb` (soft orchid).
-// - UNLOCK_ALL_SKINS: every roster ship is playable without IAP (playtest). Flip
-//   to false before store release to restore premium gating.
+// - UNLOCK_ALL_SKINS false for store: Pulse/Quill gated via RevenueCat again.
+//   Flip true only for local playtest builds.
 // - Created file: ownership is separate from "selected skin" (ships/skins.js).
 //   Selecting a locked skin starts a purchase; Restore Purchases refreshes the
 //   cache from the store. On the web (no IAP), premium skins stay locked.
@@ -27,8 +27,8 @@ export function getSignalRgb() {
 }
 const SIGNAL_RGB = color.signalRgb;
 
-/** Playtest unlock — set false to re-enable RevenueCat premium gating. */
-export const UNLOCK_ALL_SKINS = true;
+/** Playtest unlock — keep false for store builds (RevenueCat premium gating). */
+export const UNLOCK_ALL_SKINS = false;
 
 /** @type {Set<string>} */
 let owned = new Set(loadCache());

@@ -13,7 +13,12 @@
 > when nothing is stored. Dark: charcoal paper, bone ink, vivid mint (`#3DFF9A`).
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
-> **BUILD 23 + Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
+> **BUILD 24 (Android store):** Web gameplay sync into native (frame pacing,
+> themes, wall boost, logbook, ships, leaderboard). `UNLOCK_ALL_SKINS = false`
+> for store — Pulse/Quill gated via RevenueCat. Menu stamp `BUILD 24 · NATIVE` /
+> `WEB`. versionCode **24** / versionName **1.0.24**.
+>
+> **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
 > on iPhone/iPad: DPR ≤ 1.5, baked hull `drawImage`, glow sprites (halos/black-hole/
 > swoosh flash restored without path radials), flat ribbon fills. Same plain
@@ -93,11 +98,11 @@ game build env. Journey progress and Open World personal best stay in
 | Path | Responsibility |
 | --- | --- |
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
-| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash. |
+| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, light wall-boop haptics. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership cache + purchase / restore. `UNLOCK_ALL_SKINS` (currently `true`) opens the whole roster without IAP for playtest. |
+| `services/Entitlements.js` | Skin ownership cache + purchase / restore. `UNLOCK_ALL_SKINS` is **`false` for store** (Pulse/Quill require IAP); set `true` only for local playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
 | `ships/skinDefs.js` | Ship roster (Focus…Nyan…Cinder) composed from hulls + trails + boop signatures. |
@@ -130,7 +135,7 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
-| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup below the hull. |
+| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
@@ -667,7 +672,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
   playfield edges read on desktop (centered, max-width 500px, 2:3). Mobile fills
   the safe area with the charcoal stage; bone ink shows in notch / home-indicator
   insets. `theme-color` matches the bone surround. Native status bar uses
-  `Style.Dark` + charcoal background. Menu stamp: `BUILD 23 · NATIVE` / `WEB`.
+  `Style.Dark` + charcoal background. Menu stamp: `BUILD 24 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
@@ -721,9 +726,12 @@ it is included in the `game_over` GA event.
    edge (arc bounce or zigzag wall clamp), it calls `WallBoopManager.triggerBoop(ship,
    side)`. That plays `SoundManager.playBoop()` — phone-audible body (320→180 Hz)
    + short mid tick (~520 Hz) + reused noise buffer (old ~185→92 Hz was inaudible
-   on iPhone speakers under BGM) — and spawns an ink-only `BOOP` label below the
-   hull (no glow/blot), inset from the wall so the full word stays on-screen.
-   Applies to every skin; Square skins still also get `wallJelly` squash.
+   on iPhone speakers under BGM) — fires `hapticWallBoop()` (Capacitor
+   `ImpactStyle.Light` on native; short `navigator.vibrate` on web), and spawns
+   an ink-only `BOOP` label below the hull (no glow/blot), inset from the wall
+   so the full word stays on-screen. Shared 180 ms cooldown covers popup, SFX,
+   and haptic. Applies to every skin; Square skins still also get `wallJelly`
+   squash.
 5. **Portal hop:** `WormholeGate.transportSpacecraft()` calls
    `SoundManager.playPortalEntry()` at hop start and `playPortalExit()` on
    emerge — deeper space warps (low body/sub + swirl) through a delay-feedback
