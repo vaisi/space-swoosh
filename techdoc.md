@@ -98,7 +98,7 @@ game build env. Journey progress and Open World personal best stay in
 | Path | Responsibility |
 | --- | --- |
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
-| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, wall-boop haptics (`HapticTick` on Android). |
+| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
@@ -726,12 +726,11 @@ it is included in the `game_over` GA event.
    edge (arc bounce or zigzag wall clamp), it calls `WallBoopManager.triggerBoop(ship,
    side)`. That plays `SoundManager.playBoop()` — phone-audible body (320→180 Hz)
    + short mid tick (~520 Hz) + reused noise buffer (old ~185→92 Hz was inaudible
-   on iPhone speakers under BGM) — fires `hapticWallBoop()`. On Android that
-   calls custom `HapticTickPlugin` (`VibrationEffect.EFFECT_CLICK` +
-   `USAGE_TOUCH`) registered in `MainActivity` — Cap JS Haptics was silent on
-   modern actuators. iOS uses Cap `ImpactStyle.Medium`; web uses
-   `navigator.vibrate`. Shared 180 ms cooldown covers popup, SFX, and haptic.
-   Applies to every skin; Square skins still also get `wallJelly` squash.
+   on iPhone speakers under BGM) — fires `hapticWallBoop()` (Capacitor
+   `ImpactStyle.Light` on native; short `navigator.vibrate` on web). Needs the
+   phone's haptic intensity above zero. Shared 180 ms cooldown covers popup,
+   SFX, and haptic. Applies to every skin; Square skins still also get
+   `wallJelly` squash.
 5. **Portal hop:** `WormholeGate.transportSpacecraft()` calls
    `SoundManager.playPortalEntry()` at hop start and `playPortalExit()` on
    emerge — deeper space warps (low body/sub + swirl) through a delay-feedback

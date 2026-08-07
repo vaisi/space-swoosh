@@ -3,8 +3,8 @@
 // StyleSwooshManager's popup lifecycle, but sits below the hull beside the
 // wall (never overlapping ship or edge) — label only, no glow / blot.
 // Changes:
-// - Soft haptic tick on each boop (Android HapticTick EFFECT_CLICK / iOS Cap
-//   Medium / web vibrate), gated by the same 180 ms cooldown as popup + SFX.
+// - Soft haptic tick on each boop (Cap ImpactStyle.Light / web vibrate 12ms),
+//   gated by the same 180 ms cooldown as the popup + SFX.
 // - Journey Logbook: instant unlock for Space BOOP on trigger.
 // - Dropped the blooming blot + kick dashes; BOOP is solid ink text only.
 // - Label X is padded by measured "BOOP" half-width so left/right walls never
