@@ -35,4 +35,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Wall-boop haptic tick (@capacitor/haptics also declares this; keep
+         explicit so a merge miss never silently drops vibration). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 </manifest>

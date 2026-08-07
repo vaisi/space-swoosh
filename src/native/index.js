@@ -1,8 +1,9 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
-// - hapticWallBoop(): light impact on sidewall bounce (Cap Haptics on native;
-//   short navigator.vibrate on supporting browsers). Fire-and-forget.
+// - hapticWallBoop(): short Cap `vibrate(28ms)` on sidewall bounce — Android
+//   ImpactStyle.Light (amp ~110) is often imperceptible; one-shot DEFAULT
+//   amplitude reads as a real tick. Preload in initNative. Web: vibrate(28).
 // - Theme toggle: syncStatusBarTheme() matches light/dark paper + glyph style.
 // - Night paper: status bar uses Style.Dark + charcoal paper background so light
 //   glyphs read on the dark stage.
@@ -27,6 +28,16 @@ let statusBarApi = null;
 /** @type {typeof import('@capacitor/haptics') | null} */
 let hapticsApi = null;
 
+/** Wall-boop pulse length (ms). Short enough to feel like a tick, not a buzz. */
+const WALL_BOOP_VIBRATE_MS = 28;
+
+async function loadHaptics() {
+    if (!hapticsApi) {
+        hapticsApi = await import('@capacitor/haptics');
+    }
+    return hapticsApi;
+}
+
 /**
  * Soft tick when the ship bounces off a sidewall. Safe on web (no-op or short
  * vibrate). Never awaited from the game loop — missing haptics must not stall
@@ -35,7 +46,7 @@ let hapticsApi = null;
 export function hapticWallBoop() {
     if (!isNative()) {
         try {
-            navigator.vibrate?.(14);
+            navigator.vibrate?.(WALL_BOOP_VIBRATE_MS);
         } catch {
             /* no vibrator */
         }
@@ -44,8 +55,10 @@ export function hapticWallBoop() {
 
     void (async () => {
         try {
-            hapticsApi ??= await import('@capacitor/haptics');
-            await hapticsApi.Haptics.impact({ style: hapticsApi.ImpactStyle.Light });
+            const { Haptics } = await loadHaptics();
+            // One-shot vibrate (DEFAULT_AMPLITUDE) — more reliable on Android
+            // than ImpactStyle.Light, which many OEMs render as nearly silent.
+            await Haptics.vibrate({ duration: WALL_BOOP_VIBRATE_MS });
         } catch {
             /* missing plugin / no vibrator */
         }
@@ -185,6 +198,12 @@ export async function initNative(game) {
     await wireBackButton(game, App);
     await wireLifecycle(game, App);
     await syncKeepAwake(game);
+    // Warm the haptics chunk so the first wall boop isn't racing a dynamic import.
+    try {
+        await loadHaptics();
+    } catch {
+        /* optional */
+    }
 
     // Held until here so the first painted frame is the real menu, not a blank
     // canvas waiting on fonts.
