@@ -1,4 +1,4 @@
-// Updated: package renamed from gg.orbi.spaceswoosh to com.orbi.spaceswoosh.
+// Updated: also registers HapticTickPlugin (native wall-boop EFFECT_CLICK).
 // Registers RefreshRatePlugin (display 120 Hz pin during runs).
 package com.orbi.spaceswoosh;
 
@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(RefreshRatePlugin.class);
+        registerPlugin(HapticTickPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

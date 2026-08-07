@@ -1,9 +1,10 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
-// - hapticWallBoop(): short Cap `vibrate(28ms)` on sidewall bounce — Android
-//   ImpactStyle.Light (amp ~110) is often imperceptible; one-shot DEFAULT
-//   amplitude reads as a real tick. Preload in initNative. Web: vibrate(28).
+// - hapticWallBoop(): Android uses custom HapticTickPlugin (EFFECT_CLICK /
+//   USAGE_TOUCH) — Cap JS Haptics was a silent no-op on modern actuators.
+//   iOS keeps Cap ImpactStyle.Medium; web uses navigator.vibrate. Smoke-test
+//   thump once after splash so a dead vibrator is obvious in logcat.
 // - Theme toggle: syncStatusBarTheme() matches light/dark paper + glyph style.
 // - Night paper: status bar uses Style.Dark + charcoal paper background so light
 //   glyphs read on the dark stage.
@@ -28,8 +29,16 @@ let statusBarApi = null;
 /** @type {typeof import('@capacitor/haptics') | null} */
 let hapticsApi = null;
 
-/** Wall-boop pulse length (ms). Short enough to feel like a tick, not a buzz. */
-const WALL_BOOP_VIBRATE_MS = 28;
+/** @type {{ tick: () => Promise<void>, thump: () => Promise<void> } | null} */
+let hapticTickPlugin = null;
+
+/** Wall-boop pulse length (ms) for web / legacy Cap fallback. */
+const WALL_BOOP_VIBRATE_MS = 40;
+
+function androidHapticTick() {
+    hapticTickPlugin ??= registerPlugin('HapticTick');
+    return hapticTickPlugin;
+}
 
 async function loadHaptics() {
     if (!hapticsApi) {
@@ -55,12 +64,21 @@ export function hapticWallBoop() {
 
     void (async () => {
         try {
-            const { Haptics } = await loadHaptics();
-            // One-shot vibrate (DEFAULT_AMPLITUDE) — more reliable on Android
-            // than ImpactStyle.Light, which many OEMs render as nearly silent.
-            await Haptics.vibrate({ duration: WALL_BOOP_VIBRATE_MS });
-        } catch {
-            /* missing plugin / no vibrator */
+            if (Capacitor.getPlatform() === 'android') {
+                // Native EFFECT_CLICK — Cap Haptics.vibrate was not felt on device.
+                await androidHapticTick().tick();
+                return;
+            }
+            const { Haptics, ImpactStyle } = await loadHaptics();
+            await Haptics.impact({ style: ImpactStyle.Medium });
+        } catch (err) {
+            console.warn('[haptic] wall boop failed', err);
+            try {
+                const { Haptics } = await loadHaptics();
+                await Haptics.vibrate({ duration: WALL_BOOP_VIBRATE_MS });
+            } catch {
+                /* give up */
+            }
         }
     })();
 }
@@ -198,12 +216,6 @@ export async function initNative(game) {
     await wireBackButton(game, App);
     await wireLifecycle(game, App);
     await syncKeepAwake(game);
-    // Warm the haptics chunk so the first wall boop isn't racing a dynamic import.
-    try {
-        await loadHaptics();
-    } catch {
-        /* optional */
-    }
 
     // Held until here so the first painted frame is the real menu, not a blank
     // canvas waiting on fonts.
@@ -211,5 +223,18 @@ export async function initNative(game) {
         await SplashScreen.hide();
     } catch {
         /* no splash configured */
+    }
+
+    // One startup thump so we know the motor path works (Android HapticTick /
+    // iOS Cap Haptics). Easy to feel on launch; remove later if too chatty.
+    try {
+        if (Capacitor.getPlatform() === 'android') {
+            await androidHapticTick().thump();
+        } else {
+            const { Haptics, ImpactStyle } = await loadHaptics();
+            await Haptics.impact({ style: ImpactStyle.Medium });
+        }
+    } catch (err) {
+        console.warn('[haptic] startup thump failed', err);
     }
 }
