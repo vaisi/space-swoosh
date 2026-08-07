@@ -216,6 +216,7 @@ import {
 } from '../config/flightStyle.js';
 import {
     canvasMaxDpr,
+    isIosDevice,
     needsIosCanvasBudget,
     preferOpaqueCanvas,
 } from '../core/platform.js';
@@ -230,7 +231,15 @@ export class Game {
         this.canvas = document.getElementById('gameCanvas');
         // Opaque buffer when we always paint paper first — native + iOS Safari
         // skip alpha compositing. Android/desktop web keep the default context.
-        const ctxOpts = preferOpaqueCanvas() ? { alpha: false } : undefined;
+        // `desynchronized` lets Chromium present the canvas off the DOM
+        // compositor path (lower input-to-photon latency — touch steering
+        // lands a frame sooner on Android). WebKit ignores the hint. Safe
+        // here because every frame repaints the full paper, so there is no
+        // partial-frame tearing to expose.
+        const ctxOpts = {
+            desynchronized: !isIosDevice(),
+            ...(preferOpaqueCanvas() ? { alpha: false } : null),
+        };
         this.ctx = this.canvas.getContext('2d', ctxOpts);
         this.baseUnit = 0;
         this.score = 0;
@@ -378,7 +387,22 @@ export class Game {
                 this.togglePause();
                 this.wasAutoPaused = false;
             }
+            if (!document.hidden) {
+                // Coming back from a hidden tab: the elapsed gap is not a
+                // frame. Without this, one huge (clamped) delta enters the
+                // frame EMA and motion wobbles for ~20 frames after resume.
+                this.resetFramePacing();
+            }
         });
+
+        // Idle-governor input tracking: any interaction lifts the menu 30 Hz
+        // cap for the next ~half second. Capture phase + passive so nothing
+        // downstream is affected; events fire before rAF, so the very next
+        // paint after a tap is always full-rate.
+        const noteInteraction = () => { this.lastInteractionAt = performance.now(); };
+        for (const type of ['pointerdown', 'pointermove', 'touchstart', 'touchmove', 'wheel', 'keydown']) {
+            window.addEventListener(type, noteInteraction, { capture: true, passive: true });
+        }
     }
 
     setupCanvas() {
@@ -452,6 +476,15 @@ export class Game {
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
+    // Frame pacing has per-screen state (EMA + shift detector). Reset it at
+    // screen changes, on tab return, and after governor idling so a stale
+    // smoothed delta can never bleed into a fresh run as a speed transient.
+    resetFramePacing(now = performance.now()) {
+        this.lastTime = now;
+        this.smoothFrame = null;
+        this.frameShiftRun = 0;
+    }
+
     gameLoop(ts) {
         // Only run the game loop if the tab is visible
         if (!document.hidden) {
@@ -461,6 +494,34 @@ export class Game {
             // one long frame that visibly sped up obstacle spin. The rAF
             // timestamp is fixed by the frame's vsync, so the tap can't move it.
             const currentTime = ts ?? performance.now();
+
+            // Screen change: pacing state from the old screen (e.g. a menu
+            // idling at 30 Hz) must not seed the new one's motion.
+            if (this.pacedScreen !== this.appScreen) {
+                this.pacedScreen = this.appScreen;
+                this.resetFramePacing(currentTime);
+            }
+
+            // Idle governor: non-gameplay screens repaint at ~30 Hz once the
+            // player stops interacting. Menus animate gently (ship preview),
+            // so this is invisible — but it halves fill-rate and CPU while
+            // people sit on menus, which keeps the phone cool. On iPhone,
+            // heat is what eventually throttles mid-run smoothness, so the
+            // cheapest butter for the run is not spending it on the menu.
+            // Any input lifts the cap instantly (the event fires before rAF),
+            // so taps and scroll-drags always see full refresh.
+            if (this.appScreen !== 'playing' && this.appScreen !== 'gameover') {
+                const idleMs = currentTime - (this.lastInteractionAt ?? 0);
+                const sinceDraw = currentTime - (this.lastGovernedDraw ?? 0);
+                if (idleMs > 450 && sinceDraw < 30) {
+                    // Skip this paint. Leave lastTime alone so the next worked
+                    // frame sees the true elapsed time (motion stays correct).
+                    this.scheduleNextFrame();
+                    return;
+                }
+                this.lastGovernedDraw = currentTime;
+            }
+
             const elapsedMs = currentTime - this.lastTime;
 
             const flags = this.perfFlags;
@@ -482,10 +543,32 @@ export class Game {
                 // filter has unity DC gain, so there's no long-term drift. Steady
                 // high-refresh displays (desktop) are already even, so this is a
                 // near no-op there. FRAME_SMOOTH: higher = snappier/less filtered.
+                //
+                // Adaptive twist: a slow filter is right for stochastic jitter
+                // (alternating 8/16 ms flips sign every frame), but wrong for a
+                // *sustained* rate change — thermal 120→60 or Low Power 60→30
+                // used to leave the game running at the wrong speed for ~25
+                // frames while the EMA crawled over. Detect "same side of the
+                // filter, persistently, by a lot" and converge fast; noise
+                // never trips it because its sign alternates.
                 const FRAME_SMOOTH = 0.18;
-                this.smoothFrame = this.smoothFrame == null
-                    ? rawFrame
-                    : this.smoothFrame + (rawFrame - this.smoothFrame) * FRAME_SMOOTH;
+                const FRAME_SNAP = 0.5;
+                // Seed guard: the frame right after a pacing reset has ~0
+                // elapsed; seeding the filter with it would play several
+                // slow-motion frames while it climbs back. Seed 60 Hz instead
+                // — the fast path corrects to the true rate within ~5 frames.
+                if (this.smoothFrame == null) {
+                    this.smoothFrame = rawFrame > 0.002 ? rawFrame : 1 / 60;
+                }
+                const frameDev = rawFrame - this.smoothFrame;
+                if (Math.abs(frameDev) > this.smoothFrame * 0.15) {
+                    const side = frameDev > 0 ? 1 : -1;
+                    this.frameShiftRun = (this.frameShiftRun ?? 0) * (Math.sign(this.frameShiftRun) === side ? 1 : 0) + side;
+                } else {
+                    this.frameShiftRun = 0;
+                }
+                const sustainedShift = Math.abs(this.frameShiftRun ?? 0) >= 4;
+                this.smoothFrame += frameDev * (sustainedShift ? FRAME_SNAP : FRAME_SMOOTH);
                 const frameTime = this.smoothFrame;
                 this.tickScale = frameTime * this.snappyHz;
                 this.dt = (1 / 60) * this.tickScale;
