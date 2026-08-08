@@ -28,11 +28,10 @@
 > when nothing is stored. Dark: charcoal paper, bone ink, vivid mint (`#3DFF9A`).
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
-> **BUILD 24 (Android store):** Web gameplay sync into native (frame pacing,
-> themes, wall boost, logbook, ships, leaderboard). `UNLOCK_ALL_SKINS = false`
+> **BUILD 25 (Android store):** Premium ships IAP + menu browse/buy. `UNLOCK_ALL_SKINS = false`
 > for store — only Focus/Flicker/Ember free; all other ships gated via RevenueCat.
-> Menu stamp `BUILD 24 · NATIVE` /
-> `WEB`. versionCode **24** / versionName **1.0.24**.
+> Menu stamp `BUILD 25 · NATIVE` /
+> `WEB`. versionCode **25** / versionName **1.0.25**.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
@@ -707,7 +706,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
   playfield edges read on desktop (centered, max-width 500px, 2:3). Mobile fills
   the safe area with the charcoal stage; bone ink shows in notch / home-indicator
   insets. `theme-color` matches the bone surround. Native status bar uses
-  `Style.Dark` + charcoal background. Menu stamp: `BUILD 24 · NATIVE` / `WEB`.
+  `Style.Dark` + charcoal background. Menu stamp: `BUILD 25 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
