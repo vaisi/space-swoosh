@@ -3,6 +3,9 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
+// - playCueVoice / playFirstBoopVoice / playSwooshVoice for Journey session
+//   cues (first-boop.mp3, swoosh-voice.mp3); shares the level-voice slot
+//   (duck, mute, replace, leave/crash stop via stopLevelVoice).
 // - playLevelVoice / stopLevelVoice for Journey levels 1–40 navigator MP3s
 //   under /sounds/voice/; ducks BGM while speaking; honors mute.
 // - playTurn / playMove use pre-decoded Web Audio buffer sources (no HTMLAudio
@@ -200,6 +203,25 @@ export class SoundManager {
     }
 
     /**
+     * Play a navigator MP3 under /sounds/voice/. Replaces any current clip
+     * without firing its onEnded. Ducks BGM; no-op when muted / uninitialized.
+     * @param {string} fileName e.g. 'level-1.mp3' or 'first-boop.mp3'
+     * @param {{ onEnded?: () => void }} [opts]
+     */
+    playCueVoice(fileName, opts = {}) {
+        const name = String(fileName || '').replace(/^\/+/, '');
+        this.playVoiceUrl(`/sounds/voice/${name}`, opts, name);
+    }
+
+    playFirstBoopVoice(opts = {}) {
+        this.playCueVoice('first-boop.mp3', opts);
+    }
+
+    playSwooshVoice(opts = {}) {
+        this.playCueVoice('swoosh-voice.mp3', opts);
+    }
+
+    /**
      * Play navigator line for Journey levels 1–40. No-op outside that range,
      * when muted, or when the clip fails to load.
      * @param {number} level
@@ -207,6 +229,21 @@ export class SoundManager {
      */
     playLevelVoice(level, opts = {}) {
         const n = Math.floor(Number(level) || 0);
+        if (n < VOICE_LEVEL_MIN || n > VOICE_LEVEL_MAX) {
+            this.stopLevelVoice({ notify: false });
+            this.onLevelVoiceEnded = typeof opts.onEnded === 'function' ? opts.onEnded : null;
+            this.notifyLevelVoiceEnded();
+            return;
+        }
+        this.playCueVoice(`level-${n}.mp3`, opts);
+    }
+
+    /**
+     * @param {string} url
+     * @param {{ onEnded?: () => void }} [opts]
+     * @param {string} [label] for warn logs
+     */
+    playVoiceUrl(url, opts = {}, label = 'voice') {
         // Replace without firing the previous clip's onEnded.
         this.stopLevelVoice({ notify: false });
         this.onLevelVoiceEnded = typeof opts.onEnded === 'function' ? opts.onEnded : null;
@@ -215,13 +252,9 @@ export class SoundManager {
             this.notifyLevelVoiceEnded();
             return;
         }
-        if (n < VOICE_LEVEL_MIN || n > VOICE_LEVEL_MAX) {
-            this.notifyLevelVoiceEnded();
-            return;
-        }
 
         try {
-            const voice = new Audio(`/sounds/voice/level-${n}.mp3`);
+            const voice = new Audio(url);
             voice.volume = VOICE_VOLUME;
             voice.muted = this.muted;
             this.levelVoice = voice;
@@ -238,23 +271,28 @@ export class SoundManager {
 
             voice.addEventListener('ended', finish);
             voice.addEventListener('error', () => {
-                console.warn(`Level voice missing or failed: level-${n}.mp3`);
+                console.warn(`Voice missing or failed: ${label}`);
                 finish();
             });
 
             const playPromise = voice.play();
             if (playPromise !== undefined) {
                 playPromise.catch((error) => {
-                    console.error('Error playing level voice:', error);
+                    console.error('Error playing voice:', error);
                     finish();
                 });
             }
         } catch (error) {
-            console.error('Error in playLevelVoice:', error);
+            console.error('Error in playVoiceUrl:', error);
             this.levelVoicePlaying = false;
             this.restoreBgmAfterVoice();
             this.notifyLevelVoiceEnded();
         }
+    }
+
+    /** Alias — cue clips share the level-voice slot. */
+    stopCueVoice(opts = {}) {
+        this.stopLevelVoice(opts);
     }
 
     /**

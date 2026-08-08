@@ -3,12 +3,23 @@
 // lines (1–40). Source prose also lives in docs/spaceswoosh_signal_story.md;
 // this module is what the runtime imports so we do not parse markdown in-game.
 // Changes:
+// - FIRST_BOOP_BEATS: session-once Journey sidewall cue text (+ 0.4s gap).
 // - L38 three beats; L36 “first to search”; L31 “has a name”; L30 Fascinating.
 // - THE REPLY arc: lore + LEVEL_MESSAGES[6..40] (Earth / Sol). L1–5 unchanged.
 // - LEVEL_INTRO_BEATS expanded to 6–40 as { text, gapAfterMs } from ElevenLabs
 //   <break> tags; L1–5 stay string beats (default gap).
 
 /** @typedef {{ text: string, gapAfterMs?: number }} IntroBeat */
+
+/**
+ * On-screen beats for the first Journey wall BOOP of an app session
+ * (matches First-boop-voice.mp3 / first-boop.mp3).
+ * @type {IntroBeat[]}
+ */
+export const FIRST_BOOP_BEATS = [
+    { text: 'The walls forgive.', gapAfterMs: 400 },
+    { text: 'Little else out here does.', gapAfterMs: 400 },
+];
 
 /** Full-screen lore shown once before the Journey map. */
 export const PRE_LEVEL_1_LORE =

@@ -15,6 +15,8 @@
 > Open World high scores are online (call sign, ship, + distance; board top 100).
 > Auto call-sign prompt only for top 10; Submit Score stays available anytime.
 > Your Open World personal best and Journey progress stay on your device.
+> Journey also plays short session voice cues on your first wall BOOP and on
+> each Style Swoosh (swoosh is voice-only).
 >
 > **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
@@ -166,8 +168,8 @@ earned; an outlined one is still open.
 
 ## Clearing a level
 
-As you near the end of a Journey level a finish line fades in ahead of you —
-a dotted rule with blue end ticks. Fly through it.
+As you near the end of a Journey level a finish gate fades in ahead of you —
+a bright blue energy stream between two wall emitters. Fly through it.
 
 Cross the goal and the game takes over. A shield snaps on, there's a short beat
 to take it in, then the ship keeps the lean you had and hyperspeeds off the top
@@ -238,7 +240,10 @@ more.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
 to the wall, not on it), a soft space-boop sound, and a light phone buzz on
-devices that support haptics.
+devices that support haptics. In Journey, the first wall touch of a session also
+plays a short navigator line on screen (“The walls forgive…”). Threading a tight
+gap for a Style Swoosh plays a short voice cue with no extra caption (you still
+see the usual style points).
 
 Pulse and Quill are store unlocks on the apps (IAP); Nyan, Ink, and the rest of
 the roster are free.

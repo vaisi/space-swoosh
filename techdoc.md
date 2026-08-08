@@ -11,9 +11,11 @@
 > sparkles → shields). Per-level intro lines come from `LEVEL_MESSAGES`; all levels
 > use `LEVEL_INTRO_BEATS` (one sentence at a time; L6+ carry `gapAfterMs` from
 > ElevenLabs breaks). Navigator MP3s for levels **1–40** in
-> `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`. Story arc
-> retraces an ancient call toward Sol / Earth (payload: WE HEARD YOU).
-> Level logbook entries unlock to KNOWN on level start (intro heard).
+> `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`. Journey
+> session cues: `first-boop.mp3` (first sidewall hit per app session + milestone
+> beats from `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3` (every style swoosh,
+> voice only). Story arc retraces an ancient call toward Sol / Earth (payload:
+> WE HEARD YOU). Level logbook entries unlock to KNOWN on level start (intro heard).
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
 > (random L/R, ~22s) only after `wallBoostsFromScore` (12000 KM). Collect →
@@ -122,7 +124,7 @@ game build env. Journey progress and Open World personal best stay in
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
-| `config/JourneyNarrative.js` | THE REPLY story: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`). |
+| `config/JourneyNarrative.js` | THE REPLY story: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`. |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
@@ -149,10 +151,10 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. |
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
-| `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
-| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. |
+| `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. Journey: also `playSwooshVoice()` (no caption). |
+| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. Journey: first hit per session → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey levels 1–40: `playLevelVoice` / `stopLevelVoice` for `/sounds/voice/level-N.mp3` (ducks BGM; respects mute). |
+| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` (shared slot; ducks BGM; `stopLevelVoice` / `stopCueVoice`; respects mute). |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -310,7 +312,8 @@ navigator line is the teach beat. Full intro copy comes from
 on-screen beats come from `LEVEL_INTRO_BEATS` (sentence-at-a-time for all
 levels; L6+ include ElevenLabs `gapAfterMs`). Copy matches THE REPLY narrator
 script (SSML/stage directions stripped). Voice clips:
-`public/sounds/voice/level-1.mp3` … `level-40.mp3`.
+`public/sounds/voice/level-1.mp3` … `level-40.mp3`. Session cues:
+`first-boop.mp3`, `swoosh-voice.mp3` (sources under `assets/voice/`).
 
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
@@ -406,8 +409,8 @@ heading) and hyperspeeds off at that angle — no centre ease:
 | `fadeOut` | `worldAlpha` 1→0 over 385ms; `hudAlpha` goes 1.6× faster | The fade completes |
 | `screenIn` | Drives `game.gameOverAlpha` 0→1 over 420ms | Alpha reaches 1 |
 
-Journey also draws a world-space finish line (`Game.renderFinishLine`): a dotted
-rule with Signal-Blue end ticks that fades in within ~2 screens of the ship and
+Journey also draws a world-space finish gate (`Game.renderFinishLine`): a
+Signal-Blue jet stream between minimal left/right wall emitters that fades in within ~2 screens of the ship and
 locks to `finishLineWorldY` when the goal is crossed so the flyout can pass
 through a fixed mark.
 

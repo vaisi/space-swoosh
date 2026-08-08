@@ -3,6 +3,8 @@
 // StyleSwooshManager's popup lifecycle, but sits below the hull beside the
 // wall (never overlapping ship or edge) — label only, no glow / blot.
 // Changes:
+// - Journey: first sidewall hit per app session plays first-boop voice and
+//   two milestone beats ("The walls forgive." / "Little else out here does.").
 // - Soft haptic tick on each boop (Cap ImpactStyle.Light / web vibrate 12ms),
 //   gated by the same 180 ms cooldown as the popup + SFX.
 // - Journey Logbook: instant unlock for Space BOOP on trigger.
@@ -12,10 +14,20 @@
 // - Created file: triggerBoop(ship, side), tickEffects, render.
 
 import { color } from '../brand/tokens.js';
+import { FIRST_BOOP_BEATS } from '../config/JourneyNarrative.js';
 import { hapticWallBoop } from '../native/index.js';
 import { setLabelType, resetType } from '../utils/BrandDraw.js';
 
 const LABEL = 'BOOP';
+
+const BEAT_FADE_IN = 350;
+const BEAT_FADE_OUT = 350;
+const HOLD_MS_PER_CHAR = 55;
+const HOLD_MS_MIN = 900;
+const HOLD_MS_MAX = 2800;
+
+/** Once per JS session (resets on full reload). */
+let firstBoopVoicePlayed = false;
 
 /** Half-width of the BOOP label at the size we paint it (wide tracking). */
 function labelHalfWidth(unit) {
@@ -24,11 +36,22 @@ function labelHalfWidth(unit) {
     return fontPx * (4 * 0.72 + 3 * 0.18) * 0.5;
 }
 
+function holdForBeat(text) {
+    const len = String(text || '').length;
+    return Math.max(HOLD_MS_MIN, Math.min(HOLD_MS_MAX, Math.round(len * HOLD_MS_PER_CHAR)));
+}
+
 export class WallBoopManager {
     constructor(game) {
         this.game = game;
         this.popups = [];
         this.cooldownUntil = 0;
+        /** @type {{ text: string, gapAfterMs: number }[]} */
+        this.cueBeats = [];
+        this.cueBeatIndex = 0;
+        this.cueGapUntil = 0;
+        this.cuePendingGapMs = 0;
+        this.cueWaitingForClear = false;
     }
 
     /** Keep a centred label fully inside the canvas. */
@@ -70,9 +93,77 @@ export class WallBoopManager {
         this.game.soundManager?.playBoop?.();
         hapticWallBoop();
         this.game.logbook?.onSpaceBoop?.();
+        this.maybePlayFirstBoopCue();
+    }
+
+    maybePlayFirstBoopCue() {
+        if (firstBoopVoicePlayed) return;
+        if (!this.game.isJourney?.()) return;
+
+        firstBoopVoicePlayed = true;
+        this.game.soundManager?.playFirstBoopVoice?.();
+
+        this.cueBeats = FIRST_BOOP_BEATS.map((b) => ({
+            text: String(b.text || '').trim(),
+            gapAfterMs: Number.isFinite(b.gapAfterMs) ? b.gapAfterMs : 400,
+        })).filter((b) => b.text);
+        this.cueBeatIndex = 0;
+        this.cueGapUntil = 0;
+        this.cuePendingGapMs = 0;
+        this.cueWaitingForClear = false;
+        this.showNextCueBeat();
+    }
+
+    showNextCueBeat() {
+        if (this.cueBeatIndex >= this.cueBeats.length) {
+            this.cueBeats = [];
+            this.cueWaitingForClear = false;
+            return;
+        }
+        const beat = this.cueBeats[this.cueBeatIndex];
+        this.cueBeatIndex += 1;
+        this.cuePendingGapMs = beat.gapAfterMs;
+        this.cueWaitingForClear = true;
+        this.game.milestoneManager?.showMessage?.(beat.text, {
+            fadeIn: BEAT_FADE_IN,
+            hold: holdForBeat(beat.text),
+            fadeOut: BEAT_FADE_OUT,
+        });
+    }
+
+    tickCueBeats() {
+        if (!this.cueBeats.length && !this.cueWaitingForClear) return;
+
+        const now = performance.now();
+        const showing = !!this.game.milestoneManager?.currentMessage;
+
+        if (showing) {
+            this.cueWaitingForClear = true;
+            return;
+        }
+
+        if (this.cueWaitingForClear) {
+            this.cueWaitingForClear = false;
+            if (this.cueBeatIndex >= this.cueBeats.length) {
+                this.cueBeats = [];
+                return;
+            }
+            this.cueGapUntil = now + this.cuePendingGapMs;
+        }
+
+        if (this.cueBeatIndex >= this.cueBeats.length) {
+            this.cueBeats = [];
+            return;
+        }
+
+        if (this.cueGapUntil > 0 && now < this.cueGapUntil) return;
+        this.cueGapUntil = 0;
+        this.showNextCueBeat();
     }
 
     update() {
+        // Cue beats keep advancing while paused so the second line still lands.
+        this.tickCueBeats();
         if (this.game.isGameOver || this.game.isPaused) return;
         this.tickEffects();
     }
