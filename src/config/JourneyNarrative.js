@@ -3,6 +3,7 @@
 // lines (1–40). Source prose also lives in docs/spaceswoosh_signal_story.md;
 // this module is what the runtime imports so we do not parse markdown in-game.
 // Changes:
+// - L7 on-screen/logbook: “We're retracing…” (matches spoken line).
 // - THE REPLY arc: lore + LEVEL_MESSAGES[6..40] (Earth / Sol). L1–5 unchanged.
 // - LEVEL_INTRO_BEATS expanded to 6–40 as { text, gapAfterMs } from ElevenLabs
 //   <break> tags; L1–5 stay string beats (default gap).
@@ -30,7 +31,7 @@ export const LEVEL_MESSAGES = {
     4: 'See the blue light? Take it. It will help us hold the signal together.',
     5: 'Take the shield. For a few seconds... you can survive what should stop you.',
     6: 'Good. You can fly. Now let\'s find whoever called us.',
-    7: 'You\'re retracing the signal\'s path. The old relay lanes fold the distance for us.',
+    7: 'We\'re retracing the signal\'s path. The old relay lanes fold the distance for us.',
     8: 'The transmission crossed thousands of systems. Most of it didn\'t survive.',
     9: 'There\'s an old relay ahead. Pass close. It may still remember part of the signal.',
     10: 'It does. A sequence of prime numbers. Someone wanted us to know this wasn\'t noise.',
@@ -83,7 +84,7 @@ export const LEVEL_INTRO_BEATS = {
         { text: 'Now let\'s find whoever called us.' },
     ],
     7: [
-        { text: 'You\'re retracing the signal\'s path.', gapAfterMs: 500 },
+        { text: 'We\'re retracing the signal\'s path.', gapAfterMs: 500 },
         { text: 'The old relay lanes fold the distance for us.' },
     ],
     8: [

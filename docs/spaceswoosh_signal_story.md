@@ -79,7 +79,7 @@ The emotional ending is not about saving the universe. It is about answering —
 > **Good. You can fly. Now let's find whoever called us.**
 
 ### Level 7
-> **You're retracing the signal's path. The old relay lanes fold the distance for us.**
+> **We're retracing the signal's path. The old relay lanes fold the distance for us.**
 
 ### Level 8
 > **The transmission crossed thousands of systems. Most of it didn't survive.**
