@@ -3,6 +3,8 @@
 // StyleSwooshManager's popup lifecycle, but sits below the hull beside the
 // wall (never overlapping ship or edge) — label only, no glow / blot.
 // Changes:
+// - First-boop cue waits until level intro voice / title phase are done so it
+//   never overlaps LEVEL N audio (hits during intro are ignored for the cue).
 // - Journey: first sidewall hit per app session plays first-boop voice and
 //   two milestone beats ("The walls forgive." / "Little else out here does.").
 // - Soft haptic tick on each boop (Cap ImpactStyle.Light / web vibrate 12ms),
@@ -96,9 +98,21 @@ export class WallBoopManager {
         this.maybePlayFirstBoopCue();
     }
 
+    /** True while Journey level-intro voice or title beats still own the NAV channel. */
+    isLevelIntroVoiceBlocking() {
+        if (this.game.hudRevealPhase === 'title') return true;
+        if (this.game.introNarration?.active) return true;
+        // Shared voice slot: while LEVEL N (or any navigator clip) is speaking,
+        // do not start first-boop (would cut the intro short).
+        if (this.game.soundManager?.isLevelVoicePlaying?.()) return true;
+        return false;
+    }
+
     maybePlayFirstBoopCue() {
         if (firstBoopVoicePlayed) return;
         if (!this.game.isJourney?.()) return;
+        // Wall hits during LEVEL N voice / title are not tracked for this cue.
+        if (this.isLevelIntroVoiceBlocking()) return;
 
         firstBoopVoicePlayed = true;
         this.game.soundManager?.playFirstBoopVoice?.();

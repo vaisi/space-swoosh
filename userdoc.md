@@ -240,10 +240,10 @@ more.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
 to the wall, not on it), a soft space-boop sound, and a light phone buzz on
-devices that support haptics. In Journey, the first wall touch of a session also
-plays a short navigator line on screen (“The walls forgive…”). Threading a tight
-gap for a Style Swoosh plays a short voice cue with no extra caption (you still
-see the usual style points).
+devices that support haptics. In Journey, the first wall touch of a session
+(after the level’s opening voice finishes) also plays a short navigator line on
+screen (“The walls forgive…”). Threading a tight gap for a Style Swoosh plays a
+short voice cue with no extra caption (you still see the usual style points).
 
 Pulse and Quill are store unlocks on the apps (IAP); Nyan, Ink, and the rest of
 the roster are free.

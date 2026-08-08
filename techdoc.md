@@ -152,7 +152,7 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. Journey: also `playSwooshVoice()` (no caption). |
-| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. Journey: first hit per session → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
+| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. Journey: first hit per session (only after LEVEL N intro voice/title finishes) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` (shared slot; ducks BGM; `stopLevelVoice` / `stopCueVoice`; respects mute). |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
