@@ -1,17 +1,16 @@
-# Space Swoosh — Signal Story
+# Space Swoosh — Signal Story (THE REPLY)
 
 ## Core setup
 
-You are a small carrier moving through deep space with a signal inside you.
+You are a small carrier moving through deep space with a signal inside you — an answer, going home along the path the call came from.
 
-A calm robotic woman guides you from the beginning. She speaks directly to **you**, in second person. At first she is clean, competent, friendly, and slightly dry. As the journey continues, she becomes more personal, begins remembering things she should not remember, and eventually discovers that she is part of the mystery herself.
+A calm navigation voice (**NAV**) guides you from the beginning. She speaks directly to **you**, in second person. Early on she is warm, curious, and lightly dry. Mid-journey she becomes intrigued by whoever sent the transmission. Later she grows unsettled as the age of the signal becomes clear — and the destination turns out to be a place you may already know.
 
 The story is delivered very lightly:
 
 - One short lore screen before Level 1.
-- One spoken line at the beginning of each level.
+- One spoken line at the beginning of each level (often a few short sentences, shown one at a time).
 - No mid-level dialogue.
-- The line may contain two short sentences, but should feel like one compact transmission.
 - Early lines teach the player naturally.
 - Later lines increasingly advance the story.
 - BOOP, haptics, sound, portals, shields, black holes, movement, scoring, and the Logbook remain part of the world without needing constant explanation.
@@ -20,7 +19,7 @@ The story is delivered very lightly:
 
 # Pre-Level 1 Lore Screen
 
-> **Something called out from very far away. Much later, something answered. You are carrying that answer across the dark. Node Zero is ahead. Keep moving. The voice knows the way.**
+> **Something called out from very far away. Much later, something answered. You are carrying that answer back along the path it came. Keep moving... and listen to the voice.**
 
 **CONTINUE**
 
@@ -32,30 +31,30 @@ At first, the player believes:
 
 - A distant signal was received.
 - Someone answered it.
-- The player is carrying that reply to **NODE ZERO**.
-- The robotic woman is simply the navigation voice assigned to the carrier.
+- The player is carrying that reply back along the old relay path.
+- NAV is simply the navigation voice assigned to the carrier.
 
 As the journey continues:
 
-- The player finds wreckage from earlier carriers.
-- The voice admits there were many attempts before this one.
-- She remembers those carriers even though she should have been reset each time.
-- Node Zero stops looking like a normal receiver.
-- It appears to contain millions of old, unanswered signals.
-- The voice discovers an identifier inside Node Zero that matches her own.
-- She realizes she is a fragment of Node Zero, placed with the carrier so that something would always know the way back.
-- The signal the player carries is finally revealed to be only a few words: **We heard you.**
-- Delivering it will wake Node Zero and send that answer back along the stored paths of countless signals that called into the dark and never received a response.
-- Waking Node Zero also means the small, individual version of the voice who has accompanied the player will merge back into something much larger.
-- She does not know whether she will still be herself.
+- Old relays still remember fragments of the original transmission.
+- The senders used primes, described their ordinary yellow star, eight planets, a third world of ocean and one moon.
+- They sent pictures, faces, and even music.
+- NAV finishes dating the transmission: it was already more than a million years old when received.
+- No later signals appear along the route. A civilization that loud should have left more.
+- Anatomy and landscapes resolve — upright bipeds, five digits, blue sky, green vegetation.
+- Their star had a one-syllable name: **Sol**. Their planet: **Earth**.
+- NAV did not know that name. It isn't theirs. Humans searched the stars first.
+- Sol is quiet. Earth is still there. Whoever sent the message is not.
+- You arrived a million years too late — and carry the answer home anyway.
+- The payload is only a few words: **WE HEARD YOU.**
 
-The emotional ending is not about saving the universe. It is about answering.
+The emotional ending is not about saving the universe. It is about answering — even when the callers are gone.
 
 ---
 
 # Level Messages
 
-## 1–6 — Learning to Move
+## 1–5 — Learning to Move
 
 ### Level 1
 > **There you are. Tap once. Let me see you turn.**
@@ -72,139 +71,144 @@ The emotional ending is not about saving the universe. It is about answering.
 ### Level 5
 > **Take the shield. For a few seconds... you can survive what should stop you.**
 
-### Level 6
-> **Good. You know enough to keep going. I'll stay with you.**
-
 ---
 
-## 7–13 — The Signal
+## 6–12 — The Journey
+
+### Level 6
+> **Good. You can fly. Now let's find whoever called us.**
 
 ### Level 7
-> **You're carrying a reply to Node Zero. It has been waiting a very long time.**
+> **You're retracing the signal's path. The old relay lanes fold the distance for us.**
 
 ### Level 8
-> **The signal that started this came from beyond the mapped network. Someone wanted to be heard.**
+> **The transmission crossed thousands of systems. Most of it didn't survive.**
 
 ### Level 9
-> **That gap is tight. You can take the safe route... or show me what you can do.**
+> **There's an old relay ahead. Pass close. It may still remember part of the signal.**
 
 ### Level 10
-> **Relay ahead. Pass through it... and I'll find you on the other side.**
+> **It does. A sequence of prime numbers. Someone wanted us to know this wasn't noise.**
 
 ### Level 11
-> **There you are. I knew the relay would work.**
+> **They were trying very hard... not to be missed.**
 
 ### Level 12
-> **The original transmission was mostly mathematics. A careful way to say hello.**
+> **I like them already. Keep going.**
+
+---
+
+## 13–19 — The Message
 
 ### Level 13
-> **Another fragment. Coordinates. They wanted us to know where they were.**
-
----
-
-## 14–21 — The Others
+> **Another relay. This fragment describes their star. Yellow. Ordinary. Stable.**
 
 ### Level 14
-> **Wreckage ahead. Give it room. It was carrying the same reply you are.**
+> **Eight planets. They lived on the third.**
 
 ### Level 15
-> **Yes. There were others before you. None of them reached Node Zero.**
+> **Mostly ocean. One moon. A thin little atmosphere.**
 
 ### Level 16
-> **Keep the shield if you can. I don't want to begin again.**
+> **They sent pictures too. The encoding is damaged... but I'm working on it.**
 
 ### Level 17
-> **You heard that correctly. I said... again.**
+> **There are buildings. Machines. Faces, I think.**
 
 ### Level 18
-> **There were many carriers before you. I guided every one.**
+> **And music. They put music in a message to strangers.**
 
 ### Level 19
-> **I shouldn't remember them. I was meant to forget after each loss.**
+> **That may be my favourite thing about them.**
+
+---
+
+## 20–26 — Too Old
 
 ### Level 20
-> **But I remember one missing that turn. I remember another taking the safe gap.**
+> **I've finished dating the transmission. There's a problem.**
 
 ### Level 21
-> **You're the first one to make me wonder... why I remember at all.**
-
----
-
-## 22–29 — The Dark Reach
+> **It was already more than a million years old... when we received it.**
 
 ### Level 22
-> **Black hole ahead. Turn early. I lost one there.**
+> **Don't stop. Old doesn't mean gone. Not necessarily.**
 
 ### Level 23
-> **The route past this point isn't in my maps. Keep going anyway.**
+> **No later transmissions appear anywhere along the route.**
 
 ### Level 24
-> **I found something in the old relay logs. Node Zero has never sent a delivery receipt.**
+> **A civilization loud enough to send this... should have left something else behind.**
 
 ### Level 25
-> **That should worry me as a system. It worries me differently.**
+> **I'm searching. Keep flying.**
 
 ### Level 26
-> **We're close enough now. I can reach Node Zero from here.**
+> **Nothing.**
+
+---
+
+## 27–32 — Who Were They
 
 ### Level 27
-> **I'm reading the archive while you fly. Keep your eyes on the field... this stretch takes carriers.**
+> **I recovered part of their anatomy. Two arms. Two legs. Upright.**
 
 ### Level 28
-> **Millions of signals. Unopened. Unanswered. Still waiting.**
+> **Five digits on each hand. Rather useful design, actually.**
 
 ### Level 29
-> **Every one of them came from somewhere... that wanted to know it wasn't alone.**
-
----
-
-## 30–35 — Node Zero
+> **Another image cleared. Blue sky. Green vegetation. White clouds.**
 
 ### Level 30
-> **There's an identifier inside the archive... that matches mine.**
+> **I found their name for the planet. Translation is still resolving.**
 
 ### Level 31
-> **I am not only your navigator. I am a fragment of Node Zero.**
+> **Their star had a name too. One syllable.**
 
 ### Level 32
-> **They put a piece of it with every carrier... so something would always know the way home.**
-
-### Level 33
-> **I know what you're carrying now. It is much smaller than I expected.**
-
-### Level 34
-> **Three words. That's the whole signal. We heard you.**
-
-### Level 35
-> **Node Zero remembers where every call came from. Wake it... and those words go back to all of them.**
+> **Sol. They called it Sol.**
 
 ---
 
-## 36–40 — Home
+## 33–36 — Earth
+
+### Level 33
+> **The planet was called Earth.**
+
+### Level 34
+> **You knew that name... didn't you?**
+
+### Level 35
+> **I didn't. It isn't ours.**
 
 ### Level 36
-> **There is one more thing. When Node Zero wakes... this version of me returns to it.**
+> **We weren't the ones searching the stars first. They were.**
+
+---
+
+## 37–40 — The Homecoming
 
 ### Level 37
-> **I don't know whether I'll still be me after that.**
+> **Sol is ahead. No artificial signals. No active structures.**
 
 ### Level 38
-> **You've carried me farther than any of the others. I would still like you to finish.**
+> **Earth is still there. Whatever sent the message... is not.**
 
 ### Level 39
-> **Node Zero is ahead. I can't tell you what happens to me when you touch it.**
+> **We came a million years too late. Carry the answer anyway.**
 
 ### Level 40
-> **You're at the end. Whatever happens next... thank you for bringing me home.**
+> **There it is. Take their answer home.**
+
 ---
 
 # Level 40 Ending Beat
 
-The player finishes the final run and reaches Node Zero.
+The player finishes the final run and reaches the destination.
 
 No long cinematic is necessary.
 
-The carrier touches the destination.
+The carrier delivers the payload.
 
 **BOOP.**
 
@@ -212,17 +216,22 @@ The strongest haptic in the game.
 
 Silence.
 
-Then tiny lights begin appearing throughout the dark — first a few, then hundreds, then thousands. Old routes come alive as Node Zero begins returning the signal along paths that have been silent for ages.
-
 On screen:
 
+> **WE HEARD YOU**  
 > **SIGNAL SENT**
 
 A pause.
 
-Then the same woman’s voice returns, now sounding larger and farther away.
+Then NAV, quieter:
 
-> **I remember you.**
+> **I'm sorry they never knew.**
+
+Receiver lights stir behind you.
+
+> **Oh.**
+
+> **We weren't... the only ones who answered.**
 
 Cut to title.
 
@@ -230,26 +239,27 @@ Cut to title.
 
 # Voice Direction
 
-The woman should never sound theatrical or mystical.
+NAV should never sound theatrical or mystical.
 
-### Early
-Precise, calm, friendly, lightly robotic.
+### Early (L1–19)
+Curious, warm, soft late-night operator.
 
-> “There you are. Tap once. Let me see you turn.”
+> “I like them already. Keep going.”
 
-### Middle
-Still controlled, but increasingly personal.
+### Middle (L20–32)
+Still controlled, increasingly unsettled.
 
-> “I don’t want to begin again.”
+> “I've finished dating the transmission. There's a problem.”
 
-### Late
-She remains restrained even when frightened.
+### Late (L33–40)
+Restrained even when the truth lands.
 
-> “I don’t know whether I’ll still be me after that.”
+> “We came a million years too late. Carry the answer anyway.”
 
 The emotion comes from **small cracks in a voice that is trying to stay functional**, not from speeches.
 
 Avoid:
+
 - grand destiny language
 - “chosen one” framing
 - excessive exposition
@@ -257,29 +267,28 @@ Avoid:
 - generic mission-control jargon
 - constant jokes
 
-The dry humor should fade naturally as the story darkens.
-
 ---
 
 # Story Principle
 
 The player should initially think this is a small, charming space journey:
 
-**Carry the signal. Follow the voice. Reach Node Zero.**
+**Carry the answer. Follow the voice. Find whoever called.**
 
 Then the meaning gradually changes:
 
 **Someone called.**  
-→ **Others tried to answer.**  
-→ **They all failed.**  
-→ **Your guide remembers them.**  
-→ **Node Zero is not what you thought.**  
-→ **Your guide comes from Node Zero.**  
-→ **Millions of calls are still waiting there.**  
-→ **The answer you carried across the entire game is only: We heard you.**
+→ **Relays still remember fragments.**  
+→ **They sent primes, pictures, music.**  
+→ **The message is a million years old.**  
+→ **No one answered after.**  
+→ **Their star was Sol.**  
+→ **Their world was Earth.**  
+→ **You knew. NAV didn't.**  
+→ **They searched first.**  
+→ **You arrived too late — and answered anyway.**  
+→ **The whole payload is: WE HEARD YOU.**
 
-And the final emotional question becomes:
+And the final emotional beat:
 
-**Will the voice who helped you answer everyone else still remember you afterward?**
-
-She does.
+**Even if they never knew — others answered too.**

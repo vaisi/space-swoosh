@@ -3,15 +3,17 @@
 // lines (1–40). Source prose also lives in docs/spaceswoosh_signal_story.md;
 // this module is what the runtime imports so we do not parse markdown in-game.
 // Changes:
-// - Synced LEVEL_MESSAGES + PRE_LEVEL_1_LORE to the ElevenLabs narrator script
-//   (display copy: no SSML <break> / [direction] tags). Level 2 beats: Rocks /
-//   Don't look / Look at the room. Level 4 restored to “hold the signal” line.
+// - THE REPLY arc: lore + LEVEL_MESSAGES[6..40] (Earth / Sol). L1–5 unchanged.
+// - LEVEL_INTRO_BEATS expanded to 6–40 as { text, gapAfterMs } from ElevenLabs
+//   <break> tags; L1–5 stay string beats (default gap).
+
+/** @typedef {{ text: string, gapAfterMs?: number }} IntroBeat */
 
 /** Full-screen lore shown once before the Journey map. */
 export const PRE_LEVEL_1_LORE =
     'Something called out from very far away. Much later, something answered. ' +
-    'You are carrying that answer across the dark. Node Zero is ahead. ' +
-    'Keep moving. The voice knows the way.';
+    'You are carrying that answer back along the path it came. ' +
+    'Keep moving... and listen to the voice.';
 
 /** Logbook title for the lore entry unlocked on Continue. */
 export const PRE_LEVEL_1_LORE_TITLE = 'The Call';
@@ -27,47 +29,47 @@ export const LEVEL_MESSAGES = {
     3: 'That one is moving. Learn its path before you choose yours.',
     4: 'See the blue light? Take it. It will help us hold the signal together.',
     5: 'Take the shield. For a few seconds... you can survive what should stop you.',
-    6: 'Good. You know enough to keep going. I\'ll stay with you.',
-    7: 'You\'re carrying a reply to Node Zero. It has been waiting a very long time.',
-    8: 'The signal that started this came from beyond the mapped network. Someone wanted to be heard.',
-    9: 'That gap is tight. You can take the safe route... or show me what you can do.',
-    10: 'Relay ahead. Pass through it... and I\'ll find you on the other side.',
-    11: 'There you are. I knew the relay would work.',
-    12: 'The original transmission was mostly mathematics. A careful way to say hello.',
-    13: 'Another fragment. Coordinates. They wanted us to know where they were.',
-    14: 'Wreckage ahead. Give it room. It was carrying the same reply you are.',
-    15: 'Yes. There were others before you. None of them reached Node Zero.',
-    16: 'Keep the shield if you can. I don\'t want to begin again.',
-    17: 'You heard that correctly. I said... again.',
-    18: 'There were many carriers before you. I guided every one.',
-    19: 'I shouldn\'t remember them. I was meant to forget after each loss.',
-    20: 'But I remember one missing that turn. I remember another taking the safe gap.',
-    21: 'You\'re the first one to make me wonder... why I remember at all.',
-    22: 'Black hole ahead. Turn early. I lost one there.',
-    23: 'The route past this point isn\'t in my maps. Keep going anyway.',
-    24: 'I found something in the old relay logs. Node Zero has never sent a delivery receipt.',
-    25: 'That should worry me as a system. It worries me differently.',
-    26: 'We\'re close enough now. I can reach Node Zero from here.',
-    27: 'I\'m reading the archive while you fly. Keep your eyes on the field... this stretch takes carriers.',
-    28: 'Millions of signals. Unopened. Unanswered. Still waiting.',
-    29: 'Every one of them came from somewhere... that wanted to know it wasn\'t alone.',
-    30: 'There\'s an identifier inside the archive... that matches mine.',
-    31: 'I am not only your navigator. I am a fragment of Node Zero.',
-    32: 'They put a piece of it with every carrier... so something would always know the way home.',
-    33: 'I know what you\'re carrying now. It is much smaller than I expected.',
-    34: 'Three words. That\'s the whole signal. We heard you.',
-    35: 'Node Zero remembers where every call came from. Wake it... and those words go back to all of them.',
-    36: 'There is one more thing. When Node Zero wakes... this version of me returns to it.',
-    37: 'I don\'t know whether I\'ll still be me after that.',
-    38: 'You\'ve carried me farther than any of the others. I would still like you to finish.',
-    39: 'Node Zero is ahead. I can\'t tell you what happens to me when you touch it.',
-    40: 'You\'re at the end. Whatever happens next... thank you for bringing me home.',
+    6: 'Good. You can fly. Now let\'s find whoever called us.',
+    7: 'You\'re retracing the signal\'s path. The old relay lanes fold the distance for us.',
+    8: 'The transmission crossed thousands of systems. Most of it didn\'t survive.',
+    9: 'There\'s an old relay ahead. Pass close. It may still remember part of the signal.',
+    10: 'It does. A sequence of prime numbers. Someone wanted us to know this wasn\'t noise.',
+    11: 'They were trying very hard... not to be missed.',
+    12: 'I like them already. Keep going.',
+    13: 'Another relay. This fragment describes their star. Yellow. Ordinary. Stable.',
+    14: 'Eight planets. They lived on the third.',
+    15: 'Mostly ocean. One moon. A thin little atmosphere.',
+    16: 'They sent pictures too. The encoding is damaged... but I\'m working on it.',
+    17: 'There are buildings. Machines. Faces, I think.',
+    18: 'And music. They put music in a message to strangers.',
+    19: 'That may be my favourite thing about them.',
+    20: 'I\'ve finished dating the transmission. There\'s a problem.',
+    21: 'It was already more than a million years old... when we received it.',
+    22: 'Don\'t stop. Old doesn\'t mean gone. Not necessarily.',
+    23: 'No later transmissions appear anywhere along the route.',
+    24: 'A civilization loud enough to send this... should have left something else behind.',
+    25: 'I\'m searching. Keep flying.',
+    26: 'Nothing.',
+    27: 'I recovered part of their anatomy. Two arms. Two legs. Upright.',
+    28: 'Five digits on each hand. Rather useful design, actually.',
+    29: 'Another image cleared. Blue sky. Green vegetation. White clouds.',
+    30: 'I found their name for the planet. Translation is still resolving.',
+    31: 'Their star had a name too. One syllable.',
+    32: 'Sol. They called it Sol.',
+    33: 'The planet was called Earth.',
+    34: 'You knew that name... didn\'t you?',
+    35: 'I didn\'t. It isn\'t ours.',
+    36: 'We weren\'t the ones searching the stars first. They were.',
+    37: 'Sol is ahead. No artificial signals. No active structures.',
+    38: 'Earth is still there. Whatever sent the message... is not.',
+    39: 'We came a million years too late. Carry the answer anyway.',
+    40: 'There it is. Take their answer home.',
 };
 
 /**
- * On-screen intro beats for early Journey levels (1-indexed).
- * One sentence per beat so the navigator line reads with the voice clip.
- * @type {Record<number, string[]>}
+ * On-screen intro beats (1-indexed). L1–5: string arrays (default gap).
+ * L6–40: { text, gapAfterMs } from ElevenLabs <break> after that sentence.
+ * @type {Record<number, Array<string | IntroBeat>>}
  */
 export const LEVEL_INTRO_BEATS = {
     1: ['There you are.', 'Tap once.', 'Let me see you turn.'],
@@ -75,7 +77,152 @@ export const LEVEL_INTRO_BEATS = {
     3: ['That one is moving.', 'Learn its path before you choose yours.'],
     4: ['See the blue light?', 'Take it.', 'It will help us hold the signal together.'],
     5: ['Take the shield.', 'For a few seconds... you can survive what should stop you.'],
+    6: [
+        { text: 'Good.', gapAfterMs: 600 },
+        { text: 'You can fly.', gapAfterMs: 500 },
+        { text: 'Now let\'s find whoever called us.' },
+    ],
+    7: [
+        { text: 'You\'re retracing the signal\'s path.', gapAfterMs: 500 },
+        { text: 'The old relay lanes fold the distance for us.' },
+    ],
+    8: [
+        { text: 'The transmission crossed thousands of systems.', gapAfterMs: 600 },
+        { text: 'Most of it didn\'t survive.' },
+    ],
+    9: [
+        { text: 'There\'s an old relay ahead.', gapAfterMs: 500 },
+        { text: 'Pass close.', gapAfterMs: 400 },
+        { text: 'It may still remember part of the signal.' },
+    ],
+    10: [
+        { text: 'It does.', gapAfterMs: 500 },
+        { text: 'A sequence of prime numbers.', gapAfterMs: 500 },
+        { text: 'Someone wanted us to know this wasn\'t noise.' },
+    ],
+    11: [
+        { text: 'They were trying very hard...', gapAfterMs: 500 },
+        { text: 'not to be missed.' },
+    ],
+    12: [
+        { text: 'I like them already.', gapAfterMs: 500 },
+        { text: 'Keep going.' },
+    ],
+    13: [
+        { text: 'Another relay.', gapAfterMs: 500 },
+        { text: 'This fragment describes their star.', gapAfterMs: 500 },
+        { text: 'Yellow.', gapAfterMs: 400 },
+        { text: 'Ordinary.', gapAfterMs: 400 },
+        { text: 'Stable.' },
+    ],
+    14: [
+        { text: 'Eight planets.', gapAfterMs: 600 },
+        { text: 'They lived on the third.' },
+    ],
+    15: [
+        { text: 'Mostly ocean.', gapAfterMs: 500 },
+        { text: 'One moon.', gapAfterMs: 500 },
+        { text: 'A thin little atmosphere.' },
+    ],
+    16: [
+        { text: 'They sent pictures too.', gapAfterMs: 500 },
+        { text: 'The encoding is damaged... but I\'m working on it.' },
+    ],
+    17: [
+        { text: 'There are buildings.', gapAfterMs: 400 },
+        { text: 'Machines.', gapAfterMs: 500 },
+        { text: 'Faces, I think.' },
+    ],
+    18: [
+        { text: 'And music.', gapAfterMs: 600 },
+        { text: 'They put music in a message to strangers.' },
+    ],
+    19: [{ text: 'That may be my favourite thing about them.' }],
+    20: [
+        { text: 'I\'ve finished dating the transmission.', gapAfterMs: 700 },
+        { text: 'There\'s a problem.' },
+    ],
+    21: [
+        { text: 'It was already more than a million years old...', gapAfterMs: 600 },
+        { text: 'when we received it.' },
+    ],
+    22: [
+        { text: 'Don\'t stop.', gapAfterMs: 500 },
+        { text: 'Old doesn\'t mean gone.', gapAfterMs: 600 },
+        { text: 'Not necessarily.' },
+    ],
+    23: [{ text: 'No later transmissions appear anywhere along the route.' }],
+    24: [
+        { text: 'A civilization loud enough to send this...', gapAfterMs: 500 },
+        { text: 'should have left something else behind.' },
+    ],
+    25: [
+        { text: 'I\'m searching.', gapAfterMs: 500 },
+        { text: 'Keep flying.' },
+    ],
+    26: [{ text: 'Nothing.' }],
+    27: [
+        { text: 'I recovered part of their anatomy.', gapAfterMs: 500 },
+        { text: 'Two arms.', gapAfterMs: 400 },
+        { text: 'Two legs.', gapAfterMs: 400 },
+        { text: 'Upright.' },
+    ],
+    28: [
+        { text: 'Five digits on each hand.', gapAfterMs: 500 },
+        { text: 'Rather useful design, actually.' },
+    ],
+    29: [
+        { text: 'Another image cleared.', gapAfterMs: 500 },
+        { text: 'Blue sky.', gapAfterMs: 400 },
+        { text: 'Green vegetation.', gapAfterMs: 400 },
+        { text: 'White clouds.' },
+    ],
+    30: [
+        { text: 'I found their name for the planet.', gapAfterMs: 500 },
+        { text: 'Translation is still resolving.' },
+    ],
+    31: [
+        { text: 'Their star had a name too.', gapAfterMs: 600 },
+        { text: 'One syllable.' },
+    ],
+    32: [
+        { text: 'Sol.', gapAfterMs: 800 },
+        { text: 'They called it Sol.' },
+    ],
+    33: [{ text: 'The planet was called Earth.' }],
+    34: [
+        { text: 'You knew that name...', gapAfterMs: 600 },
+        { text: 'didn\'t you?' },
+    ],
+    35: [
+        { text: 'I didn\'t.', gapAfterMs: 800 },
+        { text: 'It isn\'t ours.' },
+    ],
+    36: [
+        { text: 'We weren\'t the ones searching the stars first.', gapAfterMs: 700 },
+        { text: 'They were.' },
+    ],
+    37: [
+        { text: 'Sol is ahead.', gapAfterMs: 600 },
+        { text: 'No artificial signals.', gapAfterMs: 500 },
+        { text: 'No active structures.' },
+    ],
+    38: [
+        { text: 'Earth is still there.', gapAfterMs: 700 },
+        { text: 'Whatever sent the message... is not.' },
+    ],
+    39: [
+        { text: 'We came a million years too late.', gapAfterMs: 800 },
+        { text: 'Carry the answer anyway.' },
+    ],
+    40: [
+        { text: 'There it is.', gapAfterMs: 800 },
+        { text: 'Take their answer home.' },
+    ],
 };
+
+/** Default gap between string beats (L1–5) when no gapAfterMs is set. */
+export const DEFAULT_BEAT_GAP_MS = 400;
 
 /** @param {number} level */
 export function levelMessage(level) {
@@ -84,13 +231,24 @@ export function levelMessage(level) {
 }
 
 /**
- * Screen beats for a level intro, or a single-line fallback from LEVEL_MESSAGES.
+ * Normalize intro beats to `{ text, gapAfterMs }[]`.
  * @param {number} level
- * @returns {string[] | null}
+ * @returns {IntroBeat[] | null}
  */
 export function levelIntroBeats(level) {
     const n = Math.floor(Number(level) || 0);
-    if (LEVEL_INTRO_BEATS[n]?.length) return [...LEVEL_INTRO_BEATS[n]];
+    const raw = LEVEL_INTRO_BEATS[n];
+    if (raw?.length) {
+        return raw.map((beat) => {
+            if (typeof beat === 'string') {
+                return { text: beat, gapAfterMs: DEFAULT_BEAT_GAP_MS };
+            }
+            return {
+                text: String(beat.text || '').trim(),
+                gapAfterMs: beat.gapAfterMs ?? DEFAULT_BEAT_GAP_MS,
+            };
+        }).filter((b) => b.text);
+    }
     const line = LEVEL_MESSAGES[n];
-    return line ? [line] : null;
+    return line ? [{ text: line, gapAfterMs: DEFAULT_BEAT_GAP_MS }] : null;
 }

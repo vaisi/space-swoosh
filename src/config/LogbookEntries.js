@@ -276,7 +276,7 @@ function buildLevelEntries() {
             category: 'levels',
             name: PRE_LEVEL_1_LORE_TITLE,
             definition: PRE_LEVEL_1_LORE,
-            remark: 'NODE ZERO is ahead. Keep listening.',
+            remark: 'Keep moving. Listen to the voice.',
             unlockMode: 'instant',
             icon: 'level',
         },

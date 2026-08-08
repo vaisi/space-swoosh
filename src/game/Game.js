@@ -45,8 +45,9 @@
 //   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
 //   KM accrues once the title clears (wait/chips) — belt opens at that same
 //   moment so rocks arrive with the first readable distance, not a second later.
-// - Journey levels 1–5: IntroNarration chains one-sentence beats with
+// - Journey levels 1–15: IntroNarration chains one-sentence beats with
 //   /sounds/voice/level-N.mp3 at intro handoff; belt waits for beats + voice.
+//   L16–40 keep sentence beats without audio until clips ship.
 // - Run-start LevelIntroSequence (~1s fly-in + fade) for Journey and Open World;
 //   steering locked until it finishes; intro milestone deferred to handoff.
 // - Play mode-select blurbs pick once on enter from CopyBank modeJourney /

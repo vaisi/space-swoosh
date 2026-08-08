@@ -3,11 +3,13 @@
 // matching navigator voice clip. Keeps hudRevealPhase on 'title' until every
 // beat has cleared and the voice has ended (or failed / been muted).
 // Changes:
-// - Created helper for levels 1–5 voice + sentence beats.
+// - Beats accept `{ text, gapAfterMs }` (ElevenLabs <break> pacing) or strings.
+// - Voice clips supported for levels 1–15; later levels are text-only for now.
+
+import { DEFAULT_BEAT_GAP_MS } from '../config/JourneyNarrative.js';
 
 const BEAT_FADE_IN = 350;
 const BEAT_FADE_OUT = 350;
-const BEAT_GAP_MS = 400;
 // ~55ms per character, clamped — short lines still get a readable beat.
 const HOLD_MS_PER_CHAR = 55;
 const HOLD_MS_MIN = 900;
@@ -18,20 +20,40 @@ function holdForBeat(text) {
     return Math.max(HOLD_MS_MIN, Math.min(HOLD_MS_MAX, Math.round(len * HOLD_MS_PER_CHAR)));
 }
 
+/**
+ * @param {string | { text?: string, gapAfterMs?: number }} beat
+ * @returns {{ text: string, gapAfterMs: number } | null}
+ */
+function normalizeBeat(beat) {
+    if (typeof beat === 'string') {
+        const text = beat.trim();
+        return text ? { text, gapAfterMs: DEFAULT_BEAT_GAP_MS } : null;
+    }
+    const text = String(beat?.text || '').trim();
+    if (!text) return null;
+    const gap = Number(beat.gapAfterMs);
+    return {
+        text,
+        gapAfterMs: Number.isFinite(gap) && gap >= 0 ? gap : DEFAULT_BEAT_GAP_MS,
+    };
+}
+
 export class IntroNarration {
     /**
      * @param {import('./Game.js').Game | object} game
-     * @param {string[]} beats
-     * @param {number | null} voiceLevel Journey level for MP3 (1–5), or null
+     * @param {Array<string | { text?: string, gapAfterMs?: number }>} beats
+     * @param {number | null} voiceLevel Journey level for MP3 (1–15), or null
      */
     constructor(game, beats, voiceLevel = null) {
         this.game = game;
-        this.beats = (beats || []).map((b) => String(b).trim()).filter(Boolean);
+        this.beats = (beats || []).map(normalizeBeat).filter(Boolean);
         this.voiceLevel = voiceLevel;
         this.active = this.beats.length > 0;
         this.nextIndex = 0;
         this.voiceDone = voiceLevel == null;
         this.gapUntil = 0;
+        /** @type {number} gap to use after the beat that just cleared */
+        this.pendingGapMs = DEFAULT_BEAT_GAP_MS;
         this.started = false;
 
         game.introNarration = this;
@@ -58,11 +80,12 @@ export class IntroNarration {
 
     showNextBeat() {
         if (this.nextIndex >= this.beats.length) return;
-        const text = this.beats[this.nextIndex];
+        const beat = this.beats[this.nextIndex];
         this.nextIndex += 1;
-        this.game.milestoneManager?.showMessage?.(text, {
+        this.pendingGapMs = beat.gapAfterMs;
+        this.game.milestoneManager?.showMessage?.(beat.text, {
             fadeIn: BEAT_FADE_IN,
-            hold: holdForBeat(text),
+            hold: holdForBeat(beat.text),
             fadeOut: BEAT_FADE_OUT,
         });
     }
@@ -82,7 +105,7 @@ export class IntroNarration {
 
         if (this.nextIndex < this.beats.length) {
             if (this.gapUntil === 0) {
-                this.gapUntil = now + BEAT_GAP_MS;
+                this.gapUntil = now + this.pendingGapMs;
                 return false;
             }
             if (now < this.gapUntil) return false;

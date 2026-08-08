@@ -3,14 +3,16 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
-> **Signal Story (Journey):** Full prose in
+> **Signal Story (Journey) — THE REPLY:** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
 > copy in `config/JourneyNarrative.js`. First Journey visit shows `ui/screens/LoreScreen.js`
 > once (`journeyProgress.loreSeen`); Continue unlocks Logbook `signalCall` and
 > opens the map. Levels 1–5 are a staged teach band (empty → simple → moving →
-> sparkles → shields). Per-level intro lines come from `LEVEL_MESSAGES`; levels
-> 1–5 also use `LEVEL_INTRO_BEATS` (one sentence at a time) plus navigator MP3s
-> in `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`.
+> sparkles → shields). Per-level intro lines come from `LEVEL_MESSAGES`; all levels
+> use `LEVEL_INTRO_BEATS` (one sentence at a time; L6+ carry `gapAfterMs` from
+> ElevenLabs breaks). Navigator MP3s for levels **1–15** in
+> `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`. Story arc
+> retraces an ancient call toward Sol / Earth (payload: WE HEARD YOU).
 > Level logbook entries unlock to KNOWN on level start (intro heard).
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
@@ -120,7 +122,7 @@ game build env. Journey progress and Open World personal best stay in
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
-| `config/JourneyNarrative.js` | Signal Story: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..5]`. |
+| `config/JourneyNarrative.js` | THE REPLY story: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
@@ -137,7 +139,7 @@ game build env. Journey progress and Open World personal best stay in
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
 | `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost off the top, fade world, fade screen in. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
-| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–5 voice; holds belt until done. |
+| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–15 voice; holds belt until done. |
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
@@ -150,7 +152,7 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey levels 1–5: `playLevelVoice` / `stopLevelVoice` for `/sounds/voice/level-N.mp3` (ducks BGM; respects mute). |
+| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey levels 1–15: `playLevelVoice` / `stopLevelVoice` for `/sounds/voice/level-N.mp3` (ducks BGM; respects mute). |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -305,9 +307,10 @@ unlock  —  simple moving  —    —  barrier complex shoot pulse worm  BH   �
 `obstaclesFromScore`. `runsTutorial` is false — no competing HUD tips; the
 navigator line is the teach beat. Full intro copy comes from
 `JourneyNarrative.LEVEL_MESSAGES` (also Logbook level entries). Levels 1–5
-on-screen beats come from `LEVEL_INTRO_BEATS` (sentence-at-a-time for L1–5).
-Copy matches the ElevenLabs narrator script (SSML/stage directions stripped).
-Voice clips: `public/sounds/voice/level-1.mp3` … `level-5.mp3`.
+on-screen beats come from `LEVEL_INTRO_BEATS` (sentence-at-a-time for all
+levels; L6+ include ElevenLabs `gapAfterMs`). Copy matches THE REPLY narrator
+script (SSML/stage directions stripped). Voice clips:
+`public/sounds/voice/level-1.mp3` … `level-15.mp3` (L16–40 text-only for now).
 
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
@@ -379,7 +382,7 @@ live; pause button and spawning stay off until chips):
 
 | Phase | What happens |
 | --- | --- |
-| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, ~400ms gap). Levels 1–5 also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
+| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Levels 1–15 also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** (if any) are done. No HUD, no pause. |
 | `wait` | Short calm beat when there is no intro line (e.g. Open World). |
 | `chips` | Timed 1s fades: KM → **pause last**. Points / Destroyed stay dark until first sparkle collect / first smash, then each fades in ~1s. Journey distance reads `current / goal KM` with a borderless progress track (no LEVEL chip). |
 
