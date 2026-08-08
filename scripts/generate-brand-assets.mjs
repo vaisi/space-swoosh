@@ -1,6 +1,8 @@
 // generate-brand-assets.mjs
-// Generates the app icon / splash source art from the brand tokens.
+// Generates the app icon / splash source art for @capacitor/assets + web favicons.
 // Changes:
+// - App icon outputs now come from assets/store/app-icon-512.png (upscaled to
+//   1024); splash still uses the brand reticle on paper/ink grounds.
 // - Created file: the project had no icon of any kind (index.html referenced a
 //   favicon.ico and apple-touch-icon.png that did not exist) and the stores
 //   require a full set. Rather than commit opaque binaries, the art is derived
@@ -26,8 +28,9 @@ import sharp from 'sharp';
 import { color } from '../src/brand/tokens.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const STORE_ICON = resolve(root, 'assets/store/app-icon-512.png');
 
-// --- The reticle, as SVG -----------------------------------------------------
+// --- The reticle, as SVG (splash only) ---------------------------------------
 // Mirrors drawReticle(): a ring, four ticks running from r*0.5 out to r*1.35,
 // and an optional signal-blue centre dot. Total glyph extent is 2.7r.
 function reticle({ cx, cy, r, stroke, dot, strokeWidth }) {
@@ -66,46 +69,38 @@ function svg({ size, ground, glyphRadius, stroke, dot, strokeRatio = 0.11, trans
 </svg>`;
 }
 
-const png = (markup, out, size) =>
+const pngFromSvg = (markup, out, size) =>
     sharp(Buffer.from(markup))
         .resize(size, size)
         .png()
         .toFile(resolve(root, out))
         .then(() => console.log('  ✓', out));
 
+async function writePng(pipeline, out) {
+    await pipeline.png().toFile(resolve(root, out));
+    console.log('  ✓', out);
+}
+
 async function main() {
     mkdirSync(resolve(root, 'assets'), { recursive: true });
     mkdirSync(resolve(root, 'public'), { recursive: true });
 
-    console.log('Generating brand assets from src/brand/tokens.js…');
+    console.log('Generating brand assets…');
+    console.log('  icon source:', 'assets/store/app-icon-512.png');
 
-    // iOS masks icons into a squircle and Android may round them further, so the
-    // glyph occupies ~58% of the canvas — comfortably inside every mask.
-    const icon = svg({
-        size: 1024,
-        ground: color.paper,
-        glyphRadius: 220,
-        stroke: color.ink,
-        dot: color.signal,
-    });
+    // Full-bleed 1024 master from the store art (capacitor-assets fans this out).
+    const icon1024 = await sharp(STORE_ICON)
+        .resize(1024, 1024, { fit: 'fill' })
+        .png()
+        .toBuffer();
 
-    // Android adaptive icons only guarantee the central 61% of the foreground is
-    // visible; the launcher can crop or animate the rest. Hence a smaller glyph.
-    const foreground = svg({
-        size: 1024,
-        ground: null,
-        transparent: true,
-        glyphRadius: 185,
-        stroke: color.ink,
-        dot: color.signal,
-    });
-
+    // Adaptive foreground: same art (launcher masks the squircle). Background
+    // stays brand paper so any peek under the mask matches the icon ground.
     const background = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
   <rect width="1024" height="1024" fill="${color.paper}" />
 </svg>`;
 
-    // Splashes are centre-cropped to wildly different aspect ratios, so the mark
-    // stays small and dead centre where no crop can reach it.
+    // Splashes keep the reticle mark — centre-safe for wild aspect crops.
     const splash = svg({
         size: 2732,
         ground: color.paper,
@@ -123,19 +118,19 @@ async function main() {
     });
 
     await Promise.all([
-        png(icon, 'assets/icon.png', 1024),
-        png(foreground, 'assets/icon-foreground.png', 1024),
-        png(background, 'assets/icon-background.png', 1024),
-        png(splash, 'assets/splash.png', 2732),
-        png(splashDark, 'assets/splash-dark.png', 2732),
-        png(icon, 'public/apple-touch-icon.png', 180),
-        png(icon, 'public/icon-192.png', 192),
-        png(icon, 'public/icon-512.png', 512),
+        writePng(sharp(icon1024), 'assets/icon.png'),
+        writePng(sharp(icon1024), 'assets/icon-foreground.png'),
+        pngFromSvg(background, 'assets/icon-background.png', 1024),
+        pngFromSvg(splash, 'assets/splash.png', 2732),
+        pngFromSvg(splashDark, 'assets/splash-dark.png', 2732),
+        writePng(sharp(icon1024).resize(180, 180), 'public/apple-touch-icon.png'),
+        writePng(sharp(icon1024).resize(192, 192), 'public/icon-192.png'),
+        writePng(sharp(icon1024).resize(512, 512), 'public/icon-512.png'),
     ]);
 
     // .ico: sharp has no ICO encoder, but every current browser accepts a PNG
     // served at favicon.ico, and index.html declares the type explicitly.
-    const favicon = await sharp(Buffer.from(icon)).resize(48, 48).png().toBuffer();
+    const favicon = await sharp(icon1024).resize(48, 48).png().toBuffer();
     writeFileSync(resolve(root, 'public/favicon.ico'), favicon);
     console.log('  ✓ public/favicon.ico');
 

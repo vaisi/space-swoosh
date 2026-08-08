@@ -14,7 +14,8 @@
 > `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`. Journey
 > session cues (Journey + Open Space): `first-boop.mp3` (first sidewall hit per
 > app session + milestone beats from `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3`
-> (every style swoosh, voice only). Story arc retraces an ancient call toward Sol / Earth (payload:
+> (every style swoosh, voice only). App icon source: `assets/store/app-icon-512.png`
+> (`npm run assets:sync` → iOS/Android/PWA). Story arc retraces an ancient call toward Sol / Earth (payload:
 > WE HEARD YOU). Level logbook entries unlock to KNOWN on level start (intro heard).
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
