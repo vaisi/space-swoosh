@@ -12,11 +12,11 @@
 > and a strong speed rush. Black side barriers are still deadly — only the blue
 > edge is a gift.
 >
-> Open World high scores are online (call sign, ship, + distance; board top 100).
+> Open Space high scores are online (call sign, ship, + distance; board top 100).
 > Auto call-sign prompt only for top 10; Submit Score stays available anytime.
-> Your Open World personal best and Journey progress stay on your device.
-> Journey also plays short session voice cues on your first wall BOOP and on
-> each Style Swoosh (swoosh is voice-only).
+> Your Open Space personal best and Journey progress stay on your device.
+> Journey and Open Space play short session voice cues on your first wall BOOP
+> and on each Style Swoosh (swoosh is voice-only).
 >
 > **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
@@ -32,8 +32,8 @@ There are two ways to play, and you pick one every time you hit Play.
 ## Two ways to play
 
 Play lists **Journey first** — it's the recommended path. Each visit, the short
-line under Journey and Open World is a fresh Spock-voice blurb (same idea, new
-wording). Journey's card shows your current level and star total; Open World's
+line under Journey and Open Space is a fresh Spock-voice blurb (same idea, new
+wording). Journey's card shows your current level and star total; Open Space's
 card shows your **personal best** distance on this device once you've finished
 at least one run.
 
@@ -62,7 +62,7 @@ Flying Journey is also how you **unlock Space Log entries** — observe and inte
 with hazards and boosts to fill your field manual. The opening Signal brief is
 the first Journey entry.
 
-### Open World
+### Open Space
 
 The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
@@ -77,7 +77,7 @@ the score).
 arrows), by distance or obstacles smashed. Ranks 1–3 show trophy icons. No
 account required.
 
-Every run — Journey or Open World — opens with a short **intro**: the ship rolls
+Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
 out. Then the navigator’s line (Journey) sits on screen sentence by sentence
 with voice and fades; a moment later distance and pause ease in. Points appear
@@ -114,7 +114,7 @@ arrows beside it (or press **Left** / **Right** on a keyboard) to cycle through
 ships you own — the choice is saved immediately. Options → Ship still has the
 full roster if you want the grid view.
 
-- **Play** — choose Open World or Journey.
+- **Play** — choose Open Space or Journey.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, and Sound (see below).
 - **High Scores** — browse the leaderboard (10 scores per page, up to 10 pages).
@@ -240,10 +240,10 @@ more.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
 to the wall, not on it), a soft space-boop sound, and a light phone buzz on
-devices that support haptics. In Journey, the first wall touch of a session
-(after the level’s opening voice finishes) also plays a short navigator line on
-screen (“The walls forgive…”). Threading a tight gap for a Style Swoosh plays a
-short voice cue with no extra caption (you still see the usual style points).
+devices that support haptics. The first wall touch of a session (after any level
+opening voice finishes) also plays a short navigator line on screen (“The walls
+forgive…”). Threading a tight gap for a Style Swoosh plays a short voice cue with
+no extra caption (you still see the usual style points).
 
 Pulse and Quill are store unlocks on the apps (IAP); Nyan, Ink, and the rest of
 the roster are free.
@@ -254,7 +254,7 @@ Needle's thin spine and Echo's open middle slip through gaps a full circle would
 catch. Sparkles and shields stay generous.
 
 Pick one under **Options → Ship**. Your choice is remembered. After you tap a
-ship, **Play now** appears so you can jump straight into Open World without
+ship, **Play now** appears so you can jump straight into Open Space without
 backing out to the menu.
 
 ## Controls
@@ -278,7 +278,7 @@ Pausing freezes the run and opens a menu showing how far you've got:
 - **Resume** — back to the run (Spacebar or Escape does the same).
 - **Sound** — turn music and effects on or off. Remembered between sessions, and
   it's the same switch as Options → Sound.
-- **Exit Run** — leave mid-flight. In Open World that takes you to the main menu;
+- **Exit Run** — leave mid-flight. In Open Space that takes you to the main menu;
   in Journey it drops you back on the level map. Either way the run ends there and
   **nothing is saved** — no distance submitted, no stars — so play a level out if
   you want it to count.

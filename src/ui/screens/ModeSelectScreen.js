@@ -1,11 +1,11 @@
 // ModeSelectScreen.js
-// The screen behind Play: pick Journey (levels, Logbook unlocks) or Open World
+// The screen behind Play: pick Journey (levels, Logbook unlocks) or Open Space
 // (endless run + leaderboard). Two description cards rather than two bare
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
 // - Journey card routes through enterJourneyFromModeSelect (one-time lore
 //   screen before the map when loreSeen is false).
-// - Open World card footer shows this device's personal best distance (with KM)
+// - Open Space card footer shows this device's personal best distance (with KM)
 //   when one exists (from OpenWorldProgress), matching Journey's level/stars footer.
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Card blurbs come from CopyBank (modeJourney / modeOpenWorld), picked once
@@ -57,7 +57,7 @@ export function renderModeSelect(game) {
 
     buttons.openWorld = drawModeCard(game, {
         x: cardX, y: top + cardH + gap, w: cardW, h: cardH,
-        title: 'Open World',
+        title: 'Open Space',
         blurb: game.modeOpenWorldBlurb || 'One run, no finish line.',
         tag: 'ENDLESS',
         footer: best > 0

@@ -5,8 +5,8 @@
 // Changes:
 // - First-boop cue waits until level intro voice / title phase are done so it
 //   never overlaps LEVEL N audio (hits during intro are ignored for the cue).
-// - Journey: first sidewall hit per app session plays first-boop voice and
-//   two milestone beats ("The walls forgive." / "Little else out here does.").
+// - First sidewall hit per app session (Journey or Open Space) plays first-boop
+//   voice + two milestone beats ("The walls forgive." / "Little else…").
 // - Soft haptic tick on each boop (Cap ImpactStyle.Light / web vibrate 12ms),
 //   gated by the same 180 ms cooldown as the popup + SFX.
 // - Journey Logbook: instant unlock for Space BOOP on trigger.
@@ -110,7 +110,6 @@ export class WallBoopManager {
 
     maybePlayFirstBoopCue() {
         if (firstBoopVoicePlayed) return;
-        if (!this.game.isJourney?.()) return;
         // Wall hits during LEVEL N voice / title are not tracked for this cue.
         if (this.isLevelIntroVoiceBlocking()) return;
 

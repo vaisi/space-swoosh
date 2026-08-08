@@ -3,9 +3,9 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
-// - playCueVoice / playFirstBoopVoice / playSwooshVoice for Journey session
-//   cues (first-boop.mp3, swoosh-voice.mp3); shares the level-voice slot
-//   (duck, mute, replace, leave/crash stop via stopLevelVoice).
+// - playCueVoice / playFirstBoopVoice / playSwooshVoice for session cues
+//   (first-boop.mp3, swoosh-voice.mp3) in Journey + Open Space; shares the
+//   level-voice slot (duck, mute, replace, leave/crash stop via stopLevelVoice).
 // - playLevelVoice / stopLevelVoice for Journey levels 1–40 navigator MP3s
 //   under /sounds/voice/; ducks BGM while speaking; honors mute.
 // - playTurn / playMove use pre-decoded Web Audio buffer sources (no HTMLAudio

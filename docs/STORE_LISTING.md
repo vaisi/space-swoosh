@@ -20,7 +20,7 @@
 ## Short description (Play, ≤80 chars)
 
 ```
-Steer through ink asteroids. Open World or Journey. One thumb.
+Steer through ink asteroids. Open Space or Journey. One thumb.
 ```
 
 ## Full description
@@ -31,7 +31,7 @@ Space Swoosh is a one-thumb vertical dodge game in a paper universe.
 Your ship climbs on its own. You bank left and right in smooth arcs — swipe or tap — to slip between ink asteroids, grab shields, and thread narrow gaps for style points.
 
 Two ways to play
-• Open World — endless distance, online leaderboard
+• Open Space — endless distance, online leaderboard
 • Journey — 40 levels, three stars each, progress saved on your device
 
 Cosmetic ships (Pulse, Quill) are optional unlocks. They change how you look, not how you fly.
@@ -50,7 +50,7 @@ dodge,arcade,space,casual,one thumb,endless,journey,minimal,paper
 From a device or simulator, portrait:
 
 1. Main menu (brand + ship)
-2. Open World mid-run (HUD visible)
+2. Open Space mid-run (HUD visible)
 3. Journey map
 4. Level clear / outcome with stars
 5. Options → Ship picker (show a locked premium tile if possible)

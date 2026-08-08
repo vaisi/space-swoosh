@@ -1,7 +1,7 @@
 // OpenWorldProgress.js
-// Local personal-best distance for Open World. Device-only — the Supabase
+// Local personal-best distance for Open Space. Device-only — the Supabase
 // leaderboard stays anonymous/global; this is just "your best on this install"
-// so the Play → Open World card can show it.
+// so the Play → Open Space card can show it.
 // Changes:
 // - Created file. Fail-soft localStorage reads/writes match JourneyProgress
 //   (private mode / quota → treat as no best yet).

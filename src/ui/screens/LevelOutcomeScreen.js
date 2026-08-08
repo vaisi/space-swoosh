@@ -1,6 +1,6 @@
 // LevelOutcomeScreen.js
 // The end of a Journey level: the verdict, the three objectives and how you did
-// against each, and where to go next. Replaces the Open World game-over screen
+// against each, and where to go next. Replaces the Open Space game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
 // - Outcome tallies / rows use descriptor.starSlots (1/1, 2/2, or 3/3).

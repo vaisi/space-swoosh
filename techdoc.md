@@ -12,9 +12,9 @@
 > use `LEVEL_INTRO_BEATS` (one sentence at a time; L6+ carry `gapAfterMs` from
 > ElevenLabs breaks). Navigator MP3s for levels **1–40** in
 > `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`. Journey
-> session cues: `first-boop.mp3` (first sidewall hit per app session + milestone
-> beats from `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3` (every style swoosh,
-> voice only). Story arc retraces an ancient call toward Sol / Earth (payload:
+> session cues (Journey + Open Space): `first-boop.mp3` (first sidewall hit per
+> app session + milestone beats from `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3`
+> (every style swoosh, voice only). Story arc retraces an ancient call toward Sol / Earth (payload:
 > WE HEARD YOU). Level logbook entries unlock to KNOWN on level start (intro heard).
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
@@ -40,7 +40,7 @@
 > harness: `?perf=1`, `?nodraw=1`, `?drawonly=1`, `?kill=trails,glows,hud,hulls,obstacles,gradients`,
 > `?fullvfx=1`, `?cheap=0|1`, `?dpr=N`. See §6.
 >
-> **Supabase:** Open World leaderboard uses **vaisi's Project**
+> **Supabase:** Open Space leaderboard uses **vaisi's Project**
 > (`ptzaxgslzjefaxdkrvyr`). Table `public.high_scores` + RLS (SELECT/INSERT only
 > for anon). Schema in `supabase/migrations/`. No auth / no Journey cloud sync yet.
 
@@ -55,7 +55,7 @@ There are **two play modes**, chosen from Play:
 
 | Mode | Shape | Leaderboard |
 | --- | --- | --- |
-| **Open World** | Endless. Difficulty ramps off distance, forever. | Yes (Supabase) |
+| **Open Space** | Endless. Difficulty ramps off distance, forever. | Yes (Supabase) |
 | **Journey** | 40 finite levels, each with a distance goal and three stars. | No — progress is local |
 
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
@@ -88,7 +88,7 @@ changing env vars.
 
 Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md). Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
 
-### Open World leaderboard (Supabase)
+### Open Space leaderboard (Supabase)
 
 | Piece | Role |
 | --- | --- |
@@ -100,11 +100,11 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql` |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
 | Fetch | `ScoreService.getTopScores(type, limit = 100)` — enough for 10 pages × 10 rows |
-| Submit prompt | Open World game-over auto-prompts for a call sign only when rank ≤ 10. Manual **Submit Score** still opens the modal for any unfinished Open World run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: left-aligned distance → asteroids destroyed → rank, underline call sign, brand Submit. Soft keyboard: `@capacitor/keyboard` (`resizeOnFullScreen`) + `game.softKeyboardHeight`; while the IME is up the card pins to the top with call sign + Submit first (stats below). DOM input on `#gameContainer`, repositioned every frame. |
+| Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: left-aligned distance → asteroids destroyed → rank, underline call sign, brand Submit. Soft keyboard: `@capacitor/keyboard` (`resizeOnFullScreen`) + `game.softKeyboardHeight`; while the IME is up the card pins to the top with call sign + Submit first (stats below). DOM input on `#gameContainer`, repositioned every frame. |
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
-game build env. Journey progress and Open World personal best stay in
+game build env. Journey progress and Open Space personal best stay in
 `localStorage` only.
 
 ## 3. Directory map (`src/`)
@@ -129,13 +129,13 @@ game build env. Journey progress and Open World personal best stay in
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points, `loreSeen`. |
-| `services/OpenWorldProgress.js` | `localStorage` personal-best Open World distance (device-only). |
+| `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance (device-only). |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
 | `ui/screens/LogbookScreen.js` | Space Log screen: category tabs; Journey rows text-only; other tabs keep icon cards. |
-| `ui/screens/ModeSelectScreen.js` | Play → Open World / Journey (Journey may open lore first). |
+| `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first). |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles. |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
@@ -151,8 +151,8 @@ game build env. Journey progress and Open World personal best stay in
 | `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. |
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
-| `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX. Journey: also `playSwooshVoice()` (no caption). |
-| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. Journey: first hit per session (only after LEVEL N intro voice/title finishes) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
+| `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
+| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` (shared slot; ducks BGM; `stopLevelVoice` / `stopCueVoice`; respects mute). |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
@@ -169,7 +169,7 @@ game build env. Journey progress and Open World personal best stay in
 | Screen | Role |
 | --- | --- |
 | `menu` | Title, selected-skin preview with Play-motif ▶/◀ cycle (owned skins via `cycleMenuShip`), Play / Space Log / Options / High Scores. ArrowLeft/Right also cycle when `appScreen === 'menu'`. |
-| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open World footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. Journey card → lore if `!loreSeen`, else map. |
+| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
@@ -179,7 +179,7 @@ game build env. Journey progress and Open World personal best stay in
 | `optionsSound` | Sound on/off, driving `SoundManager`'s persisted mute |
 | `highscores` | Leaderboard: 10 tall rows/page (max 10 pages), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
-| `gameover` | End of a run. Open World: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission |
+| `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission |
 
 Options navigation stacks: main menu → Options hub → sub-screen. Back from a
 sub-screen returns to the hub; Back from the hub returns to the main menu.
@@ -274,7 +274,7 @@ Two things worth knowing about the existing engine that this surfaced:
   HUD distance from world travel; use `abs(Δcamera.y) * (100/60)`.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
   (`ObstacleManager.countAhead()`), because the full list also holds everything
-  already passed. Open World's profile returns `Infinity`: the old `length < 7`
+  already passed. Open Space's profile returns `Infinity`: the old `length < 7`
   test guarded a branch that can only fire once per run, so it never actually
   withheld a row, and keeping it uncapped is what "plays identically" means.
 - **The despawn margin derives from the gap range** (`despawnAhead`). It used to
@@ -346,7 +346,7 @@ frontier level advances `unlocked`. Journey never writes to Supabase.
 
 A science-journal discovery system. **Gameplay writes only during Journey runs**
 (`game.isJourney()`). The pre-Journey lore screen unlocks `signalCall` via
-`LogbookProgress.revealInstant` even before a run starts. Open World never
+`LogbookProgress.revealInstant` even before a run starts. Open Space never
 updates the logbook. Menu item is always available.
 
 | Piece | Role |
@@ -365,7 +365,7 @@ updates the logbook. Menu item is always available.
 
 ### The run-start intro
 
-Every run (Journey and Open World) opens with `game/LevelIntroSequence.js`, built
+Every run (Journey and Open Space) opens with `game/LevelIntroSequence.js`, built
 from `Game.beginRun()` after `resetRunState()`. ~1s, not skippable, steering
 locked. Calm centre-lane roll — the angled hyperspeed language stays on the
 **exit** flyout only:
@@ -386,10 +386,10 @@ live; pause button and spawning stay off until chips):
 | Phase | What happens |
 | --- | --- |
 | `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Levels 1–40 also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
-| `wait` | Short calm beat when there is no intro line (e.g. Open World). |
+| `wait` | Short calm beat when there is no intro line (e.g. Open Space). |
 | `chips` | Timed 1s fades: KM → **pause last**. Points / Destroyed stay dark until first sparkle collect / first smash, then each fades in ~1s. Journey distance reads `current / goal KM` with a borderless progress track (no LEVEL chip). |
 
-Open World with no intro line skips straight to `wait`. Spawning resumes when
+Open Space with no intro line skips straight to `wait`. Spawning resumes when
 `chips` starts. `Game.hudRevealAlpha(slot)` drives HUD + pause opacity. Input
 locked during the ship intro itself except Escape→pause. Voice stops on
 `leaveRun` / crash / level clear.
@@ -725,9 +725,9 @@ There are **three independent metrics** on the `Game` instance:
 | `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD, end screen, leaderboard (`obstacles` tab), Journey's third star vs `smashTarget` |
 | `points` | **Reward points** | `+perAsteroid` destroy, `+perCollectible` sparkle, `+perSwoosh` near-miss style | HUD, end screen, Journey's second star |
 
-Open World also keeps a device-local **personal best** (`services/OpenWorldProgress.js`,
+Open Space also keeps a device-local **personal best** (`services/OpenWorldProgress.js`,
 key `openWorldProgress`) updated in `gameOver()` whenever a non-Journey run ends.
-Exit Run does not write it. The Play → Open World card reads it for its footer.
+Exit Run does not write it. The Play → Open Space card reads it for its footer.
 
 `points` is **local only** — it is not (yet) sent to the Supabase leaderboard;
 it is included in the `game_over` GA event.
@@ -743,7 +743,7 @@ it is included in the `game_over` GA event.
    still removes the whole obstacle.
 2. **Collecting a sparkle:** `CollectibleManager` spawns `Collectible`s at a
    jittered interval once `score >= profile.collectiblesFromScore` (100 km in
-   Open World, 4% of the goal in Journey) and the tutorial is over. Each sparkle
+   Open Space, 4% of the goal in Journey) and the tutorial is over. Each sparkle
    is sized at `1.15 × baseUnit` (see `Collectible.js`). On contact
    (`checkCollision`), `game.points += config.points.perCollectible`, a Signal-Blue
    `+10` popup floats up, and `SoundManager.playCollect()` plays a short
@@ -785,7 +785,7 @@ four-point **sparkle** (`drawSparkle`) — deliberately distinct from the filled
 
 ### Spock copy (`brand/CopyBank.js`)
 
-Flavor subtitles (menu tagline, Open World crash/victory, Journey fail / partial
+Flavor subtitles (menu tagline, Open Space crash/victory, Journey fail / partial
 clear / flawless / finale) live in named pools and are picked **once when the
 screen is entered** via `pickCopy(poolKey)`. A one-deep last-used guard avoids
 immediate repeats. Titles and chrome stay fixed; only the personality line

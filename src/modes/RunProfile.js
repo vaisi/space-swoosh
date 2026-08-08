@@ -8,8 +8,8 @@
 // - Default `introBeats` wraps `introMessage` as a one-element array.
 // - `wallBoostsFromScore` (default 12000): deep-run wall-boost slab gate.
 // - `obstaclesFromScore` (default 0): Journey overrides to a shared early KM
-//   mark; Open World spawns as soon as intro ends.
-// - Open World on iOS draw LOD: soft maxOnScreen (18) so late-run fields
+//   mark; Open Space spawns as soon as intro ends.
+// - Open Space on iOS draw LOD: soft maxOnScreen (18) so late-run fields
 //   cannot explode Safari draw cost; Android/desktop stay uncapped.
 // - Created file: RunProfile (the contract + shared defaults) and
 //   OpenWorldProfile, which reproduces the endless run's existing numbers
@@ -67,7 +67,7 @@ export class RunProfile {
     }
 
     get title() {
-        return 'Open World';
+        return 'Open Space';
     }
 
     /** Score at which the run is won. */
