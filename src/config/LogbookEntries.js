@@ -1,9 +1,8 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
-// - Levels tab: pre-Journey lore entry (`signalCall`) first, then level_N
-//   entries fed from JourneyNarrative voice lines (no more lorem placeholders).
-//   Level definitions follow JourneyNarrative LEVEL_MESSAGES (ElevenLabs script).
+// - Journey tab (id `levels`): lore + Day N entries from LEVEL_MESSAGES.
+//   UI label is “Journey”; entry names are “Day N” (not Level N).
 // - Added wallBoost: thin Signal-Blue edge slab → shield + speed refresh.
 // - Deflector Smash / Finish Gate copy: flyout smashes still score; results
 //   finalize when the level-clear sequence enters screenIn.
@@ -11,8 +10,7 @@
 //   separately from the parent body.
 // - Split simple asteroids into circle / triangle / square entries so each
 //   in-game shape is logged with its real silhouette.
-// - Created file: obstacles, boosts, per-level placeholders, and From the Void
-//   stub category. Levels use lorem ipsum until story prose ships.
+// - Created file: obstacles, boosts, Journey day entries, From the Void stub.
 
 import { TOTAL_LEVELS } from './JourneyConfig.js';
 import {
@@ -41,7 +39,7 @@ export const LORE_ENTRY_ID = 'signalCall';
 export const LOGBOOK_CATEGORIES = [
     { id: 'obstacles', label: 'Obstacles' },
     { id: 'boosts', label: 'Boosts' },
-    { id: 'levels', label: 'Levels' },
+    { id: 'levels', label: 'Journey' },
     { id: 'void', label: 'From the Void' },
 ];
 
@@ -53,7 +51,7 @@ export const OBSERVED_PENDING_LINES = [
 ];
 
 export const EMPTY_LOGBOOK_COPY =
-    'The pages are blank. Explore space. Then explore the logbook.';
+    'The pages are blank. Explore space. Then explore the space log.';
 
 export const EMPTY_CATEGORY_COPY = {
     obstacles: 'No contacts logged. The rocks are patient.',
@@ -286,7 +284,7 @@ function buildLevelEntries() {
         entries.push({
             id: `level_${level}`,
             category: 'levels',
-            name: `Level ${level}`,
+            name: `Day ${level}`,
             definition: line,
             remark: level <= 5
                 ? 'Early flight. The voice is teaching.'

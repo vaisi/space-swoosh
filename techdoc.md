@@ -131,8 +131,8 @@ game build env. Journey progress and Open World personal best stay in
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
-| `managers/LogbookToastManager.js` | Top-center "Logbook updated" chip (~2s). |
-| `ui/screens/LogbookScreen.js` | Logbook menu: category tabs, tall scrollable cards (1/3 icon, 2/3 text). |
+| `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
+| `ui/screens/LogbookScreen.js` | Space Log screen: category tabs; Journey rows text-only; other tabs keep icon cards. |
 | `ui/screens/ModeSelectScreen.js` | Play → Open World / Journey (Journey may open lore first). |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles. |
@@ -166,7 +166,7 @@ game build env. Journey progress and Open World personal best stay in
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, selected-skin preview with Play-motif ▶/◀ cycle (owned skins via `cycleMenuShip`), Play / Logbook / Options / High Scores. ArrowLeft/Right also cycle when `appScreen === 'menu'`. |
+| `menu` | Title, selected-skin preview with Play-motif ▶/◀ cycle (owned skins via `cycleMenuShip`), Play / Space Log / Options / High Scores. ArrowLeft/Right also cycle when `appScreen === 'menu'`. |
 | `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open World. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open World footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
@@ -316,7 +316,7 @@ Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
 (`gapSpread` 1.35), `speedMultiplier` 0.95→1.38, cluster size 1→4 (capped by
 `maxClusterCount` 3→5), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42.
-Teach band goals are fixed: **L1 1000 / L2 2000 / L3 3000 / L4 4000 /
+Teach band goals are fixed: **L1 1250 / L2 2000 / L3 3000 / L4 4000 /
 L5 7500**. From L6 onward each level adds **+500 KM**; levels **10 / 15 / 20 /
 25 / 30 / 35 / 40** also add **+1000 KM**. From L2 onward the belt opens at
 **0 HUD KM** when the centre title clears. Spawn cursor arms at `camera.y`.
@@ -348,7 +348,7 @@ updates the logbook. Menu item is always available.
 
 | Piece | Role |
 | --- | --- |
-| `config/LogbookEntries.js` | Catalog + copy. Categories: Obstacles, Boosts, Levels (`signalCall` + voice lines), From the Void (stub). |
+| `config/LogbookEntries.js` | Catalog + copy. Categories: Obstacles, Boosts, Journey (`signalCall` + Day N voice lines; id still `levels`), From the Void (stub). |
 | `services/LogbookProgress.js` | Key `logbookProgress`: `{ version, entries: { [id]: 'observed' \| 'known' } }`. |
 | `managers/LogbookManager.js` | `observe` / `interact` / `revealInstant`; same-frame toast debounce via `flushToast()`. |
 | `managers/LogbookToastManager.js` | Top-center chip, independent of MilestoneManager. |

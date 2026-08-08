@@ -1,6 +1,7 @@
 // LogbookToastManager.js
-// Short top-center "Logbook updated" chip during Journey flight.
+// Short top-center "Space Log updated" chip during Journey flight.
 // Changes:
+// - Toast label SPACE LOG UPDATED (was LOGBOOK UPDATED).
 // - Anchored top-center so it clears the DOM pause button (top-right).
 // - Created file: independent of MilestoneManager; ~2s fade.
 
@@ -46,7 +47,7 @@ export class LogbookToastManager {
         if (!this.toast) return;
 
         const unit = this.game.baseUnit;
-        const label = 'LOGBOOK UPDATED';
+        const label = 'SPACE LOG UPDATED';
         const px = Math.max(9, unit * 0.95);
         const padX = unit * 1.1;
         const padY = unit * 0.55;

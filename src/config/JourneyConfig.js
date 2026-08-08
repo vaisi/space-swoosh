@@ -7,7 +7,7 @@
 // Changes:
 // - Star slots scale with the teach band: L1–3 → 1 star, L4 → 2, L5+ → 3.
 // - Goal KM after L5: +500 each level; L10/15/20/25/30/35/40 also +1000 extra.
-// - Teach-band goals: L1 1000 → L2 2000 → L3 3000 → L4 4000 → L5 7500.
+// - Teach-band goals: L1 1250 → L2 2000 → L3 3000 → L4 4000 → L5 7500.
 // - Levels 1–5 Signal Story tutorial: empty → simple → moving → sparkles →
 //   shields. `moving` at L3; sideBarrier/complex later.
 // - Points star from L4; smash star from L5.
@@ -45,7 +45,7 @@ const CHAPTERS = [
 
 /** Fixed goal KM for the Troposphere teach band (levels 1–5). */
 const TEACH_GOAL_KM = {
-    1: 1000,
+    1: 1250,
     2: 2000,
     3: 3000,
     4: 4000,

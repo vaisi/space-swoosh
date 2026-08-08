@@ -1501,7 +1501,7 @@ export class Game {
         );
         y += buttonHeight + buttonGap;
         this.menuButtons.logbook = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Logbook', {
+            bx, y, buttonWidth, buttonHeight, 'Space Log', {
                 tag: '\u25A1', labelPx: menuLabelPx,
             }
         );

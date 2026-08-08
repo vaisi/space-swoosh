@@ -3,7 +3,7 @@
 > How to play. No spoilers, just the essentials.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
-> appears. Tap **Continue** — that message is saved in your Logbook (Levels →
+> appears. Tap **Continue** — that message is saved in your Space Log (Journey →
 > The Call). Then the level map opens. Early levels teach one thing at a time:
 > turn, rocks, moving rocks, blue lights, then the shield.
 >
@@ -56,9 +56,9 @@ just arrived before anything new does. The points star opens when sparkles do
 (level 4); the smash star opens with the shield (level 5). Both targets climb
 later without turning into a grind.
 
-Flying Journey is also how you **unlock Logbook entries** — observe and interact
+Flying Journey is also how you **unlock Space Log entries** — observe and interact
 with hazards and boosts to fill your field manual. The opening Signal brief is
-the first Levels entry.
+the first Journey entry.
 
 ### Open World
 
@@ -113,15 +113,15 @@ ships you own — the choice is saved immediately. Options → Ship still has th
 full roster if you want the grid view.
 
 - **Play** — choose Open World or Journey.
-- **Logbook** — your science journal of things you've seen and touched in Journey.
+- **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, and Sound (see below).
 - **High Scores** — browse the leaderboard (10 scores per page, up to 10 pages).
 
 After a run, **Menu** on the end screen brings you back here.
 
-## The Logbook
+## The Space Log
 
-The Logbook is a field manual that fills in as you fly **Journey** levels (Open
+The Space Log is a field manual that fills in as you fly **Journey** levels (Open
 World does not write to it). Open it from the main menu any time — even when it's
 still blank.
 
@@ -135,7 +135,7 @@ Entries unlock in two steps:
 A few events unlock both at once — Space BOOP on a sidewall, a Style Swoosh
 through a tight gap, a Deflector Smash, and the clear-flight boost after a level.
 
-During a Journey run, a short **Logbook updated** notice appears at the top center
+During a Journey run, a short **Space Log updated** notice appears at the top center
 when something new is catalogued, with a soft bridge chirp — like a quiet console
 ping that a new message arrived.
 
@@ -145,7 +145,7 @@ Categories:
 | --- | --- |
 | Obstacles | Asteroids, barriers, wormholes, black holes, Space BOOP, … |
 | Boosts | Shield, wall boost, point sparkles, style swoosh, finish gate, clear boost, … |
-| Levels | One flight report per Journey level (navigator transmissions) |
+| Journey | Day 1…Day 40 navigator transmissions (plus The Call) |
 | From the Void | Reserved for future transmissions — empty for now |
 
 Entries are tall cards: the real obstacle silhouette on the left, name and notes

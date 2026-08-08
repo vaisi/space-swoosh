@@ -1,6 +1,9 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - Screen title SPACE LOG (was LOGBOOK).
+// - Journey tab (category `levels`): text-only rows — no left thumbnail, no
+//   KNOWN/OBSERVED tag; titles are Day N from catalog.
 // - Icon for wallBoost: single thin Signal-Blue edge bar.
 // - Night paper: black-hole icon gradient uses inkRgb (bone) instead of near-black.
 // - No longer draws the gray inset screen frame (removed app-wide).
@@ -42,7 +45,7 @@ export function renderLogbook(game) {
     const L = screenLayout(game, unit);
     const progress = game.logbook?.progress;
 
-    const header = game.drawScreenHeader('LOGBOOK', { back: true });
+    const header = game.drawScreenHeader('SPACE LOG', { back: true });
 
     const buttons = { back: header.backRect, tabs: [], entries: [] };
     const category = game.logbookCategory || 'obstacles';
@@ -121,6 +124,8 @@ export function renderLogbook(game) {
     ctx.clip();
     ctx.translate(0, -scroll);
 
+    const journeyTab = category === 'levels';
+
     let y = listTop;
     for (const entry of entries) {
         const state = getEntryState(progress, entry.id);
@@ -139,50 +144,59 @@ export function renderLogbook(game) {
                     : color.ink30,
         });
 
-        // 1/3 picture well | 2/3 text
-        const colGap = unit * 1.2;
-        const picW = (L.width - colGap) / 3;
-        const textW = L.width - picW - colGap;
-        const picX = L.left;
-        const textX = L.left + picW + colGap;
-
-        // Picture well
-        const wellPad = unit * 1.1;
-        ctx.save();
-        ctx.fillStyle = color.paper;
-        ctx.fillRect(picX + wellPad, y + wellPad, picW - wellPad * 2, rowH - wellPad * 2);
-        ctx.strokeStyle = color.ink12;
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(
-            picX + wellPad + 0.75,
-            y + wellPad + 0.75,
-            picW - wellPad * 2 - 1.5,
-            rowH - wellPad * 2 - 1.5
-        );
-        ctx.restore();
-
-        const iconSize = Math.min(picW - wellPad * 2, rowH - wellPad * 2) * 0.42;
-        const iconCx = picX + picW / 2;
-        const iconCy = y + rowH / 2;
-
-        if (state === 'locked') {
-            ctx.save();
-            ctx.strokeStyle = color.ink12;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(iconCx, iconCy, iconSize * 0.55, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-        } else {
-            drawEntryIcon(ctx, entry.icon, iconCx, iconCy, iconSize, false);
-        }
-
         const textPad = unit * 1.4;
-        const textLeft = textX + textPad * 0.2;
-        const textInnerW = textW - textPad * 1.2;
         const titlePx = Math.max(15, unit * 1.55);
         const statusPx = Math.max(11, unit * 1.05);
         const bodyPx = Math.max(13, unit * 1.25);
+
+        let textLeft;
+        let textInnerW;
+
+        if (journeyTab) {
+            // Full-width text — no empty # thumbnail, no KNOWN tag.
+            textLeft = L.left + textPad;
+            textInnerW = L.width - textPad * 2;
+        } else {
+            // 1/3 picture well | 2/3 text
+            const colGap = unit * 1.2;
+            const picW = (L.width - colGap) / 3;
+            const textW = L.width - picW - colGap;
+            const picX = L.left;
+            const textX = L.left + picW + colGap;
+
+            const wellPad = unit * 1.1;
+            ctx.save();
+            ctx.fillStyle = color.paper;
+            ctx.fillRect(picX + wellPad, y + wellPad, picW - wellPad * 2, rowH - wellPad * 2);
+            ctx.strokeStyle = color.ink12;
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(
+                picX + wellPad + 0.75,
+                y + wellPad + 0.75,
+                picW - wellPad * 2 - 1.5,
+                rowH - wellPad * 2 - 1.5
+            );
+            ctx.restore();
+
+            const iconSize = Math.min(picW - wellPad * 2, rowH - wellPad * 2) * 0.42;
+            const iconCx = picX + picW / 2;
+            const iconCy = y + rowH / 2;
+
+            if (state === 'locked') {
+                ctx.save();
+                ctx.strokeStyle = color.ink12;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(iconCx, iconCy, iconSize * 0.55, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            } else {
+                drawEntryIcon(ctx, entry.icon, iconCx, iconCy, iconSize, false);
+            }
+
+            textLeft = textX + textPad * 0.2;
+            textInnerW = textW - textPad * 1.2;
+        }
 
         ctx.save();
         ctx.textAlign = 'left';
@@ -191,10 +205,29 @@ export function renderLogbook(game) {
         if (state === 'locked') {
             setLabelType(ctx, titlePx, 700);
             ctx.fillStyle = color.ink30;
-            fitPx(ctx, 'UNKNOWN CONTACT', textInnerW, titlePx, unit * 1.1,
+            const lockedLabel = journeyTab
+                ? entry.name.toUpperCase()
+                : 'UNKNOWN CONTACT';
+            fitPx(ctx, lockedLabel, textInnerW, titlePx, unit * 1.1,
                 (px) => setLabelType(ctx, px, 700));
-            ctx.fillText('UNKNOWN CONTACT', textLeft, y + rowH / 2 - titlePx * 0.55);
+            ctx.fillText(lockedLabel, textLeft, y + rowH / 2 - titlePx * 0.55);
             resetType(ctx);
+        } else if (journeyTab) {
+            setLabelType(ctx, titlePx, 700);
+            ctx.fillStyle = color.ink;
+            fitPx(ctx, entry.name.toUpperCase(), textInnerW, titlePx, unit * 1.15,
+                (px) => setLabelType(ctx, px, 700));
+            ctx.fillText(entry.name.toUpperCase(), textLeft, y + textPad);
+            resetType(ctx);
+
+            const bodyY = y + textPad + titlePx * 1.35;
+            ctx.font = `500 ${bodyPx}px ${font.ui}`;
+            ctx.fillStyle = color.ink80;
+            const body = state === 'known' ? entry.definition : pendingLine(entry.id);
+            const maxLines = Math.max(3, Math.floor((y + rowH - bodyY - textPad) / (bodyPx * 1.4)));
+            wrapLines(ctx, body, textInnerW, maxLines).forEach((line, i) => {
+                ctx.fillText(line, textLeft, bodyY + i * bodyPx * 1.4);
+            });
         } else {
             setLabelType(ctx, titlePx, 700);
             ctx.fillStyle = color.ink;
