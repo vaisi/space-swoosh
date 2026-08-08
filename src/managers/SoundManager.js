@@ -3,7 +3,7 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
-// - playLevelVoice / stopLevelVoice for Journey levels 1–15 navigator MP3s
+// - playLevelVoice / stopLevelVoice for Journey levels 1–40 navigator MP3s
 //   under /sounds/voice/; ducks BGM while speaking; honors mute.
 // - playTurn / playMove use pre-decoded Web Audio buffer sources (no HTMLAudio
 //   seek on tap). Removes direction-change micro-freeze; move.mp3 optional.
@@ -29,7 +29,7 @@ const BGM_VOLUME = 0.4;
 const BGM_DUCK_VOLUME = 0.14;
 const VOICE_VOLUME = 0.85;
 const VOICE_LEVEL_MIN = 1;
-const VOICE_LEVEL_MAX = 15;
+const VOICE_LEVEL_MAX = 40;
 
 function loadMuted() {
     try {
@@ -200,7 +200,7 @@ export class SoundManager {
     }
 
     /**
-     * Play navigator line for Journey levels 1–15. No-op outside that range,
+     * Play navigator line for Journey levels 1–40. No-op outside that range,
      * when muted, or when the clip fails to load.
      * @param {number} level
      * @param {{ onEnded?: () => void }} [opts]

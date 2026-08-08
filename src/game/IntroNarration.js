@@ -4,7 +4,7 @@
 // beat has cleared and the voice has ended (or failed / been muted).
 // Changes:
 // - Beats accept `{ text, gapAfterMs }` (ElevenLabs <break> pacing) or strings.
-// - Voice clips supported for levels 1–15; later levels are text-only for now.
+// - Voice clips supported for Journey levels 1–40.
 
 import { DEFAULT_BEAT_GAP_MS } from '../config/JourneyNarrative.js';
 
@@ -42,7 +42,7 @@ export class IntroNarration {
     /**
      * @param {import('./Game.js').Game | object} game
      * @param {Array<string | { text?: string, gapAfterMs?: number }>} beats
-     * @param {number | null} voiceLevel Journey level for MP3 (1–15), or null
+     * @param {number | null} voiceLevel Journey level for MP3 (1–40), or null
      */
     constructor(game, beats, voiceLevel = null) {
         this.game = game;

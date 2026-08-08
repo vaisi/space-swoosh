@@ -40,7 +40,7 @@ As the journey continues:
 - The senders used primes, described their ordinary yellow star, eight planets, a third world of ocean and one moon.
 - They sent pictures, faces, and even music.
 - NAV finishes dating the transmission: it was already more than a million years old when received.
-- No later signals appear along the route. A civilization that loud should have left more.
+- No other transmissions appear along the route. A civilization that loud should have left more.
 - Anatomy and landscapes resolve — upright bipeds, five digits, blue sky, green vegetation.
 - Their star had a one-syllable name: **Sol**. Their planet: **Earth**.
 - NAV did not know that name. It isn't theirs. Humans searched the stars first.
@@ -135,10 +135,10 @@ The emotional ending is not about saving the universe. It is about answering —
 > **Don't stop. Old doesn't mean gone. Not necessarily.**
 
 ### Level 23
-> **No later transmissions appear anywhere along the route.**
+> **No other transmissions appear anywhere along the route.**
 
 ### Level 24
-> **A civilization loud enough to send this... should have left something else behind.**
+> **A civilization loud enough to send this... Should have left something else behind.**
 
 ### Level 25
 > **I'm searching. Keep flying.**
@@ -160,10 +160,10 @@ The emotional ending is not about saving the universe. It is about answering —
 > **Another image cleared. Blue sky. Green vegetation. White clouds.**
 
 ### Level 30
-> **I found their name for the planet. Translation is still resolving.**
+> **Fascinating. I found their name for the planet. Translation is still resolving.**
 
 ### Level 31
-> **Their star had a name too. One syllable.**
+> **Their star has a name too. One syllable.**
 
 ### Level 32
 > **Sol. They called it Sol.**
@@ -182,7 +182,7 @@ The emotional ending is not about saving the universe. It is about answering —
 > **I didn't. It isn't ours.**
 
 ### Level 36
-> **We weren't the ones searching the stars first. They were.**
+> **We weren't the first to search. They were.**
 
 ---
 

@@ -3,7 +3,7 @@
 // lines (1–40). Source prose also lives in docs/spaceswoosh_signal_story.md;
 // this module is what the runtime imports so we do not parse markdown in-game.
 // Changes:
-// - L7 on-screen/logbook: “We're retracing…” (matches spoken line).
+// - L38 three beats; L36 “first to search”; L31 “has a name”; L30 Fascinating.
 // - THE REPLY arc: lore + LEVEL_MESSAGES[6..40] (Earth / Sol). L1–5 unchanged.
 // - LEVEL_INTRO_BEATS expanded to 6–40 as { text, gapAfterMs } from ElevenLabs
 //   <break> tags; L1–5 stay string beats (default gap).
@@ -47,20 +47,20 @@ export const LEVEL_MESSAGES = {
     20: 'I\'ve finished dating the transmission. There\'s a problem.',
     21: 'It was already more than a million years old... when we received it.',
     22: 'Don\'t stop. Old doesn\'t mean gone. Not necessarily.',
-    23: 'No later transmissions appear anywhere along the route.',
-    24: 'A civilization loud enough to send this... should have left something else behind.',
+    23: 'No other transmissions appear anywhere along the route.',
+    24: 'A civilization loud enough to send this... Should have left something else behind.',
     25: 'I\'m searching. Keep flying.',
     26: 'Nothing.',
     27: 'I recovered part of their anatomy. Two arms. Two legs. Upright.',
     28: 'Five digits on each hand. Rather useful design, actually.',
     29: 'Another image cleared. Blue sky. Green vegetation. White clouds.',
-    30: 'I found their name for the planet. Translation is still resolving.',
-    31: 'Their star had a name too. One syllable.',
+    30: 'Fascinating. I found their name for the planet. Translation is still resolving.',
+    31: 'Their star has a name too. One syllable.',
     32: 'Sol. They called it Sol.',
     33: 'The planet was called Earth.',
     34: 'You knew that name... didn\'t you?',
     35: 'I didn\'t. It isn\'t ours.',
-    36: 'We weren\'t the ones searching the stars first. They were.',
+    36: 'We weren\'t the first to search. They were.',
     37: 'Sol is ahead. No artificial signals. No active structures.',
     38: 'Earth is still there. Whatever sent the message... is not.',
     39: 'We came a million years too late. Carry the answer anyway.',
@@ -152,10 +152,10 @@ export const LEVEL_INTRO_BEATS = {
         { text: 'Old doesn\'t mean gone.', gapAfterMs: 600 },
         { text: 'Not necessarily.' },
     ],
-    23: [{ text: 'No later transmissions appear anywhere along the route.' }],
+    23: [{ text: 'No other transmissions appear anywhere along the route.' }],
     24: [
         { text: 'A civilization loud enough to send this...', gapAfterMs: 500 },
-        { text: 'should have left something else behind.' },
+        { text: 'Should have left something else behind.' },
     ],
     25: [
         { text: 'I\'m searching.', gapAfterMs: 500 },
@@ -179,11 +179,12 @@ export const LEVEL_INTRO_BEATS = {
         { text: 'White clouds.' },
     ],
     30: [
+        { text: 'Fascinating.' },
         { text: 'I found their name for the planet.', gapAfterMs: 500 },
         { text: 'Translation is still resolving.' },
     ],
     31: [
-        { text: 'Their star had a name too.', gapAfterMs: 600 },
+        { text: 'Their star has a name too.', gapAfterMs: 600 },
         { text: 'One syllable.' },
     ],
     32: [
@@ -200,7 +201,7 @@ export const LEVEL_INTRO_BEATS = {
         { text: 'It isn\'t ours.' },
     ],
     36: [
-        { text: 'We weren\'t the ones searching the stars first.', gapAfterMs: 700 },
+        { text: 'We weren\'t the first to search.', gapAfterMs: 700 },
         { text: 'They were.' },
     ],
     37: [
@@ -210,7 +211,8 @@ export const LEVEL_INTRO_BEATS = {
     ],
     38: [
         { text: 'Earth is still there.', gapAfterMs: 700 },
-        { text: 'Whatever sent the message... is not.' },
+        { text: 'Whatever sent the message...', gapAfterMs: 500 },
+        { text: 'is not.' },
     ],
     39: [
         { text: 'We came a million years too late.', gapAfterMs: 800 },

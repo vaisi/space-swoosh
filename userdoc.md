@@ -40,7 +40,7 @@ at least one run.
 Deep space exploration starting from Day 1. **40 numbered levels**, each with a
 distance goal to reach. A calm navigator speaks at the start of each level (no
 chatter mid-flight). Words appear **one sentence at a time** so you can read
-along; on **levels 1–15** you also hear the spoken line.
+along, and you hear the spoken line on every Journey level.
 
 **Levels 1–5 teach the basics**, in order:
 
@@ -78,9 +78,9 @@ account required.
 Every run — Journey or Open World — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
 out. Then the navigator’s line (Journey) sits on screen sentence by sentence
-(with voice through level 15) and fades; a moment later distance and pause ease
-in. Points appear when you collect your first sparkle; destroyed appears when
-you smash your first asteroid. The ship intro itself can't be skipped.
+with voice and fades; a moment later distance and pause ease in. Points appear
+when you collect your first sparkle; destroyed appears when you smash your
+first asteroid. The ship intro itself can't be skipped.
 
 The levels are grouped into five chapters as you climb out of the atmosphere:
 **Troposphere → Stratosphere → Mesosphere → Thermosphere → Exosphere**. The first
