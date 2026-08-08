@@ -34,7 +34,7 @@ Two ways to play
 • Open Space — endless distance, online leaderboard
 • Journey — 40 levels, three stars each, progress saved on your device
 
-Cosmetic ships (Pulse, Quill) are optional unlocks. They change how you look, not how you fly.
+Cosmetic ships beyond Focus / Flicker / Ember are optional unlocks. They change how you look, not how you fly.
 
 Fascinating.
 ```

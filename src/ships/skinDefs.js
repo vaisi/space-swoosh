@@ -2,6 +2,9 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Free forever: Focus / Flicker / Ember. Every other skin has productId +
+//   entitlementId (com.orbi.spaceswoosh.skin.<id> / skin_<id>) for IAP.
+// - Renamed square* → Stamp/Tick/Trace/Ring, then Stamp→Seal, Tick→Hatch.
 // - Night paper: Nyan hull gray lifted so the crescent still reads on charcoal.
 // - Nyan: Echo's crescent (sparrow wings), gray + two pink spots, longer
 //   rainbow ribbon. Hitbox matches crescent; spots are paint only.
@@ -12,10 +15,17 @@
 //   attaches at the hull. Orbit: planetoid hull (solid body + tilted ring +
 //   satellite) with lagging orbital wake. Ink: hull-attached tip reverse.
 //   Mote: organic radial micro-dot cloud (messy, still L/R-balanced).
-// - Per-ship wall-boop signatures + jelly profiles; free ships Fold/Mote/
-//   Spine/Orbit/Ink/Flux/Cinder. Hitbox stays undeformed.
+// - Per-ship wall-boop signatures + jelly profiles. Hitbox stays undeformed.
 
 import { color } from '../brand/tokens.js';
+
+/** Store product + RevenueCat entitlement for a premium skin. */
+function iap(id) {
+    return {
+        productId: `com.orbi.spaceswoosh.skin.${id}`,
+        entitlementId: `skin_${id}`,
+    };
+}
 import {
     MAX_BANK,
     tearPath,
@@ -602,6 +612,7 @@ const wisp = {
     blurb: 'Weightless. Sheds sparks.',
     hitbox: TEAR_HITBOX,
     wallTrailMode: 'flare',
+    ...iap('wisp'),
 
     drawHull: drawTearHull,
 
@@ -616,8 +627,7 @@ const pulse = {
     blurb: 'Signal wake. Instrumental, lit.',
     hitbox: CIRCLE_HITBOX,
     wallTrailMode: 'dense',
-    productId: 'com.orbi.spaceswoosh.skin.pulse',
-    entitlementId: 'skin_pulse',
+    ...iap('pulse'),
 
     drawHull(ctx, ship, screenY, time) {
         drawCircleHull(ctx, ship, screenY, time);
@@ -637,8 +647,7 @@ const quill = {
     blurb: 'A fine blue line of travel.',
     hitbox: TEAR_HITBOX,
     wallTrailMode: 'spring',
-    productId: 'com.orbi.spaceswoosh.skin.quill',
-    entitlementId: 'skin_quill',
+    ...iap('quill'),
 
     drawHull: drawTearHull,
 
@@ -659,6 +668,7 @@ const nyan = {
     blurb: 'A long rainbow line of travel.',
     hitbox: CRESCENT_HITBOX,
     wallTrailMode: 'spring',
+    ...iap('nyan'),
     // ~2× default wake: more samples + slower fade so the rainbow stretches.
     trailMaxPoints: 160,
     trailFade: 1 / 360,
@@ -679,6 +689,7 @@ const shard = {
     blurb: 'Faceted. A hard wake.',
     hitbox: SHARD_HITBOX,
     wallTrailMode: 'shatter',
+    ...iap('shard'),
 
     drawHull: drawShardHull,
 
@@ -693,6 +704,7 @@ const halo = {
     blurb: 'Orbital. Rings the path.',
     hitbox: HALO_HITBOX,
     wallTrailMode: 'pile',
+    ...iap('halo'),
 
     drawHull: drawHaloHull,
 
@@ -707,6 +719,7 @@ const needle = {
     blurb: 'Linear. One thin thread.',
     hitbox: NEEDLE_HITBOX,
     wallTrailMode: 'whip',
+    ...iap('needle'),
 
     drawHull: drawNeedleHull,
 
@@ -721,6 +734,7 @@ const echo = {
     blurb: 'Paired. Leaves a twin.',
     hitbox: CRESCENT_HITBOX,
     wallTrailMode: 'desync',
+    ...iap('echo'),
 
     drawHull: drawCrescentHull,
 
@@ -729,48 +743,52 @@ const echo = {
     },
 };
 
-const squareStamp = {
-    id: 'squareStamp',
-    name: 'Square Stamp',
-    blurb: 'Square hull. Stamped tiles.',
+const seal = {
+    id: 'seal',
+    name: 'Seal',
+    blurb: 'Pressed tiles. Peels at the wall.',
     hitbox: SQUARE_HITBOX,
     wallTrailMode: 'blot',
+    ...iap('seal'),
     drawHull: drawStampHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawStampTrail(ctx, ship, trail, toScreenY, { blotBoop: true });
     },
 };
 
-const squareTick = {
-    id: 'squareTick',
-    name: 'Square Tick',
-    blurb: 'Square hull. Lateral ticks.',
+const hatch = {
+    id: 'hatch',
+    name: 'Hatch',
+    blurb: 'Lateral marks. Stretches on impact.',
     hitbox: SQUARE_HITBOX,
     wallTrailMode: 'pile',
+    ...iap('hatch'),
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawTickTrail(ctx, ship, trail, toScreenY, { wallStretch: true });
     },
 };
 
-const squareTrace = {
-    id: 'squareTrace',
-    name: 'Square Trace',
-    blurb: 'Square hull. One thin line.',
+const trace = {
+    id: 'trace',
+    name: 'Trace',
+    blurb: 'One thin line. Springs on a bounce.',
     hitbox: SQUARE_HITBOX,
     wallTrailMode: 'spring',
+    ...iap('trace'),
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawHairlineTrail(ctx, ship, trail, toScreenY);
     },
 };
 
-const squareRing = {
-    id: 'squareRing',
-    name: 'Square Ring',
-    blurb: 'Square hull. Blooming rings.',
+const ring = {
+    id: 'ring',
+    name: 'Ring',
+    blurb: 'Blooming rings. Squash, no pop.',
     hitbox: SQUARE_HITBOX,
     wallTrailMode: 'pile',
+    ...iap('ring'),
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         // Distinct from Halo: ring squash only — no soap-bubble inflate/pop.
@@ -784,6 +802,7 @@ const fold = {
     blurb: 'Origami. A dashed crease.',
     hitbox: FOLD_HITBOX,
     wallTrailMode: 'crease',
+    ...iap('fold'),
     drawHull: drawFoldHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawCreaseTrail(ctx, ship, trail, toScreenY);
@@ -796,6 +815,7 @@ const mote = {
     blurb: 'Soft ink. A drifting cloud.',
     hitbox: MOTE_HITBOX,
     wallTrailMode: 'cloud',
+    ...iap('mote'),
     drawHull: drawMoteHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawCloudTrail(ctx, ship, trail, toScreenY);
@@ -808,6 +828,7 @@ const spine = {
     blurb: 'Upright. A ladder wake.',
     hitbox: SPINE_HITBOX,
     wallTrailMode: 'ladder',
+    ...iap('spine'),
     drawHull: drawSpineHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawLadderTrail(ctx, ship, trail, toScreenY);
@@ -820,6 +841,7 @@ const orbit = {
     blurb: 'Planetoid. A lagging orbit wake.',
     hitbox: ORBIT_HITBOX,
     wallTrailMode: 'lag',
+    ...iap('orbit'),
     drawHull: drawOrbitHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawLagEllipseTrail(ctx, ship, trail, toScreenY);
@@ -833,6 +855,7 @@ const ink = {
     blurb: 'Calligraphic. Tip reverses on boop.',
     hitbox: TEAR_HITBOX,
     wallTrailMode: 'script',
+    ...iap('ink'),
     drawHull: drawTearHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawRibbonTrail(ctx, ship, trail, toScreenY, {
@@ -851,6 +874,7 @@ const flux = {
     blurb: 'Hex crystal. Ink and signal dashes.',
     hitbox: HEX_HITBOX,
     wallTrailMode: 'flick',
+    ...iap('flux'),
     drawHull: drawFluxHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawDashTrail(ctx, ship, trail, toScreenY);
@@ -863,6 +887,7 @@ const cinder = {
     blurb: 'Warm petal. Ember ribbon, cool ash.',
     hitbox: PETAL_HITBOX,
     wallTrailMode: 'cinder',
+    ...iap('cinder'),
     drawHull: drawCinderHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawCinderTrail(ctx, ship, trail, toScreenY);
@@ -872,7 +897,7 @@ const cinder = {
 export const SKIN_DEFS = [
     focus, flicker, ember, wisp, pulse, quill, nyan,
     shard, halo, needle, echo,
-    squareStamp, squareTick, squareTrace, squareRing,
+    seal, hatch, trace, ring,
     fold, mote, spine, orbit, ink,
     flux, cinder,
 ];

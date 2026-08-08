@@ -1,82 +1,112 @@
 // generate-iap-icons.mjs
-// Changes: Created — 512×512 Google Play one-time product icons for Pulse and
-// Quill, derived from brand tokens (paper ground, ink hull, signal-blue wake).
+// Changes: Store-icon framing matches classic Pulse/Quill listing art —
+// upright hull in the upper third, real in-game hull+wake, trail samples
+// stretched from under the hull down to the bottom of the 512 canvas.
 //
-// Outputs:
-//   assets/iap/pulse.png
-//   assets/iap/quill.png
+// Outputs: assets/iap/<skinId>.png (512×512) for every skin with productId.
 //
-// Run: node scripts/generate-iap-icons.mjs
+// Run: npm run assets:iap
 
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import sharp from 'sharp';
+import { createCanvas } from '@napi-rs/canvas';
 
 import { color } from '../src/brand/tokens.js';
+import { SKIN_DEFS } from '../src/ships/skinDefs.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SIZE = 512;
 
-function pulseSvg() {
-    // Circle hull (Focus geometry) + signal dotted wake — matches Pulse skin.
-    const cx = 256;
-    const cy = 200;
-    const r = 58;
-    const dots = [280, 318, 356, 394, 432]
-        .map(
-            (y, i) =>
-                `<circle cx="${cx}" cy="${y}" r="${10 - i}" fill="${color.signal}" opacity="${0.95 - i * 0.12}" />`,
-        )
-        .join('\n  ');
+/**
+ * Long vertical wake for store icons — oldest at the bottom of the canvas,
+ * newest just under the hull (same direction as in-game travel: up).
+ */
+function iconWake(cx, hullCy, radius, bottomY, { longWake = false } = {}) {
+    const count = longWake ? 48 : 36;
+    const startY = hullCy + radius * 0.55;
+    // Overshoot slightly so faded tips still paint on the bottom edge.
+    const span = Math.max(radius * 2, bottomY - startY) + radius * 0.35;
+    // Gentle S so ribbons/dots still read as motion, without eating the frame.
+    const amp = radius * (longWake ? 0.5 : 0.38);
+    const bend = 1.05;
+    const trail = [];
 
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  <rect width="${SIZE}" height="${SIZE}" fill="${color.paper}" />
-  ${dots}
-  <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color.ink}" />
-  <circle cx="${cx}" cy="${cy}" r="${r * 0.28}" fill="${color.signal}" />
-</svg>`;
+    for (let i = 0; i < count; i++) {
+        const t = i / (count - 1);
+        // Oldest first (bottom); newest last (at hull) — matches live trail order.
+        const u = 1 - t;
+        const y = startY + u * span;
+        const x = cx - Math.sin(u * bend) * amp * (0.25 + 0.75 * u);
+        const vx = Math.cos(u * bend) * amp * bend;
+        const vy = -span;
+
+        trail.push({
+            x,
+            y,
+            // Stay readable all the way to the bottom (store icons, not HUD fade).
+            opacity: Math.max(0.28, 1 - u * 0.55),
+            angle: Math.atan2(vx, -vy),
+            seed: (i * 0.618) % 1,
+        });
+    }
+
+    return trail;
 }
 
-function quillSvg() {
-    // Tear hull (Flicker geometry) + thin signal ribbon wake — matches Quill.
-    const cx = 256;
-    const tipY = 140;
-    const body = `
-  <path d="M ${cx} ${tipY}
-           C ${cx + 52} ${tipY + 70}, ${cx + 48} ${tipY + 130}, ${cx} ${tipY + 168}
-           C ${cx - 48} ${tipY + 130}, ${cx - 52} ${tipY + 70}, ${cx} ${tipY}
-           Z" fill="${color.ink}" />`;
-    const ribbon = `
-  <path d="M ${cx} ${tipY + 160}
-           Q ${cx - 18} ${tipY + 220}, ${cx + 6} ${tipY + 280}
-           Q ${cx + 22} ${tipY + 330}, ${cx - 4} ${tipY + 390}"
-        fill="none" stroke="${color.signal}" stroke-width="10" stroke-linecap="round" opacity="0.9" />
-  <path d="M ${cx} ${tipY + 160}
-           Q ${cx - 18} ${tipY + 220}, ${cx + 6} ${tipY + 280}
-           Q ${cx + 22} ${tipY + 330}, ${cx - 4} ${tipY + 390}"
-        fill="none" stroke="${color.signal}" stroke-width="3" stroke-linecap="round" opacity="0.45" />`;
+function drawStoreIcon(ctx, skin, cx, hullCy, radius, bottomY, time) {
+    // Near-upright — same silhouette language as the original Pulse/Quill SVGs.
+    const bank = 0.12;
+    const longWake = (skin.trailMaxPoints ?? 80) > 100;
 
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  <rect width="${SIZE}" height="${SIZE}" fill="${color.paper}" />
-  ${ribbon}
-  ${body}
-</svg>`;
+    const fakeShip = {
+        x: cx,
+        y: hullCy,
+        radius,
+        bank,
+        tangent: bank,
+        speed: radius * 0.14,
+        _wallTrailMode: skin.wallTrailMode ?? 'spring',
+        tailPoint: () => ({
+            x: cx - Math.sin(bank) * radius * 0.55,
+            y: hullCy + Math.cos(bank) * radius * 0.55,
+        }),
+        game: { config: { spacecraft: { trailDotSize: 0.22 } } },
+    };
+
+    const wake = iconWake(cx, hullCy, radius, bottomY, { longWake });
+    skin.drawTrail(ctx, fakeShip, wake, (y) => y);
+    skin.drawHull(ctx, fakeShip, hullCy, time);
 }
 
-async function writePng(markup, out) {
-    const dest = resolve(root, out);
-    await sharp(Buffer.from(markup)).resize(SIZE, SIZE).png().toFile(dest);
-    console.log('  ✓', out);
+async function renderSkinIcon(skin) {
+    const canvas = createCanvas(SIZE, SIZE);
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = color.paper;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // Match original Pulse SVG: hull upper third, r~58; wake to bottom edge.
+    const cx = SIZE * 0.5;
+    const hullCy = 175;
+    const radius = 60;
+    const bottomY = SIZE - 10;
+    const time = 1200;
+
+    drawStoreIcon(ctx, skin, cx, hullCy, radius, bottomY, time);
+
+    const out = resolve(root, `assets/iap/${skin.id}.png`);
+    writeFileSync(out, canvas.toBuffer('image/png'));
+    console.log('  ✓', `assets/iap/${skin.id}.png`);
 }
 
 async function main() {
     mkdirSync(resolve(root, 'assets/iap'), { recursive: true });
-    console.log('Generating IAP icons…');
-    await Promise.all([
-        writePng(pulseSvg(), 'assets/iap/pulse.png'),
-        writePng(quillSvg(), 'assets/iap/quill.png'),
-    ]);
+    const paid = SKIN_DEFS.filter((s) => s.productId);
+    console.log(`Rendering store IAP icons (hull top, wake to bottom) for ${paid.length}…`);
+    for (const skin of paid) {
+        await renderSkinIcon(skin);
+    }
     console.log('Done. Upload these in Play Console → In-app products → Icon.');
 }
 

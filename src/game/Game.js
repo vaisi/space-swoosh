@@ -9,10 +9,9 @@
 //   Submit first (stats below) so Gboard never covers the field. DOM input on
 //   #gameContainer, repositioned every frame. resizeOnFullScreen in capacitor
 //   config works around Android edge-to-edge ignoring adjustResize.
-// - Main menu: Play-button ▶/◀ icons beside the ship + ArrowLeft/Right cycle
-//   owned skins via cycleMenuShip(); wide left/right tap zones for mobile.
-// - Options hub: Restore Purchases replaced by Light Mode / Dark Mode toggle
-//   (brand/theme.js). Choice persists in localStorage.
+// - Main menu: cycle full roster (menuShipBrowseId); owned equips, locked
+//   shows price + tap-to-buy; Play uses last owned shipSkinId.
+// - Options hub: Ship / Controls / Sound / Theme + Restore Purchases.
 // - Night paper: pause wash / goal-bar rest / crash particles / name-modal dim
 //   and DOM input fallbacks use token RGB (no cream or near-black literals).
 // - Submit Signal modal lightened: left-aligned value→label stacks in order
@@ -83,9 +82,8 @@
 //   `renderWorld()` takes `{ hudAlpha }` so the readout can fade ahead of the
 //   world, and `drawBrandButton()` accepts a `labelPx` override for buttons too
 //   narrow for the default label size.
-// - Journey draws a world-space finish line (dotted rule + Signal-Blue end ticks)
-//   that fades in on approach and locks when the goal is crossed so the flyout
-//   can pass through it.
+// - Journey finish gate: Signal-Blue jet stream between minimal left/right wall
+//   emitters (saber-handle vibe); fades in on approach, locks when crossed.
 // - Spock flavor lines (brand/CopyBank.js) are picked once on menu enter and on
 //   crash / clear screens so the subtitle changes visit to visit.
 // - Two play modes. Play now opens a mode select: Open World (the endless run,
@@ -153,6 +151,7 @@ import {
     isSkinOwned,
     isSkinPremium,
     purchaseSkin,
+    restorePurchases,
 } from '../services/Entitlements.js';
 import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
@@ -261,6 +260,8 @@ export class Game {
         this.endFlavor = null; // Open World game-over subtitle
         this.highScoresReturnScreen = 'menu';
         this.shipSkinId = loadShipSkinId();
+        /** Main-menu preview (may be locked); Play always uses shipSkinId. */
+        this.menuShipBrowseId = this.shipSkinId;
         this.flightStyle = loadFlightStyle();
         this.menuButtons = {};
         this.optionsButtons = {};
@@ -486,6 +487,8 @@ export class Game {
     showMenu() {
         this.appScreen = 'menu';
         this.menuFlavor = pickCopy('menu');
+        this.shipSkinId = loadShipSkinId();
+        this.menuShipBrowseId = this.shipSkinId;
         this.updatePauseButtonVisibility();
     }
 
@@ -928,9 +931,9 @@ export class Game {
         this.ctx.restore();
     }
 
-    // Journey's finish line: a dotted rule with Signal-Blue end ticks that lives
-    // in world space ahead of the ship and fades in as you approach. Locked in
-    // place the moment the goal is crossed so the flyout can pass through it.
+    // Journey finish gate: Signal-Blue jet stream between minimal left/right
+    // wall emitters. Lives in world space ahead of the ship, fades in on
+    // approach, and locks when the goal is crossed so the flyout can pass through.
     //
     // Score rises by |camera.velocity| * dt * 100 while the camera advances by
     // roughly that velocity each frame at 60fps, so 1 km ≈ 0.6 world units.
@@ -954,9 +957,12 @@ export class Game {
 
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const margin = unit * 2.4;
-        const left = margin;
-        const right = this.width - margin;
+        const margin = unit * 1.8;
+        const handleLen = unit * 1.35;
+        const handleH = unit * 0.72;
+        const tipW = unit * 0.38;
+        const leftTip = margin + handleLen;
+        const rightTip = this.width - margin - handleLen;
 
         // Fade in over the last screen-and-a-half of approach.
         const approach = clamp01(1 - screenY / (this.height * 1.35));
@@ -965,16 +971,90 @@ export class Game {
         ctx.save();
         ctx.globalAlpha *= alpha;
 
-        dottedLine(ctx, left, right, screenY, 1.6, 7, color.ink30);
+        // Thin dashed jet — soft halo + bright core, both dashed and scrolling
+        // so it reads as a powered stream rather than a solid bar.
+        const streamY = screenY;
+        const haloW = unit * 0.22;
+        const coreW = Math.max(1.5, unit * 0.11);
+        const dash = unit * 0.42;
+        const gap = unit * 0.32;
+        const flow = (performance.now() * 0.09) % (dash + gap);
 
-        // Soft Signal-Blue ticks at the ends — the only colour, so the line reads
-        // as a destination rather than another hazard.
-        ctx.fillStyle = color.signal;
-        const tick = unit * 0.55;
+        ctx.lineCap = 'butt';
+        ctx.setLineDash([dash, gap]);
+        ctx.lineDashOffset = -flow;
+
+        ctx.strokeStyle = `rgba(${color.signalRgb}, 0.3)`;
+        ctx.lineWidth = haloW;
         ctx.beginPath();
-        ctx.arc(left, screenY, tick * 0.55, 0, Math.PI * 2);
-        ctx.arc(right, screenY, tick * 0.55, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(leftTip, streamY);
+        ctx.lineTo(rightTip, streamY);
+        ctx.stroke();
+
+        ctx.strokeStyle = color.signal;
+        ctx.lineWidth = coreW;
+        ctx.beginPath();
+        ctx.moveTo(leftTip, streamY);
+        ctx.lineTo(rightTip, streamY);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+
+        // Minimal saber-handle emitters: ink housing + blue nozzle facing in.
+        const drawEmitter = (outerX, facingRight) => {
+            const tipX = facingRight ? outerX + handleLen : outerX - handleLen;
+            const bodyLeft = facingRight ? outerX : tipX + tipW;
+            const bodyW = handleLen - tipW;
+
+            ctx.fillStyle = color.ink;
+            ctx.beginPath();
+            const r = handleH * 0.22;
+            const top = streamY - handleH / 2;
+            const bot = streamY + handleH / 2;
+            ctx.moveTo(bodyLeft + r, top);
+            ctx.arcTo(bodyLeft + bodyW, top, bodyLeft + bodyW, bot, r);
+            ctx.arcTo(bodyLeft + bodyW, bot, bodyLeft, bot, r);
+            ctx.arcTo(bodyLeft, bot, bodyLeft, top, r);
+            ctx.arcTo(bodyLeft, top, bodyLeft + bodyW, top, r);
+            ctx.closePath();
+            ctx.fill();
+
+            // Grip rings
+            ctx.save();
+            ctx.strokeStyle = color.paper;
+            ctx.globalAlpha *= 0.35;
+            ctx.lineWidth = Math.max(1, unit * 0.06);
+            for (let i = 0; i < 2; i++) {
+                const gx = bodyLeft + bodyW * (0.35 + i * 0.22);
+                ctx.beginPath();
+                ctx.moveTo(gx, top + unit * 0.08);
+                ctx.lineTo(gx, bot - unit * 0.08);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Blue emitter face / nozzle
+            ctx.fillStyle = color.signal;
+            const tipLeft = facingRight ? tipX - tipW : tipX;
+            ctx.fillRect(tipLeft, streamY - handleH * 0.42, tipW, handleH * 0.84);
+
+            // Hot core at the nozzle
+            ctx.fillStyle = `rgba(${color.signalRgb}, 0.95)`;
+            const core = unit * 0.14;
+            ctx.beginPath();
+            ctx.arc(
+                facingRight ? tipX - tipW * 0.15 : tipX + tipW * 0.15,
+                streamY,
+                core,
+                0,
+                Math.PI * 2,
+            );
+            ctx.fill();
+        };
+
+        drawEmitter(margin, true);
+        drawEmitter(this.width - margin, false);
 
         ctx.restore();
     }
@@ -1407,10 +1487,12 @@ export class Game {
         const previewR = unit * 1.5;
         const previewH = previewR * 5.6; // hull + fading wake
         const namePx = Math.max(10, unit * 0.95);
+        const pricePx = Math.max(10, unit * 1.0);
 
         // Section stack: identity, ship, actions — centred as one block.
         const identityH = titlePx * 1.1 + L.row + taglinePx * 1.3;
-        const shipH = previewH + L.row + namePx * 1.4;
+        // Extra line for locked price / purchase status under the ship name.
+        const shipH = previewH + L.row + namePx * 1.4 + pricePx * 1.2;
         const totalH = identityH + L.section + shipH + L.section * 1.2 + buttonsH;
         let y = Math.max(L.top + unit, (this.height - totalH) / 2);
 
@@ -1448,11 +1530,13 @@ export class Game {
 
         y += taglinePx * 1.3 + L.section;
 
-        // Ship section — live preview + name, flanked by Play-button triangles.
-        // Hit zones span the left/right halves of this band for easy mobile taps.
+        // Ship section — browse full roster; owned equips, locked shows price.
+        // Hit zones: left/right halves cycle; centre band taps to unlock.
         this.menuButtons = {};
+        const browseId = this.menuShipBrowseId || this.shipSkinId;
+        const browseOwned = isSkinOwned(browseId);
         const previewCy = y + previewR * 1.2;
-        drawSkinPreview(ctx, this.shipSkinId, L.centerX, previewCy, previewR);
+        drawSkinPreview(ctx, browseId, L.centerX, previewCy, previewR);
 
         // Same glyph as Play's motif tag (\u25B6), mirrored for previous.
         // Sit mid-figure (hull + wake), not on the nose.
@@ -1476,6 +1560,12 @@ export class Game {
             width: Math.max(unit * 4, L.right - (L.centerX + midGap)),
             height: shipH,
         };
+        this.menuButtons.shipPreview = {
+            x: L.centerX - midGap,
+            y,
+            width: midGap * 2,
+            height: shipH,
+        };
 
         ctx.save();
         ctx.textAlign = 'center';
@@ -1485,9 +1575,25 @@ export class Game {
         ctx.fillText('\u25C0', prevX, arrowCy);
         ctx.fillText('\u25B6', nextX, arrowCy);
         setLabelType(ctx, namePx);
-        ctx.fillStyle = color.ink55;
-        ctx.fillText(getSkin(this.shipSkinId).name.toUpperCase(), L.centerX, y + previewH + L.row);
+        ctx.fillStyle = browseOwned ? color.ink55 : color.ink;
+        ctx.fillText(getSkin(browseId).name.toUpperCase(), L.centerX, y + previewH + L.row);
         resetType(ctx);
+        if (!browseOwned) {
+            const pricePx = Math.max(10, unit * 1.0);
+            setMonoType(ctx, pricePx);
+            ctx.fillStyle = color.signal;
+            const price = getSkinPriceLabel(browseId);
+            const priceLine = this.purchaseStatus
+                || (price ? price : 'LOCKED · TAP TO UNLOCK');
+            ctx.fillText(priceLine, L.centerX, y + previewH + L.row + namePx * 0.95);
+            resetType(ctx);
+        } else if (this.purchaseStatus) {
+            const statusPx = Math.max(10, unit * 1.0);
+            setMonoType(ctx, statusPx);
+            ctx.fillStyle = color.signal;
+            ctx.fillText(this.purchaseStatus, L.centerX, y + previewH + L.row + namePx * 0.95);
+            resetType(ctx);
+        }
         ctx.restore();
 
         y += shipH + L.section * 1.2;
@@ -1519,7 +1625,7 @@ export class Game {
         );
     }
 
-    // Options hub — Ship / Controls / Sound / Light·Dark Mode toggle.
+    // Options hub — Ship / Controls / Sound / Theme / Restore Purchases.
     renderOptionsHub() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -1530,12 +1636,13 @@ export class Game {
 
         const subPx = L.isMobile ? Math.min(unit * 1.35, 15) : unit * 1.2;
         const buttonWidth = Math.min(unit * 30, L.width);
-        const buttonHeight = L.isMobile ? unit * 5.4 : unit * 5;
-        const buttonGap = unit * 1.4;
-        const buttonsH = buttonHeight * 4 + buttonGap * 3;
+        const buttonHeight = L.isMobile ? unit * 5.0 : unit * 4.6;
+        const buttonGap = unit * 1.2;
+        const buttonsH = buttonHeight * 5 + buttonGap * 4;
         const subH = subPx * 1.4;
+        const statusH = this.purchaseStatus ? subPx * 1.5 : 0;
 
-        const blockH = subH + L.section + buttonsH;
+        const blockH = subH + L.section + buttonsH + statusH;
         const available = L.bottom - header.contentTop;
         let y = header.contentTop + Math.max(0, (available - blockH) / 2);
 
@@ -1567,6 +1674,22 @@ export class Game {
         this.optionsHubButtons.theme = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, themeLabel(), { tag: '\u25D0' }
         );
+        y += buttonHeight + buttonGap;
+        this.optionsHubButtons.restore = this.drawBrandButton(
+            bx, y, buttonWidth, buttonHeight, 'Restore Purchases', { tag: '\u21BB' }
+        );
+
+        if (this.purchaseStatus) {
+            y += buttonHeight + L.block;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            setMonoType(ctx, Math.max(10, unit * 1.0));
+            ctx.fillStyle = color.signal;
+            ctx.fillText(this.purchaseStatus, L.centerX, y);
+            resetType(ctx);
+            ctx.restore();
+        }
     }
 
     // Ship picker — fixed-size cards in a 2-col grid. Longer rosters scroll
@@ -1873,15 +1996,23 @@ export class Game {
         }
     }
 
-    /** Cycle equipped skin on the main menu (owned skins only; wraps). */
+    /**
+     * Browse the full ship roster on the main menu (wraps). Owned skins equip;
+     * locked skins preview only (price shown; tap centre to buy).
+     */
     cycleMenuShip(delta) {
-        const owned = SHIP_SKIN_LIST.filter((skin) => isSkinOwned(skin.id));
-        if (owned.length < 2) return;
+        const list = SHIP_SKIN_LIST;
+        if (list.length < 2) return;
 
-        let index = owned.findIndex((skin) => skin.id === this.shipSkinId);
+        const current = this.menuShipBrowseId || this.shipSkinId;
+        let index = list.findIndex((skin) => skin.id === current);
         if (index < 0) index = 0;
-        const next = owned[(index + delta + owned.length) % owned.length];
-        this.shipSkinId = saveShipSkinId(next.id);
+        const next = list[(index + delta + list.length) % list.length];
+        this.menuShipBrowseId = next.id;
+        if (isSkinOwned(next.id)) {
+            this.shipSkinId = saveShipSkinId(next.id);
+        }
+        this.setPurchaseStatus(null, 0);
     }
 
     /** ArrowLeft / ArrowRight change ship on the main menu only. */
@@ -1902,6 +2033,8 @@ export class Game {
     async handleShipTileClick(skinId) {
         if (this.purchaseBusy) return;
 
+        this.menuShipBrowseId = skinId;
+
         if (isSkinOwned(skinId)) {
             this.shipSkinId = saveShipSkinId(skinId);
             this.shipPickerOfferPlay = true;
@@ -1915,6 +2048,7 @@ export class Game {
             const result = await purchaseSkin(skinId);
             if (result.ok) {
                 this.shipSkinId = saveShipSkinId(skinId);
+                this.menuShipBrowseId = skinId;
                 this.shipPickerOfferPlay = true;
                 this.setPurchaseStatus('Unlocked.');
                 track('purchase_skin', { skin_id: skinId });
@@ -1922,6 +2056,24 @@ export class Game {
                 this.setPurchaseStatus(null, 0);
             } else {
                 this.setPurchaseStatus(result.message || 'Purchase unavailable.');
+            }
+        } finally {
+            this.purchaseBusy = false;
+        }
+    }
+
+    async handleRestorePurchases() {
+        if (this.purchaseBusy) return;
+        this.purchaseBusy = true;
+        this.setPurchaseStatus('Restoring…', 0);
+        try {
+            const result = await restorePurchases();
+            if (result.ok) {
+                this.shipSkinId = loadShipSkinId();
+                this.menuShipBrowseId = this.shipSkinId;
+                this.setPurchaseStatus(result.message || 'Restored.');
+            } else {
+                this.setPurchaseStatus(result.message || 'Restore unavailable.');
             }
         } finally {
             this.purchaseBusy = false;
@@ -2775,6 +2927,11 @@ export class Game {
                     this.cycleMenuShip(-1);
                 } else if (this.isClickInButton(x, y, this.menuButtons.nextShip)) {
                     this.cycleMenuShip(1);
+                } else if (this.isClickInButton(x, y, this.menuButtons.shipPreview)) {
+                    const browseId = this.menuShipBrowseId || this.shipSkinId;
+                    if (!isSkinOwned(browseId)) {
+                        await this.handleShipTileClick(browseId);
+                    }
                 } else if (this.isClickInButton(x, y, this.menuButtons.play)) {
                     this.goToModeSelect();
                 } else if (this.isClickInButton(x, y, this.menuButtons.logbook)) {
@@ -2817,6 +2974,10 @@ export class Game {
                 if (this.isClickInButton(x, y, this.optionsHubButtons.theme)) {
                     toggleTheme();
                     syncStatusBarTheme().catch(() => {});
+                    return;
+                }
+                if (this.isClickInButton(x, y, this.optionsHubButtons.restore)) {
+                    await this.handleRestorePurchases();
                     return;
                 }
                 return;

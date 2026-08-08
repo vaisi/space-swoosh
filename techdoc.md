@@ -30,7 +30,8 @@
 >
 > **BUILD 24 (Android store):** Web gameplay sync into native (frame pacing,
 > themes, wall boost, logbook, ships, leaderboard). `UNLOCK_ALL_SKINS = false`
-> for store — Pulse/Quill gated via RevenueCat. Menu stamp `BUILD 24 · NATIVE` /
+> for store — only Focus/Flicker/Ember free; all other ships gated via RevenueCat.
+> Menu stamp `BUILD 24 · NATIVE` /
 > `WEB`. versionCode **24** / versionName **1.0.24**.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
@@ -117,7 +118,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership cache + purchase / restore. `UNLOCK_ALL_SKINS` is **`false` for store** (Pulse/Quill require IAP); set `true` only for local playtest. |
+| `services/Entitlements.js` | Skin ownership cache + purchase / restore. Free = no `productId` (Focus/Flicker/Ember). `UNLOCK_ALL_SKINS` is **`false` for store**; set `true` only for local playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
 | `ships/skinDefs.js` | Ship roster (Focus…Nyan…Cinder) composed from hulls + trails + boop signatures. |
@@ -169,12 +170,12 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, selected-skin preview with Play-motif ▶/◀ cycle (owned skins via `cycleMenuShip`), Play / Space Log / Options / High Scores. ArrowLeft/Right also cycle when `appScreen === 'menu'`. |
+| `menu` | Title, ship preview with ▶/◀ browse of full roster (`menuShipBrowseId`); locked shows price + tap-to-buy; Play / Space Log / Options / High Scores. |
 | `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
-| `options` | Options hub: Ship / Controls / Sound |
+| `options` | Options hub: Ship / Controls / Sound / Theme / Restore Purchases |
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Sound on/off, driving `SoundManager`'s persisted mute |
@@ -583,10 +584,10 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `halo` | Core disc + orbit ring with ticks | Expanding hollow rings | Soap-bubble inflate/stack/pop; orbital wobble |
 | `needle` | Thin lance (`needlePath`) | Single hairline stroke | Whip flex + tip ripples |
 | `echo` | Open crescent (`crescentPath`) | Twin parallel hairlines | Twin desync (one sticks, one late), then snap |
-| `squareStamp` | Square (`squarePath`) | Dense filled square stamps | Rubber blot at contact, then peel |
-| `squareTick` | Square | Lateral tick marks | Ticks stretch toward the wall |
-| `squareTrace` | Square | Hairline stroke | Spring along the line |
-| `squareRing` | Square | Expanding rings | Ring squash only (no Halo bubble pop) |
+| `seal` | Square (`squarePath`) | Dense filled square stamps | Rubber blot at contact, then peel |
+| `hatch` | Square | Lateral hatch marks | Marks stretch toward the wall |
+| `trace` | Square | Hairline stroke | Spring along the line |
+| `ring` | Square | Expanding rings | Ring squash only (no Halo bubble pop) |
 | `fold` | Solid origami kite (`foldPath` + crease) | Long dashed crease (hull-locked zig) | Crease amplifies; fold jelly |
 | `mote` | Soft ink disc | Organic radial micro-dot cloud | Cloud drifts then re-condenses |
 | `spine` | Vertical bar (`spinePath`) | Ladder rungs + thin spine | Rungs compress toward the wall |
@@ -613,14 +614,14 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 
 | Mode | Ships |
 | --- | --- |
-| `pile` | Halo, Square Tick / Ring |
+| `pile` | Halo, Hatch / Ring |
 | `dense` | Focus, Pulse |
-| `blot` | Square Stamp |
+| `blot` | Seal |
 | `scatter` | Ember |
 | `shatter` | Shard |
 | `desync` | Echo |
 | `flare` | Wisp |
-| `spring` | Flicker, Quill, Nyan, Square Trace |
+| `spring` | Flicker, Quill, Nyan, Trace |
 | `whip` | Needle |
 | `crease` | Fold |
 | `cloud` | Mote |
@@ -651,7 +652,8 @@ Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
 - Main menu quick-cycle: `Game.cycleMenuShip(delta)` walks owned entries in
   `SHIP_SKIN_LIST` (wraps), then `saveShipSkinId`. Wired from chevron hit-boxes
   (`menuButtons.prevShip` / `nextShip`) and `setupMenuShipKeys()` (no key-repeat
-  spam). Locked skins are never equipped here; Options → Ship still owns IAP.
+  spam). Main menu browses the full roster (`menuShipBrowseId`); locked skins
+  show price and tap-to-buy; Play always uses the last owned `shipSkinId`.
 
 ### Wake rendering
 

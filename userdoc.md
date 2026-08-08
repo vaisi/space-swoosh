@@ -109,14 +109,14 @@ When the game loads you land on the main menu. The tagline under the title
 changes each visit — dry science-officer commentary. Crash and level-clear
 screens do the same with their own lines.
 
-Under the title, your equipped ship is shown with its name. Tap the triangle
-arrows beside it (or press **Left** / **Right** on a keyboard) to cycle through
-ships you own — the choice is saved immediately. Options → Ship still has the
-full roster if you want the grid view.
+Under the title, your ship is shown with its name. Tap the triangle arrows
+beside it (or press **Left** / **Right** on a keyboard) to browse the full
+roster — owned ships equip and save; locked ships show a price (tap the ship
+to unlock on the apps). Options → Ship has the same roster in a grid.
 
 - **Play** — choose Open Space or Journey.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
-- **Options** — Ship, Controls, and Sound (see below).
+- **Options** — Ship, Controls, Sound, theme, and Restore Purchases (see below).
 - **High Scores** — browse the leaderboard (10 scores per page, up to 10 pages).
 
 After a run, **Menu** on the end screen brings you back here.
@@ -124,7 +124,7 @@ After a run, **Menu** on the end screen brings you back here.
 ## The Space Log
 
 The Space Log is a field manual that fills in as you fly **Journey** levels (Open
-World does not write to it). Open it from the main menu any time — even when it's
+Space does not write to it). Open it from the main menu any time — even when it's
 still blank.
 
 Entries unlock in two steps:
@@ -190,9 +190,11 @@ Options opens a short list:
 
 | Item | Status |
 | --- | --- |
-| **Ship** | Pick a ship from the roster (saved automatically). You can also cycle ships from the main menu with the triangle arrows or the keyboard arrows. |
+| **Ship** | Browse the full roster; owned ships equip, locked show a price (tap to buy on the apps). |
 | **Controls** | Flight style (Zigzag or Arc) and how steering works. |
 | **Sound** | Turn music and effects on or off (saved automatically). |
+| **Light / Dark Mode** | Paper look (saved automatically). |
+| **Restore Purchases** | Re-sync ship unlocks after reinstall (iOS / Android). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
 main menu.
@@ -215,10 +217,10 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Halo** | Small orbital core with crawling ring-ticks; young rings inflate like soap bubbles on a wall hit, then pop — the core wobbles in a tiny orbit. |
 | **Needle** | Ultra-thin lance with a single hairline thread. Wall hits flex the tip and ripple the old end of the wake. |
 | **Echo** | Open crescent; twin lines desync briefly on a boop (one sticks, one springs late), then snap back in phase. |
-| **Square Stamp** | Square hull; stamps little tiles — denser blot at the wall, then peels like a rubber stamp. |
-| **Square Tick** | Square hull; short lateral ticks that stretch toward the wall on impact. |
-| **Square Trace** | Square hull; one thin hairline that springs on a bounce. |
-| **Square Ring** | Square hull; blooming rings (squash only — not Halo’s bubble pop). |
+| **Seal** | Square hull; stamps little tiles — denser blot at the wall, then peels like a rubber seal. |
+| **Hatch** | Square hull; short lateral hatch marks that stretch toward the wall on impact. |
+| **Trace** | Square hull; one thin hairline that springs on a bounce. |
+| **Ring** | Square hull; blooming rings (squash only — not Halo’s bubble pop). |
 | **Fold** | Solid origami kite; a long dashed crease that leaves from the hull and zigzags harder when you bank. |
 | **Mote** | Soft ink disc; a messy organic cloud of micro-dots that drift and re-condense on a wall hit. |
 | **Spine** | Tall thin bar; ladder rungs compress toward the wall on a boop. |
@@ -227,12 +229,12 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Flux** | Hex crystal; wake is alternating ink and Signal-Blue dashes that stretch on a wall hit. |
 | **Cinder** | Soft petal; a calm warm ember ribbon that cools into soft ash dots (blue glints mainly on a wall hit). |
 
-The Square ships collide as the box you see. **Orbit** collides on its solid
+Seal, Hatch, Trace, and Ring collide as the box you see. **Orbit** collides on its solid
 planetoid body (the ring and satellite are looks only). On a side-wall bounce,
 **every** ship reacts —
 animation only; the hitbox does not squash. Each vessel has its own feel: some
 squash like jelly, Needle flexes, Halo wobbles in a tiny orbit, Shard cracks,
-Stamp plants like rubber.
+Seal plants like rubber.
 
 Every ship’s wake also reacts to a wall hit. Same bounce clock, different
 signature per vessel — pile, spring, whip, scatter, shatter, bubble, blot, and
@@ -245,8 +247,10 @@ opening voice finishes) also plays a short navigator line on screen (“The wall
 forgive…”). Threading a tight gap for a Style Swoosh plays a short voice cue with
 no extra caption (you still see the usual style points).
 
-Pulse and Quill are store unlocks on the apps (IAP); Nyan, Ink, and the rest of
-the roster are free.
+Focus, Flicker, and Ember are free forever. Every other ship is a store unlock
+on the apps (IAP). On the main menu you can scroll the whole roster — owned
+ships equip; locked ones show a price (tap the ship to buy). Options → Ship
+works the same way. Use **Options → Restore Purchases** after reinstalling.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
 along the path you actually flew. You only crash where the hull actually is —

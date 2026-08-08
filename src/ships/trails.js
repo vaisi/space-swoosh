@@ -23,7 +23,7 @@
 // - Mote cloud: organic radial micro-dot scatter again (messy Focus cousin);
 //   golden-ratio hashes keep L/R balance without mirrored pairs.
 // - Per-ship wall-boop extras: Halo bubbles, Echo desync, Shard fan, Ember
-//   sparks, Stamp blot, Focus/Pulse dense, Wisp flare, Square Tick stretch.
+//   sparks, Seal blot, Focus/Pulse dense, Wisp flare, Hatch stretch.
 // - Needle hairline whip + tip ripples. wallTrailDeform on discrete marks.
 // - wakePoints / ribbonPath reuse scratch arrays (iOS GC).
 
@@ -764,7 +764,7 @@ export function drawTwinTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.restore();
 }
 
-/** Filled squares stamped along the path — Bloc / Square Stamp. */
+/** Filled squares stamped along the path — Seal. */
 export function drawStampTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const { alpha = 0.82, blotBoop = false } = opts;
     const r = ship.radius;
@@ -802,7 +802,7 @@ export function drawStampTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.restore();
 }
 
-/** Short ticks perpendicular to travel — Mark / Square Tick. */
+/** Short hatch marks perpendicular to travel — Hatch. */
 export function drawTickTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const { alpha = 0.85, wallStretch = false } = opts;
     const r = ship.radius;

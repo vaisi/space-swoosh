@@ -26,6 +26,7 @@
   "license": "MIT",
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
+    "@napi-rs/canvas": "^1.0.3",
     "gh-pages": "^6.2.0",
     "sharp": "^0.34.5",
     "vite": "^5.4.11"

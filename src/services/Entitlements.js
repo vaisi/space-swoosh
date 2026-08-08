@@ -1,10 +1,11 @@
 // Entitlements.js
-// Which ship skins the player owns. Free skins are always owned; premium skins
-// unlock via RevenueCat and are cached in localStorage for offline play.
+// Which ship skins the player owns. Free skins (no productId) are always owned;
+// premium skins unlock via RevenueCat and are cached in localStorage for offline
+// play. Free set: Focus / Flicker / Ember; every other skin is IAP.
 // Changes:
+// - Free roster is productId-driven (3 free); all other skins are premium.
 // - Night paper: SIGNAL_RGB follows brand `color.signalRgb` (soft orchid).
-// - UNLOCK_ALL_SKINS false for store: Pulse/Quill gated via RevenueCat again.
-//   Flip true only for local playtest builds.
+// - UNLOCK_ALL_SKINS false for store. Flip true only for local playtest builds.
 // - Created file: ownership is separate from "selected skin" (ships/skins.js).
 //   Selecting a locked skin starts a purchase; Restore Purchases refreshes the
 //   cache from the store. On the web (no IAP), premium skins stay locked.
