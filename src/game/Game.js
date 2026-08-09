@@ -20,6 +20,8 @@
 // - Main menu: cycle full roster (menuShipBrowseId); owned equips, locked
 //   shows price + tap-to-buy; Play uses last owned shipSkinId.
 // - Options hub: Ship / Controls / Sound / Theme + Restore Purchases.
+// - Options → Sound: Music / Sound FX / Voice channel toggles (SoundManager);
+//   pause menu Sound stays master mute-all.
 // - Night paper: pause wash / goal-bar rest / crash particles / name-modal dim
 //   and DOM input fallbacks use token RGB (no cream or near-black literals).
 // - Submit Signal modal lightened: left-aligned value→label stacks in order
@@ -1876,9 +1878,8 @@ export class Game {
         return Math.min(max, Math.max(0, value));
     }
 
-    // Sound sub-screen: one real switch (the same one the pause menu shows), so
-    // the two places that talk about sound can't disagree. Per-channel volume
-    // lands here later.
+    // Sound sub-screen: independent Music / Sound FX / Voice channels.
+    // Pause menu Sound remains the master mute-all switch.
     renderOptionsSound() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -1891,9 +1892,12 @@ export class Game {
         const buttonWidth = Math.min(unit * 30, L.width);
         const buttonHeight = L.isMobile ? unit * 6 : unit * 5.4;
         const footnotePx = Math.max(9, unit * 0.9);
-        const muted = this.soundManager?.isMuted?.() ?? false;
+        const sm = this.soundManager;
+        const musicOn = sm?.isMusicEnabled?.() ?? true;
+        const sfxOn = sm?.isSfxEnabled?.() ?? true;
+        const voiceOn = sm?.isVoiceEnabled?.() ?? true;
 
-        const blockH = descPx * 1.4 + L.section + buttonHeight;
+        const blockH = descPx * 1.4 + L.section + buttonHeight * 3 + L.block * 2;
         const available = L.bottom - header.contentTop - footnotePx - L.block;
         let y = header.contentTop + Math.max(0, (available - blockH) / 2);
 
@@ -1902,14 +1906,26 @@ export class Game {
         ctx.textBaseline = 'middle';
         ctx.font = `500 ${descPx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
-        ctx.fillText('Music and effects.', L.centerX, y + descPx * 0.6);
+        ctx.fillText('Isolate each channel.', L.centerX, y + descPx * 0.6);
         ctx.restore();
 
         y += descPx * 1.4 + L.section;
 
-        this.optionsButtons.sound = this.drawBrandButton(
-            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Sound',
-            { primary: !muted, tag: muted ? 'OFF' : 'ON' }
+        this.optionsButtons.music = this.drawBrandButton(
+            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Music',
+            { primary: musicOn, tag: musicOn ? 'ON' : 'OFF' }
+        );
+        y += buttonHeight + L.block;
+
+        this.optionsButtons.sfx = this.drawBrandButton(
+            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Sound FX',
+            { primary: sfxOn, tag: sfxOn ? 'ON' : 'OFF' }
+        );
+        y += buttonHeight + L.block;
+
+        this.optionsButtons.voice = this.drawBrandButton(
+            L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Voice',
+            { primary: voiceOn, tag: voiceOn ? 'ON' : 'OFF' }
         );
 
         ctx.save();
@@ -3147,8 +3163,12 @@ export class Game {
             if (this.appScreen === 'optionsSound' && this.optionsButtons) {
                 if (this.isClickInButton(x, y, this.optionsButtons.back)) {
                     this.appScreen = 'options';
-                } else if (this.isClickInButton(x, y, this.optionsButtons.sound)) {
-                    this.soundManager?.toggleMuted?.();
+                } else if (this.isClickInButton(x, y, this.optionsButtons.music)) {
+                    this.soundManager?.toggleMusicEnabled?.();
+                } else if (this.isClickInButton(x, y, this.optionsButtons.sfx)) {
+                    this.soundManager?.toggleSfxEnabled?.();
+                } else if (this.isClickInButton(x, y, this.optionsButtons.voice)) {
+                    this.soundManager?.toggleVoiceEnabled?.();
                 }
                 return;
             }

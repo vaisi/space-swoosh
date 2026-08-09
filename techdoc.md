@@ -165,7 +165,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` (shared slot; ducks BGM; `stopLevelVoice` / `stopCueVoice`; respects mute). |
+| `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` (shared slot; ducks BGM; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -187,7 +187,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `options` | Options hub: Ship / Controls / Sound / Theme / Restore Purchases |
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
-| `optionsSound` | Sound on/off, driving `SoundManager`'s persisted mute |
+| `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
 | `highscores` | Space Board: 10 tall rows/page (max 10 pages), header Zigzag/Arc brand-button toggle (Z/S tags), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
 | `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission |
@@ -212,7 +212,7 @@ buttons into `this.pauseButtons`:
 | Button | Effect |
 | --- | --- |
 | Resume | `togglePause()` |
-| Sound | `soundManager.toggleMuted()` — same persisted switch as Options → Sound |
+| Sound | `soundManager.toggleMuted()` — **master mute** (silences Music + SFX + Voice). Persists as `soundMuted`. Independent of Options channel toggles. |
 | Exit Run | `exitRun()` → `goToMenu()`; nothing is submitted, and the world is rebuilt by `resetRunState()` on the next `beginRun()` |
 
 `handleInteraction` routes to `handlePauseClick()` **before** the "gameplay
@@ -220,12 +220,13 @@ touches belong to InputHandler" early return, so the menu owns the canvas while
 it's up. `Space` and `Escape` both toggle pause, and the DOM pause button hides
 while the menu is up since the menu carries its own Resume.
 
-`SoundManager` mute sets `.muted` on every `<audio>` element (so each cue keeps
-its own mix level) and short-circuits Web Audio cues (synthesized + decoded
-buffer one-shots like turn/move); the state persists under the `soundMuted` key.
-Turn/move used to restart shared HTMLAudioElements (`currentTime = 0`) on every
-bank/flip — that media seek caused a tap micro-freeze. They now fire throwaway
-`AudioBufferSourceNode`s from buffers decoded once in `initialize()`.
+`SoundManager` audio gates:
+- **Master mute** (`soundMuted`, pause Sound): silences everything.
+- **Music** (`soundMusicEnabled`): looping BGM (`background.mp3`).
+- **Sound FX** (`soundSfxEnabled`): crashes, shield, turn/move, boop/swoosh SFX, collect, portal, logbook chirp (HTMLAudio + Web Audio synths).
+- **Voice** (`soundVoiceEnabled`): `level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`. Voice-off still fires `onEnded` so Journey intro captions continue; first-boop on-screen beats still show.
+
+`applyMute()` sets `.muted` per HTMLAudio channel; Web Audio one-shots early-return via `canPlaySfx()`. Channel keys default ON (`'0'` = off). Turn/move fire throwaway `AudioBufferSourceNode`s from buffers decoded once in `initialize()`.
 
 ### Screen layout system
 

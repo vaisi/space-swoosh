@@ -3,11 +3,15 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
+// - Per-channel Options toggles: Music / Sound FX / Voice (localStorage
+//   soundMusicEnabled, soundSfxEnabled, soundVoiceEnabled). Pause Sound stays
+//   master mute (soundMuted). canPlayMusic/Sfx/Voice gate playback; voice-off
+//   still fires onEnded so Journey captions continue.
 // - playCueVoice / playFirstBoopVoice / playSwooshVoice for session cues
 //   (first-boop.mp3, swoosh-voice.mp3) in Journey + Open Space; shares the
 //   level-voice slot (duck, mute, replace, leave/crash stop via stopLevelVoice).
 // - playLevelVoice / stopLevelVoice for Journey levels 1–40 navigator MP3s
-//   under /sounds/voice/; ducks BGM while speaking; honors mute.
+//   under /sounds/voice/; ducks BGM while speaking; honors mute + voice channel.
 // - playTurn / playMove use pre-decoded Web Audio buffer sources (no HTMLAudio
 //   seek on tap). Removes direction-change micro-freeze; move.mp3 optional.
 // - Portal SFX split into playPortalEntry / playPortalExit: deeper space warp
@@ -26,6 +30,9 @@
 //   (powerup.mp3 was referenced but missing, so diamond collects were silent).
 
 const MUTE_STORAGE_KEY = 'soundMuted';
+const MUSIC_ENABLED_KEY = 'soundMusicEnabled';
+const SFX_ENABLED_KEY = 'soundSfxEnabled';
+const VOICE_ENABLED_KEY = 'soundVoiceEnabled';
 const TURN_VOLUME = 0.3;
 const MOVE_VOLUME = 0.15;
 const BGM_VOLUME = 0.4;
@@ -39,6 +46,23 @@ function loadMuted() {
         return localStorage.getItem(MUTE_STORAGE_KEY) === '1';
     } catch {
         return false;
+    }
+}
+
+/** Channel prefs default ON; only explicit '0' means off. */
+function loadChannelEnabled(key) {
+    try {
+        return localStorage.getItem(key) !== '0';
+    } catch {
+        return true;
+    }
+}
+
+function saveFlag(key, enabled) {
+    try {
+        localStorage.setItem(key, enabled ? '1' : '0');
+    } catch {
+        /* ignore quota / private mode */
     }
 }
 
@@ -76,7 +100,10 @@ export class SoundManager {
         this.bgmPaused = false;
         this.audioCtx = null;
         this.boopNoiseBuffer = null; // reused by playBoop (no per-hit GC)
-        this.muted = loadMuted();
+        this.muted = loadMuted(); // master mute (pause menu)
+        this.musicEnabled = loadChannelEnabled(MUSIC_ENABLED_KEY);
+        this.sfxEnabled = loadChannelEnabled(SFX_ENABLED_KEY);
+        this.voiceEnabled = loadChannelEnabled(VOICE_ENABLED_KEY);
         /** @type {HTMLAudioElement | null} */
         this.levelVoice = null;
         this.levelVoicePlaying = false;
@@ -143,7 +170,7 @@ export class SoundManager {
 
     /** Fire-and-forget buffer source — no seek, safe to retrigger every tap. */
     playBuffer(buffer, volume) {
-        if (!this.initialized || this.muted || !buffer) return;
+        if (!this.initialized || !this.canPlaySfx() || !buffer) return;
 
         try {
             const ctx = this.ensureAudioContext();
@@ -161,29 +188,95 @@ export class SoundManager {
         }
     }
 
-    // Muting the elements rather than zeroing their volume keeps each cue's
-    // mix intact, so unmuting doesn't need to remember base levels.
+    canPlayMusic() {
+        return !this.muted && this.musicEnabled;
+    }
+
+    canPlaySfx() {
+        return !this.muted && this.sfxEnabled;
+    }
+
+    canPlayVoice() {
+        return !this.muted && this.voiceEnabled;
+    }
+
+    // Per-channel .muted on HTMLAudio keeps base volumes intact.
     applyMute() {
-        for (const sound of Object.values(this.sounds)) {
-            sound.muted = this.muted;
+        const silenceMusic = !this.canPlayMusic();
+        const silenceSfx = !this.canPlaySfx();
+        const silenceVoice = !this.canPlayVoice();
+
+        for (const [key, sound] of Object.entries(this.sounds)) {
+            sound.muted = key === 'bgm' ? silenceMusic : silenceSfx;
         }
-        if (this.levelVoice) this.levelVoice.muted = this.muted;
+        if (this.levelVoice) this.levelVoice.muted = silenceVoice;
     }
 
     isMuted() {
         return this.muted;
     }
 
+    isMasterMuted() {
+        return this.muted;
+    }
+
+    isMusicEnabled() {
+        return this.musicEnabled;
+    }
+
+    isSfxEnabled() {
+        return this.sfxEnabled;
+    }
+
+    isVoiceEnabled() {
+        return this.voiceEnabled;
+    }
+
     setMuted(muted) {
         this.muted = !!muted;
         this.applyMute();
         if (this.muted) this.stopLevelVoice({ notify: true });
+        // Legacy key: '1' = muted, '0' = unmuted.
         try {
             localStorage.setItem(MUTE_STORAGE_KEY, this.muted ? '1' : '0');
         } catch {
             /* ignore quota / private mode */
         }
         return this.muted;
+    }
+
+    setMusicEnabled(enabled) {
+        this.musicEnabled = !!enabled;
+        this.applyMute();
+        saveFlag(MUSIC_ENABLED_KEY, this.musicEnabled);
+        return this.musicEnabled;
+    }
+
+    setSfxEnabled(enabled) {
+        this.sfxEnabled = !!enabled;
+        this.applyMute();
+        saveFlag(SFX_ENABLED_KEY, this.sfxEnabled);
+        return this.sfxEnabled;
+    }
+
+    setVoiceEnabled(enabled) {
+        this.voiceEnabled = !!enabled;
+        this.applyMute();
+        if (!this.voiceEnabled) this.stopLevelVoice({ notify: true });
+        saveFlag(VOICE_ENABLED_KEY, this.voiceEnabled);
+        return this.voiceEnabled;
+    }
+
+    toggleMusicEnabled() {
+        return this.setMusicEnabled(!this.musicEnabled);
+    }
+
+    toggleSfxEnabled() {
+        return this.setSfxEnabled(!this.sfxEnabled);
+    }
+
+    toggleVoiceEnabled() {
+        return this.setVoiceEnabled(!this.voiceEnabled);
     }
 
     duckBgmForVoice() {
@@ -248,7 +341,9 @@ export class SoundManager {
         this.stopLevelVoice({ notify: false });
         this.onLevelVoiceEnded = typeof opts.onEnded === 'function' ? opts.onEnded : null;
 
-        if (!this.initialized || this.muted) {
+        // Master mute, voice channel off, or not ready — still notify so
+        // IntroNarration / captions can advance without audio.
+        if (!this.initialized || !this.canPlayVoice()) {
             this.notifyLevelVoiceEnded();
             return;
         }
@@ -256,7 +351,7 @@ export class SoundManager {
         try {
             const voice = new Audio(url);
             voice.volume = VOICE_VOLUME;
-            voice.muted = this.muted;
+            voice.muted = !this.canPlayVoice();
             this.levelVoice = voice;
             this.levelVoicePlaying = true;
             this.duckBgmForVoice();
@@ -435,7 +530,7 @@ export class SoundManager {
     }
 
     playShield() {
-        if (!this.initialized) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
         
         try {
             const shieldSound = this.sounds.shield;
@@ -453,18 +548,20 @@ export class SoundManager {
     }
 
     playExplosion() {
+        if (!this.canPlaySfx()) return;
         this.sounds.explosion.currentTime = 0;
         this.sounds.explosion.play().catch(() => {});
     }
 
     playPowerup() {
+        if (!this.canPlaySfx()) return;
         this.sounds.powerup.currentTime = 0;
         this.sounds.powerup.play().catch(() => {});
     }
 
     // Short ascending sparkle chime for diamond / collectible pickups.
     playCollect() {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
 
         try {
             const ctx = this.ensureAudioContext();
@@ -496,7 +593,7 @@ export class SoundManager {
     // Phone-audible body + mid tick (old ~185→92 Hz vanished under BGM on
     // iPhone speakers) + tiny filtered noise puff — distinct from turn / swoosh.
     playBoop() {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
 
         try {
             const ctx = this.ensureAudioContext();
@@ -557,7 +654,7 @@ export class SoundManager {
 
     // Brief airy whoosh for style-swoosh near-misses (threading two obstacles).
     playSwoosh() {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
 
         try {
             const ctx = this.ensureAudioContext();
@@ -622,7 +719,7 @@ export class SoundManager {
     }
 
     playShieldCrash() {
-        if (!this.initialized) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
         
         try {
             const crashSound = this.sounds.shieldCrash;
@@ -640,7 +737,7 @@ export class SoundManager {
     }
 
     playCrash() {
-        if (!this.initialized) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
         
         try {
             const crashSound = this.sounds.crash;
@@ -660,7 +757,7 @@ export class SoundManager {
     // Deep space warp with delay-feedback echo. direction 'in' = suck into the
     // gate; 'out' = emerge at the exit. Distinct from playSwoosh / playShield.
     playPortalWarp(direction = 'in') {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
 
         try {
             const ctx = this.ensureAudioContext();
@@ -813,7 +910,7 @@ export class SoundManager {
     // Soft bridge chirp when the Journey logbook gains an entry —
     // quiet sine pair, like a starship console receiving a new message.
     playLogbook() {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || !this.canPlaySfx()) return;
 
         try {
             const ctx = this.ensureAudioContext();

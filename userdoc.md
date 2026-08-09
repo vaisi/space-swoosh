@@ -202,12 +202,22 @@ Options opens a short list:
 | --- | --- |
 | **Ship** | Browse the full roster; owned ships equip, locked show a price (tap to buy on the apps). |
 | **Controls** | Flight style (Zigzag or Arc) and how steering works. |
-| **Sound** | Turn music and effects on or off (saved automatically). |
+| **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
 | **Restore Purchases** | Re-sync ship unlocks after reinstall (iOS / Android). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
 main menu.
+
+Under **Options → Sound** you can isolate each channel:
+
+| Channel | What it controls |
+| --- | --- |
+| **Music** | Background music loop. |
+| **Sound FX** | Crashes, boops, shields, points, turns, portals, and other game sounds. |
+| **Voice** | Navigator lines (Journey intros) and session voice cues (first BOOP, Style Swoosh). On-screen captions still appear when Voice is off. |
+
+Pause → **Sound** mutes everything at once without changing these three toggles.
 
 ## Ships
 
@@ -291,8 +301,8 @@ cue without hitching the flight. You also bounce off the side walls (with a
 Pausing freezes the run and opens a menu showing how far you've got:
 
 - **Resume** — back to the run (Spacebar or Escape does the same).
-- **Sound** — turn music and effects on or off. Remembered between sessions, and
-  it's the same switch as Options → Sound.
+- **Sound** — master mute for everything (music, effects, and voice). Remembered
+  between sessions. For individual channels, use **Options → Sound**.
 - **Exit Run** — leave mid-flight. In Open Space that takes you to the main menu;
   in Journey it drops you back on the level map. Either way the run ends there and
   **nothing is saved** — no distance submitted, no stars — so play a level out if
