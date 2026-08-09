@@ -3,6 +3,13 @@
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
+> **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
+> SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
+> **retired before launch** (kept in-repo for reference / parity until Phase C
+> sign-off). Android remains Capacitor. Phase A butter core is in place:
+> fixed-step 1/60 sim, display-rate render, pooled ribbon trail, pacing HUD,
+> `CADisableMinimumFrameDurationOnPhone`. See [`ios-native/README.md`](ios-native/README.md).
+>
 > **Signal Story (Journey) — THE REPLY:** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
 > copy in `config/JourneyNarrative.js`. First Journey visit shows `ui/screens/LoreScreen.js`
@@ -29,7 +36,7 @@
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
 > **BUILD 26 (Android store):** Premium ships IAP + menu browse/buy. `UNLOCK_ALL_SKINS = false`
-> for store — only Focus/Flicker/Ember free; all other ships gated via RevenueCat.
+> for store — Focus/Flicker/Ember/Saber free; all other ships gated via RevenueCat.
 > Menu stamp `BUILD 26 · NATIVE` /
 > `WEB`. versionCode **26** / versionName **1.0.26**.
 >
@@ -60,8 +67,9 @@ There are **two play modes**, chosen from Play:
 | **Journey** | 40 finite levels, each with a distance goal and three stars. | No — progress is local |
 
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
-  Capacitor 8 for iOS/Android shells, Supabase for the online leaderboard,
-  Google Analytics (`gtag`) on web only.
+  Capacitor 8 for **Android** (and legacy Cap iOS reference tree), **native
+  SpriteKit/SwiftUI** for shipping iOS under `ios-native/`, Supabase for the
+  online leaderboard, Google Analytics (`gtag`) on web only.
 - **Entry:** `index.html` → `src/main.js` → `new Game(GameConfig)` → boots to
   the **main menu** (`appScreen = 'menu'`). On native, `initNative()` then wires
   hardware back, lifecycle pause, keep-awake, status bar and splash dismissal.
@@ -117,12 +125,12 @@ game build env. Journey progress and Open Space personal best stay in
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership cache + purchase / restore. Free = no `productId` (Focus/Flicker/Ember). `UNLOCK_ALL_SKINS` is **`false` for store**; set `true` only for local playtest. |
+| `services/Entitlements.js` | Skin ownership cache + purchase / restore. Free = no `productId` (Focus/Flicker/Ember/Saber). `UNLOCK_ALL_SKINS` is **`false` for store**; set `true` only for local playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | Ship roster (Focus…Nyan…Cinder) composed from hulls + trails + boop signatures. |
+| `ships/skinDefs.js` | Ship roster (Focus…Saber…Nyan…Cinder) composed from hulls + trails + boop signatures. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes, `beginHullFrame`, `MAX_BANK`. |
-| `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, desync, etc.). |
+| `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
 | `config/JourneyNarrative.js` | THE REPLY story: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`. |
@@ -621,7 +629,7 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 | `desync` | Echo |
 | `flare` | Wisp |
 | `spring` | Flicker, Quill, Nyan, Trace |
-| `whip` | Needle |
+| `whip` | Needle, Saber |
 | `crease` | Fold |
 | `cloud` | Mote |
 | `ladder` | Spine |
@@ -632,11 +640,13 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 
 Trail color accents: Signal Blue (`color.signalRgb`) on Pulse / Quill / Flux
 dashes / Cinder glints; warm Ember (`color.emberRgb`) on Cinder wakes only;
-**Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe bands, not
-HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in dark gray
-with two clipped pink spots (`CRESCENT_HITBOX`). Optional skin fields
-`trailMaxPoints` / `trailFade` stretch wakes (Nyan: 160 pts, fade `1/360`);
-iOS draw LOD still multiplies max points by 0.6.
+bright purple Saber (`color.saberRgb` / `saberCoreRgb`) on the free **Saber**
+wake (`drawSaberTrail` — slim bloom + hot core + crackle sparks, denser on
+whip jelly); **Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe
+bands, not HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in
+dark gray with two clipped pink spots (`CRESCENT_HITBOX`). Optional skin fields
+`trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
+`1/360`); iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
 Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
@@ -822,3 +832,23 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   branch to `createRunProfile()`. Nothing in the managers should need touching.
 - **New HUD/end-screen element:** use the `BrandDraw` primitives + type presets so
   it stays on-brand.
+
+## 10. Native iOS (`ios-native/`)
+
+Shipping iOS app. Open [`ios-native/SpaceSwoosh.xcodeproj`](ios-native/SpaceSwoosh.xcodeproj)
+on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
+
+| Path | Role |
+| --- | --- |
+| `SpaceSwoosh/App/` | SwiftUI menu + `SpriteView` host |
+| `SpaceSwoosh/Core/` | `GameConfig`, fixed-step clock, frame-pacing monitor |
+| `SpaceSwoosh/Sim/` | `WorldState`, zigzag `ShipSimulator`, trail ring buffer |
+| `SpaceSwoosh/Render/` | `PlayScene`, baked Focus hull, pooled ribbon trail |
+| `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
+| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
+
+**Butter contract (non-negotiable):** no per-frame `SKShapeNode` path mutation;
+hot draws are textures / pooled sprites; sim at 1/60 with interpolated
+presentation; `preferredFramesPerSecond = 120` +
+`CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
+Phase B will add atlas bake + worst-case load scene.

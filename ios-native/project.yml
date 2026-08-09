@@ -1,0 +1,39 @@
+# XcodeGen spec — on Mac: brew install xcodegen && cd ios-native && xcodegen
+# Changes: Phase A — native Space Swoosh iOS app (SpriteKit + SwiftUI).
+
+name: SpaceSwoosh
+options:
+  bundleIdPrefix: com.orbi
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    INFOPLIST_FILE: SpaceSwoosh/Info.plist
+    GENERATE_INFOPLIST_FILE: false
+    PRODUCT_BUNDLE_IDENTIFIER: com.orbi.spaceswoosh
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  SpaceSwoosh:
+    type: application
+    platform: iOS
+    sources:
+      - path: SpaceSwoosh
+    settings:
+      base:
+        PRODUCT_NAME: SpaceSwoosh
+        PRODUCT_BUNDLE_IDENTIFIER: com.orbi.spaceswoosh
+    info:
+      path: SpaceSwoosh/Info.plist
+      properties:
+        CADisableMinimumFrameDurationOnPhone: true
+        UIStatusBarHidden: true
+        CFBundleDisplayName: Space Swoosh

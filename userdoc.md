@@ -2,6 +2,11 @@
 
 > How to play. No spoilers, just the essentials.
 >
+> **iPhone / iPad:** The App Store build is the **native** Space Swoosh app
+> (smooth high-refresh play). Android uses the store build from the same game
+> family; web remains at spaceswoosh.app. Controls and modes are the same —
+> steer left/right, survive, Journey or Open Space.
+>
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears. Tap **Continue** — that message is saved in your Space Log (Journey →
 > The Call). Then the level map opens. Early levels teach one thing at a time:
@@ -209,6 +214,7 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Focus** | Solid circle with a dotted ink trail — clean and instrumental. Wall hits pack the dots denser. |
 | **Flicker** | Teardrop trailing one smooth, flowing ribbon that springs on a wall hit. |
 | **Ember** | Swept dart; streaks scatter like sparks off flint on a wall boop, then realign. |
+| **Saber** | Needle’s thin lance with a long, slim bright-purple blade wake that crackles; wall hits whip the tip and spray more sparks. |
 | **Wisp** | Teardrop again, with a thin thread that sheds drifting sparks — they flare on impact. |
 | **Pulse** | Focus's hull with a Signal-Blue dotted wake (same dense pile on boop). |
 | **Quill** | Flicker's tear with a fine Signal-Blue ribbon. |
@@ -247,10 +253,10 @@ opening voice finishes) also plays a short navigator line on screen (“The wall
 forgive…”). Threading a tight gap for a Style Swoosh plays a short voice cue with
 no extra caption (you still see the usual style points).
 
-Focus, Flicker, and Ember are free forever. Every other ship is a store unlock
-on the apps (IAP). On the main menu you can scroll the whole roster — owned
-ships equip; locked ones show a price (tap the ship to buy). Options → Ship
-works the same way. Use **Options → Restore Purchases** after reinstalling.
+Focus, Flicker, Ember, and Saber are free forever. Every other ship is a store
+unlock on the apps (IAP). On the main menu you can scroll the whole roster —
+owned ships equip; locked ones show a price (tap the ship to buy). Options →
+Ship works the same way. Use **Options → Restore Purchases** after reinstalling.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
 along the path you actually flew. You only crash where the hull actually is —

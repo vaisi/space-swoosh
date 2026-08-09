@@ -1,0 +1,325 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8731093D35B65890AC3B94D /* PlayContainerView.swift */; };
+		76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */; };
+		4A319F5374A235778FC3D43B /* BrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6EA96BFCECAE6E841B49379 /* BrandColors.swift */; };
+		0E10BBEF02CB137E7C6858C9 /* FixedStepSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F074AE096BE5B92769FA492 /* FixedStepSimulator.swift */; };
+		C4AF55705D2EB5771D427307 /* FramePacingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C680DE1D2E9D0A52140D7847 /* FramePacingMonitor.swift */; };
+		44DA51F240B9A608BC47A84E /* GameConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A886B9C134FE88D37B990C7 /* GameConfig.swift */; };
+		74A8A627E67F859E9B14028C /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90419B24548F3DDF98C2E7E /* InputService.swift */; };
+		6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */; };
+		CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628FF1116246728150EFF6C1 /* PlayScene.swift */; };
+		5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */; };
+		99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */; };
+		E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */; };
+		F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */; };
+		1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082D090C673D6BD3BAE36892 /* WorldState.swift */; };
+		091BE23C010931EE6C4F761E /* SpaceSwooshApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B46362F53342EC376D581E /* SpaceSwooshApp.swift */; };
+		630079499D908838C6A12464 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 32BB636196F91ED59D7A4919 /* Assets.xcassets */; };
+		C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpaceSwoosh.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F8731093D35B65890AC3B94D /* PlayContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayContainerView.swift; sourceTree = "<group>"; };
+		1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		C6EA96BFCECAE6E841B49379 /* BrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandColors.swift; sourceTree = "<group>"; };
+		8F074AE096BE5B92769FA492 /* FixedStepSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedStepSimulator.swift; sourceTree = "<group>"; };
+		C680DE1D2E9D0A52140D7847 /* FramePacingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramePacingMonitor.swift; sourceTree = "<group>"; };
+		6A886B9C134FE88D37B990C7 /* GameConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfig.swift; sourceTree = "<group>"; };
+		F90419B24548F3DDF98C2E7E /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
+		8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHullTexture.swift; sourceTree = "<group>"; };
+		628FF1116246728150EFF6C1 /* PlayScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayScene.swift; sourceTree = "<group>"; };
+		E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RibbonTrailNode.swift; sourceTree = "<group>"; };
+		BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRibbonTexture.swift; sourceTree = "<group>"; };
+		394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipSimulator.swift; sourceTree = "<group>"; };
+		0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRingBuffer.swift; sourceTree = "<group>"; };
+		082D090C673D6BD3BAE36892 /* WorldState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldState.swift; sourceTree = "<group>"; };
+		49B46362F53342EC376D581E /* SpaceSwooshApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceSwooshApp.swift; sourceTree = "<group>"; };
+		16E09E6EAEF6689E81279D8C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		32BB636196F91ED59D7A4919 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4F6F5CC3FCCF73F75AE9CCF4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8D3FC6DB5D0827F168A73277 = {
+			isa = PBXGroup;
+			children = (
+				3AF967F00F17B2E139B1D760 /* SpaceSwoosh */,
+				1BADDC1D73C1A20F347483E1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1BADDC1D73C1A20F347483E1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3AF967F00F17B2E139B1D760 /* SpaceSwoosh */ = {
+			isa = PBXGroup;
+			children = (
+				49B46362F53342EC376D581E,
+				16E09E6EAEF6689E81279D8C,
+				5D52EF9D75FAE68006CE0775,
+				32BB636196F91ED59D7A4919,
+				F327074CB480E367B08EDFC1,
+				1B204731A97A34BC07EF19F4,
+				C12156954CE41A675D560E64,
+				6BB6D1839E25C9B48655515C,
+				0C9AF417F2AD255E43B44FCC,
+			);
+			path = SpaceSwoosh;
+			sourceTree = "<group>";
+		};
+		F327074CB480E367B08EDFC1 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F8731093D35B65890AC3B94D,
+				1F2C40BA6C5A4E305B4E6B12,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		1B204731A97A34BC07EF19F4 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C6EA96BFCECAE6E841B49379,
+				8F074AE096BE5B92769FA492,
+				C680DE1D2E9D0A52140D7847,
+				6A886B9C134FE88D37B990C7,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		C12156954CE41A675D560E64 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				F90419B24548F3DDF98C2E7E,
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
+		6BB6D1839E25C9B48655515C /* Render */ = {
+			isa = PBXGroup;
+			children = (
+				8B1F87CDBF2878FCB1110BBF,
+				628FF1116246728150EFF6C1,
+				E3E76E4E12F12A36B4EF70AD,
+				BBB1844B0C8B74B44F3F727B,
+			);
+			path = Render;
+			sourceTree = "<group>";
+		};
+		0C9AF417F2AD255E43B44FCC /* Sim */ = {
+			isa = PBXGroup;
+			children = (
+				394B4BABF977D9B915F6D5C5,
+				0BDA3D967612F47FA382CB20,
+				082D090C673D6BD3BAE36892,
+			);
+			path = Sim;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		42AEFBAE01D2DFD981F7DA7D /* SpaceSwoosh */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 635EC1FCDBCFB43E5DD8BE7B /* Build configuration list for PBXNativeTarget "SpaceSwoosh" */;
+			buildPhases = (
+				F2AB5FB218DA8B84623F4557 /* Sources */,
+				4F6F5CC3FCCF73F75AE9CCF4 /* Frameworks */,
+				55B558C7EF820E6E00E5993B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SpaceSwoosh;
+			productName = SpaceSwoosh;
+			productReference = 71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 314BFBDCE2E54CE0E31FB38A /* Build configuration list for PBXProject "SpaceSwoosh" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 8D3FC6DB5D0827F168A73277;
+			productRefGroup = 1BADDC1D73C1A20F347483E1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				42AEFBAE01D2DFD981F7DA7D /* SpaceSwoosh */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		55B558C7EF820E6E00E5993B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				630079499D908838C6A12464 /* Assets.xcassets in Resources */,
+				C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F2AB5FB218DA8B84623F4557 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */,
+				76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */,
+				4A319F5374A235778FC3D43B /* BrandColors.swift in Sources */,
+				0E10BBEF02CB137E7C6858C9 /* FixedStepSimulator.swift in Sources */,
+				C4AF55705D2EB5771D427307 /* FramePacingMonitor.swift in Sources */,
+				44DA51F240B9A608BC47A84E /* GameConfig.swift in Sources */,
+				74A8A627E67F859E9B14028C /* InputService.swift in Sources */,
+				6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */,
+				CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */,
+				5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */,
+				99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */,
+				E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */,
+				F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */,
+				1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */,
+				091BE23C010931EE6C4F761E /* SpaceSwooshApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		59233E4D684FB5A1A72525B8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_DYNAMIC_NO_PIC = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		8D5ED1041709BB7FC1DE2B10 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7BA3C016E0B5B57210B31A9D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.orbi.spaceswoosh;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		47D53771281D97E3FA007F14 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.orbi.spaceswoosh;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		314BFBDCE2E54CE0E31FB38A /* Build configuration list for PBXProject "SpaceSwoosh" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				59233E4D684FB5A1A72525B8 /* Debug */,
+				8D5ED1041709BB7FC1DE2B10 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		635EC1FCDBCFB43E5DD8BE7B /* Build configuration list for PBXNativeTarget "SpaceSwoosh" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7BA3C016E0B5B57210B31A9D /* Debug */,
+				47D53771281D97E3FA007F14 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}

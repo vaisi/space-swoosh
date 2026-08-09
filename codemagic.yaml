@@ -1,5 +1,7 @@
 # codemagic.yaml
 # Changes:
+# - Dropped email publishing until NOTIFY_EMAIL is set (Codemagic rejects
+#   unresolved $NOTIFY_EMAIL as 'none' and blocks the YAML UI).
 # - Created: iOS (TestFlight) and Android (Play internal) workflows for the
 #   Capacitor shell. Secrets live in a Codemagic environment group named
 #   "spaceswoosh" — see docs/CODEMAGIC.md. Triggered by pushing to main (or
@@ -63,12 +65,6 @@ workflows:
       - /tmp/xcodebuild_logs/*.log
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
     publishing:
-      email:
-        recipients:
-          - $NOTIFY_EMAIL
-        notify:
-          success: true
-          failure: true
       app_store_connect:
         auth: integration
         submit_to_testflight: true
@@ -124,12 +120,6 @@ workflows:
       - android/app/build/outputs/**/*.aab
       - android/app/build/outputs/**/*.apk
     publishing:
-      email:
-        recipients:
-          - $NOTIFY_EMAIL
-        notify:
-          success: true
-          failure: true
       google_play:
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
         track: internal

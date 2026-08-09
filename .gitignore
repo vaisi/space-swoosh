@@ -1,5 +1,6 @@
 # .gitignore
 # Changes:
+# - Ignore ios-native Xcode user data / DerivedData.
 # - Created file: keep dependencies, build output, local secrets and native
 #   signing material out of version control ahead of adding Capacitor + CI.
 #   The Capacitor `ios/` and `android/` projects ARE committed (Capacitor's
@@ -41,6 +42,11 @@ android/app/src/main/assets/public/
 android/app/src/main/assets/capacitor.config.json
 android/app/src/main/assets/capacitor.plugins.json
 android/capacitor-cordova-android-plugins/
+
+# --- Native iOS (SpriteKit app under ios-native/) -----------------------------
+ios-native/**/xcuserdata/
+ios-native/**/DerivedData/
+ios-native/**/*.xcuserstate
 
 # --- Native build caches -----------------------------------------------------
 android/.gradle/
