@@ -102,14 +102,16 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 | Piece | Role |
 | --- | --- |
 | Project | vaisi's Project — ref `ptzaxgslzjefaxdkrvyr` |
-| Table | `public.high_scores` (`player_name`, `ship_id`, `score` = KM, `obstacles_destroyed`, `created_at`) |
+| Table | `public.high_scores` (`player_name`, `ship_id`, `score` = KM, `obstacles_destroyed`, `flight_style` = `arc`\|`zigzag`, `created_at`) |
 | Client | `src/config/supabase.js` + `src/services/ScoreService.js` |
 | Access | Anonymous call signs (no Supabase Auth). `NameFilter` validates before insert. |
-| RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated` |
-| Migrations | `supabase/migrations/20260804200000_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql` |
+| RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated`. INSERT requires `flight_style in ('arc','zigzag')`. |
+| Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql` |
+| Boards | Separate Arc and Zigzag leaderboards. Column default `'zigzag'` keeps all legacy rows on Zigzag. Rank / top-10 / submit filter by the run's `game.flightStyle`. |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
-| Fetch | `ScoreService.getTopScores(type, limit = 100)` — enough for 10 pages × 10 rows |
-| Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: left-aligned distance → asteroids destroyed → rank, underline call sign, brand Submit. Soft keyboard: `@capacitor/keyboard` (`resizeOnFullScreen`) + `game.softKeyboardHeight`; while the IME is up the card pins to the top with call sign + Submit first (stats below). DOM input on `#gameContainer`, repositioned every frame. |
+| Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style |
+| UI | **Space Board** screen: header title + quiet **← Back**; theme-style Zigzag/Arc toggle button on the right (`Zigzag`+`Z` / `Arc`+`S`); **DISTANCE / OBSTACLES** metric tabs below. Opens on the player's current flight style. |
+| Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: idle layout stacks distance → asteroids → rank above the call-sign field (no auto-focus). Soft keyboard: `@capacitor/keyboard` (`resizeOnFullScreen`) + `game.softKeyboardHeight`; real IME inset pins the card to the top with call sign + Submit first and a single horizontal stats row. DOM input on `#gameContainer`, repositioned every frame. |
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
@@ -138,7 +140,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points, `loreSeen`. |
-| `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance (device-only). |
+| `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance per flight style (`bestByStyle`; v1 `bestScore` migrates to zigzag). |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
@@ -164,7 +166,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` (shared slot; ducks BGM; `stopLevelVoice` / `stopCueVoice`; respects mute). |
-| `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; `getTopScores` defaults to 100. |
+| `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
 | `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear / Play mode-select blurbs. |
@@ -178,7 +180,7 @@ game build env. Journey progress and Open Space personal best stay in
 | Screen | Role |
 | --- | --- |
 | `menu` | Title, ship preview with ▶/◀ browse of full roster (`menuShipBrowseId`); locked shows price + tap-to-buy; Play / Space Log / Options / High Scores. |
-| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: `Personal best: {score} KM` when `OpenWorldProgress.bestScore > 0`. Journey card → lore if `!loreSeen`, else map. |
+| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
@@ -186,7 +188,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Sound on/off, driving `SoundManager`'s persisted mute |
-| `highscores` | Leaderboard: 10 tall rows/page (max 10 pages), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
+| `highscores` | Space Board: 10 tall rows/page (max 10 pages), header Zigzag/Arc brand-button toggle (Z/S tags), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
 | `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission |
 
@@ -235,10 +237,10 @@ named vertical rhythm — `section` (between bands), `block` (inside a band),
 The charcoal stage vs bone ink surround comes from the page shell in `index.html`
 only; `drawScreenFrame` was removed.
 
-- `Game.drawScreenHeader(title, { back })` draws the Back control + centred title
-  and a closing dotted rule; it returns `{ backRect, contentTop }`. Back uses a
-  slightly wider tile and a stepped-down `labelPx`; `drawFramedButton` also
-  insets/fits labels so short tags do not hug the left frame.
+- `Game.drawScreenHeader(title, { back, trailingButton })` draws a quiet text
+  **← Back** (no frame), a centred title, optional trailing brand button
+  (same pattern as Options Light/Dark — label + micro-tag), and a closing
+  dotted rule. Returns `{ backRect, trailingButtonRect, contentTop }`.
 - `drawRuledLabel()` is the small caps section label with dotted rules; `drawDivider()`
   separates bands.
 - `fitPx()` shrinks a string until it fits its box; `wrapLines()` wraps to N lines.
@@ -725,7 +727,8 @@ with a linear gradient along the wake's chord for the length-wise fade.
   half-screen tap + arrows (Space pauses); banks are **closed** linear full-π
   swooshes (`arcDuration` 820 ms — see §5). The intro tutorial hint
   matches the active style (`{space}` renders as a bold SPACE keycap).
-  Persisted in localStorage.
+  Persisted in localStorage. Open Space online scores and local personal bests
+  key off this value (`flight_style` / `bestByStyle`).
 
 ## 7. Scoring model
 
@@ -737,9 +740,11 @@ There are **three independent metrics** on the `Game` instance:
 | `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD, end screen, leaderboard (`obstacles` tab), Journey's third star vs `smashTarget` |
 | `points` | **Reward points** | `+perAsteroid` destroy, `+perCollectible` sparkle, `+perSwoosh` near-miss style | HUD, end screen, Journey's second star |
 
-Open Space also keeps a device-local **personal best** (`services/OpenWorldProgress.js`,
-key `openWorldProgress`) updated in `gameOver()` whenever a non-Journey run ends.
-Exit Run does not write it. The Play → Open Space card reads it for its footer.
+Open Space also keeps device-local **personal bests per flight style**
+(`services/OpenWorldProgress.js`, key `openWorldProgress`, v2 `bestByStyle`)
+updated in `gameOver()` whenever a non-Journey run ends. Exit Run does not write
+it. The Play → Open Space card footer shows nothing until a style has a best;
+one style → `Personal best: X KM`; both → `Zigzag: A KM · Arc: B KM` (zeros omitted).
 
 `points` is **local only** — it is not (yet) sent to the Supabase leaderboard;
 it is included in the `game_over` GA event.

@@ -1,6 +1,9 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
+// - Keyboard plugin: wireKeyboard() tracks soft-keyboard height on the game
+//   (game.softKeyboardHeight) so Submit Signal can sit above the IME. Config
+//   uses resizeOnFullScreen so Android edge-to-edge actually resizes the WebView.
 // - hapticWallBoop(): Cap ImpactStyle.Light (soft tick). Phone haptics must be
 //   on — earlier "no feel" was OS intensity at 0, not a dead plugin. Dropped
 //   the heavy vibrate()/HapticTick/startup-thump path that felt too strong.
@@ -174,6 +177,33 @@ export async function syncStatusBarTheme() {
 }
 
 /**
+ * Track IME height on the game so canvas modals (Submit Signal) can stay above
+ * the soft keyboard. No-ops if the plugin is missing.
+ *
+ * @param {import('../game/Game.js').Game} game
+ */
+async function wireKeyboard(game) {
+    try {
+        const { Keyboard } = await import('@capacitor/keyboard');
+        game.softKeyboardHeight = 0;
+        await Keyboard.addListener('keyboardWillShow', (info) => {
+            game.softKeyboardHeight = info?.keyboardHeight || 0;
+        });
+        await Keyboard.addListener('keyboardDidShow', (info) => {
+            game.softKeyboardHeight = info?.keyboardHeight || 0;
+        });
+        await Keyboard.addListener('keyboardWillHide', () => {
+            game.softKeyboardHeight = 0;
+        });
+        await Keyboard.addListener('keyboardDidHide', () => {
+            game.softKeyboardHeight = 0;
+        });
+    } catch {
+        game.softKeyboardHeight = 0;
+    }
+}
+
+/**
  * Wire the native shell to a running game. Safe to call on the web, where it
  * returns immediately.
  *
@@ -192,6 +222,7 @@ export async function initNative(game) {
     await syncStatusBarTheme();
     await wireBackButton(game, App);
     await wireLifecycle(game, App);
+    await wireKeyboard(game);
     await syncKeepAwake(game);
 
     // Held until here so the first painted frame is the real menu, not a blank

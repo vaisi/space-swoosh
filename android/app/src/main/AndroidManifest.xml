@@ -9,6 +9,9 @@
         android:theme="@style/AppTheme">
         <!-- The game is a fixed 2:3 portrait surface; landscape would letterbox
              it and rebuild the canvas mid-run. -->
+        <!-- adjustResize: shrink the WebView above the soft keyboard so the
+             Submit Signal call-sign field stays inside the modal (adjustPan
+             was panning the page and desyncing the DOM input from the canvas). -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
@@ -16,6 +19,7 @@
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

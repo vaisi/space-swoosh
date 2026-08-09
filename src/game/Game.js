@@ -2,13 +2,21 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Screen header Back is a quiet text control ("← Back", no frame) shared by
+//   every back-bearing screen. Space Board hosts a compact theme-style
+//   Zigzag/Arc toggle (label + Z / S tag) so SPACE BOARD can read larger;
+//   DISTANCE / OBSTACLES stay as metric tabs.
+// - Open Space leaderboard splits by flight style. Rank, submit, and fetch all
+//   filter on `flight_style`. Local personal bests are per-style via
+//   OpenWorldProgress v2.
+// - Submit Signal: no auto-focus/keyboard; keyboard layout only when a real IME
+//   inset is present; idle layout keeps stats above the field; compact keyboard
+//   mode draws Distance / Asteroids / Rank in one horizontal row.
 // - Journey lore screen (`appScreen === 'lore'`): one-time Signal Story brief
 //   before the map; Continue unlocks Logbook `signalCall`.
 // - Submit Signal + Android keyboard: Cap Keyboard plugin tracks IME height;
-//   when the call-sign field is focused the card pins to the top with input +
-//   Submit first (stats below) so Gboard never covers the field. DOM input on
-//   #gameContainer, repositioned every frame. resizeOnFullScreen in capacitor
-//   config works around Android edge-to-edge ignoring adjustResize.
+//   DOM input on #gameContainer, repositioned every frame. resizeOnFullScreen
+//   in capacitor config works around Android edge-to-edge ignoring adjustResize.
 // - Main menu: cycle full roster (menuShipBrowseId); owned equips, locked
 //   shows price + tap-to-buy; Play uses last owned shipSkinId.
 // - Options hub: Ship / Controls / Sound / Theme + Restore Purchases.
@@ -313,7 +321,8 @@ export class Game {
         this.scoreSubmitted = false; // Track if score has been submitted
         // Set by native/index.js Keyboard listeners (CSS px). 0 on web.
         this.softKeyboardHeight = 0;
-        this.highScoreTab = 'distance'; // Add tab state
+        this.highScoreTab = 'distance'; // metric tab: distance | obstacles
+        this.highScoreFlightStyle = this.flightStyle; // arc | zigzag board
         this.highScorePage = 0; // 0-based page index (10 scores per page)
 
         // Journey state. Progress is local-only; the leaderboard stays Open World.
@@ -1423,30 +1432,86 @@ export class Game {
         });
     }
 
-    // Shared screen header: optional Back control on the left, a centred display
-    // title on the same band, closed by a dotted rule. Returns the Back hit-box
-    // and the Y where page content should start.
-    drawScreenHeader(title, { back = false } = {}) {
+    // Quiet text control used for header Back (and matching toggles): no frame,
+    // so it doesn't compete with the page title. Hit-box is padded for touch.
+    drawHeaderTextControl(x, y, h, label, { align = 'left', muted = false } = {}) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
-        const barH = L.isMobile ? unit * 4.2 : unit * 3.8;
+        const labelPx = L.isMobile
+            ? Math.min(unit * 1.45, 15)
+            : Math.min(unit * 1.35, 14);
+        const padX = unit * 0.6;
+
+        ctx.save();
+        setLabelType(ctx, labelPx, muted ? 500 : 600);
+        const textW = ctx.measureText(label).width;
+        resetType(ctx);
+        ctx.restore();
+
+        const width = textW + padX * 2;
+        let left = x;
+        if (align === 'right') left = x - width;
+        else if (align === 'center') left = x - width / 2;
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        setLabelType(ctx, labelPx, muted ? 500 : 600);
+        ctx.fillStyle = muted ? color.ink55 : color.ink;
+        ctx.fillText(label, left + padX, y + h / 2);
+        resetType(ctx);
+        ctx.restore();
+
+        return { x: left, y, width, height: h };
+    }
+
+    // Shared screen header: optional quiet Back on the left, centred display
+    // title, optional trailing brand button on the right (same pattern as
+    // Options → Light/Dark Mode), closed by a dotted rule.
+    // trailingButton: { label, tag } — e.g. Space Board Zigzag/Arc toggle.
+    drawScreenHeader(title, { back = false, trailingButton = null } = {}) {
+        const ctx = this.ctx;
+        const unit = this.baseUnit;
+        const L = screenLayout(this, unit);
+        const barH = L.isMobile ? unit * 3.4 : unit * 3.2;
         const y = L.top;
+        const midY = y + barH / 2;
 
         let backRect = null;
         if (back) {
-            // A touch wider + a step-down label so "BACK" has air from the frame
-            // on phone widths (shared by every screen that uses this header).
-            const backW = Math.max(unit * 10.5, this.width * 0.22);
-            const backLabelPx = L.isMobile
-                ? Math.min(unit * 1.55, 17)
-                : Math.min(unit * 1.45, 16);
-            backRect = this.drawBrandButton(L.left, y, backW, barH, 'Back', {
-                tag: '\u2190',
-                labelPx: backLabelPx,
+            backRect = this.drawHeaderTextControl(L.left, y, barH, '\u2190 Back', {
+                align: 'left',
+                muted: true,
             });
         }
 
+        // Compact theme-style toggle — short width so the title can breathe.
+        let trailingButtonRect = null;
+        if (trailingButton?.label) {
+            const btnH = L.isMobile ? unit * 2.9 : unit * 2.7;
+            const btnW = Math.min(L.width * 0.26, Math.max(unit * 9.2, this.width * 0.2));
+            const labelPx = L.isMobile
+                ? Math.min(unit * 1.2, 12)
+                : Math.min(unit * 1.15, 12);
+            trailingButtonRect = this.drawBrandButton(
+                L.right - btnW,
+                y + (barH - btnH) / 2,
+                btnW,
+                btnH,
+                trailingButton.label,
+                { tag: trailingButton.tag || null, labelPx },
+            );
+        }
+
+        // Title stays centred; side controls stay quiet so the title reads first.
+        const sideReserve = Math.max(
+            backRect ? backRect.width + unit * 0.6 : 0,
+            trailingButtonRect ? trailingButtonRect.width + unit * 0.6 : 0,
+        );
+        const titleMax = trailingButton
+            ? (L.isMobile ? Math.min(unit * 2.9, 32) : unit * 2.7)
+            : (L.isMobile ? Math.min(unit * 2.5, 28) : unit * 2.4);
         ctx.save();
         ctx.fillStyle = color.ink;
         ctx.textAlign = 'center';
@@ -1454,19 +1519,19 @@ export class Game {
         fitPx(
             ctx,
             title,
-            L.width * (back ? 0.56 : 0.9),
-            L.isMobile ? Math.min(unit * 2.5, 28) : unit * 2.4,
+            Math.max(unit * 10, L.width - sideReserve * 2),
+            titleMax,
             unit * 1.4,
             (px) => setDisplayType(ctx, px)
         );
-        ctx.fillText(title, L.centerX, y + barH / 2 + 1);
+        ctx.fillText(title, L.centerX, midY + 1);
         resetType(ctx);
         ctx.restore();
 
         const ruleY = y + barH + L.block;
         drawDivider(ctx, L.left, L.right, ruleY);
 
-        return { backRect, contentTop: ruleY + L.section };
+        return { backRect, trailingButtonRect, contentTop: ruleY + L.section };
     }
 
     renderMainMenu() {
@@ -2383,44 +2448,63 @@ export class Game {
         const MAX_PAGES = 10;
         const RANK_TROPHIES = ['🥇', '🥈', '🥉'];
 
-        const header = this.drawScreenHeader('LEADERBOARD', { back: true });
+        // Same pattern as Options → Light/Dark Mode: one framed toggle with a
+        // micro-tag (Z = Zigzag, S = Arc swoosh).
+        const styleZigzag = this.highScoreFlightStyle === FLIGHT_STYLE.zigzag;
+        const header = this.drawScreenHeader('SPACE BOARD', {
+            back: true,
+            trailingButton: {
+                label: styleZigzag ? 'Zigzag' : 'Arc',
+                tag: styleZigzag ? 'Z' : 'S',
+            },
+        });
         this.highScoresBackButton = header.backRect;
+        this.flightStyleToggle = header.trailingButtonRect;
         this.highScorePrevButton = null;
         this.highScoreNextButton = null;
 
-        // Tabs — uppercase labels; the active tab is marked by a dotted trail.
+        // Metric tabs only — flight style lives in the header toggle button.
         const tabWidth = this.width * (isMobile ? 0.4 : 0.3);
-        const tabHeight = unit * 3.6;
-        const tabY = header.contentTop - L.section / 2;
+        const tabHeight = unit * 3.2;
         const tabSpacing = unit * 2;
+        const tabY = header.contentTop - L.section / 2;
+        const tabLabelPx = isMobile ? Math.min(unit * 1.35, 14) : unit * 1.15;
 
         this.distanceTab = {
             x: this.width / 2 - tabWidth - tabSpacing / 2,
             y: tabY,
             width: tabWidth,
-            height: tabHeight
+            height: tabHeight,
         };
         this.obstaclesTab = {
             x: this.width / 2 + tabSpacing / 2,
             y: tabY,
             width: tabWidth,
-            height: tabHeight
+            height: tabHeight,
         };
 
         [
             { tab: this.distanceTab, text: 'DISTANCE', active: this.highScoreTab === 'distance' },
-            { tab: this.obstaclesTab, text: 'OBSTACLES', active: this.highScoreTab === 'obstacles' }
+            { tab: this.obstaclesTab, text: 'OBSTACLES', active: this.highScoreTab === 'obstacles' },
         ].forEach(({ tab, text, active }) => {
             ctx.save();
             ctx.fillStyle = active ? color.ink : color.ink55;
-            setLabelType(ctx, isMobile ? Math.min(unit * 1.4, 15) : unit * 1.2);
+            setLabelType(ctx, tabLabelPx);
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, tab.x + tab.width / 2, tab.y + tab.height / 2);
             resetType(ctx);
 
             if (active) {
-                dottedLine(ctx, tab.x + tab.width * 0.15, tab.x + tab.width * 0.85, tab.y + tab.height, 1.6, 7, color.ink);
+                dottedLine(
+                    ctx,
+                    tab.x + tab.width * 0.15,
+                    tab.x + tab.width * 0.85,
+                    tab.y + tab.height,
+                    1.6,
+                    7,
+                    color.ink
+                );
             }
             ctx.restore();
         });
@@ -2428,7 +2512,7 @@ export class Game {
         // Wider columns; leave a bottom band so PAGE n/m can sit mid-gap.
         const leftX = this.width * 0.08;
         const rightX = this.width * 0.92;
-        const listTop = tabY + tabHeight + unit * 2.4;
+        const listTop = tabY + tabHeight + unit * 2.0;
         const pagerZone = Math.max(unit * 7, this.height * 0.16);
         const listBottom = this.height - pagerZone;
         const listH = Math.max(unit * 20, listBottom - listTop);
@@ -2762,19 +2846,28 @@ export class Game {
             this.endFlavor = pickCopy('crash');
 
             // Local personal best for the Play → Open World card (device-only).
-            const bestResult = recordOpenWorldScore(this.openWorldProgress, this.finalScore);
+            const bestResult = recordOpenWorldScore(
+                this.openWorldProgress,
+                this.finalScore,
+                this.flightStyle,
+            );
             this.openWorldProgress = bestResult.progress;
+            this.highScoreFlightStyle = this.flightStyle;
 
             track('game_over', {
                 'score': this.finalScore,
                 'obstacles_destroyed': this.obstaclesDestroyed,
                 'points': this.points,
-                'distance': Math.floor(this.score)
+                'distance': Math.floor(this.score),
+                'flight_style': this.flightStyle,
             });
 
             try {
-                // Get actual rank by counting all higher scores
-                const higherScoresCount = await ScoreService.getAllScoresCount(this.finalScore);
+                // Rank against the board for this flight style only.
+                const higherScoresCount = await ScoreService.getAllScoresCount(
+                    this.finalScore,
+                    this.flightStyle,
+                );
                 const rank = higherScoresCount + 1;
                 
                 // Store rank separately so it persists even if modal is closed
@@ -2803,7 +2896,11 @@ export class Game {
 
     async loadHighScores() {
         try {
-            this.highScores = await ScoreService.getTopScores(this.highScoreTab);
+            this.highScores = await ScoreService.getTopScores(
+                this.highScoreTab,
+                100,
+                this.highScoreFlightStyle,
+            );
         } catch (error) {
             console.error('Failed to load high scores:', error);
             this.highScores = [];
@@ -2813,6 +2910,39 @@ export class Game {
             : Math.min(10, Math.max(1, Math.ceil(this.highScores.length / 10)));
         if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
         if (this.highScorePage < 0) this.highScorePage = 0;
+    }
+
+    /** Style / metric / pager hits on the Space Board. @returns {boolean} consumed */
+    async handleHighScoreBoardClick(x, y) {
+        if (this.isClickInButton(x, y, this.flightStyleToggle)) {
+            this.highScoreFlightStyle = this.highScoreFlightStyle === FLIGHT_STYLE.zigzag
+                ? FLIGHT_STYLE.arc
+                : FLIGHT_STYLE.zigzag;
+            this.highScorePage = 0;
+            await this.loadHighScores();
+            return true;
+        }
+        if (this.isClickInButton(x, y, this.distanceTab) && this.highScoreTab !== 'distance') {
+            this.highScoreTab = 'distance';
+            this.highScorePage = 0;
+            await this.loadHighScores();
+            return true;
+        }
+        if (this.isClickInButton(x, y, this.obstaclesTab) && this.highScoreTab !== 'obstacles') {
+            this.highScoreTab = 'obstacles';
+            this.highScorePage = 0;
+            await this.loadHighScores();
+            return true;
+        }
+        if (this.highScorePrevButton?.enabled && this.isClickInButton(x, y, this.highScorePrevButton)) {
+            this.highScorePage -= 1;
+            return true;
+        }
+        if (this.highScoreNextButton?.enabled && this.isClickInButton(x, y, this.highScoreNextButton)) {
+            this.highScorePage += 1;
+            return true;
+        }
+        return false;
     }
 
     createExplosionParticles(x, y) {
@@ -2945,6 +3075,7 @@ export class Game {
                 } else if (this.isClickInButton(x, y, this.menuButtons.highScores)) {
                     this.highScoresReturnScreen = 'menu';
                     this.appScreen = 'highscores';
+                    this.highScoreFlightStyle = this.flightStyle;
                     this.highScorePage = 0;
                     await this.loadHighScores();
                     this.updatePauseButtonVisibility();
@@ -3023,19 +3154,8 @@ export class Game {
             }
 
             if (this.appScreen === 'highscores') {
-                if (this.isClickInButton(x, y, this.distanceTab) && this.highScoreTab !== 'distance') {
-                    this.highScoreTab = 'distance';
-                    this.highScorePage = 0;
-                    await this.loadHighScores();
-                } else if (this.isClickInButton(x, y, this.obstaclesTab) && this.highScoreTab !== 'obstacles') {
-                    this.highScoreTab = 'obstacles';
-                    this.highScorePage = 0;
-                    await this.loadHighScores();
-                } else if (this.highScorePrevButton?.enabled && this.isClickInButton(x, y, this.highScorePrevButton)) {
-                    this.highScorePage -= 1;
-                } else if (this.highScoreNextButton?.enabled && this.isClickInButton(x, y, this.highScoreNextButton)) {
-                    this.highScorePage += 1;
-                } else if (this.isClickInButton(x, y, this.highScoresBackButton)) {
+                if (await this.handleHighScoreBoardClick(x, y)) return;
+                if (this.isClickInButton(x, y, this.highScoresBackButton)) {
                     if (this.highScoresReturnScreen === 'gameover') {
                         this.appScreen = 'gameover';
                         this.gameOverScreen = 'main';
@@ -3074,19 +3194,8 @@ export class Game {
 
             // Nested high scores opened from game-over (legacy gameOverScreen path)
             if (this.gameOverScreen === 'highscores') {
-                if (this.isClickInButton(x, y, this.distanceTab) && this.highScoreTab !== 'distance') {
-                    this.highScoreTab = 'distance';
-                    this.highScorePage = 0;
-                    await this.loadHighScores();
-                } else if (this.isClickInButton(x, y, this.obstaclesTab) && this.highScoreTab !== 'obstacles') {
-                    this.highScoreTab = 'obstacles';
-                    this.highScorePage = 0;
-                    await this.loadHighScores();
-                } else if (this.highScorePrevButton?.enabled && this.isClickInButton(x, y, this.highScorePrevButton)) {
-                    this.highScorePage -= 1;
-                } else if (this.highScoreNextButton?.enabled && this.isClickInButton(x, y, this.highScoreNextButton)) {
-                    this.highScorePage += 1;
-                } else if (this.isClickInButton(x, y, this.highScoresBackButton)) {
+                if (await this.handleHighScoreBoardClick(x, y)) return;
+                if (this.isClickInButton(x, y, this.highScoresBackButton)) {
                     this.gameOverScreen = 'main';
                 }
                 return;
@@ -3100,6 +3209,7 @@ export class Game {
                     this.highScoresReturnScreen = 'gameover';
                     this.appScreen = 'highscores';
                     this.gameOverScreen = 'main';
+                    this.highScoreFlightStyle = this.flightStyle;
                     this.highScorePage = 0;
                     await this.loadHighScores();
                 } else if (this.isClickInButton(x, y, this.gameOverButtons.menu)) {
@@ -3359,17 +3469,27 @@ export class Game {
         this.nameInput = null;
     }
 
-    // True while the call-sign field has focus (IME likely up even before the
-    // Keyboard plugin fires) or the plugin reports a non-zero IME height.
+    // True only when a real IME inset is present (Cap Keyboard height or a
+    // meaningful visualViewport shrink). Focus alone does not count — that was
+    // crushing the Submit Signal stats under the button after dismiss.
     isSoftKeyboardOpen() {
         if ((this.softKeyboardHeight || 0) > 0) return true;
-        return !!(this.nameInput && document.activeElement === this.nameInput);
+        if (!window.visualViewport || this.height <= 0) return false;
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const scaleY = canvasRect.height / this.height;
+        if (!(scaleY > 0)) return false;
+        const visibleBottom = Math.min(
+            this.height,
+            (window.visualViewport.height - canvasRect.top) / scaleY
+        );
+        const visibleTop = Math.max(0, -canvasRect.top) / scaleY;
+        const slice = visibleBottom - visibleTop;
+        return slice > 1 && slice < this.height * 0.92;
     }
 
     // Canvas-space rectangle still clear of the soft keyboard.
     // Prefer Cap Keyboard height (reliable on Android edge-to-edge); fall back
-    // to visualViewport; when the field is focused but height is unknown, keep
-    // the top ~58% of the stage so the pinned card still fits.
+    // to visualViewport. No focus-only fallback — idle modal uses full stage.
     getVisibleCanvasBounds() {
         let top = 0;
         let height = this.height;
@@ -3405,9 +3525,6 @@ export class Game {
             }
         }
 
-        if (this.isSoftKeyboardOpen()) {
-            return { top: 0, height: this.height * 0.58 };
-        }
         return { top, height };
     }
 
@@ -3451,14 +3568,13 @@ export class Game {
         ctx.fillStyle = `rgba(${color.paperRgb}, 0.72)`;
         ctx.fillRect(0, 0, this.width, this.height);
 
-        // Keyboard open: pin the card to the top and put call sign + Submit
-        // first. Android edge-to-edge often leaves the WebView full-bleed, so
-        // centering a bottom-heavy form always loses the field under Gboard.
-        // `!this.nameInput` covers the first frame before auto-focus lands.
-        const keyboardOpen = this.isSoftKeyboardOpen() || !this.nameInput;
+        // Keyboard open (real IME inset only): pin card to the top, call sign +
+        // Submit first, stats as one horizontal row so they never crush under the button.
+        // Idle: stats stacked first, then field + Submit. No auto-focus.
+        const keyboardOpen = this.isSoftKeyboardOpen();
         const view = this.getVisibleCanvasBounds();
         const modalWidth = Math.min(360, this.width * 0.88);
-        const idealHeight = keyboardOpen ? 340 : 460;
+        const idealHeight = keyboardOpen ? 300 : 460;
         const modalHeight = Math.min(idealHeight, Math.max(240, view.height - 12));
         const compact = keyboardOpen || modalHeight < 400;
         const pad = compact ? 16 : 28;
@@ -3512,7 +3628,7 @@ export class Game {
         const buttonHeight = compact ? 44 : 50;
         const container = this.canvas.parentElement;
 
-        // Ensure the DOM field exists before we place it (focus ⇒ keyboard).
+        // Create the DOM field without focusing — keyboard opens only when tapped.
         if (!this.nameInput) {
             const input = document.createElement('input');
             input.type = 'text';
@@ -3551,12 +3667,8 @@ export class Game {
 
             this.nameInput = input;
             (container || document.body).appendChild(input);
-            input.focus({ preventScroll: true });
-            window.scrollTo(0, 0);
         }
 
-        // Keyboard / focused: call sign + Submit first (safe above Gboard).
-        // Idle: stats first, then field + Submit (original reading order).
         const drawCallSignAndSubmit = () => {
             const inputX = contentLeft;
             const inputY = currentY;
@@ -3591,9 +3703,9 @@ export class Game {
             currentY += pad * 0.55;
         };
 
-        const valuePx = compact ? 20 : 28;
-        const stackGap = compact ? pad * 0.7 : pad * 1.35;
-        const drawStat = (value, unitLabel, caption) => {
+        const valuePx = compact ? 18 : 28;
+        const stackGap = pad * 1.35;
+        const drawStatStacked = (value, unitLabel, caption) => {
             ctx.save();
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
@@ -3606,7 +3718,7 @@ export class Game {
                 ctx.fillStyle = color.ink55;
                 ctx.fillText(unitLabel, cursor + 8, currentY);
             }
-            currentY += compact ? 12 : 18;
+            currentY += 18;
             setLabelType(ctx, 10);
             ctx.fillStyle = color.ink55;
             ctx.fillText(caption, contentLeft, currentY);
@@ -3615,23 +3727,63 @@ export class Game {
             currentY += stackGap;
         };
 
-        const drawStats = () => {
-            drawStat(ScoreService.formatScore(this.finalScore), 'KM', 'DISTANCE');
-            drawStat(
+        const drawStatsRow = () => {
+            const colW = contentWidth / 3;
+            const stats = [
+                {
+                    value: ScoreService.formatScore(this.finalScore),
+                    unit: 'KM',
+                    caption: 'DISTANCE',
+                },
+                {
+                    value: ScoreService.formatScore(this.obstaclesDestroyed),
+                    unit: null,
+                    caption: 'ASTEROIDS',
+                },
+                {
+                    value: `#${this.pendingHighScore.rank}`,
+                    unit: null,
+                    caption: 'RANK',
+                },
+            ];
+            const valueY = currentY;
+            const captionY = currentY + 16;
+            stats.forEach((stat, i) => {
+                const cx = contentLeft + colW * i + colW / 2;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+                setMonoType(ctx, valuePx);
+                ctx.fillStyle = color.ink;
+                let label = stat.value;
+                if (stat.unit) label = `${stat.value} ${stat.unit}`;
+                ctx.fillText(label, cx, valueY);
+                setLabelType(ctx, 9);
+                ctx.fillStyle = color.ink55;
+                ctx.fillText(stat.caption, cx, captionY);
+                resetType(ctx);
+                ctx.restore();
+            });
+            currentY = captionY + pad * 0.7;
+        };
+
+        const drawStatsStacked = () => {
+            drawStatStacked(ScoreService.formatScore(this.finalScore), 'KM', 'DISTANCE');
+            drawStatStacked(
                 ScoreService.formatScore(this.obstaclesDestroyed),
                 null,
                 'ASTEROIDS DESTROYED'
             );
-            drawStat(`#${this.pendingHighScore.rank}`, null, 'YOUR RANK');
+            drawStatStacked(`#${this.pendingHighScore.rank}`, null, 'YOUR RANK');
         };
 
         if (keyboardOpen) {
             drawCallSignAndSubmit();
             dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
             currentY += pad * 0.65;
-            drawStats();
+            drawStatsRow();
         } else {
-            drawStats();
+            drawStatsStacked();
             dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
             currentY += pad * 0.7;
             drawCallSignAndSubmit();
@@ -3648,6 +3800,7 @@ export class Game {
                 name,
                 this.obstaclesDestroyed,
                 this.shipSkinId,
+                this.flightStyle,
             );
 
             track('submit_highscore', {
@@ -3655,15 +3808,19 @@ export class Game {
                 'player_name': name,
                 'obstacles_destroyed': this.obstaclesDestroyed,
                 'ship_id': this.shipSkinId,
-                'rank': this.currentRank
+                'rank': this.currentRank,
+                'flight_style': this.flightStyle,
             });
 
             this.removeNameInput();
 
             this.pendingHighScore = null;
             this.scoreSubmitted = true;
+            this.highScoreFlightStyle = this.flightStyle;
+            this.highScoresReturnScreen = 'gameover';
+            this.appScreen = 'highscores';
+            this.gameOverScreen = 'main';
             await this.loadHighScores();
-            this.gameOverScreen = 'highscores';
         } catch (error) {
             console.error('Error saving score:', error);
             if (error instanceof CallSignRejectedError) {

@@ -1,9 +1,10 @@
 -- supabase/rls.sql
 -- Changes:
--- - Documented as a re-runnable policy patch; the canonical schema now lives in
---   migrations/20260804200000_create_high_scores_leaderboard.sql (already applied
---   to vaisi's Project). Keep this file for store-compliance checklists that
---   point at it.
+-- - INSERT with-check now requires flight_style in ('arc', 'zigzag') to match
+--   migrations/20260809160000_high_scores_add_flight_style.sql.
+-- - Documented as a re-runnable policy patch; the canonical schema lives in
+--   migrations/ (already applied to vaisi's Project). Keep this file for
+--   store-compliance checklists that point at it.
 --
 -- Goal: anyone can read the leaderboard and insert a new row; nobody can
 -- update or delete via the anon key. (Cleanup of abusive names is a dashboard
@@ -31,6 +32,7 @@ create policy "high_scores_insert_public"
     char_length(player_name) between 2 and 15
     and score >= 0
     and obstacles_destroyed >= 0
+    and flight_style in ('arc', 'zigzag')
     and (
       ship_id is null
       or (
@@ -42,6 +44,10 @@ create policy "high_scores_insert_public"
 
 -- No update / delete policies for anon → denied by default when RLS is on.
 
--- Optional: index for the common leaderboard sorts.
+-- Optional: indexes for the common leaderboard sorts.
 create index if not exists high_scores_score_desc on public.high_scores (score desc);
 create index if not exists high_scores_obstacles_desc on public.high_scores (obstacles_destroyed desc);
+create index if not exists high_scores_flight_style_score_desc
+  on public.high_scores (flight_style, score desc);
+create index if not exists high_scores_flight_style_obstacles_desc
+  on public.high_scores (flight_style, obstacles_destroyed desc);

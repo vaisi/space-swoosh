@@ -1,6 +1,8 @@
 // ScoreService.js
 // Supabase read/write for the online leaderboard, plus score formatting.
 // Changes:
+// - saveScore / getTopScores / getAllScoresCount take flightStyle so Arc and
+//   Zigzag land on separate boards (`flight_style` column).
 // - getTopScores default limit is 100 (10 leaderboard pages × 10 rows).
 // - saveScore accepts optional shipId (roster skin id) and writes `ship_id`.
 // - Inserts omit client `created_at` (DB default `now()`) to avoid timestamp
@@ -15,6 +17,7 @@
 //   never depend on the backend being configured.
 
 import { supabase, isLeaderboardConfigured } from '../config/supabase.js'
+import { FLIGHT_STYLE } from '../config/flightStyle.js'
 import { resolveShipSkinId, skins } from '../ships/skins.js'
 import { validateCallSign } from './NameFilter.js'
 
@@ -41,6 +44,11 @@ function sanitizeShipId(shipId) {
     return skins[id] ? id : null;
 }
 
+/** Arc | Zigzag only; unknown values fall back to zigzag (legacy board). */
+function sanitizeFlightStyle(flightStyle) {
+    return flightStyle === FLIGHT_STYLE.arc ? FLIGHT_STYLE.arc : FLIGHT_STYLE.zigzag;
+}
+
 export class ScoreService {
     /** @returns {boolean} Whether any network call can succeed at all. */
     static isAvailable() {
@@ -57,19 +65,22 @@ export class ScoreService {
      * @param {string} playerName
      * @param {number} obstaclesDestroyed
      * @param {string} [shipId] active skin id for the run
+     * @param {string} [flightStyle] 'arc' | 'zigzag'
      */
-    static async saveScore(score, playerName, obstaclesDestroyed, shipId) {
+    static async saveScore(score, playerName, obstaclesDestroyed, shipId, flightStyle) {
         const check = validateCallSign(playerName);
         if (!check.ok) throw new CallSignRejectedError(check.message);
 
         const client = ScoreService.requireClient();
         const ship = sanitizeShipId(shipId);
+        const style = sanitizeFlightStyle(flightStyle);
 
         try {
             const row = {
                 score: Math.floor(score),
                 player_name: check.name,
                 obstacles_destroyed: Math.max(0, Math.floor(obstaclesDestroyed || 0)),
+                flight_style: style,
             };
             if (ship) row.ship_id = ship;
 
@@ -94,13 +105,16 @@ export class ScoreService {
 
     // An unconfigured build shows an empty board rather than an error screen —
     // the leaderboard is a side feature and must never block the menu.
-    static async getTopScores(type = 'distance', limit = 100) {
+    static async getTopScores(type = 'distance', limit = 100, flightStyle = FLIGHT_STYLE.zigzag) {
         if (!supabase) return [];
+
+        const style = sanitizeFlightStyle(flightStyle);
 
         try {
             const { data, error } = await supabase
                 .from(TABLE)
                 .select('*')
+                .eq('flight_style', style)
                 .order(type === 'distance' ? 'score' : 'obstacles_destroyed', { ascending: false })
                 .limit(limit);
 
@@ -116,13 +130,15 @@ export class ScoreService {
         }
     }
 
-    static async getAllScoresCount(score) {
+    static async getAllScoresCount(score, flightStyle = FLIGHT_STYLE.zigzag) {
         const client = ScoreService.requireClient();
+        const style = sanitizeFlightStyle(flightStyle);
 
         try {
             const { count, error } = await client
                 .from(TABLE)
                 .select('*', { count: 'exact', head: true })
+                .eq('flight_style', style)
                 .gt('score', Math.floor(score));
 
             if (error) throw error;

@@ -17,9 +17,10 @@
 > and a strong speed rush. Black side barriers are still deadly — only the blue
 > edge is a gift.
 >
-> Open Space high scores are online (call sign, ship, + distance; board top 100).
-> Auto call-sign prompt only for top 10; Submit Score stays available anytime.
-> Your Open Space personal best and Journey progress stay on your device.
+> Open Space high scores are online per flight style (Zigzag and Arc boards;
+> call sign, ship, + distance; top 100 each). Auto call-sign prompt only for
+> top 10 on that style’s board; Submit Score stays available anytime.
+> Your Open Space personal bests (per style) and Journey progress stay on your device.
 > Journey and Open Space play short session voice cues on your first wall BOOP
 > and on each Style Swoosh (swoosh is voice-only).
 >
@@ -40,7 +41,9 @@ Play lists **Journey first** — it's the recommended path. Each visit, the shor
 line under Journey and Open Space is a fresh Spock-voice blurb (same idea, new
 wording). Journey's card shows your current level and star total; Open Space's
 card shows your **personal best** distance on this device once you've finished
-at least one run.
+at least one run. Zigzag and Arc bests are tracked separately — if you've only
+flown one style it still just says personal best; if you've flown both, both
+distances show. Styles you haven't tried don't appear.
 
 ### Journey
 
@@ -72,15 +75,17 @@ the first Journey entry.
 The endless run. No finish line: fly until you crash, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up. **This is the mode with the leaderboard** — if your run lands in the
-top 10, after Mission Failed settles a Submit Signal card lists your distance,
-asteroids destroyed, and rank — type a short call sign and send it up. On phones
-the card stays above the keyboard so the call-sign field does not jump outside
-the frame. Outside the top 10 you can still tap **Submit Score** to send a
-signal. The board shows your call sign and the ship you flew (`Name, Ship` and
-the score).
-**High Scores** on the main menu browses up to 100 runs (10 per page, with page
-arrows), by distance or obstacles smashed. Ranks 1–3 show trophy icons. No
-account required.
+top 10 for the flight style you were using (Zigzag or Arc), after Mission Failed
+settles a Submit Signal card lists your distance, asteroids destroyed, and rank —
+tap the call-sign field, type a short name, and send it up. On phones the card
+stays above the keyboard so the field does not jump outside the frame. Outside
+the top 10 you can still tap **Submit Score** to send a signal. Scores go to
+that style’s board only. The board shows your call sign and the ship you flew
+(`Name, Ship` and the score).
+**High Scores** on the main menu opens the **Space Board** — tap the Zigzag /
+Arc button in the title bar (same idea as Light/Dark Mode) to switch boards,
+then browse by distance or obstacles smashed (up to 100 runs each, 10 per
+page). Ranks 1–3 show trophy icons. No account required.
 
 Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
@@ -122,7 +127,7 @@ to unlock on the apps). Options → Ship has the same roster in a grid.
 - **Play** — choose Open Space or Journey.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound, theme, and Restore Purchases (see below).
-- **High Scores** — browse the leaderboard (10 scores per page, up to 10 pages).
+- **High Scores** — open the Space Board (Zigzag/Arc button in the title; 10 scores per page, up to 10 pages each).
 
 After a run, **Menu** on the end screen brings you back here.
 
@@ -360,7 +365,8 @@ aim for the blue.
 
 ## Flight style
 
-Under **Options → Controls** you can pick how the ship steers:
+Under **Options → Controls** you can pick how the ship steers. Open Space high
+scores and your on-device personal best are tracked **separately** for each style.
 
 - **Zigzag** (default) — the ship always flies straight at a flatter fixed
   angle, a bit faster than Arc; **press/tap** (flips on finger-down) or **Space**
