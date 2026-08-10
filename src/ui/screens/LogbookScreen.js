@@ -1,6 +1,8 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - Icons for phase (square bloom), sweepGate (slim line), repulsor, driftCurrent.
+// - Finish Gate icon: blue jet + emitter stubs (matches in-run gate).
 // - Screen title SPACE LOG (was LOGBOOK).
 // - Journey tab (category `levels`): text-only rows — no left thumbnail, no
 //   KNOWN/OBSERVED tag; titles are Day N from catalog.
@@ -366,6 +368,58 @@ export function drawEntryIcon(ctx, icon, cx, cy, size, dimmed) {
             ctx.strokeStyle = color.ink30;
             ctx.stroke();
             break;
+        case 'phase': {
+            // One square → four outer squares (PhaseAsteroid bloom).
+            const h = size * 0.12;
+            ctx.fillRect(-h, -h, h * 2, h * 2);
+            const arm = size * 0.3;
+            for (let i = 0; i < 4; i++) {
+                const a = (i / 4) * Math.PI * 2 - Math.PI / 2;
+                ctx.fillRect(
+                    Math.cos(a) * arm - h * 0.7,
+                    Math.sin(a) * arm - h * 0.7,
+                    h * 1.4,
+                    h * 1.4
+                );
+            }
+            break;
+        }
+        case 'sweepGate': {
+            // Slim rotating line (SweepGate) — no hub.
+            ctx.fillRect(-size * 0.48, -size * 0.04, size * 0.96, size * 0.08);
+            break;
+        }
+        case 'repulsor': {
+            // Core + outward ticks (RepulsorObstacle).
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = color.ink30;
+            ctx.lineWidth = Math.max(1.5, size * 0.06);
+            for (let i = 0; i < 6; i++) {
+                const a = (i / 6) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(a) * size * 0.32, Math.sin(a) * size * 0.32);
+                ctx.lineTo(Math.cos(a) * size * 0.48, Math.sin(a) * size * 0.48);
+                ctx.stroke();
+            }
+            break;
+        }
+        case 'driftCurrent': {
+            // Full-width flowing shear lines only.
+            ctx.strokeStyle = color.ink30;
+            ctx.lineWidth = Math.max(1.1, size * 0.05);
+            ctx.setLineDash([size * 0.12, size * 0.1]);
+            for (let i = 0; i < 4; i++) {
+                const yy = -size * 0.28 + i * size * 0.18;
+                ctx.beginPath();
+                ctx.moveTo(-size * 0.48, yy);
+                ctx.lineTo(size * 0.48, yy);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            break;
+        }
         case 'wormhole':
             ctx.strokeStyle = signal;
             ctx.setLineDash([size * 0.14, size * 0.1]);
@@ -437,21 +491,30 @@ export function drawEntryIcon(ctx, icon, cx, cy, size, dimmed) {
             ctx.arc(0, 0, size * 0.45, 0, Math.PI * 2);
             ctx.stroke();
             break;
-        case 'finishGate':
-            ctx.strokeStyle = color.ink30;
-            ctx.setLineDash([size * 0.12, size * 0.1]);
-            ctx.lineWidth = Math.max(2.5, size * 0.09);
+        case 'finishGate': {
+            // Blue jet + minimal left/right emitter stubs (matches in-run gate).
+            ctx.strokeStyle = `rgba(${color.signalRgb}, 0.35)`;
+            ctx.lineWidth = Math.max(4, size * 0.16);
             ctx.beginPath();
-            ctx.moveTo(-size * 0.45, 0);
-            ctx.lineTo(size * 0.45, 0);
+            ctx.moveTo(-size * 0.28, 0);
+            ctx.lineTo(size * 0.28, 0);
             ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = signal;
+            ctx.strokeStyle = signal;
+            ctx.lineWidth = Math.max(2, size * 0.08);
             ctx.beginPath();
-            ctx.arc(-size * 0.45, 0, size * 0.12, 0, Math.PI * 2);
-            ctx.arc(size * 0.45, 0, size * 0.12, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(-size * 0.28, 0);
+            ctx.lineTo(size * 0.28, 0);
+            ctx.stroke();
+            const hW = size * 0.16;
+            const hH = size * 0.2;
+            ctx.fillStyle = ink;
+            ctx.fillRect(-size * 0.48, -hH / 2, hW, hH);
+            ctx.fillRect(size * 0.48 - hW, -hH / 2, hW, hH);
+            ctx.fillStyle = signal;
+            ctx.fillRect(-size * 0.32, -hH * 0.35, size * 0.08, hH * 0.7);
+            ctx.fillRect(size * 0.24, -hH * 0.35, size * 0.08, hH * 0.7);
             break;
+        }
         case 'spaceTravelBoost':
             ctx.beginPath();
             ctx.moveTo(0, -size * 0.42);

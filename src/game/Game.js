@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Hazard Lab: beginHazardLab() → PLAY_MODE.hazardLab; finish/crash skips
+//   journeyProgress; outcome uses LevelOutcomeScreen; exit/back → Journey map.
+//   isLevelRun() covers Journey + Hazard Lab for flyout / outcome UI.
 // - Screen header Back is a quiet text control ("← Back", no frame) shared by
 //   every back-bearing screen. Space Board hosts a compact theme-style
 //   Zigzag/Arc toggle (label + Z / S tag) so SPACE BOARD can read larger;
@@ -773,6 +776,21 @@ export class Game {
         return this.playMode === PLAY_MODE.journey;
     }
 
+    isHazardLab() {
+        return this.playMode === PLAY_MODE.hazardLab
+            || this.profile?.isHazardLab === true;
+    }
+
+    /** Finite level-style runs (finish gate + level outcome), not Open Space. */
+    isLevelRun() {
+        return this.isJourney() || this.isHazardLab();
+    }
+
+    beginHazardLab() {
+        this.beginRun(PLAY_MODE.hazardLab);
+        this.logbook?.flushToast?.();
+    }
+
     render() {
         this.ensureHiDpiTransform();
         drawPaper(this.ctx, this.width, this.height);
@@ -869,7 +887,7 @@ export class Game {
                 if (this.gameOverAlpha > 0) {
                     this.ctx.save();
                     this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
-                    if (this.isJourney()) {
+                    if (this.isLevelRun()) {
                         this.levelOutcomeButtons = renderLevelOutcome(this);
                     } else if (this.gameOverScreen === 'highscores') {
                         this.renderHighScores();
@@ -883,7 +901,7 @@ export class Game {
 
             this.ctx.save();
             this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
-            if (this.isJourney()) {
+            if (this.isLevelRun()) {
                 this.levelOutcomeButtons = renderLevelOutcome(this);
             } else if (this.gameOverScreen === 'highscores') {
                 this.renderHighScores();
@@ -1402,7 +1420,7 @@ export class Game {
     // that's where the run came from.
     exitRun() {
         this.isPaused = false;
-        if (this.isJourney()) {
+        if (this.isLevelRun()) {
             this.goToJourneyMap();
         } else {
             this.goToMenu();
@@ -2698,7 +2716,7 @@ export class Game {
 
         this.runOutcome = 'completed';
 
-        if (!this.isJourney()) {
+        if (!this.isLevelRun()) {
             this.victory();
             return;
         }
@@ -2726,8 +2744,32 @@ export class Game {
     }
 
     // Score the finished level, fold it into the saved progress, and build what
-    // the outcome screen reads.
+    // the outcome screen reads. Hazard Lab skips progress entirely.
     finishJourneyLevel(completed) {
+        if (this.isHazardLab()) {
+            const descriptor = this.profile.descriptor;
+            this.levelOutcome = {
+                descriptor,
+                completed,
+                stars: [],
+                newStars: [],
+                unlockedNext: false,
+                score: this.score,
+                points: this.points,
+                obstaclesDestroyed: this.obstaclesDestroyed,
+                flavor: completed
+                    ? 'Lab clear. The new rocks behaved.'
+                    : 'Lab interrupted. The rocks are still curious.',
+                isHazardLab: true,
+            };
+            track('hazard_lab_end', {
+                'completed': completed,
+                'points': this.points,
+                'distance': Math.floor(this.score),
+            });
+            return;
+        }
+
         const descriptor = getLevel(this.journeyLevel);
         const stars = evaluateStars(descriptor, {
             completed,
@@ -2853,8 +2895,8 @@ export class Game {
             );
             this.spacecraft.isVisible = false;
 
-            // Journey is self-contained: no rank lookup, no leaderboard prompt.
-            if (this.isJourney()) {
+            // Journey / Hazard Lab: no rank lookup, no leaderboard prompt.
+            if (this.isLevelRun()) {
                 this.finishJourneyLevel(false);
                 return;
             }
@@ -3194,8 +3236,8 @@ export class Game {
                 return;
             }
 
-            // Journey's end screen owns its own actions (next / retry / map).
-            if (this.isJourney()) {
+            // Journey / Hazard Lab end screen owns its own actions.
+            if (this.isLevelRun()) {
                 handleLevelOutcomeClick(this, x, y);
                 return;
             }
@@ -3345,7 +3387,9 @@ export class Game {
     // Play Again keeps you in the mode you were in — in Journey that means the
     // same level, not the next one.
     restart() {
-        if (this.playMode === PLAY_MODE.journey) {
+        if (this.playMode === PLAY_MODE.hazardLab) {
+            this.beginHazardLab();
+        } else if (this.playMode === PLAY_MODE.journey) {
             this.beginJourneyLevel(this.journeyLevel);
         } else {
             this.beginRun(this.playMode, this.journeyLevel);

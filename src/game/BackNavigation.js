@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Hazard Lab game-over retreats to the Journey map (same as Journey).
 // - Lore screen retreats to mode select (without marking loreSeen).
 // - Run-start intro does not skip on back — pause/resume like a normal run.
 // - Journey map back uses goToModeSelect() so Play card blurbs re-roll.
@@ -75,7 +76,7 @@ export function goBack(game) {
             game.gameOverScreen = 'main';
             return true;
         }
-        if (game.isJourney()) {
+        if (game.isLevelRun?.() ?? game.isJourney()) {
             game.goToJourneyMap();
         } else {
             game.goToMenu();

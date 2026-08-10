@@ -4,6 +4,8 @@
 // level locked. The list is taller than the screen, so it scrolls (wheel or
 // drag — Game owns the gesture and hands us the offset).
 // Changes:
+// - Always-unlocked Hazard Lab tile pinned above Troposphere (sandbox for
+//   Phase Asteroid + Sweep Gate; does not affect journeyProgress).
 // - Star tally / tile pips use per-level starSlots (L1–3: one, L4: two, L5+: three).
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Tile star pips are solid when earned and hollow when not (they used to be a
@@ -80,6 +82,37 @@ export function renderJourneyMap(game) {
     // clip edge rather than with its first heading sliced in half.
     let y = viewTop + unit * 1.2;
 
+    // Sandbox tile — always playable, never gates Journey progress.
+    y = drawChapterHeading(game, {
+        chapter: {
+            name: 'Hazard Lab',
+            blurb: 'Blooms, sweeps, push nodes, drift lanes. Progress stays put.',
+            from: 'LAB',
+            to: '',
+        },
+        L, y,
+        labelPx: chapterLabelPx,
+        blurbPx: chapterBlurbPx,
+        locked: false,
+        lab: true,
+    });
+
+    const labX = L.left + (L.width - tileW) / 2;
+    const labY = y;
+    drawLabTile(game, {
+        x: labX, y: labY, w: tileW, h: tileH,
+    });
+    levels.push({
+        level: null,
+        hazardLab: true,
+        unlocked: true,
+        x: labX,
+        y: labY - game.journeyMapScroll,
+        width: tileW,
+        height: tileH,
+    });
+    y += tileH + gap + L.section * 0.7;
+
     JOURNEY_CHAPTERS.forEach((chapter, index) => {
         if (index > 0) y += L.section * 0.7;
 
@@ -136,7 +169,7 @@ export function renderJourneyMap(game) {
     };
 }
 
-function drawChapterHeading(game, { chapter, L, y, labelPx, blurbPx, locked }) {
+function drawChapterHeading(game, { chapter, L, y, labelPx, blurbPx, locked, lab = false }) {
     const ctx = game.ctx;
 
     ctx.save();
@@ -151,7 +184,10 @@ function drawChapterHeading(game, { chapter, L, y, labelPx, blurbPx, locked }) {
     ctx.textAlign = 'right';
     setMonoType(ctx, labelPx * 0.92);
     ctx.fillStyle = color.ink30;
-    ctx.fillText(`${chapter.from}-${chapter.to}`, L.right, y);
+    const rangeLabel = lab
+        ? String(chapter.from ?? 'LAB')
+        : `${chapter.from}-${chapter.to}`;
+    ctx.fillText(rangeLabel, L.right, y);
     resetType(ctx);
     ctx.restore();
 
@@ -166,6 +202,35 @@ function drawChapterHeading(game, { chapter, L, y, labelPx, blurbPx, locked }) {
     ctx.restore();
 
     return y + blurbPx * 1.9 + game.baseUnit * 2;
+}
+
+/** Always-unlocked sandbox tile — signal stroke, LAB label, no star pips. */
+function drawLabTile(game, { x, y, w, h }) {
+    const ctx = game.ctx;
+    const unit = game.baseUnit;
+
+    drawFramedTile(ctx, x, y, w, h, {
+        surface: color.paperTint,
+        stroke: color.signal,
+    });
+
+    ctx.save();
+    ctx.strokeStyle = color.signal;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    setMonoType(ctx, Math.min(unit * 1.7, w * 0.34));
+    ctx.fillStyle = color.ink;
+    ctx.fillText('LAB', x + w / 2, y + h * 0.42);
+    resetType(ctx);
+
+    setLabelType(ctx, Math.max(8, unit * 0.75));
+    ctx.fillStyle = color.signal;
+    ctx.fillText('TEST', x + w / 2, y + h * 0.72);
+    resetType(ctx);
+    ctx.restore();
 }
 
 // One level tile: the number, and a row of three star pips. Locked tiles keep
@@ -240,7 +305,12 @@ export function handleJourneyMapClick(game, x, y) {
 
     for (const tile of map.levels ?? []) {
         if (!game.isClickInButton(x, y, tile)) continue;
-        if (tile.unlocked) game.beginJourneyLevel(tile.level);
+        if (!tile.unlocked) return true;
+        if (tile.hazardLab) {
+            game.beginHazardLab();
+        } else {
+            game.beginJourneyLevel(tile.level);
+        }
         return true;
     }
 

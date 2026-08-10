@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - PhaseAsteroid (`phase`): square → 4 outer squares with springy overshoot +
+//   magnetic lock; soft push while open, no dotted field lines.
 // - Night paper: obstacle fills/strokes use brand `color.ink` (not hard-coded
 //   #000); debris particles and teleport rings follow tokens.
 // - Spawn cursor arms at the camera top (`camera.y`), not 1.5 screens ahead —
@@ -531,6 +533,429 @@ class PulsatingAsteroid extends BaseObstacle {
         if (this.currentSize > this.maxSize) {
             this.currentSize = this.baseSize;
         }
+    }
+}
+
+/**
+ * Square bloom: one ink square holds, then springs into 4 rotating outer
+ * squares (overshoot + magnetic lock) and breathes back. While expanded, a
+ * soft push field shoves the ship — no dotted field chrome.
+ */
+class PhaseAsteroid extends BaseObstacle {
+    constructor(game, x, y, size) {
+        super(game, x, y, size);
+        this.rotationSpeed *= 0.22;
+        this.bloomT = 0;
+        // Longer cycle so the open corridor stays flyable for a beat.
+        this.bloomDuration = 3.6 + Math.random() * 0.5;
+        this.coreHalf = size * 0.72;
+        this.pieceHalf = size * 0.36;
+        // Wide enough that the four plates leave a ship-sized centre gap.
+        this.releaseRadius = size * 2.45;
+        this.fieldRadius = size * 3.8;
+        this.pushStrength = 0.95;
+        this.spinPhase = Math.random() * Math.PI * 2;
+        // Spring-driven spread (display) chasing the timeline target.
+        this.displaySpread = 0;
+        this.spreadVel = 0;
+        this.locked = true;
+        // Cardinal arms — N / E / S / W.
+        this.pieces = [0, 1, 2, 3].map((i) => ({
+            angle: (i / 4) * Math.PI * 2 - Math.PI / 2,
+        }));
+    }
+
+    /**
+     * Timeline openness 0→1 (target for the spring).
+     * Brief hold → snap open → long open corridor → close.
+     */
+    breatheAmount() {
+        const t = this.bloomT;
+        const smooth = (a) => a * a * (3 - 2 * a);
+        if (t < 0.14) return 0;
+        if (t < 0.32) return smooth((t - 0.14) / (0.32 - 0.14));
+        // ~half the cycle fully open so the ship can thread the middle.
+        if (t < 0.78) return 1;
+        return 1 - smooth((t - 0.78) / (1 - 0.78));
+    }
+
+    /** 1 = fully one square, 0 = four outer squares visible. */
+    mergeFactor() {
+        const open = this.displayOpen();
+        if (open <= 0.06) return 1;
+        if (open >= 0.38) return 0;
+        const u = 1 - (open - 0.06) / (0.38 - 0.06);
+        return u * u * (3 - 2 * u);
+    }
+
+    /** Visual/collision openness from the spring (can overshoot past 1). */
+    displayOpen() {
+        return Math.max(0, this.displaySpread / this.releaseRadius);
+    }
+
+    spreadRadius() {
+        return Math.max(0, this.displaySpread);
+    }
+
+    pieceLocal(i) {
+        const piece = this.pieces[i];
+        const r = this.spreadRadius();
+        return {
+            x: Math.cos(piece.angle) * r,
+            y: Math.sin(piece.angle) * r,
+        };
+    }
+
+    /** Spin ramps as plates leave the core. */
+    pieceSpin(i) {
+        const open = Math.min(1.15, this.displayOpen());
+        return this.pieces[i].angle + open * (Math.PI * 0.55) + this.spinPhase * 0.35;
+    }
+
+    extentRadius() {
+        const spread = Math.max(this.releaseRadius, this.displaySpread);
+        return spread + this.pieceHalf * 1.6 + this.fieldRadius * 0.1;
+    }
+
+    drawSquare(ctx, half) {
+        ctx.beginPath();
+        ctx.rect(-half, -half, half * 2, half * 2);
+        ctx.fillStyle = color.ink;
+        ctx.fill();
+    }
+
+    hitSquare(localX, localY, half, shipR) {
+        const cx = Math.max(-half, Math.min(half, localX));
+        const cy = Math.max(-half, Math.min(half, localY));
+        const dx = localX - cx;
+        const dy = localY - cy;
+        return dx * dx + dy * dy <= shipR * shipR;
+    }
+
+    render(ctx) {
+        const relativeY = this.game.camera.getRelativeY(this.y);
+        const extent = this.extentRadius();
+        if (relativeY + extent < 0 || relativeY - extent > this.game.height) {
+            return;
+        }
+
+        const merge = this.mergeFactor();
+
+        ctx.save();
+        ctx.translate(this.x, relativeY);
+        ctx.rotate(this.rotation);
+
+        if (merge > 0.001) {
+            ctx.save();
+            ctx.globalAlpha = merge;
+            const pack = 0.9 + 0.1 * merge;
+            this.drawSquare(ctx, this.coreHalf * pack);
+            ctx.restore();
+        }
+
+        if (merge < 0.999) {
+            ctx.save();
+            ctx.globalAlpha = 1 - merge;
+            for (let i = 0; i < 4; i++) {
+                const pos = this.pieceLocal(i);
+                ctx.save();
+                ctx.translate(pos.x, pos.y);
+                ctx.rotate(this.pieceSpin(i));
+                this.drawSquare(ctx, this.pieceHalf);
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        ctx.restore();
+    }
+
+    checkCollision(spacecraft) {
+        const dx = spacecraft.x - this.x;
+        const dy = spacecraft.y - this.y;
+        const extent = this.extentRadius() + spacecraft.radius;
+        if (dx * dx + dy * dy > extent * extent) return false;
+
+        const cosR = Math.cos(-this.rotation);
+        const sinR = Math.sin(-this.rotation);
+        const rotX = dx * cosR - dy * sinR;
+        const rotY = dx * sinR + dy * cosR;
+
+        if (this.mergeFactor() > 0.55) {
+            return this.hitSquare(rotX, rotY, this.coreHalf, spacecraft.radius);
+        }
+
+        for (let i = 0; i < 4; i++) {
+            const pos = this.pieceLocal(i);
+            const spin = this.pieceSpin(i);
+            const cosP = Math.cos(-spin);
+            const sinP = Math.sin(-spin);
+            const lx = (rotX - pos.x) * cosP - (rotY - pos.y) * sinP;
+            const ly = (rotX - pos.x) * sinP + (rotY - pos.y) * cosP;
+            if (this.hitSquare(lx, ly, this.pieceHalf, spacecraft.radius)) return true;
+        }
+        return false;
+    }
+
+    update() {
+        super.update();
+        const dt = this.game.dt ?? (1 / 60);
+        this.bloomT += dt / this.bloomDuration;
+        if (this.bloomT >= 1) this.bloomT -= 1;
+        this.spinPhase += dt * 2.2;
+
+        // Spring toward the timeline target — bouncy on the way out, snappy home.
+        const target = this.releaseRadius * this.breatheAmount();
+        const expanding = target >= this.displaySpread - 0.5;
+        const k = expanding ? 220 : 160;
+        const damp = expanding ? 8.5 : 14;
+        const acc = (target - this.displaySpread) * k - this.spreadVel * damp;
+        this.spreadVel += acc * dt;
+        this.displaySpread += this.spreadVel * dt;
+
+        // Magnetic lock once the plates settle near the target.
+        const err = Math.abs(target - this.displaySpread);
+        const settled = err < this.releaseRadius * 0.02
+            && Math.abs(this.spreadVel) < this.releaseRadius * 0.35;
+        if (settled) {
+            this.displaySpread = target;
+            this.spreadVel = 0;
+            this.locked = true;
+        } else {
+            this.locked = false;
+        }
+
+        // Soft outward push while the plates are out (no dotted chrome).
+        const open = this.displayOpen();
+        if (open < 0.25) return;
+
+        const ship = this.game.spacecraft;
+        if (!ship || ship.wormholeTransit) return;
+
+        const dx = ship.x - this.x;
+        const dy = ship.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const fieldR = this.fieldRadius * (0.55 + 0.45 * Math.min(1, open));
+        if (distance <= 0 || distance >= fieldR) return;
+
+        const tickScale = this.game.tickScale ?? 1;
+        const fieldStrength = ((Math.min(1, open) - 0.25) / 0.75) * this.pushStrength;
+        const force = (1 - distance / fieldR) * fieldStrength * tickScale;
+        ship.x += (dx / distance) * force;
+        this.game.logbook?.onObstacleInteract?.(this);
+    }
+}
+
+/** Slim rotating ink line — no hub, no trail. Pivots at centre. */
+class SweepGate extends BaseObstacle {
+    constructor(game, x, y, size) {
+        super(game, x, y, size);
+        // Half-length each side of the pivot → full whip span.
+        this.halfLength = size * 2.8;
+        this.halfWidth = Math.max(1.25, size * 0.08);
+        // Per-tick spin (same units as BaseObstacle): ~full turn every 3.5–5s.
+        this.rotationSpeed = (0.018 + Math.random() * 0.012) * (Math.random() < 0.5 ? -1 : 1);
+    }
+
+    render(ctx) {
+        const relativeY = this.game.camera.getRelativeY(this.y);
+        const extent = this.halfLength;
+        if (relativeY + extent < 0 || relativeY - extent > this.game.height) {
+            return;
+        }
+
+        ctx.save();
+        ctx.translate(this.x, relativeY);
+        ctx.rotate(this.rotation);
+        ctx.fillStyle = color.ink;
+        // Full diameter line through the pivot (windscreen-wiper blade).
+        ctx.fillRect(
+            -this.halfLength,
+            -this.halfWidth,
+            this.halfLength * 2,
+            this.halfWidth * 2
+        );
+        ctx.restore();
+    }
+
+    checkCollision(spacecraft) {
+        const dx = spacecraft.x - this.x;
+        const dy = spacecraft.y - this.y;
+        const r = spacecraft.radius;
+        const extent = this.halfLength + r;
+        if (dx * dx + dy * dy > extent * extent) return false;
+
+        // Circle vs rotated thin OBB (local: line along X through origin).
+        const cosR = Math.cos(-this.rotation);
+        const sinR = Math.sin(-this.rotation);
+        const localX = dx * cosR - dy * sinR;
+        const localY = dx * sinR + dy * cosR;
+
+        const closestX = Math.max(-this.halfLength, Math.min(this.halfLength, localX));
+        const closestY = Math.max(-this.halfWidth, Math.min(this.halfWidth, localY));
+        const cx = localX - closestX;
+        const cy = localY - closestY;
+        return cx * cx + cy * cy <= r * r;
+    }
+
+    update() {
+        super.update();
+    }
+}
+
+/**
+ * Reverse black hole: solid ink core + soft outward push in a wide radius.
+ * Core is lethal; the push field is not.
+ */
+class RepulsorObstacle extends BaseObstacle {
+    constructor(game, x, y, size) {
+        super(game, x, y, size);
+        this.pushStrength = 1.15;
+        this.pushRadius = size * 10;
+        this.pulsePhase = Math.random() * Math.PI * 2;
+        this.rotationSpeed *= 0.2;
+    }
+
+    update() {
+        super.update();
+        const dt = this.game.dt ?? (1 / 60);
+        this.pulsePhase += dt * 3.2;
+
+        const ship = this.game.spacecraft;
+        if (!ship || ship.wormholeTransit) return;
+
+        const dx = ship.x - this.x;
+        const dy = ship.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance <= 0 || distance >= this.pushRadius) return;
+
+        const tickScale = this.game.tickScale ?? 1;
+        const force = (1 - distance / this.pushRadius) * this.pushStrength * tickScale;
+        ship.x += (dx / distance) * force;
+        this.game.logbook?.onRepulsorPush?.();
+    }
+
+    render(ctx) {
+        const screenY = this.game.camera.getRelativeY(this.y);
+        const fieldR = this.pushRadius * 0.55;
+        if (screenY + fieldR < 0 || screenY - fieldR > this.game.height) {
+            return;
+        }
+
+        // Soft field ring — dashed ink, pulses gently.
+        const ringR = this.size * (2.4 + Math.sin(this.pulsePhase) * 0.15);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, screenY, ringR, 0, Math.PI * 2);
+        ctx.strokeStyle = color.ink30;
+        ctx.lineWidth = Math.max(1, this.game.baseUnit * 0.06);
+        ctx.setLineDash([this.size * 0.35, this.size * 0.22]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Outward tick marks (push language — opposite of BH suck).
+        const ticks = 8;
+        for (let i = 0; i < ticks; i++) {
+            const a = (i / ticks) * Math.PI * 2 + this.pulsePhase * 0.15;
+            const r0 = this.size * 1.35;
+            const r1 = this.size * (1.9 + Math.sin(this.pulsePhase + i) * 0.08);
+            ctx.beginPath();
+            ctx.moveTo(this.x + Math.cos(a) * r0, screenY + Math.sin(a) * r0);
+            ctx.lineTo(this.x + Math.cos(a) * r1, screenY + Math.sin(a) * r1);
+            ctx.strokeStyle = color.ink30;
+            ctx.lineWidth = Math.max(1.25, this.game.baseUnit * 0.07);
+            ctx.stroke();
+        }
+
+        // Solid core.
+        ctx.beginPath();
+        ctx.arc(this.x, screenY, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = color.ink;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    checkCollision(spacecraft) {
+        const dx = this.x - spacecraft.x;
+        const dy = this.y - spacecraft.y;
+        const hitR = this.size + spacecraft.radius;
+        return dx * dx + dy * dy < hitR * hitR;
+    }
+}
+
+/**
+ * Full-width lateral current — only flowing ink shear lines (no rails / edges).
+ * The sideways shove is the hazard.
+ */
+class DriftCurrent extends BaseObstacle {
+    constructor(game, x, y, size) {
+        super(game, x, y, size);
+        this.width = game.width;
+        this.height = game.baseUnit * (4.2 + Math.random() * 1.4);
+        this.direction = Math.random() < 0.5 ? -1 : 1;
+        this.driftStrength = game.baseUnit * 0.1;
+        this.flowPhase = Math.random() * 100;
+        this.rotationSpeed = 0;
+        this.size = Math.max(this.width, this.height) / 2;
+        // Seat on the corridor centre so the field spans the whole screen.
+        this.x = game.width * 0.5;
+    }
+
+    containsShip(ship) {
+        const halfH = this.height / 2;
+        return Math.abs(ship.y - this.y) <= halfH;
+    }
+
+    update() {
+        const dt = this.game.dt ?? (1 / 60);
+        this.flowPhase += dt * this.game.baseUnit * 3.4 * this.direction;
+
+        const ship = this.game.spacecraft;
+        if (!ship || ship.wormholeTransit) return;
+        if (!this.containsShip(ship)) return;
+
+        const tickScale = this.game.tickScale ?? 1;
+        const halfH = this.height / 2;
+        // Strong in the middle of the jet, soft at the top/bottom lips.
+        const ny = 1 - Math.abs(ship.y - this.y) / halfH;
+        const edge = Math.max(0, ny * ny);
+        ship.x += this.direction * this.driftStrength * (0.55 + 0.45 * edge) * tickScale;
+        this.game.logbook?.onDriftCurrent?.();
+    }
+
+    render(ctx) {
+        const screenY = this.game.camera.getRelativeY(this.y);
+        const halfH = this.height / 2;
+        if (screenY + halfH < 0 || screenY - halfH > this.game.height) {
+            return;
+        }
+
+        const u = this.game.baseUnit;
+        const lines = 7;
+        const dash = u * 0.55;
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineWidth = Math.max(1.1, u * 0.06);
+        ctx.strokeStyle = color.ink30;
+
+        for (let i = 0; i < lines; i++) {
+            const yy = screenY - halfH * 0.72 + (i / (lines - 1)) * halfH * 1.44;
+            const offset = ((this.flowPhase + i * u * 0.8) % (dash * 2) + dash * 2) % (dash * 2);
+            ctx.beginPath();
+            ctx.setLineDash([dash, dash * 0.85]);
+            ctx.lineDashOffset = -offset * this.direction;
+            ctx.moveTo(0, yy);
+            ctx.lineTo(this.game.width, yy);
+            ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+
+    checkCollision() {
+        // Force-only — no solid body.
+        return false;
     }
 }
 
@@ -1500,8 +1925,10 @@ export class ObstacleManager {
             
             positions.forEach(pos => {
                 const type = this.selectObstacleType(availableTypesArray);
-                // Prevent same complex type spawning next to each other
-                if (type !== 'simple' && type === lastType) {
+                // Prevent same complex type spawning next to each other — unless
+                // the profile wants dense focus practice (Hazard Lab repulsors).
+                const allowRepeat = this.game.profile.allowAdjacentSetPieces;
+                if (type !== 'simple' && type === lastType && !allowRepeat) {
                     this.spawnSimpleAsteroids(difficultyMultiplier / 2, pos.start, pos.end);
                 } else {
                     if (type === 'simple') {
@@ -1550,6 +1977,18 @@ export class ObstacleManager {
                 break;
             case 'pulsating':
                 this.spawnPulsatingAsteroid(x, width);
+                break;
+            case 'phase':
+                this.spawnPhaseAsteroid(x, width);
+                break;
+            case 'sweepGate':
+                this.spawnSweepGate(x, width);
+                break;
+            case 'repulsor':
+                this.spawnRepulsor(x, width);
+                break;
+            case 'driftCurrent':
+                this.spawnDriftCurrent(x, width);
                 break;
             case 'wormhole':
                 this.spawnWormhole(x, width);
@@ -1633,6 +2072,79 @@ export class ObstacleManager {
             x,
             this.nextSpawnY,
             size
+        ));
+    }
+
+    spawnPhaseAsteroid(x, width) {
+        // Square bloom needs room for wide open arms + a flyable centre.
+        const size = this.game.baseUnit * (1.25 + Math.random() * 0.35);
+        const reach = size * 2.45 + size * 0.36;
+        const margin = reach + size * 0.25;
+        const position = this.findValidPosition(
+            reach,
+            margin,
+            this.game.width - margin,
+            this.nextSpawnY,
+            12
+        );
+        if (!position) return;
+
+        this.obstacles.push(new PhaseAsteroid(
+            this.game,
+            position.x,
+            position.y,
+            size
+        ));
+    }
+
+    spawnSweepGate(x, width) {
+        const size = this.game.baseUnit * (1.05 + Math.random() * 0.35);
+        const halfLen = size * 2.8;
+        const margin = halfLen * 0.55;
+        const position = this.findValidPosition(
+            halfLen * 0.7,
+            margin,
+            this.game.width - margin,
+            this.nextSpawnY,
+            15
+        );
+        if (!position) return;
+
+        this.obstacles.push(new SweepGate(
+            this.game,
+            position.x,
+            position.y,
+            size
+        ));
+    }
+
+    spawnRepulsor(x, width) {
+        const size = this.game.baseUnit * (1.1 + Math.random() * 0.35);
+        const margin = size * 4;
+        const position = this.findValidPosition(
+            size * 3,
+            margin,
+            this.game.width - margin,
+            this.nextSpawnY,
+            12
+        );
+        if (!position) return;
+
+        this.obstacles.push(new RepulsorObstacle(
+            this.game,
+            position.x,
+            position.y,
+            size
+        ));
+    }
+
+    spawnDriftCurrent(x, width) {
+        // Full-ish corridor band — seat near centre so the wind is hard to miss.
+        this.obstacles.push(new DriftCurrent(
+            this.game,
+            this.game.width * 0.5,
+            this.nextSpawnY,
+            this.game.baseUnit * 2
         ));
     }
 
@@ -1913,7 +2425,8 @@ export class ObstacleManager {
         // A run may lean on one set piece, which is how two Journey levels of
         // identical difficulty end up feeling like different levels.
         const focus = profile.focusType;
-        if (focus && focus !== 'simple' && otherTypes.includes(focus) && Math.random() < 0.5) {
+        const focusChance = profile.focusChance ?? 0.5;
+        if (focus && focus !== 'simple' && otherTypes.includes(focus) && Math.random() < focusChance) {
             return focus;
         }
 

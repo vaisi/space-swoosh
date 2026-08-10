@@ -10,20 +10,27 @@
 > fixed-step 1/60 sim, display-rate render, pooled ribbon trail, pacing HUD,
 > `CADisableMinimumFrameDurationOnPhone`. See [`ios-native/README.md`](ios-native/README.md).
 >
-> **Signal Story (Journey) — THE REPLY:** Full prose in
+> **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
 > copy in `config/JourneyNarrative.js`. First Journey visit shows `ui/screens/LoreScreen.js`
 > once (`journeyProgress.loreSeen`); Continue unlocks Logbook `signalCall` and
-> opens the map. Levels 1–5 are a staged teach band (empty → simple → moving →
-> sparkles → shields). Per-level intro lines come from `LEVEL_MESSAGES`; all levels
-> use `LEVEL_INTRO_BEATS` (one sentence at a time; L6+ carry `gapAfterMs` from
-> ElevenLabs breaks). Navigator MP3s for levels **1–40** in
-> `public/sounds/voice/level-N.mp3` via `SoundManager.playLevelVoice`. Journey
-> session cues (Journey + Open Space): `first-boop.mp3` (first sidewall hit per
-> app session + milestone beats from `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3`
-> (every style swoosh, voice only). App icon source: `assets/store/app-icon-512.png`
-> (`npm run assets:sync` → iOS/Android/PWA). Story arc retraces an ancient call toward Sol / Earth (payload:
-> WE HEARD YOU). Level logbook entries unlock to KNOWN on level start (intro heard).
+> opens the map. Lore: recover scattered message pieces toward the callers —
+> answer is composed only at the end (`ENDING_BEATS`: WE HEARD YOU → NAV apology →
+> lights → "We weren't the only ones who answered."). Levels 1–5 are a staged
+> teach band (empty → simple → moving → sparkles → shields). Per-level intro
+> lines come from `LEVEL_MESSAGES`; all levels use `LEVEL_INTRO_BEATS` (one
+> sentence at a time; L6+ carry `gapAfterMs` from ElevenLabs breaks). Navigator
+> MP3s for levels **1–40** in `public/sounds/voice/level-N.mp3` via
+> `SoundManager.playLevelVoice`. Journey session cues (Journey + Open Space):
+> `first-boop.mp3` (first sidewall hit per app session + milestone beats from
+> `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3` (every style swoosh, voice only).
+> App icon source: `assets/store/app-icon-512.png` (`npm run assets:sync` →
+> iOS/Android/PWA). Level logbook entries unlock to KNOWN on level start (intro heard).
+>
+> **Hazard Lab (sandbox):** Always-unlocked Journey-map tile → `PLAY_MODE.hazardLab`
+> / `HazardLabProfile`. Practice for **Phase**, **Sweep**, **Repulsor**, **Drift
+> Current** (also in Journey/Open Space). Finish/crash skips `recordLevelResult`.
+> Logbook observes during lab via `isHazardLab()`.
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
 > (random L/R, ~22s) only after `wallBoostsFromScore` (12000 KM). Collect →
@@ -135,13 +142,15 @@ game build env. Journey progress and Open Space personal best stay in
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
-| `config/JourneyNarrative.js` | THE REPLY story: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`. |
+| `config/JourneyNarrative.js` | THE REPLY story (recovery framing): `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_BEATS`. |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points, `loreSeen`. |
 | `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance per flight style (`bestByStyle`; v1 `bestScore` migrates to zigzag). |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
+| `config/HazardLabConfig.js` | Sandbox descriptor for Phase + Sweep Gate (no Journey progress). |
+| `modes/HazardLabProfile.js` | Finite lab run profile (`PLAY_MODE.hazardLab`). |
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
@@ -301,12 +310,15 @@ scalar `d` held flat for a run of levels, and the runs get **longer** as `d`
 rises — the "harder, then a plateau, then harder, then a longer plateau" shape:
 
 ```
-d       0.16 0.22 0.28 0.30 0.32 0.42 0.50 0.58 0.68 0.78 0.90 1.00
-levels    1    1    1    1    1    3    3    4    5    5    6    9   = 40
-unlock  —  simple moving  —    —  barrier complex shoot pulse worm  BH   —
+d       0.16 0.22 0.28 0.30 0.32 0.42 0.50 0.58 0.62 0.68 0.72 0.78 0.84 0.90 0.95 1.00
+levels    1    1    1    1    1    3    3    3    2    3    2    3    2    4    3    7  = 40
+unlock  —  simple moving  —    —  barrier complex shoot drift pulse phase worm  push  BH  sweep  —
 ```
 
-**Levels 1–5 (Troposphere teach band)** match the Signal Story voice lines:
+First-intro levels: driftCurrent **15**, pulsating **17**, phase **20**, wormhole **22**,
+repulsor **25**, blackhole **27**, sweepGate **31**.
+
+**Levels 1–5 (First Light teach band)** match the Signal Story voice lines:
 
 | Level | Roster | Collectibles | Shields |
 | --- | --- | --- | --- |
@@ -338,7 +350,9 @@ L5 7500**. From L6 onward each level adds **+500 KM**; levels **10 / 15 / 20 /
 Each step may introduce one obstacle type (rosters cumulative); each level
 picks a `focusType`.
 
-Chapters (Troposphere → Exosphere) group steps: 1–5, 6–11, 12–20, 21–31, 32–40.
+Story chapters (by level count, independent of difficulty STEPS): First Light
+1–5, The Long Way 6–12, Fragments 13–19, Deep Static 20–26, The Senders 27–32,
+The Source 33–36, Arrival 37–40.
 
 ### Stars and progress
 
@@ -354,12 +368,52 @@ map tallies use `TOTAL_STARS` (sum of `starSlots`).
 `journeyProgress`. Stars are **cumulative** across attempts; only clearing the
 frontier level advances `unlocked`. Journey never writes to Supabase.
 
+### Open Space unlock ladder (`OPEN_WORLD_UNLOCKS`)
+
+| KM | Type |
+| --- | --- |
+| 0 | `simple` |
+| 1000 | `sideBarrier`, `complex` |
+| 2000 | `moving` |
+| 3000 | `shooting` |
+| 3500 | `driftCurrent` |
+| 4000 | `pulsating` |
+| 4500 | `phase` |
+| 5000 | `wormhole` |
+| 5500 | `repulsor` |
+| 6000 | `blackhole` |
+| 7000 | `sweepGate` |
+
+### Hazard Lab
+
+Optional practice sandbox (also ships in Journey/Open Space). Journey map →
+always-unlocked **HAZARD LAB** tile → `Game.beginHazardLab()`.
+
+| Piece | Role |
+| --- | --- |
+| `config/HazardLabConfig.js` | `HAZARD_LAB` descriptor: phase / sweepGate / repulsor / driftCurrent, goal 6000 KM, `starSlots: 0`. |
+| `modes/HazardLabProfile.js` | Mid difficulty, `simpleChance` 0.1, even focus mix, wall boosts off. |
+| `Game.isLevelRun()` | Journey **or** Hazard Lab (finish gate, flyout, outcome UI). |
+| `finishJourneyLevel` | Lab branch builds outcome only — no `recordLevelResult`. |
+
+**Square Bloom (`phase`):** one square → four rotating outer squares (spring +
+lock) + soft push while open; fly the centre gap; squares lethal, field only shoves.
+
+**Sweep Gate:** slim rotating ink line (no hub, no trail); OBB hit.
+
+**Repulsor Node:** solid core + soft outward push (`ship.x` shove); core lethal;
+push interacts logbook like BH pull.
+
+**Drift Current:** full-width flowing shear lines; lateral wind only (`checkCollision` false).
+
+Style Swoosh skips Sweep / Repulsor / Drift Current.
+
 ### Journey Logbook
 
-A science-journal discovery system. **Gameplay writes only during Journey runs**
-(`game.isJourney()`). The pre-Journey lore screen unlocks `signalCall` via
-`LogbookProgress.revealInstant` even before a run starts. Open Space never
-updates the logbook. Menu item is always available.
+A science-journal discovery system. **Gameplay writes during Journey and Hazard
+Lab runs** (`game.isJourney()` / `game.isHazardLab()`). The pre-Journey lore
+screen unlocks `signalCall` via `LogbookProgress.revealInstant` even before a
+run starts. Open Space never updates the logbook. Menu item is always available.
 
 | Piece | Role |
 | --- | --- |
@@ -831,6 +885,8 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   `spawnX()` + `spawnObstacleByType` case, then add it to `OPEN_WORLD_UNLOCKS`
   (`modes/RunProfile.js`) with the distance that unlocks it, and give it a
   `STEPS` entry in `config/JourneyConfig.js` if it should appear in Journey.
+  For sandbox-only testing first, expose it via `HazardLabConfig` /
+  `HazardLabProfile` (and Logbook class→id + `drawEntryIcon`) without STEPS.
 - **New Journey chapter:** append steps to `STEPS` and a matching entry to
   `CHAPTERS` covering them. Both tables are plain data; levels, goals, star
   targets and the map all derive from them.

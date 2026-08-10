@@ -2,6 +2,7 @@
 // Awards "style" points when the ship threads a very narrow gap between two
 // obstacles (a near-miss swoosh past both), with Signal-Blue screen feedback.
 // Changes:
+// - SKIP_TYPES: SweepGate, RepulsorObstacle, DriftCurrent (set pieces / fields).
 // - Every awarded swoosh also plays swoosh-voice.mp3 (Journey + Open Space;
 //   voice only — no navigator caption; gameplay +pts popup unchanged).
 // - Phase 1: flash uses pre-baked glow sprite when game.useGlowSprites; iOS
@@ -17,7 +18,13 @@ import { setLabelType, setMonoType, resetType } from '../utils/BrandDraw.js';
 import { drawSwooshFlashSprite } from '../utils/GlowSprites.js';
 import { isKilled } from '../core/perfFlags.js';
 
-const SKIP_TYPES = new Set(['WormholeGate', 'BlackHoleObstacle']);
+const SKIP_TYPES = new Set([
+    'WormholeGate',
+    'BlackHoleObstacle',
+    'SweepGate',
+    'RepulsorObstacle',
+    'DriftCurrent',
+]);
 
 function obstacleBounds(o) {
     // Barriers / belts expose width+height; pulsating uses currentSize.

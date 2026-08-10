@@ -3,6 +3,10 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Motif `repulsor` (push node) and `drift` (lateral current band).
+// - Motif `phase` (square bloom) and `sweep` (slim rotating line).
+// - Added `saber` / `saberRgb` / `saberCoreRgb` — bright purple lightsaber
+//   wake accents for the free Saber ship (trail-only; not HUD / buttons).
 // - Motif `wallBoost`: thin Signal-Blue edge slab (shield + speed pickup).
 // - Theme toggle: `color` is mutated in place by brand/theme.js (light cream /
 //   dark night-paper). Defaults below are light until initTheme() runs.
@@ -57,6 +61,13 @@ export const color = {
     ember:        '#A65D3F',
     emberSoft:    'rgba(166, 93, 63, 0.18)',
     emberRgb:     '166, 93, 63',
+
+    // Saber — bright purple lightsaber wake (Saber ship only; never HUD).
+    saber:        '#A855FF',
+    saberSoft:    'rgba(168, 85, 255, 0.22)',
+    saberRgb:     '168, 85, 255',
+    saberCore:    '#F3E8FF',
+    saberCoreRgb: '243, 232, 255',
 };
 
 // Semantic aliases — reference these in code so intent stays readable.
@@ -158,10 +169,14 @@ export const motif = {
         belt:     { shape: 'ellipse',           fill: 'ink',    role: 'Asteroid belt / wide band' },
         cluster:  { shape: 'circle + orbit',    fill: 'ink',    role: 'Complex asteroid + orbiting debris' },
         pulsar:   { shape: 'circle (scaling)',  fill: 'ink',    role: 'Pulsating / unstable asteroid' },
+        phase:    { shape: 'square → 4 outer squares + field', fill: 'ink', role: 'Phase asteroid — square bloom with push field' },
+        sweep:    { shape: 'slim rotating line', fill: 'ink', role: 'Sweep gate — timed corridor lanes' },
         comet:    { shape: 'circle + trail',    fill: 'ink',    role: 'Fast comet fly-by' },
         barrier:  { shape: 'bar',               fill: 'ink',    role: 'Side barrier (screen edge)' },
         wallBoost:{ shape: 'thin bar',          fill: 'signal', role: 'Edge slab — shield + speed on contact' },
         // --- Anomalies (hazards) ---
+        repulsor: { shape: 'disc + outward ticks', fill: 'ink', role: 'Push node — soft field shoves the ship away' },
+        drift:    { shape: 'full-width flowing shear lines', fill: 'ink30', role: 'Drift current — lateral wind lane' },
         blackhole:{ shape: 'disc + glow + ring',fill: 'ink',    role: 'Gravity well — pulls the ship in' },
         teleport: { shape: 'dashed ring',       fill: 'signal', role: 'Wormhole gate — teleports + grants shield' },
         // --- Player & signals ---

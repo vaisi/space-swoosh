@@ -1,11 +1,14 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Repulsor + Drift Current catalog entries (Hazard Lab).
+// - Phase Asteroid + Sweep Gate catalog entries (sandbox / Hazard Lab first).
 // - Journey tab (id `levels`): lore + Day N entries from LEVEL_MESSAGES.
 //   UI label is “Journey”; entry names are “Day N” (not Level N).
 // - Added wallBoost: thin Signal-Blue edge slab → shield + speed refresh.
-// - Deflector Smash / Finish Gate copy: flyout smashes still score; results
-//   finalize when the level-clear sequence enters screenIn.
+// - Finish Gate: Signal-Blue jet stream between wall emitters (not dotted rule).
+// - Deflector Smash / Finish Gate: flyout smashes still score; results finalize
+//   when the level-clear sequence enters screenIn.
 // - Complex / shooting asteroid copy notes shield smashes clip moons or shots
 //   separately from the parent body.
 // - Split simple asteroids into circle / triangle / square entries so each
@@ -67,6 +70,10 @@ export const OBSTACLE_CLASS_TO_ID = {
     MovingAsteroid: 'moving',
     ShootingAsteroid: 'shooting',
     PulsatingAsteroid: 'pulsating',
+    PhaseAsteroid: 'phase',
+    SweepGate: 'sweepGate',
+    RepulsorObstacle: 'repulsor',
+    DriftCurrent: 'driftCurrent',
     WormholeGate: 'wormhole',
     BlackHoleObstacle: 'blackhole',
 };
@@ -161,6 +168,46 @@ const OBSTACLE_ENTRIES = [
         icon: 'pulsating',
     },
     {
+        id: 'phase',
+        category: 'obstacles',
+        name: 'Square Bloom',
+        definition:
+            'One ink square that springs into four rotating outer squares (overshoot, then magnetic lock) and breathes back. While expanded, a soft push shoves the ship — squares still kill on contact. Fly the open centre.',
+        remark: 'Geometry that inhales.',
+        unlockMode: 'observeThenInteract',
+        icon: 'phase',
+    },
+    {
+        id: 'sweepGate',
+        category: 'obstacles',
+        name: 'Sweep Gate',
+        definition:
+            'A slim ink line that spins through the corridor like a wiper blade. No hub, no trail — just the blade. Style swoosh does not score on this set piece.',
+        remark: 'A clock with teeth.',
+        unlockMode: 'observeThenInteract',
+        icon: 'sweepGate',
+    },
+    {
+        id: 'repulsor',
+        category: 'obstacles',
+        name: 'Repulsor Node',
+        definition:
+            'A solid ink core that pushes the ship away in a wide soft field — the opposite of a black hole. The core is lethal; the push alone counts as contact for the log.',
+        remark: 'Personal space, enforced.',
+        unlockMode: 'observeThenInteract',
+        icon: 'repulsor',
+    },
+    {
+        id: 'driftCurrent',
+        category: 'obstacles',
+        name: 'Drift Current',
+        definition:
+            'A full-width band of flowing ink shear lines that shove the ship sideways while you are inside. No rails, no solid body — just the current.',
+        remark: 'Weather with opinions.',
+        unlockMode: 'observeThenInteract',
+        icon: 'driftCurrent',
+    },
+    {
         id: 'wormhole',
         category: 'obstacles',
         name: 'Wormhole Gate',
@@ -249,8 +296,8 @@ const BOOST_ENTRIES = [
         category: 'boosts',
         name: 'Finish Gate',
         definition:
-            'Journey destination: a dotted rule with Signal-Blue end ticks. Crossing it begins the level-clear sequence; the final score locks when the results screen fades in.',
-        remark: 'The line is not a suggestion.',
+            'Journey destination: a Signal-Blue energy stream fired between two wall emitters. Crossing it begins the level-clear sequence; the final score locks when the results screen fades in.',
+        remark: 'The stream is not a suggestion.',
         unlockMode: 'observeThenInteract',
         icon: 'finishGate',
     },

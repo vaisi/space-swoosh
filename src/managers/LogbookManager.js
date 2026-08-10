@@ -1,6 +1,7 @@
 // LogbookManager.js
 // Journey-only façade: maps gameplay events → logbook progress + toast.
 // Changes:
+// - isActive also during Hazard Lab so Phase / Sweep Gate can catalog there.
 // - Level start now fully unlocks the level entry (interact): the navigator
 //   line is already heard, so the Logbook shows the real transmission instead
 //   of an OBSERVED placeholder until clear.
@@ -29,7 +30,8 @@ export class LogbookManager {
     }
 
     isActive() {
-        return this.game.isJourney?.() === true;
+        return this.game.isJourney?.() === true
+            || this.game.isHazardLab?.() === true;
     }
 
     /** Call once per frame after gameplay updates so multi-unlocks share one toast. */
@@ -108,6 +110,14 @@ export class LogbookManager {
 
     onBlackHolePull() {
         this.interact('blackhole');
+    }
+
+    onRepulsorPush() {
+        this.interact('repulsor');
+    }
+
+    onDriftCurrent() {
+        this.interact('driftCurrent');
     }
 
     onWormholeTeleport() {

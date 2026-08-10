@@ -3,6 +3,8 @@
 // against each, and where to go next. Replaces the Open Space game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
+// - Hazard Lab outcomes: no star band; titles LAB CLEAR / LAB FAILED; actions
+//   are Replay / Level Select / Menu (retry calls beginHazardLab).
 // - Outcome tallies / rows use descriptor.starSlots (1/1, 2/2, or 3/3).
 // - Points/smash rows only appear when that slot exists for the level.
 // - Stopped calling removed `game.drawScreenFrame()` — that threw after the
@@ -35,14 +37,14 @@ import { ScoreService } from '../../services/ScoreService.js';
 // Every vertical size on the screen, derived from one unit so the whole thing can
 // be scaled to fit in a single pass. `baseUnit` is width-derived on desktop, which
 // a short window can't afford — measure, then shrink if it doesn't fit.
-function metrics(unit, { isMobile, actionRows: rowCount, starSlots }) {
+function metrics(unit, { isMobile, actionRows: rowCount, starSlots, lab }) {
     const titlePx = isMobile ? Math.min(unit * 3, 34) : unit * 2.8;
     const subPx = isMobile ? Math.min(unit * 1.4, 16) : unit * 1.3;
     const tallyPx = Math.max(9, unit * 0.92);
     const objectiveH = Math.max(unit * 2.3, tallyPx * 2.4);
     const buttonGap = unit * 1.3;
     const buttonHeight = isMobile ? unit * 5.2 : unit * 4.7;
-    const slots = Math.max(1, starSlots || 1);
+    const slots = lab ? 0 : Math.max(1, starSlots || 1);
 
     const m = {
         unit,
@@ -57,10 +59,18 @@ function metrics(unit, { isMobile, actionRows: rowCount, starSlots }) {
         buttonHeight,
         buttonsH: buttonHeight * rowCount + buttonGap * (rowCount - 1),
         starSlots: slots,
+        lab: Boolean(lab),
     };
     m.verdictH = titlePx * 1.1 + m.titleGap + subPx * 1.3;
-    m.totalH = m.verdictH + m.bandGap * 3 + tallyPx * 1.9 + m.objectivesH + m.buttonsH;
+    const objectiveBlock = lab
+        ? m.bandGap + tallyPx * 1.9
+        : m.bandGap * 3 + tallyPx * 1.9 + m.objectivesH;
+    m.totalH = m.verdictH + objectiveBlock + m.buttonsH + (lab ? m.bandGap : 0);
     return m;
+}
+
+function isLabOutcome(outcome) {
+    return Boolean(outcome?.isHazardLab || outcome?.descriptor?.isHazardLab);
 }
 
 export function renderLevelOutcome(game) {
@@ -69,9 +79,10 @@ export function renderLevelOutcome(game) {
     const outcome = game.levelOutcome;
     if (!outcome) return {};
 
-    const starSlots = outcome.descriptor.starSlots ?? 3;
+    const lab = isLabOutcome(outcome);
+    const starSlots = lab ? 0 : (outcome.descriptor.starSlots ?? 3);
     const rows = actionRows(outcomeActions(outcome));
-    const shape = { isMobile: L.isMobile, actionRows: rows.length, starSlots };
+    const shape = { isMobile: L.isMobile, actionRows: rows.length, starSlots, lab };
     const available = L.bottom - L.top - game.baseUnit * 0.5;
 
     let m = metrics(game.baseUnit, shape);
@@ -102,36 +113,59 @@ export function renderLevelOutcome(game) {
     ctx.fillText(verdictSubtitle(outcome), L.centerX, y + subPx * 0.6);
     ctx.restore();
 
-    // --- Objectives ----------------------------------------------------------
-    // The ruled label doubles as the band header and the tally, so the band
-    // needs no divider above it.
     y += subPx * 1.3 + m.bandGap;
-    const earned = outcome.stars.slice(0, starSlots).filter(Boolean).length;
-    drawRuledLabel(ctx, {
-        text: `${earned} / ${starSlots} STARS`,
-        centerX: L.centerX,
-        y,
-        width: L.width,
-        px: tallyPx,
-    });
 
-    y += tallyPx * 1.9;
-    const labels = starLabelsFor(outcome.descriptor);
-    const values = starValues(outcome, starSlots);
-    for (let i = 0; i < starSlots; i++) {
-        drawObjectiveRow(game, {
-            L,
-            unit,
-            top: y + i * m.objectiveH,
-            height: m.objectiveH,
-            earned: outcome.stars[i],
-            isNew: Boolean(outcome.newStars?.[i]),
-            label: labels[i],
-            value: values[i],
+    if (lab) {
+        // Compact stats strip — no star objectives in the sandbox.
+        drawRuledLabel(ctx, {
+            text: 'SANDBOX',
+            centerX: L.centerX,
+            y,
+            width: L.width,
+            px: tallyPx,
         });
+        y += tallyPx * 1.9 + m.bandGap * 0.5;
+        const dist = ScoreService.formatScore(Math.floor(outcome.score));
+        const goal = ScoreService.formatScore(outcome.descriptor.goalKm);
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        setMonoType(ctx, Math.max(10, unit * 1.05));
+        ctx.fillStyle = color.ink;
+        ctx.fillText(`${dist} / ${goal} KM`, L.centerX, y);
+        resetType(ctx);
+        ctx.restore();
+        y += tallyPx * 1.6 + m.bandGap;
+    } else {
+        // --- Objectives ----------------------------------------------------------
+        const earned = outcome.stars.slice(0, starSlots).filter(Boolean).length;
+        drawRuledLabel(ctx, {
+            text: `${earned} / ${starSlots} STARS`,
+            centerX: L.centerX,
+            y,
+            width: L.width,
+            px: tallyPx,
+        });
+
+        y += tallyPx * 1.9;
+        const labels = starLabelsFor(outcome.descriptor);
+        const values = starValues(outcome, starSlots);
+        for (let i = 0; i < starSlots; i++) {
+            drawObjectiveRow(game, {
+                L,
+                unit,
+                top: y + i * m.objectiveH,
+                height: m.objectiveH,
+                earned: outcome.stars[i],
+                isNew: Boolean(outcome.newStars?.[i]),
+                label: labels[i],
+                value: values[i],
+            });
+        }
+
+        y += m.objectivesH + m.bandGap;
     }
 
-    y += m.objectivesH + m.bandGap;
     drawDivider(ctx, L.left, L.right, y);
     y += m.bandGap;
 
@@ -165,6 +199,9 @@ export function renderLevelOutcome(game) {
 }
 
 function verdictTitle(outcome) {
+    if (isLabOutcome(outcome)) {
+        return outcome.completed ? 'LAB CLEAR' : 'LAB FAILED';
+    }
     if (!outcome.completed) return 'LEVEL FAILED';
     if (outcome.descriptor.level >= TOTAL_LEVELS) return 'JOURNEY COMPLETE';
     return `LEVEL ${outcome.descriptor.level} CLEAR`;
@@ -173,6 +210,9 @@ function verdictTitle(outcome) {
 function verdictSubtitle(outcome) {
     // Picked once in finishJourneyLevel so re-renders don't reshuffle.
     if (outcome.flavor) return outcome.flavor;
+    if (isLabOutcome(outcome)) {
+        return outcome.completed ? 'Sandbox complete.' : 'Try the rocks again.';
+    }
     if (!outcome.completed) return 'Try again.';
     if (outcome.descriptor.level >= TOTAL_LEVELS) return 'You are away. Live long and prosper.';
     const slots = outcome.descriptor.starSlots ?? 3;
@@ -243,6 +283,14 @@ function drawObjectiveRow(game, { L, unit, top, height, earned, isNew, label, va
 }
 
 function outcomeActions(outcome) {
+    if (isLabOutcome(outcome)) {
+        return [
+            { id: 'retry', label: 'Replay', tag: '\u21BA' },
+            { id: 'levelSelect', label: 'Level Select', tag: '\u2261' },
+            { id: 'menu', label: 'Menu', tag: '\u2302' },
+        ];
+    }
+
     if (!outcome.completed) {
         return [
             { id: 'retry', label: 'Retry', tag: '\u21BA' },
@@ -299,7 +347,11 @@ export function handleLevelOutcomeClick(game, x, y) {
         return true;
     }
     if (game.isClickInButton(x, y, buttons.retry)) {
-        game.beginJourneyLevel(outcome.descriptor.level);
+        if (isLabOutcome(outcome)) {
+            game.beginHazardLab();
+        } else {
+            game.beginJourneyLevel(outcome.descriptor.level);
+        }
         return true;
     }
     if (game.isClickInButton(x, y, buttons.levelSelect)) {

@@ -8,9 +8,14 @@
 > steer left/right, survive, Journey or Open Space.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
-> appears. Tap **Continue** — that message is saved in your Space Log (Journey →
-> The Call). Then the level map opens. Early levels teach one thing at a time:
-> turn, rocks, moving rocks, blue lights, then the shield.
+> appears (a torn message, pieces along the path, NAV guiding you back). Tap
+> **Continue** — that message is saved in your Space Log (Journey → The Call).
+> Then the level map opens. Early levels teach one thing at a time: turn, rocks,
+> moving rocks, blue lights, then the shield.
+>
+> **Hazard Lab:** At the top of the Journey map, an always-unlocked **LAB** tile
+> lets you practice square blooms, sweeps, push nodes, and wind currents (also
+> in the main Journey). It does **not** change your Journey level unlocks or stars.
 >
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
 > sometimes lights up on the left or right edge. Bank into it for a fresh shield
@@ -94,11 +99,13 @@ with voice and fades; a moment later distance and pause ease in. Points appear
 when you collect your first sparkle; destroyed appears when you smash your
 first asteroid. The ship intro itself can't be skipped.
 
-The levels are grouped into five chapters as you climb out of the atmosphere:
-**Troposphere → Stratosphere → Mesosphere → Thermosphere → Exosphere**. The first
-chapter is the teach band; later chapters introduce new hazards one step at a
-time, and the level that introduces a hazard leans on it heavily so you can
-learn it.
+The levels are grouped into seven story chapters on the Journey map:
+**First Light → The Long Way → Fragments → Deep Static → The Senders → The Source → Arrival**.
+The first chapter is the teach band; later chapters follow the signal story while
+new hazards arrive one step at a time, and the level that introduces a hazard
+leans on it heavily so you can learn it. Later arrivals include wind currents
+(around Day 15), square blooms (Day 20), push nodes before black holes
+(Day 25), and slim sweep lines (Day 31).
 
 Stars unlock with the teach band — early levels only ask for what you’ve learned:
 
@@ -155,7 +162,7 @@ Categories:
 
 | Tab | What it holds |
 | --- | --- |
-| Obstacles | Asteroids, barriers, wormholes, black holes, Space BOOP, … |
+| Obstacles | Asteroids, barriers, square blooms, sweeps, repulsors, drift currents, wormholes, black holes, Space BOOP, … |
 | Boosts | Shield, wall boost, point sparkles, style swoosh, finish gate, clear boost, … |
 | Journey | Day 1…Day 40 navigator transmissions (plus The Call) |
 | From the Void | Reserved for future transmissions — empty for now |
@@ -169,6 +176,9 @@ triangular, and square simple asteroids each get their own entry.
 Choosing Journey opens the level map: chapter by chapter, a numbered tile per
 level with its three stars underneath. It opens roughly where you left off.
 
+- **Hazard Lab** sits at the top — always unlocked. Tap **LAB** to practice the
+  newer hazards (square blooms, sweeps, push nodes, full-width wind currents)
+  without touching Journey progress.
 - **Scroll** with the mouse wheel, or drag up and down on touch.
 - The tile outlined in **blue** is the next level you haven't cleared.
 - **Faded** tiles are still locked — you can see what's coming, but not play it yet.

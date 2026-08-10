@@ -5,6 +5,10 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - OPEN_WORLD_UNLOCKS: driftCurrent@3500, phase@4500, repulsor@5500,
+//   sweepGate@7000 (between/after existing shooting→BH ladder).
+// - `focusChance` (default 0.5): how often `focusType` wins a set-piece slot.
+// - PLAY_MODE.hazardLab for the Journey-map sandbox.
 // - Default `introBeats` wraps `introMessage` as a one-element array.
 // - `wallBoostsFromScore` (default 12000): deep-run wall-boost slab gate.
 // - `obstaclesFromScore` (default 0): Journey overrides to a shared early KM
@@ -21,6 +25,7 @@ import { clamp01 } from '../utils/math.js';
 export const PLAY_MODE = {
     openWorld: 'openWorld',
     journey: 'journey',
+    hazardLab: 'hazardLab',
 };
 
 export const PLAY_MODE_STORAGE_KEY = 'playMode';
@@ -35,9 +40,13 @@ export const OPEN_WORLD_UNLOCKS = [
     { type: 'complex', score: 1000, message: 'Warning: Asteroids with orbiting debris detected!' },
     { type: 'moving', score: 2000, message: 'Caution: Moving asteroids detected!' },
     { type: 'shooting', score: 3000, message: 'Warning: Hostile asteroids detected!' },
+    { type: 'driftCurrent', score: 3500, message: 'Crosswinds detected — lateral currents ahead!' },
     { type: 'pulsating', score: 4000, message: 'Warning: Unstable asteroids ahead!' },
+    { type: 'phase', score: 4500, message: 'Square blooms detected — they spring open and shove!' },
     { type: 'wormhole', score: 5000, message: 'Spatial anomalies detected!' },
+    { type: 'repulsor', score: 5500, message: 'Repulsor fields detected — they push, not pull!' },
     { type: 'blackhole', score: 6000, message: 'Gravitational anomalies detected!' },
+    { type: 'sweepGate', score: 7000, message: 'Sweep lines ahead — timed corridors!' },
 ];
 
 export const ALL_OBSTACLE_TYPES = OPEN_WORLD_UNLOCKS.map((entry) => entry.type);
@@ -144,6 +153,16 @@ export class RunProfile {
     /** A type this run leans on, giving otherwise-equal levels their own feel. */
     get focusType() {
         return null;
+    }
+
+    /** Chance a set-piece slot picks `focusType` when one is set (0–1). */
+    get focusChance() {
+        return 0.5;
+    }
+
+    /** When true, adjacent row slots may repeat the same set-piece type. */
+    get allowAdjacentSetPieces() {
+        return false;
     }
 
     get advancedBlackHoles() {

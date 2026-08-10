@@ -5,13 +5,16 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - STEPS unlocks: driftCurrent L15, phase L20, repulsor L25, sweepGate L31
+//   (carved from longer plateaus; total still 40). Soft→sharp after shooting.
+// - CHAPTERS are Signal Story bands by level count (First Light → Arrival),
+//   not atmosphere names / difficulty-step counts.
 // - Star slots scale with the teach band: L1–3 → 1 star, L4 → 2, L5+ → 3.
 // - Goal KM after L5: +500 each level; L10/15/20/25/30/35/40 also +1000 extra.
 // - Teach-band goals: L1 1250 → L2 2000 → L3 3000 → L4 4000 → L5 7500.
 // - Levels 1–5 Signal Story tutorial: empty → simple → moving → sparkles →
 //   shields. `moving` at L3; sideBarrier/complex later.
 // - Points star from L4; smash star from L5.
-// - Created file: STEPS, CHAPTERS, JOURNEY_LEVELS / JOURNEY_CHAPTERS, star rules.
 
 // One entry = one difficulty step. `d` is the 0-1 difficulty scalar every
 // tunable lerps from, and `levels` is how long the plateau at that height
@@ -28,22 +31,30 @@ const STEPS = [
     { d: 0.32, levels: 1, unlock: null },
     { d: 0.42, levels: 3, unlock: 'sideBarrier' },
     { d: 0.50, levels: 3, unlock: 'complex' },
-    { d: 0.58, levels: 4, unlock: 'shooting' },
-    { d: 0.68, levels: 5, unlock: 'pulsating' },
-    { d: 0.78, levels: 5, unlock: 'wormhole' },
-    { d: 0.90, levels: 6, unlock: 'blackhole' },
-    { d: 1.00, levels: 9, unlock: null },
+    { d: 0.58, levels: 3, unlock: 'shooting' },      // L12–14
+    { d: 0.62, levels: 2, unlock: 'driftCurrent' }, // L15–16
+    { d: 0.68, levels: 3, unlock: 'pulsating' },     // L17–19
+    { d: 0.72, levels: 2, unlock: 'phase' },        // L20–21
+    { d: 0.78, levels: 3, unlock: 'wormhole' },      // L22–24
+    { d: 0.84, levels: 2, unlock: 'repulsor' },     // L25–26
+    { d: 0.90, levels: 4, unlock: 'blackhole' },    // L27–30
+    { d: 0.95, levels: 3, unlock: 'sweepGate' },     // L31–33
+    { d: 1.00, levels: 7, unlock: null },           // L34–40
 ];
 
+// Story chapters: `steps` = number of levels in the band (sums to 40).
+// Independent of difficulty STEPS plateaus.
 const CHAPTERS = [
-    { id: 'troposphere', name: 'Troposphere', steps: 5, blurb: 'Learn the path. Listen to the voice.' },
-    { id: 'stratosphere', name: 'Stratosphere', steps: 2, blurb: 'The debris starts moving.' },
-    { id: 'mesosphere', name: 'Mesosphere', steps: 2, blurb: 'Hostile, and unstable.' },
-    { id: 'thermosphere', name: 'Thermosphere', steps: 2, blurb: 'Space folds here.' },
-    { id: 'exosphere', name: 'Exosphere', steps: 1, blurb: 'Nothing holds you now.' },
+    { id: 'learning', name: 'First Light', steps: 5, blurb: 'Learn the path. Listen to NAV.' },
+    { id: 'journey', name: 'The Long Way', steps: 7, blurb: 'Follow the signal back to its source.' },
+    { id: 'message', name: 'Fragments', steps: 7, blurb: 'The message begins to take shape.' },
+    { id: 'tooold', name: 'Deep Static', steps: 7, blurb: 'The signal is older than it should be.' },
+    { id: 'whowerethey', name: 'The Senders', steps: 6, blurb: 'Piece by piece, they come into focus.' },
+    { id: 'earth', name: 'The Source', steps: 4, blurb: 'The trail ends at a single world.' },
+    { id: 'homecoming', name: 'Arrival', steps: 4, blurb: 'Whatever waits, you are almost there.' },
 ];
 
-/** Fixed goal KM for the Troposphere teach band (levels 1–5). */
+/** Fixed goal KM for the First Light teach band (levels 1–5). */
 const TEACH_GOAL_KM = {
     1: 1250,
     2: 2000,
@@ -113,21 +124,30 @@ function goalKmFor(levelNumber, previousGoalKm) {
     return goal;
 }
 
+/** Resolve story chapter for a 1-indexed level from CHAPTERS level counts. */
+function chapterForLevel(levelNumber) {
+    let start = 1;
+    for (const chapter of CHAPTERS) {
+        const end = start + chapter.steps - 1;
+        if (levelNumber >= start && levelNumber <= end) return chapter;
+        start = end + 1;
+    }
+    return CHAPTERS[CHAPTERS.length - 1];
+}
+
 function buildLevels() {
     const levels = [];
     const roster = [];
-    let chapterIndex = 0;
-    let stepsIntoChapter = 0;
     let previousGoalKm = 0;
 
     STEPS.forEach((step, stepIndex) => {
         if (step.unlock) roster.push(step.unlock);
-        const chapter = CHAPTERS[Math.min(chapterIndex, CHAPTERS.length - 1)];
         const types = [...roster];
         const setPieces = types.filter((type) => type !== 'simple');
 
         for (let i = 0; i < step.levels; i++) {
             const levelNumber = levels.length + 1;
+            const chapter = chapterForLevel(levelNumber);
             const goalKm = goalKmFor(levelNumber, previousGoalKm);
             previousGoalKm = goalKm;
             const introduces = i === 0 ? step.unlock : null;
@@ -149,12 +169,6 @@ function buildLevels() {
                 smashTarget: smashTargetFor(levelNumber),
                 starSlots,
             });
-        }
-
-        stepsIntoChapter++;
-        if (stepsIntoChapter >= chapter.steps) {
-            chapterIndex++;
-            stepsIntoChapter = 0;
         }
     });
 
