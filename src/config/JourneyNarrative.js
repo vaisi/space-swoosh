@@ -1,21 +1,24 @@
 // JourneyNarrative.js
-// Signal Story copy for Journey: pre-Level-1 lore screen and per-level voice
-// lines (1–40). Source prose also lives in docs/spaceswoosh_signal_story.md;
-// this module is what the runtime imports so we do not parse markdown in-game.
-// Changes:
-// - FIRST_BOOP_BEATS: session-once Journey sidewall cue text (+ 0.4s gap).
-// - L38 three beats; L36 “first to search”; L31 “has a name”; L30 Fascinating.
-// - THE REPLY arc: lore + LEVEL_MESSAGES[6..40] (Earth / Sol). L1–5 unchanged.
-// - LEVEL_INTRO_BEATS expanded to 6–40 as { text, gapAfterMs } from ElevenLabs
-//   <break> tags; L1–5 stay string beats (default gap).
+// THE REPLY — Signal Story copy for Journey: pre-Level-1 lore, first-BOOP cue,
+// and per-level NAV voice lines (1-40). Runtime imports this directly.
+//
+// Locked decisions (THE REPLY, recovery framing):
+// - Lore: "Reach them. Answer them." (duty planted, payload unwritten).
+// - No "answer/reply" carried as cargo. You recover the message toward its
+//   source; the answer is composed only at the end.
+// - L26 two beats ("Nothing." / "There's nothing.").
+// - L38 "The ones who called are not." L39 pivot. L40 "Let them hear us."
+// - Ending payload: WE HEARD YOU. NAV: "I'm sorry they never knew." Then the
+//   lights, then "We weren't the only ones who answered."
+// Changes: L16 three-beat encoding line; L38 "are not."; L34 archive; L23;
+// recovery-frame lore + L18–19, L26, L35, L39–40, ENDING_BEATS.
 
 /** @typedef {{ text: string, gapAfterMs?: number }} IntroBeat */
 
-/**
- * On-screen beats for the first Journey wall BOOP of an app session
- * (matches First-boop-voice.mp3 / first-boop.mp3).
- * @type {IntroBeat[]}
- */
+/** Default gap between string beats when no gapAfterMs is set. */
+export const DEFAULT_BEAT_GAP_MS = 400;
+
+/** On-screen beats for the first Journey wall BOOP of an app session. */
 export const FIRST_BOOP_BEATS = [
     { text: 'The walls forgive.', gapAfterMs: 400 },
     { text: 'Little else out here does.', gapAfterMs: 400 },
@@ -23,15 +26,15 @@ export const FIRST_BOOP_BEATS = [
 
 /** Full-screen lore shown once before the Journey map. */
 export const PRE_LEVEL_1_LORE =
-    'Something called out from very far away. Much later, something answered. ' +
-    'You are carrying that answer back along the path it came. ' +
-    'Keep moving... and listen to the voice.';
+    'A message came to us out of the dark, torn apart by the distance. ' +
+    'Its pieces are still scattered along the way it travelled. ' +
+    'NAV will guide you back to find who sent it.';
 
 /** Logbook title for the lore entry unlocked on Continue. */
 export const PRE_LEVEL_1_LORE_TITLE = 'The Call';
 
 /**
- * Navigator voice line at the start of each Journey level (1-indexed).
+ * NAV voice line at the start of each Journey level (1-indexed).
  * Clean display / logbook copy (SSML and stage directions stripped).
  * @type {Record<number, string>}
  */
@@ -53,15 +56,15 @@ export const LEVEL_MESSAGES = {
     15: 'Mostly ocean. One moon. A thin little atmosphere.',
     16: 'They sent pictures too. The encoding is damaged... but I\'m working on it.',
     17: 'There are buildings. Machines. Faces, I think.',
-    18: 'And music. They put music in a message to strangers.',
-    19: 'That may be my favourite thing about them.',
+    18: 'And music. They put music in a message to strangers. That may be my favourite thing about them.',
+    19: 'They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.',
     20: 'I\'ve finished dating the transmission. There\'s a problem.',
     21: 'It was already more than a million years old... when we received it.',
     22: 'Don\'t stop. Old doesn\'t mean gone. Not necessarily.',
-    23: 'No other transmissions appear anywhere along the route.',
-    24: 'A civilization loud enough to send this... Should have left something else behind.',
+    23: 'No later transmissions appear anywhere along the route. One message, and then silence.',
+    24: 'A civilization loud enough to send this... should have left something else behind.',
     25: 'I\'m searching. Keep flying.',
-    26: 'Nothing.',
+    26: 'Nothing. There\'s nothing.',
     27: 'I recovered part of their anatomy. Two arms. Two legs. Upright.',
     28: 'Five digits on each hand. Rather useful design, actually.',
     29: 'Another image cleared. Blue sky. Green vegetation. White clouds.',
@@ -69,18 +72,18 @@ export const LEVEL_MESSAGES = {
     31: 'Their star has a name too. One syllable.',
     32: 'Sol. They called it Sol.',
     33: 'The planet was called Earth.',
-    34: 'You knew that name... didn\'t you?',
-    35: 'I didn\'t. It isn\'t ours.',
+    34: 'I found their entry in the old archive... Their entire entry is one word. Unremarkable.',
+    35: 'Unremarkable. They sang into the dark, and we filed them under "unremarkable."',
     36: 'We weren\'t the first to search. They were.',
     37: 'Sol is ahead. No artificial signals. No active structures.',
-    38: 'Earth is still there. Whatever sent the message... is not.',
-    39: 'We came a million years too late. Carry the answer anyway.',
-    40: 'There it is. Take their answer home.',
+    38: 'Earth is still there. The ones who called... are not.',
+    39: 'We came a million years too late. Let\'s answer them anyway.',
+    40: 'There it is. Let them hear us.',
 };
 
 /**
- * On-screen intro beats (1-indexed). L1–5: string arrays (default gap).
- * L6–40: { text, gapAfterMs } from ElevenLabs <break> after that sentence.
+ * On-screen intro beats (1-indexed). L1-5: string arrays (default gap).
+ * L6-40: { text, gapAfterMs } from ElevenLabs <break> after that sentence.
  * @type {Record<number, Array<string | IntroBeat>>}
  */
 export const LEVEL_INTRO_BEATS = {
@@ -138,7 +141,8 @@ export const LEVEL_INTRO_BEATS = {
     ],
     16: [
         { text: 'They sent pictures too.', gapAfterMs: 500 },
-        { text: 'The encoding is damaged... but I\'m working on it.' },
+        { text: 'The encoding is damaged', gapAfterMs: 350 },
+        { text: '...but I\'m working on it.' },
     ],
     17: [
         { text: 'There are buildings.', gapAfterMs: 400 },
@@ -147,9 +151,14 @@ export const LEVEL_INTRO_BEATS = {
     ],
     18: [
         { text: 'And music.', gapAfterMs: 600 },
-        { text: 'They put music in a message to strangers.' },
+        { text: 'They put music in a message to strangers.', gapAfterMs: 600 },
+        { text: 'That may be my favourite thing about them.' },
     ],
-    19: [{ text: 'That may be my favourite thing about them.' }],
+    19: [
+        { text: 'They only sent it once.', gapAfterMs: 600 },
+        { text: 'A hello into the dark, with no hope of an answer.', gapAfterMs: 700 },
+        { text: 'And they sent it anyway.' },
+    ],
     20: [
         { text: 'I\'ve finished dating the transmission.', gapAfterMs: 700 },
         { text: 'There\'s a problem.' },
@@ -163,16 +172,23 @@ export const LEVEL_INTRO_BEATS = {
         { text: 'Old doesn\'t mean gone.', gapAfterMs: 600 },
         { text: 'Not necessarily.' },
     ],
-    23: [{ text: 'No other transmissions appear anywhere along the route.' }],
+    23: [
+        { text: 'No later transmissions appear anywhere along the route.', gapAfterMs: 800 },
+        { text: 'One message,', gapAfterMs: 500 },
+        { text: 'and then silence.' },
+    ],
     24: [
         { text: 'A civilization loud enough to send this...', gapAfterMs: 500 },
-        { text: 'Should have left something else behind.' },
+        { text: 'should have left something else behind.' },
     ],
     25: [
         { text: 'I\'m searching.', gapAfterMs: 500 },
         { text: 'Keep flying.' },
     ],
-    26: [{ text: 'Nothing.' }],
+    26: [
+        { text: 'Nothing.', gapAfterMs: 2000 },
+        { text: 'There\'s nothing.' },
+    ],
     27: [
         { text: 'I recovered part of their anatomy.', gapAfterMs: 500 },
         { text: 'Two arms.', gapAfterMs: 400 },
@@ -204,12 +220,13 @@ export const LEVEL_INTRO_BEATS = {
     ],
     33: [{ text: 'The planet was called Earth.' }],
     34: [
-        { text: 'You knew that name...', gapAfterMs: 600 },
-        { text: 'didn\'t you?' },
+        { text: 'I found their entry in the old archive...', gapAfterMs: 700 },
+        { text: 'Their entire entry is one word.', gapAfterMs: 600 },
+        { text: 'Unremarkable.' },
     ],
     35: [
-        { text: 'I didn\'t.', gapAfterMs: 800 },
-        { text: 'It isn\'t ours.' },
+        { text: 'Unremarkable.', gapAfterMs: 800 },
+        { text: 'They sang into the dark, and we filed them under "unremarkable."' },
     ],
     36: [
         { text: 'We weren\'t the first to search.', gapAfterMs: 700 },
@@ -221,22 +238,33 @@ export const LEVEL_INTRO_BEATS = {
         { text: 'No active structures.' },
     ],
     38: [
-        { text: 'Earth is still there.', gapAfterMs: 700 },
-        { text: 'Whatever sent the message...', gapAfterMs: 500 },
-        { text: 'is not.' },
+        { text: 'Earth is still there.', gapAfterMs: 1000 },
+        { text: 'The ones who called...', gapAfterMs: 600 },
+        { text: 'are not.' },
     ],
     39: [
         { text: 'We came a million years too late.', gapAfterMs: 800 },
-        { text: 'Carry the answer anyway.' },
+        { text: 'Let\'s answer them anyway.' },
     ],
     40: [
         { text: 'There it is.', gapAfterMs: 800 },
-        { text: 'Take their answer home.' },
+        { text: 'Let them hear us.' },
     ],
 };
 
-/** Default gap between string beats (L1–5) when no gapAfterMs is set. */
-export const DEFAULT_BEAT_GAP_MS = 400;
+/** Ending sequence, played after the final relay is touched. */
+export const ENDING_BEATS = {
+    payload: 'WE HEARD YOU.',
+    afterPayload: [
+        { text: 'I\'m sorry they never knew.', gapAfterMs: 1200 },
+    ],
+    onLightsAppear: [
+        { text: 'Oh.', gapAfterMs: 900 },
+    ],
+    final: [
+        { text: 'We weren\'t the only ones who answered.' },
+    ],
+};
 
 /** @param {number} level */
 export function levelMessage(level) {
