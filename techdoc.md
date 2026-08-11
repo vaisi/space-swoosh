@@ -455,7 +455,7 @@ live; pause button and spawning stay off until chips):
 | --- | --- |
 | `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Levels 1–40 also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
 | `wait` | Short calm beat when there is no intro line (e.g. Open Space). |
-| `chips` | Timed 1s fades: KM → **pause last**. Fuel bar appears with distance once collectibles are live. Destroyed stays dark until first smash, then fades in ~1s. Journey distance reads `current / goal KM` with a borderless ink progress track (separate from the Signal-Blue fuel bar). |
+| `chips` | Timed 1s fades: distance HUD → **pause last**. Icon-meter stack: route + ink goal bar (Journey) or route + KM (Open Space); sparkle + Signal fuel bar once collectibles are live; target + smash dots (Journey `smashTarget`) or small ink count (Open Space) after first smash. |
 
 Open Space with no intro line skips straight to `wait`. Spawning resumes when
 `chips` starts. `Game.hudRevealAlpha(slot)` drives HUD + pause opacity. Input
@@ -795,9 +795,9 @@ There are **several independent metrics** on the `Game` instance:
 | Field | Meaning | Source | Where shown |
 | --- | --- | --- | --- |
 | `score` | Distance in "KM" | `+= abs(Δcamera.y) * (100/60)` after each camera step (locked to world travel); also `+10` per shield-destroyed asteroid | HUD, end screen, leaderboard (`distance` tab) |
-| `fuel` | Survival tank (0–1) | Drains by KM once collectibles are enabled; diamonds refill (clamped, no overfill) | Compact sparkle + Signal-Blue bar under KM (no caption) |
+| `fuel` | Survival tank (0–1) | Drains by KM once collectibles are enabled; diamonds refill (clamped, no overfill) | HUD sparkle icon + Signal-Blue meter bar |
 | `sparklesCollected` | Diamonds grabbed | `++` on each sparkle collect | Pause / end stats; Journey's second star vs `sparklesTarget` |
-| `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD, end screen, leaderboard (`obstacles` tab), Journey's third star vs `smashTarget` |
+| `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD target dots (Journey) or count (Open Space); end screen; leaderboard; third star vs `smashTarget` |
 | `points` | Style points | `+perAsteroid` destroy, `+perSwoosh` near-miss (sparkles do **not** add points) | Analytics / persistence `bestPoints`; not the survival HUD |
 
 Open Space also keeps device-local **personal bests per flight style**

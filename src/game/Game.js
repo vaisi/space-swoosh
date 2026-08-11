@@ -2,8 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
-// - Fuel HUD: no FUEL caption — compact sparkle glyph + Signal-Blue bar under
-//   the KM track (same bar weight as the Journey goal bar).
+// - In-run HUD mockup C: three equal-height icon+meter rows (route/ink bar,
+//   sparkle/Signal fuel bar, target/dots or Open Space count) — no captions.
 // - Fuel drain pauses during wormhole hops + brief camera re-seat after exit
 //   (teleport distance must not empty the tank).
 // - Fuel meter: depleting Signal-Blue bar once collectibles are live; diamonds
@@ -59,9 +59,8 @@
 //   LOD, opaque context, hitch clamp ≤1/30 s, skip getBoundingClientRect during
 //   active play — see platform.js. No paint throttle: iOS uses the same plain
 //   one-update-per-paint rAF loop as Android (setTimeout+rAF / early-drop removed).
-// - Journey HUD: no LEVEL chip; "current / goal KM" with a borderless track
-//   (ink fill, paler rest) spaced under the figure; aligned with pause.
-//   Reveal: KM → pause; points/destroyed unlock on first collect/smash.
+// - Journey HUD: icon meters (route / fuel / target); no LEVEL chip.
+//   Reveal: distance → pause; smash row unlocks on first smash.
 //   KM accrues once the title clears (wait/chips) — belt opens at that same
 //   moment so rocks arrive with the first readable distance, not a second later.
 // - Journey levels 1–40: IntroNarration chains one-sentence beats with
@@ -1218,168 +1217,208 @@ export class Game {
         return alpha;
     }
 
-    // Gameplay HUD — Space Mono tabular numerals with small uppercase Space
-    // Grotesk unit/label chips. Compact top-left block aligned with pause.
+    // Gameplay HUD — mockup C: three equal-height icon + meter rows (route /
+    // fuel / smash). No captions. Aligned with the pause control.
     renderHud() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const inset = unit * 2;
         const journey = !this.profile.isEndless;
         const fuelLive = this.isFuelLive();
+        const smashTarget = this.profile.smashTarget || 0;
 
         const destroyedA = this.hudRevealAlpha('destroyed');
         const distanceA = this.hudRevealAlpha('distance');
 
-        // Match the DOM pause control (top 16 / height 48) so left and right
-        // read as one header row.
+        // Match the DOM pause control (top 16 / height 48).
         const pauseTop = 16;
         const pauseH = 48;
-        const numSize = unit * 1.9;
-        const distY = pauseTop + pauseH * 0.62;
+        const rowH = unit * 1.15;
+        const meterH = Math.max(4, unit * 0.42);
+        const iconSlot = unit * 1.15;
+        const iconGap = unit * 0.45;
+        const rowGap = unit * 0.55;
+        const meterW = unit * 6.5;
+        const meterX = inset + iconSlot + iconGap;
+        let y = pauseTop + (pauseH - rowH) * 0.5;
 
         ctx.save();
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = color.ink;
 
-        let goalBarH = 0;
-        let fuelBarBlockH = 0;
-        let barW = unit * 10;
-
+        // 1) Distance — Journey: ink progress; Open Space: compact KM.
         if (distanceA > 0.01) {
             ctx.save();
             ctx.globalAlpha *= distanceA;
-
-            const curStr = ScoreService.formatScore(this.score);
-            const unitSize = Math.max(9, unit * 0.82);
-
+            const cy = y + rowH * 0.5;
+            this.drawHudRouteIcon(inset + iconSlot * 0.5, cy, unit * 0.5);
             if (journey) {
-                // Bold current + tight, small "/goal KM" so the line sits on
-                // the progress track instead of spilling past it.
-                const goalStr = ScoreService.formatScore(this.profile.goalScore);
-                setMonoType(ctx, numSize);
-                ctx.fillStyle = color.ink;
-                ctx.fillText(curStr, inset, distY);
-                let x = inset + ctx.measureText(curStr).width;
-
-                const goalPx = Math.max(8.5, numSize * 0.46);
-                setMonoType(ctx, goalPx, 400);
-                ctx.fillStyle = color.ink55;
-                const mid = `/${goalStr}`;
-                const midGap = unit * 0.12;
-                ctx.fillText(mid, x + midGap, distY);
-                x += midGap + ctx.measureText(mid).width;
-
-                setLabelType(ctx, Math.max(7.5, goalPx * 0.9));
-                ctx.fillStyle = color.ink55;
-                const kmGap = unit * 0.1;
-                ctx.fillText('KM', x + kmGap, distY);
-                x += kmGap + ctx.measureText('KM').width;
-
-                barW = Math.min(
-                    Math.max(x - inset, unit * 8),
-                    this.width - inset * 2,
+                this.drawHudMeterBar(
+                    meterX, cy - meterH * 0.5, meterW, meterH,
+                    this.profile.progress(this.score), color.ink,
                 );
-                goalBarH = unit * 1.15;
-                this.drawGoalBar(inset, distY + unit * 0.8, barW);
             } else {
-                setMonoType(ctx, numSize);
+                setMonoType(ctx, Math.max(11, unit * 1.15), 700);
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
                 ctx.fillStyle = color.ink;
-                ctx.fillText(curStr, inset, distY);
-                const distW = ctx.measureText(curStr).width;
-                setLabelType(ctx, unitSize);
-                ctx.fillStyle = color.ink55;
-                ctx.fillText('KM', inset + distW + unit * 0.55, distY);
-                barW = Math.min(
-                    Math.max(distW + unit * 4, unit * 8),
-                    this.width - inset * 2,
-                );
+                ctx.fillText(ScoreService.formatScore(this.score), meterX, cy);
+                resetType(ctx);
             }
-
             ctx.restore();
-        } else if (journey) {
-            goalBarH = unit * 1.15;
+            y += rowH + rowGap;
         }
 
-        // Fuel: sparkle mark + blue track only (no caption). Sits under the KM
-        // goal bar with the same weight / inset so the header stays one stack.
+        // 2) Fuel — Signal-Blue bar once sparkles are live.
         if (fuelLive && distanceA > 0.01) {
             ctx.save();
             ctx.globalAlpha *= distanceA;
-            const barH = unit * 0.32;
-            const fuelBarY = distY + goalBarH + (journey ? unit * 0.35 : unit * 0.55);
-            const spR = unit * 0.38;
-            const spCx = inset + spR;
-            const spCy = fuelBarY + barH * 0.5;
-            drawSparkle(ctx, spCx, spCy, spR, { fill: color.signal });
-            const barX = inset + spR * 2 + unit * 0.4;
-            const fuelW = Math.max(unit * 5.5, barW - (barX - inset));
-            this.drawFuelBar(barX, fuelBarY, fuelW);
-            fuelBarBlockH = (fuelBarY - distY - goalBarH) + barH;
+            const cy = y + rowH * 0.5;
+            this.drawHudSparkleIcon(inset + iconSlot * 0.5, cy, unit * 0.42);
+            const max = this.config.fuel?.max ?? 1;
+            const frac = Math.max(0, Math.min(1, (this.fuel ?? 0) / max));
+            const low = frac > 0 && frac <= (this.config.fuel?.lowThreshold ?? 0.28);
+            this.drawHudMeterBar(
+                meterX, cy - meterH * 0.5, meterW, meterH,
+                frac, color.signal, { pulse: low },
+            );
             ctx.restore();
+            y += rowH + rowGap;
         }
 
-        // Obstacles destroyed — in Journey, also the smash-star mission target.
-        const rowY = distY + goalBarH + fuelBarBlockH + unit * 1.35;
-        const lblSize = Math.max(9, unit * 0.8);
-        if (destroyedA > 0.01) {
+        // 3) Smash — Journey dots vs target; Open Space small ink count.
+        const showSmash = destroyedA > 0.01 && (
+            journey ? smashTarget > 0 : true
+        );
+        if (showSmash) {
             ctx.save();
             ctx.globalAlpha *= destroyedA;
-            setLabelType(ctx, lblSize);
-            ctx.fillStyle = color.ink55;
-            ctx.fillText('DESTROYED', inset, rowY);
-            const lblW = ctx.measureText('DESTROYED').width;
-
-            setMonoType(ctx, unit * 1.35);
-            ctx.fillStyle = color.ink;
-            const destroyedStr = journey && this.profile.smashTarget
-                ? `${this.obstaclesDestroyed} / ${this.profile.smashTarget}`
-                : `${this.obstaclesDestroyed}`;
-            ctx.fillText(destroyedStr, inset + lblW + unit * 0.9, rowY);
+            const cy = y + rowH * 0.5;
+            this.drawHudTargetIcon(inset + iconSlot * 0.5, cy, unit * 0.48);
+            if (journey) {
+                this.drawSmashDots(
+                    meterX, cy, this.obstaclesDestroyed, smashTarget, meterH,
+                );
+            } else {
+                setMonoType(ctx, Math.max(11, unit * 1.15), 700);
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = color.ink;
+                ctx.fillText(String(this.obstaclesDestroyed), meterX, cy);
+                resetType(ctx);
+            }
             ctx.restore();
         }
 
-        resetType(ctx);
         ctx.restore();
     }
 
-    // Journey progress track: soft fill only — no stroke, no GOAL caption.
-    // Goal distance lives in the "current / goal KM" line above.
-    drawGoalBar(x, y, width) {
+    /** Soft-rounded meter track; fill color + optional low-fuel pulse. */
+    drawHudMeterBar(x, y, width, height, frac, fillColor, { pulse = false } = {}) {
         const ctx = this.ctx;
-        const unit = this.baseUnit;
-        const height = unit * 0.32;
-        const filled = width * this.profile.progress(this.score);
-
-        ctx.save();
-        // Pale rest of the track; done portion in full ink.
-        ctx.fillStyle = color.ink06;
-        ctx.fillRect(x, y, width, height);
-        ctx.fillStyle = color.ink;
-        ctx.fillRect(x, y, Math.max(0, filled), height);
-        ctx.restore();
-    }
-
-    // Survival fuel track — Signal Blue fill; soft pulse when low.
-    drawFuelBar(x, y, width) {
-        const ctx = this.ctx;
-        const unit = this.baseUnit;
-        const height = unit * 0.32;
-        const max = this.config.fuel?.max ?? 1;
-        const frac = Math.max(0, Math.min(1, (this.fuel ?? 0) / max));
-        const filled = width * frac;
-        const low = frac <= (this.config.fuel?.lowThreshold ?? 0.28);
+        const r = Math.min(2, height * 0.35);
+        const filled = width * Math.max(0, Math.min(1, frac));
 
         ctx.save();
         ctx.fillStyle = color.ink06;
-        ctx.fillRect(x, y, width, height);
-        let alpha = 1;
-        if (low && frac > 0) {
-            alpha = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(performance.now() / 160));
+        this.roundRectPath(x, y, width, height, r);
+        ctx.fill();
+        if (filled > 0.5) {
+            let alpha = 1;
+            if (pulse) {
+                alpha = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(performance.now() / 160));
+            }
+            ctx.globalAlpha *= alpha;
+            ctx.fillStyle = fillColor;
+            this.roundRectPath(x, y, filled, height, r);
+            ctx.fill();
         }
-        ctx.globalAlpha *= alpha;
-        ctx.fillStyle = color.signal;
-        ctx.fillRect(x, y, Math.max(0, filled), height);
+        ctx.restore();
+    }
+
+    roundRectPath(x, y, w, h, r) {
+        const ctx = this.ctx;
+        const rr = Math.min(r, w * 0.5, h * 0.5);
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(x, y, w, h, rr);
+            return;
+        }
+        ctx.moveTo(x + rr, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rr);
+        ctx.arcTo(x + w, y + h, x, y + h, rr);
+        ctx.arcTo(x, y + h, x, y, rr);
+        ctx.arcTo(x, y, x + w, y, rr);
+        ctx.closePath();
+    }
+
+    /** Journey smash slots — dot diameter matches meter bar height. */
+    drawSmashDots(x, cy, filled, total, meterH) {
+        const ctx = this.ctx;
+        const n = Math.max(0, Math.floor(total));
+        if (n <= 0) return;
+        const d = meterH;
+        const gap = Math.max(2, meterH * 0.65);
+        const have = Math.max(0, Math.min(n, Math.floor(filled)));
+
+        for (let i = 0; i < n; i++) {
+            const cx = x + d * 0.5 + i * (d + gap);
+            ctx.beginPath();
+            ctx.arc(cx, cy, d * 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = i < have ? color.ink : color.ink06;
+            ctx.fill();
+        }
+    }
+
+    /** Muted route / path glyph (distance). */
+    drawHudRouteIcon(cx, cy, r) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.strokeStyle = color.ink55;
+        ctx.fillStyle = color.ink55;
+        ctx.lineWidth = Math.max(1.2, r * 0.22);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.85, cy + r * 0.55);
+        ctx.bezierCurveTo(
+            cx - r * 0.2, cy + r * 0.55,
+            cx - r * 0.15, cy - r * 0.55,
+            cx + r * 0.85, cy - r * 0.55,
+        );
+        ctx.stroke();
+        const dot = Math.max(1.2, r * 0.22);
+        ctx.beginPath();
+        ctx.arc(cx - r * 0.85, cy + r * 0.55, dot, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + r * 0.85, cy - r * 0.55, dot, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /** Muted sparkle glyph (fuel) — hollow ink mark, not Signal fill. */
+    drawHudSparkleIcon(cx, cy, r) {
+        drawSparkle(this.ctx, cx, cy, r, {
+            stroke: color.ink55,
+            lineWidth: Math.max(1.2, r * 0.28),
+        });
+    }
+
+    /** Muted target / bullseye glyph (smash). */
+    drawHudTargetIcon(cx, cy, r) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.strokeStyle = color.ink55;
+        ctx.lineWidth = Math.max(1.15, r * 0.2);
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.95, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
+        ctx.fillStyle = color.ink55;
+        ctx.fill();
         ctx.restore();
     }
 
