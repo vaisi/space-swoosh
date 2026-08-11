@@ -64,7 +64,7 @@
 Space Swoosh is a vertical-scrolling "dodge" game rendered on a single HTML5
 `<canvas>`. The ship auto-flies upward through a *night-paper universe*; the player
 steers left/right in arcs to dodge (or, with a shield, destroy) ink asteroids,
-grab shield pickups, and collect points.
+grab shield pickups, and collect fuel diamonds.
 
 There are **two play modes**, chosen from Play:
 
@@ -140,7 +140,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `ships/skinDefs.js` | Ship roster (Focus…Saber…Nyan…Cinder) composed from hulls + trails + boop signatures. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes, `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
-| `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **points**, styleSwoosh). |
+| `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
 | `config/JourneyNarrative.js` | THE REPLY story (recovery framing): `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_BEATS`. |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
@@ -166,11 +166,11 @@ game build env. Journey progress and Open Space personal best stay in
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
-| `entities/Collectible.js` | The Signal-Blue sparkle points pickup (render + collision). |
+| `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision). |
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
 | `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. |
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
-| `managers/CollectibleManager.js` | Points sparkles: spawn cadence, collect → `game.points`, popups + `playCollect()`. |
+| `managers/CollectibleManager.js` | Fuel diamonds: spawn cadence, collect → clamped fuel refill + `sparklesCollected`, `+FUEL` popup + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
@@ -357,11 +357,11 @@ The Source 33–36, Arrival 37–40.
 ### Stars and progress
 
 Star **slots** scale with the teach band: **L1–3 → 1**, **L4 → 2**, **L5+ → 3**
-(distance / points / smash). Outcome and map show `earned / slots` (e.g. `1/1`,
+(distance / sparkles / smash). Outcome and map show `earned / slots` (e.g. `1/1`,
 `2/2`, `3/3`). Storage still holds three booleans per level; unused slots stay
-false. Points star opens at L4 (floor 25, then ~6 per 1,000 km). Smash star
-opens at L5 (1 smash, then from 2 toward a hard cap of **6**). Mode select /
-map tallies use `TOTAL_STARS` (sum of `starSlots`).
+false. Sparkles star opens at L4 (floor **3** sparkles, then ~1 per 1,000 km).
+Smash star opens at L5 (1 smash, then from 2 toward a hard cap of **6**). Mode
+select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
 
 `services/JourneyProgress.js` persists
 `{ version, unlocked, loreSeen, levels: { n: { stars, bestPoints } } }` under
@@ -453,7 +453,7 @@ live; pause button and spawning stay off until chips):
 | --- | --- |
 | `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Levels 1–40 also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
 | `wait` | Short calm beat when there is no intro line (e.g. Open Space). |
-| `chips` | Timed 1s fades: KM → **pause last**. Points / Destroyed stay dark until first sparkle collect / first smash, then each fades in ~1s. Journey distance reads `current / goal KM` with a borderless progress track (no LEVEL chip). |
+| `chips` | Timed 1s fades: KM → **pause last**. Fuel bar appears with distance once collectibles are live. Destroyed stays dark until first smash, then fades in ~1s. Journey distance reads `current / goal KM` with a borderless ink progress track (separate from the Signal-Blue fuel bar). |
 
 Open Space with no intro line skips straight to `wait`. Spawning resumes when
 `chips` starts. `Game.hudRevealAlpha(slot)` drives HUD + pause opacity. Input
@@ -491,8 +491,9 @@ Two things make it work:
   `boost` / `fadeOut` still award `points`, `score += 10`, `obstaclesDestroyed`,
   and the `+points` popup. `playShieldCrash()` is throttled to one per 120ms.
   Sparkles tick via `collectibleManager.update()` in the same `streamWorld()`
-  path and award `+perCollectible` (points star) with the usual chime / popup;
-  `pauseSpawning` stops new obstacle rows and new sparkle spawns mid-flyout.
+  path and refill fuel / increment `sparklesCollected` (sparkles star) with the
+  usual chime / `+FUEL` popup; `pauseSpawning` stops new obstacle rows and new
+  sparkle spawns mid-flyout.
   When the sequence enters `screenIn` (world no longer streams), it sets
   `finalScore` and calls `finishJourneyLevel(true)` so stars, persistence, and
   `levelOutcome` use the post-flyout totals.
@@ -787,13 +788,15 @@ with a linear gradient along the wake's chord for the length-wise fade.
 
 ## 7. Scoring model
 
-There are **three independent metrics** on the `Game` instance:
+There are **several independent metrics** on the `Game` instance:
 
 | Field | Meaning | Source | Where shown |
 | --- | --- | --- | --- |
 | `score` | Distance in "KM" | `+= abs(Δcamera.y) * (100/60)` after each camera step (locked to world travel); also `+10` per shield-destroyed asteroid | HUD, end screen, leaderboard (`distance` tab) |
+| `fuel` | Survival tank (0–1) | Drains by KM once collectibles are enabled; diamonds refill (clamped, no overfill) | Separate Signal-Blue **FUEL** HUD bar |
+| `sparklesCollected` | Diamonds grabbed | `++` on each sparkle collect | Pause / end stats; Journey's second star vs `sparklesTarget` |
 | `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD, end screen, leaderboard (`obstacles` tab), Journey's third star vs `smashTarget` |
-| `points` | **Reward points** | `+perAsteroid` destroy, `+perCollectible` sparkle, `+perSwoosh` near-miss style | HUD, end screen, Journey's second star |
+| `points` | Style points | `+perAsteroid` destroy, `+perSwoosh` near-miss (sparkles do **not** add points) | Analytics / persistence `bestPoints`; not the survival HUD |
 
 Open Space also keeps device-local **personal bests per flight style**
 (`services/OpenWorldProgress.js`, key `openWorldProgress`, v2 `bestByStyle`)
@@ -801,47 +804,37 @@ updated in `gameOver()` whenever a non-Journey run ends. Exit Run does not write
 it. The Play → Open Space card footer shows nothing until a style has a best;
 one style → `Personal best: X KM`; both → `Zigzag: A KM · Arc: B KM` (zeros omitted).
 
-`points` is **local only** — it is not (yet) sent to the Supabase leaderboard;
-it is included in the `game_over` GA event.
+`points` / `sparklesCollected` are **local only** — not on the Supabase
+leaderboard; both are included in the `game_over` GA event (`fail_reason`:
+`crash` | `fuel`).
 
-### Points system (data flow)
+### Fuel system (data flow)
 
-1. **Destroying an asteroid** (only possible while the shield is active): in
-   `ObstacleManager.update()`'s shield-collision branch, `game.points +=
-   config.points.perAsteroid`, an ink `+1` popup floats up, and the existing
-   distance bonus / destroyed counter still apply. For `ComplexAsteroid` /
-   `ShootingAsteroid`, a moon- or shot-only contact clips that part (same
-   awards, smaller debris) and keeps the parent rock; contacting the body/core
-   still removes the whole obstacle.
-2. **Collecting a sparkle:** `CollectibleManager` spawns `Collectible`s at a
-   jittered interval once `score >= profile.collectiblesFromScore` (100 km in
-   Open Space, 4% of the goal in Journey) and the tutorial is over. Each sparkle
-   is sized at `1.15 × baseUnit` (see `Collectible.js`). On contact
-   (`checkCollision`), `game.points += config.points.perCollectible`, a Signal-Blue
-   `+10` popup floats up, and `SoundManager.playCollect()` plays a short
-   two-tone Web Audio chime.
-3. **Style swoosh (near-miss):** `StyleSwooshManager` detects when the ship is
-   squeezed between a left and right obstacle — both clearances positive but
-   under `config.styleSwoosh.maxClearance × ship.radius`. Awards
-   `config.points.perSwoosh`, plays `playSwoosh()`, and renders a Signal-Blue
-   ring / streak / gap-dot burst plus a floating `SWOOSH +N` popup. Each pair
-   awards once (cooldown + pair key).
-4. **Wall boop (sidewall bounce):** When `Spacecraft` clamps against a screen
-   edge (arc bounce or zigzag wall clamp), it calls `WallBoopManager.triggerBoop(ship,
-   side)`. That plays `SoundManager.playBoop()` — phone-audible body (320→180 Hz)
-   + short mid tick (~520 Hz) + reused noise buffer (old ~185→92 Hz was inaudible
-   on iPhone speakers under BGM) — fires `hapticWallBoop()` (Capacitor
-   `ImpactStyle.Light` on native; short `navigator.vibrate` on web). Needs the
-   phone's haptic intensity above zero. Shared 180 ms cooldown covers popup,
-   SFX, and haptic. Applies to every skin; Square skins still also get
-   `wallJelly` squash.
-5. **Portal hop:** `WormholeGate.transportSpacecraft()` calls
-   `SoundManager.playPortalEntry()` at hop start and `playPortalExit()` on
-   emerge — deeper space warps (low body/sub + swirl) through a delay-feedback
-   echo bus. `playShield()` follows ~90 ms after exit so the deflector gift
-   stays audible without masking the emerge cue.
+1. **Gate:** Fuel UI + drain only when `Game.isFuelLive()` — i.e.
+   `collectibleManager.enabled` or `score >= profile.collectiblesFromScore`
+   (Open Space 100 KM; Journey L4+ at 0 KM). L1–3 stay fuel-free.
+2. **Drain:** Each KM delta subtracts `config.fuel.drainPerKm` (~0.00025 → full
+   tank lasts ~4000 KM / ~35–40s at ~100 KM/s). Skipped during level-clear /
+   obstacle cutscenes, wormhole transit, and ~1.4s after a portal hop (camera
+   re-seat must not bill teleport distance as fuel).
+3. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
+   clamped to `fuel.max` (1). Popup `+FUEL`. No salvage after `fuelDying`.
+4. **Empty:** `beginFuelDying()` → ship `forwardSpeedScale` eases to 0 over
+   `dyingDurationMs` (900) → `gameOver({ reason: 'fuel' })` (no explosion;
+   CopyBank `fuelOut`). Crash path unchanged (`reason: 'crash'`).
 
-Tune values in `config/GameConfig.js → points` and `styleSwoosh`.
+### Style points + pickups (data flow)
+
+1. **Destroying an asteroid** (shield active): `game.points +=
+   config.points.perAsteroid`, ink `+1` popup; distance bonus / destroyed
+   counter still apply.
+2. **Collecting a sparkle:** refills fuel + increments `sparklesCollected` (see
+   fuel system). Does not award style points.
+3. **Style swoosh (near-miss):** `StyleSwooshManager` awards
+   `config.points.perSwoosh`, plays `playSwoosh()`, Signal-Blue VFX + `SWOOSH +N`.
+4. **Wall boop / portal hop:** unchanged (`WallBoopManager`, wormhole SFX).
+
+Tune values in `config/GameConfig.js → fuel`, `points`, and `styleSwoosh`.
 
 ## 8. Brand system (how visuals stay consistent)
 
@@ -879,8 +872,8 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   a boop feel for free. Size hitbox circles inside the outline (`?hitbox`).
   Optional `trailMaxPoints` / `trailFade` for longer wakes; add `HullCache`
   `HULL_META` when using a non-default jelly profile.
-- **New collectible behavior / value:** edit `CollectibleManager` (cadence,
-  placement) and `GameConfig.points`.
+- **New collectible / fuel tuning:** edit `CollectibleManager` (cadence,
+  placement) and `GameConfig.fuel` (drain / refill / dying).
 - **New obstacle:** add a `BaseObstacle` subclass in `ObstacleManager.js`, add a
   `spawnX()` + `spawnObstacleByType` case, then add it to `OPEN_WORLD_UNLOCKS`
   (`modes/RunProfile.js`) with the distance that unlocks it, and give it a

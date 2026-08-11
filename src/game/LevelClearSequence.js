@@ -6,7 +6,8 @@
 // fades in.
 // Changes:
 // - streamWorld also ticks CollectibleManager so sparkles grabbed during the
-//   flyout award points (and the points star) before screenIn locks results.
+//   flyout award sparkles / fuel refill (and the sparkles star) before screenIn
+//   locks results.
 // - Entering screenIn finalizes the Journey result (finalScore + finishJourneyLevel)
 //   so shield smashes during hold/boost/fadeOut count toward the outcome.
 // - Flyout keeps the ship's lean (zigzag sign / captured arc heading) instead of

@@ -1,6 +1,7 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Fuel Sparkle: diamonds refill fuel (not points); engines die if you miss.
 // - Repulsor + Drift Current catalog entries (Hazard Lab).
 // - Phase Asteroid + Sweep Gate catalog entries (sandbox / Hazard Lab first).
 // - Journey tab (id `levels`): lore + Day N entries from LEVEL_MESSAGES.
@@ -264,10 +265,10 @@ const BOOST_ENTRIES = [
     {
         id: 'pointsSparkle',
         category: 'boosts',
-        name: 'Point Sparkle',
+        name: 'Fuel Sparkle',
         definition:
-            'A Signal-Blue collectible that awards points on contact. Appears along the corridor after the opening stretch of a run.',
-        remark: 'Brightness with a number attached.',
+            'A Signal-Blue diamond that refills ship fuel on contact. Miss too many and the engines die. Appears along the corridor once sparkles unlock for the run.',
+        remark: 'Brightness you can burn.',
         unlockMode: 'observeThenInteract',
         icon: 'pointsSparkle',
     },

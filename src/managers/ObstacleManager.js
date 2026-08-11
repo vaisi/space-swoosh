@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Wormhole hop calls Game.noteTeleportFuelPause() so teleport distance does
+//   not drain the fuel tank during the hop + camera re-seat.
 // - PhaseAsteroid (`phase`): square → 4 outer squares with springy overshoot +
 //   magnetic lock; soft push while open, no dotted field lines.
 // - Night paper: obstacle fills/strokes use brand `color.ink` (not hard-coded
@@ -1447,6 +1449,7 @@ class WormholeGate extends BaseObstacle {
             spacecraft.wormholeTransit = true;
             spacecraft.isVisible = false;
             spacecraft.moveState = null;
+            this.game.noteTeleportFuelPause?.();
             this.game.logbook?.onWormholeTeleport?.();
             this.game.soundManager?.playPortalEntry?.();
 

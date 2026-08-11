@@ -3,6 +3,10 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - Fuel drainPerKm 0.00025 ≈ 4000 KM full tank (playtest: 2700 still too
+//   stressful when the next sparkle is far).
+// - Added `fuel`: depleting 0–1 tank (distance drain, diamond refill, dying
+//   coast). Sparkles no longer award `points.perCollectible` — they refill fuel.
 // - Arc banks: arcDuration 820ms for a taller closed swoosh (linear full-π
 //   path + 0.55 mid-arc vertical boost in Spacecraft).
 // - Zigzag angle/speed tunables are the default flight style (see flightStyle.js).
@@ -15,16 +19,25 @@
 //   lives once, in `OPEN_WORLD_UNLOCKS` (modes/RunProfile.js).
 // - Added style-swoosh near-miss tuning (`styleSwoosh`) and `points.perSwoosh`
 //   for threading a narrow gap between two obstacles.
-// - Added `points`: the scoring for the new points system — destroying an
-//   asteroid awards `perAsteroid` points, collecting a sparkle awards
-//   `perCollectible`. Read by ObstacleManager and CollectibleManager so the
-//   values live in one place.
+// - Added `points`: smash / swoosh style scores (sparkles refill fuel instead).
 
 export const GameConfig = {
-    // Points system — separate from the distance (KM) score and the leaderboard.
+    // Survival fuel — separate from KM and from style `points`. Live only once
+    // collectibles are enabled for the run (see Game.isFuelLive).
+    fuel: {
+        max: 1,
+        start: 1,
+        // HUD KM accrues ~90–110 per second of flight. Full tank ≈ 4000 KM
+        // (~35–40s / ~8–10 sparkle windows) before empty if you take nothing.
+        drainPerKm: 0.00025,
+        refillPerCollectible: 0.45, // clamp to max; no overfill (~half a tank)
+        dyingDurationMs: 900,
+        lowThreshold: 0.28,
+    },
+    // Style points — smash / swoosh only. Not a survival meter; not Journey star 2.
     points: {
         perAsteroid: 1,     // destroying one asteroid (with the shield)
-        perCollectible: 10, // collecting one Signal-Blue sparkle
+        perCollectible: 10, // unused (sparkles refill fuel); kept for reference
         perSwoosh: 15,      // style points for a narrow twin-obstacle near-miss
     },
     // Near-miss "swoosh" — ship squeezed tightly between a left + right obstacle.

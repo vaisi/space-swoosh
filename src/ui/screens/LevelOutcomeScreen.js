@@ -3,10 +3,11 @@
 // against each, and where to go next. Replaces the Open Space game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
+// - Star 2 value is sparklesCollected / sparklesTarget (fuel diamonds).
 // - Hazard Lab outcomes: no star band; titles LAB CLEAR / LAB FAILED; actions
 //   are Replay / Level Select / Menu (retry calls beginHazardLab).
 // - Outcome tallies / rows use descriptor.starSlots (1/1, 2/2, or 3/3).
-// - Points/smash rows only appear when that slot exists for the level.
+// - Sparkles/smash rows only appear when that slot exists for the level.
 // - Stopped calling removed `game.drawScreenFrame()` — that threw after the
 //   flyout and left a blank paper end screen (dead end after level clear).
 // - Third objective value is smash count vs `smashTarget` (shield destroy mission).
@@ -223,10 +224,11 @@ function verdictSubtitle(outcome) {
 // What each objective was actually measured against — the reason the star did or
 // didn't land, which is why the screen no longer needs a separate stats band.
 function starValues(outcome, starSlots) {
-    const { descriptor, score, points, obstaclesDestroyed } = outcome;
+    const { descriptor, score, sparklesCollected, obstaclesDestroyed } = outcome;
+    const sparkles = Number(sparklesCollected) || 0;
     const all = [
         `${ScoreService.formatScore(Math.floor(score))} / ${ScoreService.formatScore(descriptor.goalKm)}`,
-        `${ScoreService.formatScore(points)} / ${ScoreService.formatScore(descriptor.pointsTarget)}`,
+        `${ScoreService.formatScore(sparkles)} / ${ScoreService.formatScore(descriptor.sparklesTarget)}`,
         `${obstaclesDestroyed} / ${descriptor.smashTarget}`,
     ];
     return all.slice(0, starSlots);

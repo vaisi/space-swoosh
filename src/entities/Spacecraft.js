@@ -1,6 +1,7 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
+// - `forwardSpeedScale` eases to 0 during Game fuel-dying coast (engines out).
 // - Gameplay `speedBoost` (1.82×, 5s, refreshable) from wall-boost pickups —
 //   separate from cinematic `boost` so level-clear flyout is untouched.
 // - Arc banks: linear full-π half-turn so X closes to startX (snap on finish).
@@ -147,8 +148,16 @@ export class Spacecraft {
         return this.speedBoostTimer > 0 ? this.speedBoostFactor : 1;
     }
 
+    /** 1 → 0 over fuel.dyingDurationMs while engines die. */
+    fuelDyingScale() {
+        if (!this.game.fuelDying || this.game.fuelDyingStart == null) return 1;
+        const dur = this.game.config.fuel?.dyingDurationMs ?? 900;
+        const t = (performance.now() - this.game.fuelDyingStart) / dur;
+        return Math.max(0, 1 - Math.min(1, t));
+    }
+
     forwardSpeedScale() {
-        return this.boost * this.speedBoostMultiplier();
+        return this.boost * this.speedBoostMultiplier() * this.fuelDyingScale();
     }
 
     isZigzag() {

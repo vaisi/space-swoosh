@@ -5,6 +5,8 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - Star 2 is sparkle *count* (`sparklesTarget`), not style points — fuel
+//   diamonds are the collectible; label "Collect sparkles".
 // - STEPS unlocks: driftCurrent L15, phase L20, repulsor L25, sweepGate L31
 //   (carved from longer plateaus; total still 40). Soft→sharp after shooting.
 // - CHAPTERS are Signal Story bands by level count (First Light → Arrival),
@@ -14,7 +16,7 @@
 // - Teach-band goals: L1 1250 → L2 2000 → L3 3000 → L4 4000 → L5 7500.
 // - Levels 1–5 Signal Story tutorial: empty → simple → moving → sparkles →
 //   shields. `moving` at L3; sideBarrier/complex later.
-// - Points star from L4; smash star from L5.
+// - Sparkles star from L4; smash star from L5.
 
 // One entry = one difficulty step. `d` is the 0-1 difficulty scalar every
 // tunable lerps from, and `levels` is how long the plateau at that height
@@ -69,21 +71,17 @@ const GOAL_KM_STEP = 500;
 const GOAL_KM_MILESTONE_BONUS = 1000;
 const GOAL_KM_MILESTONE_LEVELS = new Set([10, 15, 20, 25, 30, 35, 40]);
 
-// Points needed for the second star, per 1000 KM (levels with sparkles).
-const POINTS_TARGET_PER_1000KM = 6;
-/** First level that can spawn point sparkles (and earn the points star). */
+// Sparkles needed for the second star, per 1000 KM (levels with sparkles).
+const SPARKLES_TARGET_PER_1000KM = 1;
+/** First level that can spawn sparkles (fuel + sparkles star). */
 export const POINTS_FROM_LEVEL = 4;
 /** First level that can spawn shields (and earn the smash star). */
 export const SHIELDS_FROM_LEVEL = 5;
-const POINTS_STAR_FLOOR = 25;
+const SPARKLES_STAR_FLOOR = 3;
 const SMASH_STAR_FLOOR = 1;
 const SMASH_AFTER_TEACH = 2;
 const SMASH_LEVELS_PER_STEP = 7;
 const SMASH_TARGET_MAX = 6;
-
-function roundTo(value, step) {
-    return Math.round(value / step) * step;
-}
 
 function pickFocus(introduces, setPieces, indexInStep) {
     if (introduces && introduces !== 'simple') return introduces;
@@ -99,12 +97,12 @@ export function starsAvailableFor(level) {
     return 3;
 }
 
-function pointsTargetFor(levelNumber, goalKm) {
+function sparklesTargetFor(levelNumber, goalKm) {
     if (levelNumber < POINTS_FROM_LEVEL) return 0;
-    if (levelNumber === POINTS_FROM_LEVEL) return POINTS_STAR_FLOOR;
+    if (levelNumber === POINTS_FROM_LEVEL) return SPARKLES_STAR_FLOOR;
     return Math.max(
-        POINTS_STAR_FLOOR,
-        roundTo((goalKm / 1000) * POINTS_TARGET_PER_1000KM, 5)
+        SPARKLES_STAR_FLOOR,
+        Math.round((goalKm / 1000) * SPARKLES_TARGET_PER_1000KM)
     );
 }
 
@@ -165,7 +163,7 @@ function buildLevels() {
                 types,
                 focusType: pickFocus(introduces, setPieces, i),
                 introduces,
-                pointsTarget: pointsTargetFor(levelNumber, goalKm),
+                sparklesTarget: sparklesTargetFor(levelNumber, goalKm),
                 smashTarget: smashTargetFor(levelNumber),
                 starSlots,
             });
@@ -207,16 +205,17 @@ export function getChapterFor(level) {
 }
 
 // --- Stars -------------------------------------------------------------------
-// Storage always holds up to three slots (distance / points / smash). Early
+// Storage always holds up to three slots (distance / sparkles / smash). Early
 // levels only expose the first one or two — UI tallies use `starSlots`.
 export const STARS_PER_LEVEL = 3;
 
-export function evaluateStars(descriptor, { completed, points, obstaclesDestroyed }) {
+export function evaluateStars(descriptor, { completed, sparklesCollected, obstaclesDestroyed }) {
     if (!completed) return [false, false, false];
     const slots = descriptor.starSlots ?? starsAvailableFor(descriptor.level);
+    const sparkles = Number(sparklesCollected) || 0;
     return [
         true,
-        slots >= 2 && descriptor.pointsTarget > 0 && points >= descriptor.pointsTarget,
+        slots >= 2 && descriptor.sparklesTarget > 0 && sparkles >= descriptor.sparklesTarget,
         slots >= 3 && descriptor.smashTarget > 0 && obstaclesDestroyed >= descriptor.smashTarget,
     ];
 }
@@ -225,7 +224,7 @@ export function evaluateStars(descriptor, { completed, points, obstaclesDestroye
 export function starLabelsFor(descriptor) {
     const all = [
         'Reach the goal',
-        'Collect points',
+        'Collect sparkles',
         'Smash asteroids',
     ];
     const slots = descriptor?.starSlots ?? STARS_PER_LEVEL;
@@ -236,7 +235,7 @@ export function starLabelsFor(descriptor) {
 export function starLabels() {
     return [
         'Reach the goal',
-        'Collect points',
+        'Collect sparkles',
         'Smash asteroids',
     ];
 }

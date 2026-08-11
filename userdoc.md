@@ -62,13 +62,13 @@ along, and you hear the spoken line on every Journey level.
 1. Empty sky — practice your turn.
 2. Simple asteroids.
 3. A rock that drifts sideways.
-4. Blue point lights (sparkles) — take them; they help hold the signal.
+4. Blue fuel diamonds (sparkles) — take them; they refill your tank.
 5. The shield — survive a hit, smash rocks for the third star.
 
 After that the runs stay longer and the field gets busier. Levels get harder a
 step at a time and then hold there for a while, so you get room to master what
-just arrived before anything new does. The points star opens when sparkles do
-(level 4); the smash star opens with the shield (level 5). Both targets climb
+just arrived before anything new does. The sparkles star opens when fuel diamonds
+do (level 4); the smash star opens with the shield (level 5). Both targets climb
 later without turning into a grind.
 
 Flying Journey is also how you **unlock Space Log entries** — observe and interact
@@ -77,7 +77,7 @@ the first Journey entry.
 
 ### Open Space
 
-The endless run. No finish line: fly until you crash, and see how far you got.
+The endless run. No finish line: fly until you crash or run out of fuel, and see how far you got.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up. **This is the mode with the leaderboard** — if your run lands in the
 top 10 for the flight style you were using (Zigzag or Arc), after Mission Failed
@@ -95,9 +95,9 @@ page). Ranks 1–3 show trophy icons. No account required.
 Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
 out. Then the navigator’s line (Journey) sits on screen sentence by sentence
-with voice and fades; a moment later distance and pause ease in. Points appear
-when you collect your first sparkle; destroyed appears when you smash your
-first asteroid. The ship intro itself can't be skipped.
+with voice and fades; a moment later distance and pause ease in. Once sparkles
+can appear, a blue **FUEL** bar shows under distance; destroyed appears when you
+smash your first asteroid. The ship intro itself can't be skipped.
 
 The levels are grouped into seven story chapters on the Journey map:
 **First Light → The Long Way → Fragments → Deep Static → The Senders → The Source → Arrival**.
@@ -112,10 +112,10 @@ Stars unlock with the teach band — early levels only ask for what you’ve lea
 | Levels | Stars | How to earn them |
 | --- | --- | --- |
 | 1–3 | 1 / 1 | Reach the distance goal. |
-| 4 | 2 / 2 | Goal + points target (sparkles). |
-| 5+ | 3 / 3 | Goal + points + smash asteroids with the shield. |
+| 4 | 2 / 2 | Goal + collect N sparkles. |
+| 5+ | 3 / 3 | Goal + sparkles + smash asteroids with the shield. |
 
-Stars add up across attempts, so you can go back for the points or smash star
+Stars add up across attempts, so you can go back for the sparkles or smash star
 later without repeating the others in the same go. Clearing a level unlocks the
 next one; your progress is saved on your own device and doesn't touch the
 leaderboard.
@@ -163,7 +163,7 @@ Categories:
 | Tab | What it holds |
 | --- | --- |
 | Obstacles | Asteroids, barriers, square blooms, sweeps, repulsors, drift currents, wormholes, black holes, Space BOOP, … |
-| Boosts | Shield, wall boost, point sparkles, style swoosh, finish gate, clear boost, … |
+| Boosts | Shield, wall boost, fuel sparkles, style swoosh, finish gate, clear boost, … |
 | Journey | Day 1…Day 40 navigator transmissions (plus The Call) |
 | From the Void | Reserved for future transmissions — empty for now |
 
@@ -195,11 +195,11 @@ Cross the goal and the game takes over. A shield snaps on, there's a short beat
 to take it in, then the ship keeps the lean you had and hyperspeeds off the top
 of the screen at that angle, the world fades out behind it, and the level screen
 fades in. Rocks you smash and sparkles you grab on the way out still count
-toward your points and destroyed total (and can tip stars) before the results
-lock in. Sit tight for the flyout; it isn't skippable.
+toward your sparkle count and destroyed total (and can tip stars) before the
+results lock in. Sit tight for the flyout; it isn't skippable.
 
 The level screen lists the three objectives, each with the number it was measured
-against: your distance against the goal, your points against the target, and
+against: your distance against the goal, your sparkles against the target, and
 your smash count against the mission target. A filled star means earned, an
 outline means missed, and **NEW** marks one you've just added. Then it's **Next Level**,
 **Replay**, **Level Select**, or **Menu** — or **Retry** if you came up short.
@@ -325,11 +325,15 @@ Top-left, you'll see:
 - **KM** — how far you've flown (your distance score). It tracks the ship's
   actual travel through the world, so the number stays honest on phone and
   desktop alike.
-- **DESTROYED** — how many asteroids you've broken apart.
-- **★ POINTS** — your reward points (see below).
+- **FUEL** — a separate Signal-Blue bar under distance (once sparkles unlock).
+  It drains as you fly; diamonds refill it. Empty means engines die and the run
+  fails.
+- **DESTROYED** — how many asteroids you've broken apart (appears after your
+  first smash).
 
-In Journey the distance line shows **current / goal KM**, with a soft progress
-track underneath (no border) that fills as you close on the target.
+In Journey the distance line shows **current / goal KM**, with a soft ink
+progress track underneath (no border) that fills as you close on the target —
+that track is **not** fuel.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
@@ -344,23 +348,29 @@ on Apple browsers (not identical to Android butter). Zigzag flips as soon as you
 press; wall **BOOP** should be heard as well as seen. Android phones and computers
 keep the full high-refresh path — travel speed stays matched either way.
 
-## Points
+## Fuel and sparkles
 
-There are a few ways to earn points:
+Once sparkles are in play (Journey from level 4; Open Space after the opening
+stretch), your ship burns **fuel** as it flies. A blue **FUEL** bar shows how
+much is left.
 
-- **Destroy an asteroid → +1 point.** You can only destroy asteroids while your
-  **shield** is active. Grab a shield pickup (the pulsing mint "plus"), then fly
-  *through* asteroids to smash them for points.
-- **Collect a sparkle → +10 points.** A glowing **mint four-point sparkle**
-  appears now and then, drifting down the screen. Fly into it to grab it — you'll
-  hear a short chime. The sparkle is always safe to touch — blue means "good" in
-  this universe (it's the same color as your shield).
-- **Thread a narrow gap → +15 style points.** Slip between two obstacles with
-  almost no room on either side — a **SWOOSH** flashes in soft mint and you
-  bank style points. Risky, stylish, worth it.
+- **Collect a diamond → refill fuel.** A glowing **Signal-Blue four-point
+  sparkle** drifts down the corridor. Fly into it — you'll hear a short chime and
+  see **+FUEL**. The tank does not overfill. Miss several in a row and the bar
+  bottoms out: engines coast briefly, then the run fails (**Out of fuel**).
+- Diamonds are always safe to touch — blue means "good" here (same family as
+  the shield).
 
-A little **+1**, **+10**, or **SWOOSH +15** floats up wherever you scored. Your
-total points are shown live in the HUD and again on the mission-end screen.
+Journey's second star asks you to **collect N sparkles** on that level (count,
+not style points). Pause and end screens show your sparkle total.
+
+## Style points
+
+Optional flair — not fuel, not the sparkles star:
+
+- **Destroy an asteroid → +1.** Only while your **shield** is active.
+- **Thread a narrow gap → +15.** A **SWOOSH** flashes when you slip between two
+  obstacles with almost no room. Risky, stylish, worth it.
 
 ## Shields
 
@@ -408,7 +418,8 @@ the app or refresh the site.
 
 - Chain shield time: destroy several asteroids in one shielded run for quick
   points.
-- Don't chase every sparkle into a wall of asteroids — a +10 isn't worth a crash.
+- Don't chase every diamond into a wall of asteroids — fuel isn't worth a crash,
+  but don't ignore diamonds either or the tank will empty.
 - Look for tight corridors between two rocks — threading them pays style points,
   but clipping either side still ends the run.
 - Steady, early turns beat frantic last-second ones.

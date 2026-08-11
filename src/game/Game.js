@@ -2,6 +2,11 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Fuel drain pauses during wormhole hops + brief camera re-seat after exit
+//   (teleport distance must not empty the tank).
+// - Fuel meter: depleting Signal-Blue bar once collectibles are live; diamonds
+//   refill (no overfill); empty → short engine-dying coast → gameOver(fuel).
+//   Sparkles count toward Journey star 2; style points stay smash/swoosh only.
 // - Hazard Lab: beginHazardLab() → PLAY_MODE.hazardLab; finish/crash skips
 //   journeyProgress; outcome uses LevelOutcomeScreen; exit/back → Journey map.
 //   isLevelRun() covers Journey + Hazard Lab for flyout / outcome UI.
@@ -259,7 +264,13 @@ export class Game {
         this.ctx = this.canvas.getContext('2d', ctxOpts);
         this.baseUnit = 0;
         this.score = 0;
-        this.points = 0; // Points system: +1 per asteroid destroyed, +10 per collectible
+        this.points = 0; // Style points: smash + swoosh only (not fuel)
+        this.fuel = config.fuel?.start ?? 1;
+        this.fuelDying = false;
+        this.fuelDyingStart = null;
+        this.fuelPauseTeleportUntil = 0; // hop + camera catch-up: no fuel drain
+        this.failReason = null; // 'crash' | 'fuel' | null
+        this.sparklesCollected = 0;
         this.isGameOver = false;
         this.gameOverAlpha = 0;
         this.explosionParticles = [];
@@ -708,7 +719,18 @@ export class Game {
                 || this.hudRevealPhase === 'wait'
                 || this.hudRevealPhase === 'chips';
             if (kmLive) {
-                this.score += Math.abs(this.camera.y - prevCameraY) * (100 / 60);
+                const kmDelta = Math.abs(this.camera.y - prevCameraY) * (100 / 60);
+                this.score += kmDelta;
+                this.drainFuel(kmDelta);
+            }
+
+            // Engines-out coast finished → fail (distinct from crash).
+            if (this.fuelDying && this.fuelDyingStart != null) {
+                const dur = this.config.fuel?.dyingDurationMs ?? 900;
+                if (performance.now() - this.fuelDyingStart >= dur) {
+                    this.gameOver({ reason: 'fuel' });
+                    return;
+                }
             }
 
             this.obstacleManager.update();
@@ -726,6 +748,44 @@ export class Game {
                 this.completeRun();
             }
         }
+    }
+
+    /** Fuel HUD + drain only once sparkles can spawn for this run. */
+    isFuelLive() {
+        if (this.collectibleManager?.enabled) return true;
+        const from = this.profile?.collectiblesFromScore;
+        if (from == null || !Number.isFinite(from)) return false;
+        return this.score >= from;
+    }
+
+    drainFuel(kmDelta) {
+        if (this.fuelDying || this.isGameOver) return;
+        if (!this.isFuelLive()) return;
+        // Skip drain during level-clear flyout / obstacle cutscenes.
+        if (this.levelClear || this.obstacleManager?.inCutscene) return;
+        // Portal hop: ship freezes, then snaps ahead — camera catch-up would
+        // otherwise charge the free teleport distance as fuel.
+        if (this.spacecraft?.wormholeTransit) return;
+        if (performance.now() < (this.fuelPauseTeleportUntil ?? 0)) return;
+
+        const drain = this.config.fuel?.drainPerKm ?? 0.00025;
+        this.fuel = Math.max(0, (this.fuel ?? 0) - kmDelta * drain);
+        if (this.fuel <= 0) {
+            this.beginFuelDying();
+        }
+    }
+
+    /** Pause fuel burn for the hop fade + camera re-seat after exit. */
+    noteTeleportFuelPause() {
+        // Entry fade is 300ms; keep pause through ~1s of catch-up after emerge.
+        this.fuelPauseTeleportUntil = performance.now() + 1400;
+    }
+
+    beginFuelDying() {
+        if (this.fuelDying || this.isGameOver) return;
+        this.fuel = 0;
+        this.fuelDying = true;
+        this.fuelDyingStart = performance.now();
     }
 
     // Title alone → as soon as it clears, open the belt and start chip fades.
@@ -857,9 +917,9 @@ export class Game {
                 if (this.gameOverAlpha <= 0) return;
             }
 
-            // Crash: keep the world under the blast (fading), then crossfade the
-            // end screen — no blank-paper gap between explosion and Mission Failed.
-            if (this.runOutcome === 'crashed') {
+            // Crash / fuel-out: keep the world fading under the end screen.
+            // Crash adds blast particles; fuel keeps the dead ship visible briefly.
+            if (this.runOutcome === 'crashed' || this.runOutcome === 'fuel') {
                 const blastT = Math.min(1, timeSinceGameOver / deceleration);
                 const worldAlpha = Math.max(0, 1 - blastT * 1.2);
                 if (worldAlpha > 0.02) {
@@ -869,7 +929,7 @@ export class Game {
                     this.ctx.restore();
                 }
 
-                if (timeSinceGameOver < deceleration) {
+                if (this.runOutcome === 'crashed' && timeSinceGameOver < deceleration) {
                     for (const particle of this.explosionParticles) {
                         this.ctx.fillStyle = `rgba(${color.inkRgb}, ${particle.opacity})`;
                         this.ctx.beginPath();
@@ -1163,8 +1223,8 @@ export class Game {
         const unit = this.baseUnit;
         const inset = unit * 2;
         const journey = !this.profile.isEndless;
+        const fuelLive = this.isFuelLive();
 
-        const pointsA = this.hudRevealAlpha('points');
         const destroyedA = this.hudRevealAlpha('destroyed');
         const distanceA = this.hudRevealAlpha('distance');
 
@@ -1181,6 +1241,9 @@ export class Game {
         ctx.fillStyle = color.ink;
 
         let goalBarH = 0;
+        let fuelBarBlockH = 0;
+        let barW = unit * 10;
+
         if (distanceA > 0.01) {
             ctx.save();
             ctx.globalAlpha *= distanceA;
@@ -1211,7 +1274,7 @@ export class Game {
                 ctx.fillText('KM', x + kmGap, distY);
                 x += kmGap + ctx.measureText('KM').width;
 
-                const barW = Math.min(
+                barW = Math.min(
                     Math.max(x - inset, unit * 8),
                     this.width - inset * 2,
                 );
@@ -1225,6 +1288,10 @@ export class Game {
                 setLabelType(ctx, unitSize);
                 ctx.fillStyle = color.ink55;
                 ctx.fillText('KM', inset + distW + unit * 0.55, distY);
+                barW = Math.min(
+                    Math.max(distW + unit * 4, unit * 8),
+                    this.width - inset * 2,
+                );
             }
 
             ctx.restore();
@@ -1232,8 +1299,23 @@ export class Game {
             goalBarH = unit * 1.15;
         }
 
+        // Separate Signal-Blue fuel track (not the Journey KM goal bar).
+        if (fuelLive && distanceA > 0.01) {
+            ctx.save();
+            ctx.globalAlpha *= distanceA;
+            const fuelTop = distY + goalBarH + unit * 0.55;
+            const lblSize = Math.max(8, unit * 0.72);
+            setLabelType(ctx, lblSize);
+            ctx.fillStyle = color.ink55;
+            ctx.fillText('FUEL', inset, fuelTop + lblSize * 0.15);
+            const fuelBarY = fuelTop + unit * 0.55;
+            this.drawFuelBar(inset, fuelBarY, barW);
+            fuelBarBlockH = unit * 1.55;
+            ctx.restore();
+        }
+
         // Obstacles destroyed — in Journey, also the smash-star mission target.
-        const rowY = distY + goalBarH + unit * 1.55;
+        const rowY = distY + goalBarH + fuelBarBlockH + unit * 1.55;
         const lblSize = Math.max(9, unit * 0.8);
         if (destroyedA > 0.01) {
             ctx.save();
@@ -1249,27 +1331,6 @@ export class Game {
                 ? `${this.obstaclesDestroyed} / ${this.profile.smashTarget}`
                 : `${this.obstaclesDestroyed}`;
             ctx.fillText(destroyedStr, inset + lblW + unit * 0.9, rowY);
-            ctx.restore();
-        }
-
-        // Points — the reward metric. A small Signal-Blue sparkle marks the row,
-        // then a POINTS label + mono figure (matching the DESTROYED row above).
-        const ptsRowY = rowY + unit * 1.8;
-        if (pointsA > 0.01) {
-            ctx.save();
-            ctx.globalAlpha *= pointsA;
-            const spR = unit * 0.55;
-            drawSparkle(ctx, inset + spR, ptsRowY - lblSize * 0.35, spR, { fill: color.signal });
-
-            setLabelType(ctx, lblSize);
-            ctx.fillStyle = color.ink55;
-            const ptsLblX = inset + spR * 2 + unit * 0.7;
-            ctx.fillText('POINTS', ptsLblX, ptsRowY);
-            const ptsLblW = ctx.measureText('POINTS').width;
-
-            setMonoType(ctx, unit * 1.35);
-            ctx.fillStyle = color.ink;
-            ctx.fillText(`${this.points}`, ptsLblX + ptsLblW + unit * 0.9, ptsRowY);
             ctx.restore();
         }
 
@@ -1290,6 +1351,29 @@ export class Game {
         ctx.fillStyle = color.ink06;
         ctx.fillRect(x, y, width, height);
         ctx.fillStyle = color.ink;
+        ctx.fillRect(x, y, Math.max(0, filled), height);
+        ctx.restore();
+    }
+
+    // Survival fuel track — Signal Blue fill; soft pulse when low.
+    drawFuelBar(x, y, width) {
+        const ctx = this.ctx;
+        const unit = this.baseUnit;
+        const height = unit * 0.32;
+        const max = this.config.fuel?.max ?? 1;
+        const frac = Math.max(0, Math.min(1, (this.fuel ?? 0) / max));
+        const filled = width * frac;
+        const low = frac <= (this.config.fuel?.lowThreshold ?? 0.28);
+
+        ctx.save();
+        ctx.fillStyle = color.ink06;
+        ctx.fillRect(x, y, width, height);
+        let alpha = 1;
+        if (low && frac > 0) {
+            alpha = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(performance.now() / 160));
+        }
+        ctx.globalAlpha *= alpha;
+        ctx.fillStyle = color.signal;
         ctx.fillRect(x, y, Math.max(0, filled), height);
         ctx.restore();
     }
@@ -1355,7 +1439,8 @@ export class Game {
             { valuePx: statValuePx, labelPx: statLabelPx }
         );
         this.drawStatColumn(
-            L.centerX + colGap / 2 + colW / 2, y, ScoreService.formatScore(this.points), 'POINTS',
+            L.centerX + colGap / 2 + colW / 2, y,
+            ScoreService.formatScore(this.sparklesCollected), 'SPARKLES',
             { sparkle: true, valuePx: statValuePx, labelPx: statLabelPx }
         );
 
@@ -2271,6 +2356,12 @@ export class Game {
     resetRunState() {
         this.score = 0;
         this.points = 0;
+        this.fuel = this.config.fuel?.start ?? 1;
+        this.fuelDying = false;
+        this.fuelDyingStart = null;
+        this.fuelPauseTeleportUntil = 0;
+        this.failReason = null;
+        this.sparklesCollected = 0;
         this.isGameOver = false;
         this.gameOverAlpha = 0;
         this.gameOverScreen = 'main';
@@ -2381,7 +2472,9 @@ export class Game {
         y += titlePx * 1.1 + L.row;
 
         const subText = this.endFlavor
-            || (this.hasWon ? pickCopy('victory') : pickCopy('crash'));
+            || (this.hasWon
+                ? pickCopy('victory')
+                : (this.failReason === 'fuel' ? pickCopy('fuelOut') : pickCopy('crash')));
         ctx.font = `500 ${subPx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
         ctx.fillText(subText, L.centerX, y + subPx * 0.6);
@@ -2391,7 +2484,7 @@ export class Game {
         drawDivider(ctx, L.left, L.right, y);
         y += L.section / 2;
 
-        // --- Stats: headline distance, then destroyed | points ---------------
+        // --- Stats: headline distance, then destroyed | sparkles -------------
         const distStr = ScoreService.formatScore(this.finalScore);
         ctx.save();
         ctx.textBaseline = 'middle';
@@ -2423,7 +2516,7 @@ export class Game {
             { valuePx: statValuePx, labelPx: statLabelPx }
         );
         this.drawStatColumn(
-            rightCx, y, ScoreService.formatScore(this.points), 'POINTS',
+            rightCx, y, ScoreService.formatScore(this.sparklesCollected), 'SPARKLES',
             { sparkle: true, valuePx: statValuePx, labelPx: statLabelPx }
         );
 
@@ -2756,15 +2849,20 @@ export class Game {
                 unlockedNext: false,
                 score: this.score,
                 points: this.points,
+                sparklesCollected: this.sparklesCollected,
                 obstaclesDestroyed: this.obstaclesDestroyed,
                 flavor: completed
                     ? 'Lab clear. The new rocks behaved.'
-                    : 'Lab interrupted. The rocks are still curious.',
+                    : (this.failReason === 'fuel'
+                        ? pickCopy('fuelOut')
+                        : 'Lab interrupted. The rocks are still curious.'),
                 isHazardLab: true,
             };
             track('hazard_lab_end', {
                 'completed': completed,
                 'points': this.points,
+                'sparkles': this.sparklesCollected,
+                'fail_reason': this.failReason ?? (completed ? 'none' : 'crash'),
                 'distance': Math.floor(this.score),
             });
             return;
@@ -2773,7 +2871,7 @@ export class Game {
         const descriptor = getLevel(this.journeyLevel);
         const stars = evaluateStars(descriptor, {
             completed,
-            points: this.points,
+            sparklesCollected: this.sparklesCollected,
             obstaclesDestroyed: this.obstaclesDestroyed,
         });
 
@@ -2789,6 +2887,14 @@ export class Game {
             this.logbook?.onLevelCleared?.(descriptor.level);
         }
 
+        const flavor = (!completed && this.failReason === 'fuel')
+            ? pickCopy('fuelOut')
+            : pickCopy(journeyFlavorPool({
+                completed,
+                stars: result.stars,
+                descriptor,
+            }, TOTAL_LEVELS));
+
         this.levelOutcome = {
             descriptor,
             completed,
@@ -2797,12 +2903,9 @@ export class Game {
             unlockedNext: result.unlockedNext,
             score: this.score,
             points: this.points,
+            sparklesCollected: this.sparklesCollected,
             obstaclesDestroyed: this.obstaclesDestroyed,
-            flavor: pickCopy(journeyFlavorPool({
-                completed,
-                stars: result.stars,
-                descriptor,
-            }, TOTAL_LEVELS)),
+            flavor,
         };
 
         track('journey_level_end', {
@@ -2811,6 +2914,8 @@ export class Game {
             'completed': completed,
             'stars': result.stars.slice(0, descriptor.starSlots ?? 3).filter(Boolean).length,
             'points': this.points,
+            'sparkles': this.sparklesCollected,
+            'fail_reason': this.failReason ?? (completed ? 'none' : 'crash'),
             'distance': Math.floor(this.score),
         });
     }
@@ -2871,29 +2976,38 @@ export class Game {
         this.highScores = highScores;
     }
 
-    async gameOver() {
+    async gameOver(options = {}) {
         if (!this.isGameOver) {
+            const reason = options.reason === 'fuel' ? 'fuel' : 'crash';
+            this.failReason = reason;
             this.introNarration?.dispose?.();
             this.introNarration = null;
             this.soundManager.stopLevelVoice?.({ notify: false });
             this.soundManager.stopBGM();
-            this.soundManager.playCrash();
-            this.soundManager.playExplosion();
+            if (reason === 'crash') {
+                this.soundManager.playCrash();
+                this.soundManager.playExplosion();
+            }
             this.isGameOver = true;
             this.appScreen = 'gameover';
             this.gameOverScreen = 'main';
-            this.runOutcome = 'crashed';
+            this.runOutcome = reason === 'fuel' ? 'fuel' : 'crashed';
             this.gameOverStartTime = performance.now();
             this.finalScore = Math.floor(this.score);
 
             // Hide pause button
             this.updatePauseButtonVisibility();
 
-            this.explosionParticles = this.createExplosionParticles(
-                this.spacecraft.x,
-                this.spacecraft.y
-            );
-            this.spacecraft.isVisible = false;
+            if (reason === 'crash') {
+                this.explosionParticles = this.createExplosionParticles(
+                    this.spacecraft.x,
+                    this.spacecraft.y
+                );
+                this.spacecraft.isVisible = false;
+            } else {
+                // Engines out — ship stays visible, no blast.
+                this.explosionParticles = [];
+            }
 
             // Journey / Hazard Lab: no rank lookup, no leaderboard prompt.
             if (this.isLevelRun()) {
@@ -2901,7 +3015,7 @@ export class Game {
                 return;
             }
 
-            this.endFlavor = pickCopy('crash');
+            this.endFlavor = reason === 'fuel' ? pickCopy('fuelOut') : pickCopy('crash');
 
             // Local personal best for the Play → Open World card (device-only).
             const bestResult = recordOpenWorldScore(
@@ -2916,6 +3030,8 @@ export class Game {
                 'score': this.finalScore,
                 'obstacles_destroyed': this.obstaclesDestroyed,
                 'points': this.points,
+                'sparkles': this.sparklesCollected,
+                'fail_reason': reason,
                 'distance': Math.floor(this.score),
                 'flight_style': this.flightStyle,
             });

@@ -1,10 +1,11 @@
 // Collectible.js
-// A randomly-spawned points pickup ("star shard"): an on-brand Signal-Blue
-// four-point sparkle with a soft glow halo and a gentle pulse. Collecting one
-// awards config.points.perCollectible. Blue is the game's single accent and
-// means "good / active" (the same hue as the shield), so it reads as safe to
-// grab versus the solid-ink hazards.
+// A randomly-spawned fuel diamond: an on-brand Signal-Blue four-point sparkle
+// with a soft glow halo and a gentle pulse. Collecting one refills ship fuel
+// (see CollectibleManager / GameConfig.fuel). Blue is the game's single accent
+// and means "good / active" (the same hue as the shield), so it reads as safe
+// to grab versus the solid-ink hazards.
 // Changes:
+// - Copy: fuel refill diamond (not style points).
 // - Phase 1: cheap Canvas uses pre-baked glow sprite (drawImage) so iOS can
 //   show the halo again without createRadialGradient / soft path fills.
 // - iOS draw LOD (without sprites): skip soft signalSoft halo.

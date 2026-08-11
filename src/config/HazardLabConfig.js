@@ -3,6 +3,7 @@
 // Always opened from the Journey map Hazard Lab tile; does not touch
 // journeyProgress or STEPS unlocks.
 // Changes:
+// - `sparklesTarget` (was pointsTarget) — lab has no star objectives.
 // - Roster: phase, sweepGate, repulsor, driftCurrent.
 // - Intro mentions push nodes + drift lanes.
 // - Created file: HAZARD_LAB descriptor (types, goal, mid difficulty, no stars).
@@ -18,7 +19,7 @@ export const HAZARD_LAB = {
     types: ['phase', 'sweepGate', 'repulsor', 'driftCurrent'],
     focusType: null,
     introduces: null,
-    pointsTarget: 0,
+    sparklesTarget: 0,
     smashTarget: 0,
     starSlots: 0,
     isHazardLab: true,

@@ -1,20 +1,18 @@
 // CollectibleManager.js
-// Spawns randomly-placed point collectibles (see Collectible.js) during active
-// gameplay, updates them, and awards points on pickup with a floating "+N"
-// popup (Signal Blue, Space Mono) plus the pickup sound.
+// Spawns randomly-placed Signal-Blue sparkles (see Collectible.js) during active
+// gameplay, updates them, and on pickup refills fuel + counts sparkles with a
+// floating "+FUEL" popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
+// - Collect refills clamped fuel and increments sparklesCollected (no points).
+// - Popup text is "+FUEL"; no salvage once fuelDying has started.
 // - Spawn also respects obstacleManager.pauseSpawning so the level-clear flyout
 //   can tick collection without planting new sparkles ahead of the exit.
 // - Enable gate is profile score only (no tutorial hold) so Journey @ 0 KM can
 //   show sparkles with the belt; cutscene still pauses new spawns.
-// - First sparkle collect unlocks the POINTS HUD row (Game.noteHudPointsFromCollect).
 // - Journey Logbook: observe on-screen sparkles; interact on collect.
 // - Popup motion uses `game.dt` so float speed matches ship pacing across FPS.
-// - The distance sparkles start appearing at now comes from `game.profile`, so a
-//   short Journey level isn't half over before the first one shows up.
-// - Collect now plays SoundManager.playCollect() (sparkle chime) instead of the
-//   missing powerup.mp3 path, so diamond pickups actually make a sound.
-// - Created file: manages spawn cadence, collection -> game.points, and popups.
+// - The distance sparkles start appearing at now comes from `game.profile`.
+// - Collect plays SoundManager.playCollect() (sparkle chime).
 
 import { Collectible } from '../entities/Collectible.js';
 import { color } from '../brand/tokens.js';
@@ -52,8 +50,9 @@ export class CollectibleManager {
         this.collectibles.forEach(c => c.update());
 
         // Collect on contact; otherwise drop once well below the camera.
+        // No salvage after engines start dying (fuel already at 0).
         this.collectibles = this.collectibles.filter(c => {
-            if (c.checkCollision(this.game.spacecraft)) {
+            if (!this.game.fuelDying && c.checkCollision(this.game.spacecraft)) {
                 this.collect(c);
                 return false;
             }
@@ -78,8 +77,11 @@ export class CollectibleManager {
     }
 
     collect(collectible) {
-        this.game.points += this.game.config.points.perCollectible;
-        this.game.noteHudPointsFromCollect?.();
+        const fuelCfg = this.game.config.fuel;
+        const max = fuelCfg?.max ?? 1;
+        const refill = fuelCfg?.refillPerCollectible ?? 0.42;
+        this.game.fuel = Math.min(max, (this.game.fuel ?? 0) + refill);
+        this.game.sparklesCollected = (this.game.sparklesCollected ?? 0) + 1;
         this.game.soundManager?.playCollect?.();
         this.game.logbook?.onSparkleCollected?.();
         this.popups.push({
@@ -87,7 +89,7 @@ export class CollectibleManager {
             y: collectible.y,
             vy: -2,
             opacity: 1,
-            text: `+${this.game.config.points.perCollectible}`,
+            text: '+FUEL',
         });
     }
 
