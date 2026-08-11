@@ -1,17 +1,15 @@
 // Analytics.js
 // One place to record a game event, whatever the platform underneath.
 // Changes:
-// - Created file: Game.js called the global `gtag` directly, which only exists
-//   because index.html loads a remote Google Analytics script. That is a poor
-//   fit for a packaged app — it is a network dependency at boot, it is unreliable
-//   inside a WebView, and any remote-loaded tracker has to be declared in
-//   Apple's privacy nutrition labels and Play's Data Safety form.
-//
-// So: web keeps gtag, native records nothing until a native SDK is wired in.
-// Callers no longer care, and `gtag` is never referenced as a bare global (it
-// threw a ReferenceError whenever the script was blocked).
+// - Web: Google Analytics via gtag (measurement ID G-SMEY63Z40C).
+// - Native (Capacitor Android / Cap iOS): Firebase Analytics via
+//   @capacitor-firebase/analytics once google-services.json /
+//   GoogleService-Info.plist are present. Failures never break a run.
+// - Shipping SpriteKit iOS (`ios-native/`) is a separate binary and is not
+//   covered by this module until Firebase is added there.
 
 import { Capacitor } from '@capacitor/core';
+import { FirebaseAnalytics } from '@capacitor-firebase/analytics';
 
 const MEASUREMENT_ID = 'G-SMEY63Z40C';
 
@@ -45,11 +43,9 @@ export function initAnalytics() {
  */
 export function track(name, params = {}) {
     if (isNative()) {
-        // Intentionally a no-op for now. Wiring Firebase Analytics here
-        // (@capacitor-firebase/analytics) needs a Firebase project plus the
-        // google-services.json / GoogleService-Info.plist config files, and
-        // both stores then need the SDK declared. Until those exist, shipping
-        // no telemetry is the correct and compliant default.
+        FirebaseAnalytics.logEvent({ name, params }).catch(() => {
+            // Analytics must never be able to break a run.
+        });
         return;
     }
 

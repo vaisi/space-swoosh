@@ -1,7 +1,7 @@
 <!--
   docs/STORE_COMPLIANCE.md
-  Changes: Supabase checklist now points at vaisi's Project + the high_scores
-  migration (already applied). Complete store forms before first submission.
+  Changes: Firebase Analytics on Capacitor Android — declare gameplay analytics
+  in Data Safety / App Privacy; Ad ID collection disabled in AndroidManifest.
 -->
 
 # Store compliance checklist
@@ -34,9 +34,16 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 ## Google Play Console
 
 - [ ] Privacy policy URL on the store listing.
-- [ ] Data safety form: same categories as above; data encrypted in transit; users can request deletion via support email.
+- [ ] Data safety form: Name (optional, leaderboard), Gameplay content, Purchase history, **App activity / analytics** (Firebase); data encrypted in transit; users can request deletion via support email. Advertising ID is **not** collected (`google_analytics_adid_collection_enabled=false`).
 - [ ] IARC content rating questionnaire.
 - [ ] If the developer account is personal and created after Nov 2023: start a closed test with 12 testers for 14 days before production.
+
+## Firebase (Android)
+
+- Project: `spaceswoosh-faa9c` (package `com.orbi.spaceswoosh`).
+- Place `google-services.json` at `android/app/google-services.json` (gitignored; each machine / CI must supply it).
+- Events flow through `src/services/Analytics.js` → `@capacitor-firebase/analytics`.
+- Debug: enable Analytics DebugView for the device, then play a run and watch `game_over` / `journey_level_end` in Firebase Console.
 
 ## PrivacyInfo.xcprivacy
 

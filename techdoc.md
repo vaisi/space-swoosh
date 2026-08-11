@@ -43,10 +43,11 @@
 > when nothing is stored. Dark: charcoal paper, bone ink, vivid mint (`#3DFF9A`).
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
-> **BUILD 26 (Android store):** Premium ships IAP + menu browse/buy. `UNLOCK_ALL_SKINS = false`
-> for store — Focus/Flicker/Ember/Saber free; all other ships gated via RevenueCat.
-> Menu stamp `BUILD 26 · NATIVE` /
-> `WEB`. versionCode **26** / versionName **1.0.26**.
+> **BUILD 27 (Android store):** Firebase Analytics on Capacitor Android
+> (`@capacitor-firebase/analytics`). Premium ships IAP + menu browse/buy.
+> `UNLOCK_ALL_SKINS = false` for store — Focus/Flicker/Ember/Saber free; all
+> other ships gated via RevenueCat. Menu stamp `BUILD 27 · NATIVE` / `WEB`.
+> versionCode **27** / versionName **1.0.27**.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
@@ -77,7 +78,8 @@ There are **two play modes**, chosen from Play:
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
   Capacitor 8 for **Android** (and legacy Cap iOS reference tree), **native
   SpriteKit/SwiftUI** for shipping iOS under `ios-native/`, Supabase for the
-  online leaderboard, Google Analytics (`gtag`) on web only.
+  online leaderboard, Google Analytics (`gtag`) on web, Firebase Analytics on
+  Capacitor Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`).
 - **Entry:** `index.html` → `src/main.js` → `new Game(GameConfig)` → boots to
   the **main menu** (`appScreen = 'menu'`). On native, `initNative()` then wires
   hardware back, lifecycle pause, keep-awake, status bar and splash dismissal.
@@ -133,7 +135,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
 | `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics, Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
-| `services/Analytics.js` | Platform analytics: gtag on web, no-op on native until Firebase is wired. |
+| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership cache + purchase / restore. Free = no `productId` (Focus/Flicker/Ember/Saber). `UNLOCK_ALL_SKINS` is **`false` for store**; set `true` only for local playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
@@ -781,7 +783,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
   playfield edges read on desktop (centered, max-width 500px, 2:3). Mobile fills
   the safe area with the charcoal stage; bone ink shows in notch / home-indicator
   insets. `theme-color` matches the bone surround. Native status bar uses
-  `Style.Dark` + charcoal background. Menu stamp: `BUILD 26 · NATIVE` / `WEB`.
+  `Style.Dark` + charcoal background. Menu stamp: `BUILD 27 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at

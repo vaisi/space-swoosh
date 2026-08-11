@@ -27,5 +27,16 @@
     "backgroundColor": "#e1d9c1",
     "contentInset": "never",
     "scrollEnabled": false
+  },
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capacitor-firebase/analytics": {
+            "symlink": true
+          }
+        }
+      }
+    }
   }
 }
