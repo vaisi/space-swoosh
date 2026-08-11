@@ -93,6 +93,10 @@
 //   lock; closeNameInputModal() is shared by the modal close button and Android
 //   hardware back (game/BackNavigation.js). Analytics goes through
 //   services/Analytics.js instead of bare gtag (which threw when blocked).
+// - Analytics: run-end events include ship_id; equip_ship fires when an owned
+//   ship is selected (menu cycle / tile). Use ship_id breakdown for most-played.
+//   Prefs: set_theme (light|dark), set_sound (on|off master mute), 
+//   set_sound_channel (music|sfx|voice + on|off).
 // - Screen-header Back control: slightly wider tile + smaller labelPx so the
 //   word isn't jammed against the left frame on mobile.
 // - Clearing a Journey level runs a flyout (game/LevelClearSequence.js) instead of
@@ -1543,7 +1547,10 @@ export class Game {
         if (this.isClickInButton(x, y, buttons.resume)) {
             this.togglePause();
         } else if (this.isClickInButton(x, y, buttons.sound)) {
-            this.soundManager?.toggleMuted?.();
+            const muted = this.soundManager?.toggleMuted?.();
+            if (typeof muted === 'boolean') {
+                track('set_sound', { sound: muted ? 'off' : 'on' });
+            }
         } else if (this.isClickInButton(x, y, buttons.exit)) {
             this.exitRun();
         }
@@ -2243,7 +2250,11 @@ export class Game {
         const next = list[(index + delta + list.length) % list.length];
         this.menuShipBrowseId = next.id;
         if (isSkinOwned(next.id)) {
+            const prev = this.shipSkinId;
             this.shipSkinId = saveShipSkinId(next.id);
+            if (prev !== next.id) {
+                track('equip_ship', { ship_id: next.id });
+            }
         }
         this.setPurchaseStatus(null, 0);
     }
@@ -2269,7 +2280,11 @@ export class Game {
         this.menuShipBrowseId = skinId;
 
         if (isSkinOwned(skinId)) {
+            const prev = this.shipSkinId;
             this.shipSkinId = saveShipSkinId(skinId);
+            if (prev !== skinId) {
+                track('equip_ship', { ship_id: skinId });
+            }
             this.shipPickerOfferPlay = true;
             this.setPurchaseStatus(null, 0);
             return;
@@ -2285,6 +2300,7 @@ export class Game {
                 this.shipPickerOfferPlay = true;
                 this.setPurchaseStatus('Unlocked.');
                 track('purchase_skin', { skin_id: skinId });
+                track('equip_ship', { ship_id: skinId });
             } else if (result.cancelled) {
                 this.setPurchaseStatus(null, 0);
             } else {
@@ -2913,6 +2929,7 @@ export class Game {
                 'sparkles': this.sparklesCollected,
                 'fail_reason': this.failReason ?? (completed ? 'none' : 'crash'),
                 'distance': Math.floor(this.score),
+                'ship_id': this.shipSkinId,
             });
             return;
         }
@@ -2966,6 +2983,7 @@ export class Game {
             'sparkles': this.sparklesCollected,
             'fail_reason': this.failReason ?? (completed ? 'none' : 'crash'),
             'distance': Math.floor(this.score),
+            'ship_id': this.shipSkinId,
         });
     }
 
@@ -3083,6 +3101,7 @@ export class Game {
                 'fail_reason': reason,
                 'distance': Math.floor(this.score),
                 'flight_style': this.flightStyle,
+                'ship_id': this.shipSkinId,
             });
 
             try {
@@ -3326,7 +3345,8 @@ export class Game {
                     return;
                 }
                 if (this.isClickInButton(x, y, this.optionsHubButtons.theme)) {
-                    toggleTheme();
+                    const theme = toggleTheme();
+                    track('set_theme', { theme });
                     syncStatusBarTheme().catch(() => {});
                     return;
                 }
@@ -3371,11 +3391,20 @@ export class Game {
                 if (this.isClickInButton(x, y, this.optionsButtons.back)) {
                     this.appScreen = 'options';
                 } else if (this.isClickInButton(x, y, this.optionsButtons.music)) {
-                    this.soundManager?.toggleMusicEnabled?.();
+                    const on = this.soundManager?.toggleMusicEnabled?.();
+                    if (typeof on === 'boolean') {
+                        track('set_sound_channel', { channel: 'music', enabled: on ? 'on' : 'off' });
+                    }
                 } else if (this.isClickInButton(x, y, this.optionsButtons.sfx)) {
-                    this.soundManager?.toggleSfxEnabled?.();
+                    const on = this.soundManager?.toggleSfxEnabled?.();
+                    if (typeof on === 'boolean') {
+                        track('set_sound_channel', { channel: 'sfx', enabled: on ? 'on' : 'off' });
+                    }
                 } else if (this.isClickInButton(x, y, this.optionsButtons.voice)) {
-                    this.soundManager?.toggleVoiceEnabled?.();
+                    const on = this.soundManager?.toggleVoiceEnabled?.();
+                    if (typeof on === 'boolean') {
+                        track('set_sound_channel', { channel: 'voice', enabled: on ? 'on' : 'off' });
+                    }
                 }
                 return;
             }

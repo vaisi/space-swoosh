@@ -135,7 +135,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
 | `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics, Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
-| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. |
+| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme` (`theme` light\|dark), `set_sound` (`sound` on\|off), `set_sound_channel` (`channel` + `enabled`). |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership cache + purchase / restore. Free = no `productId` (Focus/Flicker/Ember/Saber). `UNLOCK_ALL_SKINS` is **`false` for store**; set `true` only for local playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
@@ -815,7 +815,9 @@ one style → `Personal best: X KM`; both → `Zigzag: A KM · Arc: B KM` (zeros
 
 `points` / `sparklesCollected` are **local only** — not on the Supabase
 leaderboard; both are included in the `game_over` GA event (`fail_reason`:
-`crash` | `fuel`).
+`crash` | `fuel`). Run-end events also send `ship_id` (roster skin id). In
+Firebase Explorations, break down `game_over` + `journey_level_end` by
+`ship_id` (event count or users) for most-played ship.
 
 ### Fuel system (data flow)
 

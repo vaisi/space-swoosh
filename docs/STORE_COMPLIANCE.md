@@ -44,6 +44,8 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 - Place `google-services.json` at `android/app/google-services.json` (gitignored; each machine / CI must supply it).
 - Events flow through `src/services/Analytics.js` → `@capacitor-firebase/analytics`.
 - Debug: enable Analytics DebugView for the device, then play a run and watch `game_over` / `journey_level_end` in Firebase Console.
+- Most-played ship: break down `game_over` / `journey_level_end` by `ship_id` (also `equip_ship` for menu selection).
+- Theme / sound: `set_theme` (`theme`), `set_sound` (master mute on/off), `set_sound_channel` (music/sfx/voice).
 
 ## PrivacyInfo.xcprivacy
 

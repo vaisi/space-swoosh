@@ -7,6 +7,8 @@
 //   GoogleService-Info.plist are present. Failures never break a run.
 // - Shipping SpriteKit iOS (`ios-native/`) is a separate binary and is not
 //   covered by this module until Firebase is added there.
+// - Run-end / equip events carry ship_id so Firebase can rank most-played ships.
+// - Pref events: set_theme, set_sound (master), set_sound_channel (music/sfx/voice).
 
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAnalytics } from '@capacitor-firebase/analytics';
