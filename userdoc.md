@@ -352,7 +352,8 @@ stretch), your ship burns **fuel** as it flies. The HUD sparkle icon + blue bar
 shows how much is left.
 
 - **Collect a diamond → refill fuel.** A glowing **Signal-Blue four-point
-  sparkle** drifts down the corridor. Fly into it — you'll hear a short chime and
+  sparkle** drifts down the corridor. Fly close and it gently slides toward your
+  ship; you still need to touch it to collect — you'll hear a short chime and
   see **+FUEL**. The tank does not overfill. Miss several in a row and the bar
   bottoms out: engines coast briefly, then the run fails (**Out of fuel**).
 - Diamonds are always safe to touch — blue means "good" here (same family as

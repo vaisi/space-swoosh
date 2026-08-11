@@ -5,6 +5,8 @@
 // and means "good / active" (the same hue as the shield), so it reads as safe
 // to grab versus the solid-ink hazards.
 // Changes:
+// - Soft magnet: when within ~3.5× ship radius (and not fuelDying), ease world
+//   position toward the ship with proximity falloff; collect still on contact.
 // - Copy: fuel refill diamond (not style points).
 // - Phase 1: cheap Canvas uses pre-baked glow sprite (drawImage) so iOS can
 //   show the halo again without createRadialGradient / soft path fills.
@@ -34,6 +36,24 @@ export class Collectible {
         const tickScale = this.game?.tickScale ?? 1;
         this.pulsePhase += 0.06 * tickScale;
         this.rotation += 0.01 * tickScale;
+
+        // Tight soft magnet — near-miss assist only; no salvage once engines die.
+        const ship = this.game?.spacecraft;
+        if (!ship || this.game.fuelDying) return;
+
+        const fuelCfg = this.game.config?.fuel;
+        const magnetRadius = ship.radius * (fuelCfg?.magnetRadiusScale ?? 3.5);
+        const dx = ship.x - this.x;
+        const dy = ship.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= 0 || dist >= magnetRadius) return;
+
+        const pull = fuelCfg?.magnetPull ?? 0.12;
+        const t = pull * tickScale * (1 - dist / magnetRadius);
+        this.x += dx * t;
+        this.y += dy * t;
+        // Slight spin-up while magnetized so the grab reads as "alive".
+        this.rotation += 0.02 * tickScale * (1 - dist / magnetRadius);
     }
 
     render(ctx) {

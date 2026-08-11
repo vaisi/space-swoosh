@@ -167,7 +167,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
-| `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision). |
+| `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision + soft magnet pull). |
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
 | `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. |
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
@@ -825,9 +825,15 @@ leaderboard; both are included in the `game_over` GA event (`fail_reason`:
    obstacle cutscenes, wormhole transit, ~1.4s after a portal hop (camera
    catch-up must not bill teleport distance as fuel), and while wall-boost
    `speedBoostTimer > 0` (free flight during the blue-edge rush).
-3. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
+3. **Magnet assist:** While not `fuelDying`, each sparkle in
+   `Collectible.update` eases toward the ship when
+   `dist < spacecraft.radius * fuel.magnetRadiusScale` (3.5). Pull strength is
+   `fuel.magnetPull` (0.12) × `tickScale` × proximity falloff
+   `(1 - dist / magnetRadius)`. Collection still requires circle overlap
+   (`size + ship.radius`). No pull / no salvage after engines die.
+4. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
    clamped to `fuel.max` (1). Popup `+FUEL`. No salvage after `fuelDying`.
-4. **Empty:** `beginFuelDying()` → ship `forwardSpeedScale` eases to 0 over
+5. **Empty:** `beginFuelDying()` → ship `forwardSpeedScale` eases to 0 over
    `dyingDurationMs` (900) → `gameOver({ reason: 'fuel' })` (no explosion;
    CopyBank `fuelOut`). Crash path unchanged (`reason: 'crash'`).
 
@@ -836,8 +842,9 @@ leaderboard; both are included in the `game_over` GA event (`fail_reason`:
 1. **Destroying an asteroid** (shield active): `game.points +=
    config.points.perAsteroid`, ink `+1` popup; distance bonus / destroyed
    counter still apply.
-2. **Collecting a sparkle:** refills fuel + increments `sparklesCollected` (see
-   fuel system). Does not award style points.
+2. **Collecting a sparkle:** soft magnet may slide it in when close; on contact
+   refills fuel + increments `sparklesCollected` (see fuel system). Does not
+   award style points.
 3. **Style swoosh (near-miss):** `StyleSwooshManager` awards
    `config.points.perSwoosh`, plays `playSwoosh()`, Signal-Blue VFX + `SWOOSH +N`.
 4. **Wall boop / portal hop:** unchanged (`WallBoopManager`, wormhole SFX).
@@ -881,7 +888,8 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   Optional `trailMaxPoints` / `trailFade` for longer wakes; add `HullCache`
   `HULL_META` when using a non-default jelly profile.
 - **New collectible / fuel tuning:** edit `CollectibleManager` (cadence,
-  placement) and `GameConfig.fuel` (drain / refill / dying).
+  placement) and `GameConfig.fuel` (drain / refill / dying / magnet radius +
+  pull).
 - **New obstacle:** add a `BaseObstacle` subclass in `ObstacleManager.js`, add a
   `spawnX()` + `spawnObstacleByType` case, then add it to `OPEN_WORLD_UNLOCKS`
   (`modes/RunProfile.js`) with the distance that unlocks it, and give it a

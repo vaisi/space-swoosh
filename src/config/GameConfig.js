@@ -3,6 +3,8 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - Soft sparkle magnet: tight radius (3.5× ship) + gentle pull toward ship;
+//   collect still requires contact (see Collectible.update).
 // - Fuel drainPerKm 0.00025 ≈ 4000 KM full tank (playtest: 2700 still too
 //   stressful when the next sparkle is far).
 // - Added `fuel`: depleting 0–1 tank (distance drain, diamond refill, dying
@@ -33,6 +35,10 @@ export const GameConfig = {
         refillPerCollectible: 0.45, // clamp to max; no overfill (~half a tank)
         dyingDurationMs: 900,
         lowThreshold: 0.28,
+        // Soft magnet assist — sparkles ease toward the ship when close; collect
+        // still needs circle overlap. Radius is × spacecraft.radius.
+        magnetRadiusScale: 3.5,
+        magnetPull: 0.12, // ease per 60fps tick (× tickScale × proximity falloff)
     },
     // Style points — smash / swoosh only. Not a survival meter; not Journey star 2.
     points: {
