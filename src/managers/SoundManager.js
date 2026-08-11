@@ -3,6 +3,8 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
+// - pauseLevelVoice / resumeLevelVoice: game pause freezes the navigator clip
+//   in place (does not reset); resume continues from the same spot.
 // - Per-channel Options toggles: Music / Sound FX / Voice (localStorage
 //   soundMusicEnabled, soundSfxEnabled, soundVoiceEnabled). Pause Sound stays
 //   master mute (soundMuted). canPlayMusic/Sfx/Voice gate playback; voice-off
@@ -107,6 +109,8 @@ export class SoundManager {
         /** @type {HTMLAudioElement | null} */
         this.levelVoice = null;
         this.levelVoicePlaying = false;
+        /** True when game pause froze a clip mid-play (resume continues it). */
+        this.levelVoicePaused = false;
         this.bgmDucked = false;
         this.onLevelVoiceEnded = null;
         this.applyMute();
@@ -397,10 +401,11 @@ export class SoundManager {
     stopLevelVoice(opts = {}) {
         const notify = !!opts.notify;
         const voice = this.levelVoice;
-        const wasPlaying = this.levelVoicePlaying;
+        const wasPlaying = this.levelVoicePlaying || this.levelVoicePaused;
         const cb = this.onLevelVoiceEnded;
         this.levelVoice = null;
         this.levelVoicePlaying = false;
+        this.levelVoicePaused = false;
         this.onLevelVoiceEnded = null;
         this.restoreBgmAfterVoice();
         if (voice) {
@@ -417,6 +422,50 @@ export class SoundManager {
             } catch (error) {
                 console.error('Error in level voice onEnded:', error);
             }
+        }
+    }
+
+    /** Freeze navigator / cue voice for game pause (keeps seek position). */
+    pauseLevelVoice() {
+        const voice = this.levelVoice;
+        if (!voice || this.levelVoicePaused) return;
+        if (!this.levelVoicePlaying && voice.paused) return;
+        try {
+            voice.pause();
+            this.levelVoicePaused = true;
+            this.levelVoicePlaying = false;
+        } catch (error) {
+            console.error('Error pausing level voice:', error);
+        }
+    }
+
+    /** Continue a voice clip frozen by pauseLevelVoice. */
+    resumeLevelVoice() {
+        const voice = this.levelVoice;
+        if (!voice || !this.levelVoicePaused) return;
+        this.levelVoicePaused = false;
+        if (!this.canPlayVoice()) {
+            this.stopLevelVoice({ notify: true });
+            return;
+        }
+        try {
+            voice.muted = !this.canPlayVoice();
+            this.levelVoicePlaying = true;
+            this.duckBgmForVoice();
+            const playPromise = voice.play();
+            if (playPromise !== undefined) {
+                playPromise.catch((error) => {
+                    console.error('Error resuming level voice:', error);
+                    this.levelVoicePlaying = false;
+                    this.restoreBgmAfterVoice();
+                    this.notifyLevelVoiceEnded();
+                });
+            }
+        } catch (error) {
+            console.error('Error in resumeLevelVoice:', error);
+            this.levelVoicePlaying = false;
+            this.restoreBgmAfterVoice();
+            this.notifyLevelVoiceEnded();
         }
     }
 

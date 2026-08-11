@@ -2,6 +2,7 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Pause freezes navigator voice with BGM (pauseLevelVoice / resumeLevelVoice).
 // - In-run HUD mockup C: three equal-height icon+meter rows (route/ink bar,
 //   sparkle/Signal fuel bar, target/dots or Open Space count) — no captions.
 // - Fuel drain pauses during wormhole hops + brief camera re-seat after exit
@@ -3758,11 +3759,14 @@ export class Game {
         this.isPaused = !this.isPaused;
         this.updatePauseButtonVisibility();
 
-        // Handle background music
+        // Freeze BGM + navigator voice together (voice used to keep talking
+        // through the pause overlay, including the level-intro line).
         if (this.isPaused) {
             this.soundManager.pauseBGM();
+            this.soundManager.pauseLevelVoice?.();
         } else {
             this.soundManager.resumeBGM();
+            this.soundManager.resumeLevelVoice?.();
         }
     }
 
