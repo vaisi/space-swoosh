@@ -7,6 +7,8 @@
 //   sparkle/Signal fuel bar, target/dots or Open Space count) — no captions.
 // - Fuel drain pauses during wormhole hops + brief camera re-seat after exit
 //   (teleport distance must not empty the tank).
+// - Fuel drain also pauses while wall-boost speedBoostTimer is active (free
+//   flight during the blue-edge rush; KM still accrues).
 // - Fuel meter: depleting Signal-Blue bar once collectibles are live; diamonds
 //   refill (no overfill); empty → short engine-dying coast → gameOver(fuel).
 //   Sparkles count toward Journey star 2; style points stay smash/swoosh only.
@@ -769,6 +771,8 @@ export class Game {
         // otherwise charge the free teleport distance as fuel.
         if (this.spacecraft?.wormholeTransit) return;
         if (performance.now() < (this.fuelPauseTeleportUntil ?? 0)) return;
+        // Wall boost speed rush: free flight while the buff is up.
+        if ((this.spacecraft?.speedBoostTimer ?? 0) > 0) return;
 
         const drain = this.config.fuel?.drainPerKm ?? 0.00025;
         this.fuel = Math.max(0, (this.fuel ?? 0) - kmDelta * drain);

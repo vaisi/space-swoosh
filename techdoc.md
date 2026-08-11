@@ -35,7 +35,8 @@
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
 > (random L/R, ~22s) only after `wallBoostsFromScore` (12000 KM). Collect →
 > `activateShield()` + `activateSpeedBoost()` (1.82× gameplay speed for 5s;
-> refreshes). Separate from cinematic `Spacecraft.boost` used by level-clear flyout.
+> refreshes). While `speedBoostTimer > 0`, fuel drain is skipped (KM still
+> accrues). Separate from cinematic `Spacecraft.boost` used by level-clear flyout.
 >
 > **Themes:** Dual theme via Options → **Light Mode / Dark Mode**
 > (`brand/theme.js`, key `ssTheme`). **Default is light** (cream + Signal Blue)
@@ -616,6 +617,7 @@ the edge (button press) and fires `WallBoopManager.triggerBoop`; buffs grant
 immediately, the entity removes when the press finishes. Speed boost is a 5s /
 **1.82×** multiplier on forward speed via `Spacecraft.forwardSpeedScale()`
 (`boost * speedBoostMultiplier()`), independent of cinematic `boost`.
+While `speedBoostTimer > 0`, `Game.drainFuel` skips burn (KM still accrues).
 Re-collecting refreshes both timers.
 
 Obstacle probes are meant to hug the drawn ink:
@@ -820,8 +822,9 @@ leaderboard; both are included in the `game_over` GA event (`fail_reason`:
    (Open Space 100 KM; Journey L4+ at 0 KM). L1–3 stay fuel-free.
 2. **Drain:** Each KM delta subtracts `config.fuel.drainPerKm` (~0.00025 → full
    tank lasts ~4000 KM / ~35–40s at ~100 KM/s). Skipped during level-clear /
-   obstacle cutscenes, wormhole transit, and ~1.4s after a portal hop (camera
-   catch-up must not bill teleport distance as fuel).
+   obstacle cutscenes, wormhole transit, ~1.4s after a portal hop (camera
+   catch-up must not bill teleport distance as fuel), and while wall-boost
+   `speedBoostTimer > 0` (free flight during the blue-edge rush).
 3. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
    clamped to `fuel.max` (1). Popup `+FUEL`. No salvage after `fuelDying`.
 4. **Empty:** `beginFuelDying()` → ship `forwardSpeedScale` eases to 0 over

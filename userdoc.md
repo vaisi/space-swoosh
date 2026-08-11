@@ -20,8 +20,8 @@
 >
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
 > sometimes lights up on the left or right edge. Bank into it for a fresh shield
-> and a strong speed rush. Black side barriers are still deadly — only the blue
-> edge is a gift.
+> and a strong speed rush — fuel does not drain during the rush. Black side
+> barriers are still deadly — only the blue edge is a gift.
 >
 > Open Space high scores are online per flight style (Zigzag and Arc boards;
 > call sign, ship, + distance; top 100 each). Auto call-sign prompt only for
@@ -381,9 +381,9 @@ before it runs out — pick your moment.
 A rare **wall boost** appears only after **12000 KM**: a thin blue slab on a
 random left or right edge. Fly into it and it presses into the wall like a
 button (with a **BOOP**), giving you the same shield plus a strong speed burst.
-Grabbing another plus or wall boost while you're already powered up refreshes
-the timers. Don't confuse it with the thick **black** side barriers — those
-still end the run.
+While that speed rush is on, your fuel bar does not drain. Grabbing another plus
+or wall boost while you're already powered up refreshes the timers. Don't confuse
+it with the thick **black** side barriers — those still end the run.
 
 Blue **portal** rings are also safe: fly into one and you hear a deep echoing
 warp suck you in, then a second warp as space briefly wobbles on the way out
