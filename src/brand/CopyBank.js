@@ -2,6 +2,7 @@
 // Spock-voice flavor lines, pooled by screen. Screens pick once on enter so the
 // words change visit to visit without reshuffling every frame.
 // Changes:
+// - fuelOut #2/#3 short punchy; #8 sparkle/fuel callout.
 // - Added fuelOut pool for empty-tank fails (distinct from crash).
 // - Added modeJourney / modeOpenWorld pools for Play mode-select card blurbs.
 // - Created file: menu / crash / victory / Journey fail & clear pools, plus
@@ -52,13 +53,13 @@ const POOLS = {
 
     fuelOut: [
         'Out of fuel. The void does not tow.',
-        'Engines quiet. Distance, less so.',
-        'The tank is empty. The corridor is not.',
+        'No sparkles. No fuel.',
+        'Tank empty. Sad.',
         'Fuel expended. Ambition remains unpaid.',
         'No thrust. Plenty of scenery.',
         'You ran on sparkles. Then you did not.',
         'Propellant: historical. Trajectory: optimistic.',
-        'The ship stopped listening. Gravity did not.',
+        'Blue diamonds refill the tank. Miss enough and this is the result.',
     ],
 
     victory: [

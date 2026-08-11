@@ -1,6 +1,7 @@
 // HullCache.js
 // Phase 1: bake each skin's resting hull to an offscreen canvas; blit via drawImage.
 // Changes:
+// - Saber reuses Needle jelly profile / halfScale for baked hull blit.
 // - Bake at the live canvas DPR (game.dpr) instead of a hardcoded 2, so the ship
 //   stays as sharp as the vector-drawn scene at any DPR. Cache key includes DPR.
 // - Nyan uses the same tear bake meta as Quill/Ink (default profile).
@@ -25,6 +26,7 @@ const HULL_META = {
     shard: { profile: 'shard', halfScale: 0.85 },
     halo: { profile: 'halo', halfScale: 0.9 },
     needle: { profile: 'needle', halfScale: 0.55 },
+    saber: { profile: 'needle', halfScale: 0.55 },
     echo: { profile: 'default', halfScale: 0.85 },
     seal: { profile: 'stamp', halfScale: 0.82 },
     hatch: { profile: 'default', halfScale: 0.82 },

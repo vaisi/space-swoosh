@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Saber `drawSaberTrail`: slim bright-purple lightsaber blade (bloom + body
+//   + hot core) with seed-stable crackle sparks; denser/hotter on wall jelly.
 // - Theme toggle: trail defaults read `color.inkRgb` at draw time (no snapshot).
 // - Night paper: trail ink follows `color.inkRgb` (was hard-coded near-black,
 //   which vanished on charcoal).
@@ -1245,6 +1247,118 @@ export function drawCinderTrail(ctx, ship, trail, toScreenY, opts = {}) {
             ctx.globalAlpha = baseAlpha * alpha * p.opacity * energy * 0.7;
             ctx.beginPath();
             ctx.arc(p.x, p.y, r * (0.035 + 0.03 * t), 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Slim bright-purple lightsaber wake — soft bloom, violet body, hot core,
+ * seed-stable crackle sparks (denser / hotter on wall jelly).
+ */
+export function drawSaberTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.95,
+        widthScale = 0.4,
+        rgb = color.saberRgb,
+        coreRgb = color.saberCoreRgb,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const denom = Math.max(1, n - 1);
+    const skipBloom = iosBudget(ship);
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Soft outer bloom — skipped on iOS LOD fill-rate budget.
+    if (!skipBloom) {
+        const bloomWidthAt = (i) => {
+            const t = i / denom;
+            const op = pts[i].opacity;
+            return r * (0.1 + 0.22 * t) * widthScale * (0.55 + 0.45 * op)
+                * (1 + energy * 0.35);
+        };
+        ribbonPath(ctx, pts, bloomWidthAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.28 + energy * 0.22);
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.fill();
+    }
+
+    // Bright violet body — slim blade, hotter near the hull.
+    const bodyWidthAt = (i) => {
+        const t = i / denom;
+        return r * (0.04 + 0.11 * t) * widthScale * pts[i].opacity
+            * (1 + energy * 0.2 * t);
+    };
+    ribbonPath(ctx, pts, bodyWidthAt);
+    ctx.globalAlpha = baseAlpha * alpha * (0.78 + energy * 0.18);
+    ctx.fillStyle = `rgba(${rgb}, 1)`;
+    ctx.fill();
+
+    // Near-white hot core hairline.
+    const coreWidthAt = (i) => {
+        const t = i / denom;
+        return r * (0.015 + 0.04 * t) * widthScale * pts[i].opacity
+            * (1 + energy * 0.25);
+    };
+    ribbonPath(ctx, pts, coreWidthAt);
+    ctx.globalAlpha = baseAlpha * alpha * (0.9 + energy * 0.1);
+    ctx.fillStyle = `rgba(${coreRgb}, 1)`;
+    ctx.fill();
+
+    // Seed-stable crackle sparks along path normals — always on, sparse.
+    // Wall jelly densifies and brightens the spray.
+    const step = energy > 0.08 ? 1 : 2;
+    const sparkChance = energy > 0.08 ? 0.72 : 0.38;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.18) continue;
+        const leave = 1 - i / denom;
+        const u = fract((p.seed ?? 0.5) * 12.9898 + i * 0.37);
+        if (u > sparkChance) continue;
+
+        const v = fract((p.seed ?? 0.5) * 78.233 + i * 0.19);
+        const w = fract((p.seed ?? 0.5) * 4.1414 + i * 0.11);
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.12 + 0.55 * leave) * (1 + energy * 0.9);
+        const size = r * (0.03 + 0.045 * leave) * (0.55 + v * 0.55)
+            * (1 + energy * 0.65);
+        const useCore = w > 0.55;
+        ctx.fillStyle = useCore ? `rgba(${coreRgb}, 1)` : `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.35 + 0.35 * leave + energy * 0.45);
+        ctx.beginPath();
+        ctx.arc(p.x + nx * side, p.y + ny * side, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Extra tip flecks while the whip is live.
+        if (energy > 0.12 && leave > 0.55 && w > 0.4) {
+            const ang = (p.angle ?? 0) + (u - 0.5) * 2.2;
+            const dist = r * (0.2 + v * 0.7) * energy;
+            ctx.globalAlpha = baseAlpha * alpha * p.opacity * energy * 0.75;
+            ctx.beginPath();
+            ctx.arc(
+                p.x + Math.cos(ang) * dist,
+                p.y + Math.sin(ang) * dist * 0.8,
+                size * 0.7,
+                0,
+                Math.PI * 2
+            );
             ctx.fill();
         }
     }

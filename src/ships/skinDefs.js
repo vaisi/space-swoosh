@@ -2,7 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
-// - Free forever: Focus / Flicker / Ember. Every other skin has productId +
+// - Free Saber: Needle hull + slim purple lightsaber wake (long trail, whip).
+// - Free forever: Focus / Flicker / Ember / Saber. Every other skin has productId +
 //   entitlementId (com.orbi.spaceswoosh.skin.<id> / skin_<id>) for IAP.
 // - Renamed square* → Stamp/Tick/Trace/Ring, then Stamp→Seal, Tick→Hatch.
 // - Night paper: Nyan hull gray lifted so the crescent still reads on charcoal.
@@ -59,6 +60,7 @@ import {
     drawDashTrail,
     drawCinderTrail,
     drawRainbowRibbonTrail,
+    drawSaberTrail,
 } from './trails.js';
 
 // Hitboxes are in local hull space (x right, y toward the tail, nose negative),
@@ -894,8 +896,26 @@ const cinder = {
     },
 };
 
+// Free — Needle hull with a slim bright-purple lightsaber wake.
+const saber = {
+    id: 'saber',
+    name: 'Saber',
+    blurb: 'A slim violet blade. Crackle on the wake.',
+    hitbox: NEEDLE_HITBOX,
+    wallTrailMode: 'whip',
+    // ~2× default wake so the blade stretches like Nyan's rainbow.
+    trailMaxPoints: 160,
+    trailFade: 1 / 360,
+
+    drawHull: drawNeedleHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawSaberTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
 export const SKIN_DEFS = [
-    focus, flicker, ember, wisp, pulse, quill, nyan,
+    focus, flicker, ember, saber, wisp, pulse, quill, nyan,
     shard, halo, needle, echo,
     seal, hatch, trace, ring,
     fold, mote, spine, orbit, ink,
