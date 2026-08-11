@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Fuel HUD: no FUEL caption — compact sparkle glyph + Signal-Blue bar under
+//   the KM track (same bar weight as the Journey goal bar).
 // - Fuel drain pauses during wormhole hops + brief camera re-seat after exit
 //   (teleport distance must not empty the tank).
 // - Fuel meter: depleting Signal-Blue bar once collectibles are live; diamonds
@@ -1299,23 +1301,26 @@ export class Game {
             goalBarH = unit * 1.15;
         }
 
-        // Separate Signal-Blue fuel track (not the Journey KM goal bar).
+        // Fuel: sparkle mark + blue track only (no caption). Sits under the KM
+        // goal bar with the same weight / inset so the header stays one stack.
         if (fuelLive && distanceA > 0.01) {
             ctx.save();
             ctx.globalAlpha *= distanceA;
-            const fuelTop = distY + goalBarH + unit * 0.55;
-            const lblSize = Math.max(8, unit * 0.72);
-            setLabelType(ctx, lblSize);
-            ctx.fillStyle = color.ink55;
-            ctx.fillText('FUEL', inset, fuelTop + lblSize * 0.15);
-            const fuelBarY = fuelTop + unit * 0.55;
-            this.drawFuelBar(inset, fuelBarY, barW);
-            fuelBarBlockH = unit * 1.55;
+            const barH = unit * 0.32;
+            const fuelBarY = distY + goalBarH + (journey ? unit * 0.35 : unit * 0.55);
+            const spR = unit * 0.38;
+            const spCx = inset + spR;
+            const spCy = fuelBarY + barH * 0.5;
+            drawSparkle(ctx, spCx, spCy, spR, { fill: color.signal });
+            const barX = inset + spR * 2 + unit * 0.4;
+            const fuelW = Math.max(unit * 5.5, barW - (barX - inset));
+            this.drawFuelBar(barX, fuelBarY, fuelW);
+            fuelBarBlockH = (fuelBarY - distY - goalBarH) + barH;
             ctx.restore();
         }
 
         // Obstacles destroyed — in Journey, also the smash-star mission target.
-        const rowY = distY + goalBarH + fuelBarBlockH + unit * 1.55;
+        const rowY = distY + goalBarH + fuelBarBlockH + unit * 1.35;
         const lblSize = Math.max(9, unit * 0.8);
         if (destroyedA > 0.01) {
             ctx.save();

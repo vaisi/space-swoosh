@@ -96,8 +96,8 @@ Every run — Journey or Open Space — opens with a short **intro**: the ship r
 up from the bottom into place while a light shower of stars at the top fades
 out. Then the navigator’s line (Journey) sits on screen sentence by sentence
 with voice and fades; a moment later distance and pause ease in. Once sparkles
-can appear, a blue **FUEL** bar shows under distance; destroyed appears when you
-smash your first asteroid. The ship intro itself can't be skipped.
+can appear, a small blue sparkle + fuel bar shows under distance; destroyed
+appears when you smash your first asteroid. The ship intro itself can't be skipped.
 
 The levels are grouped into seven story chapters on the Journey map:
 **First Light → The Long Way → Fragments → Deep Static → The Senders → The Source → Arrival**.
@@ -325,9 +325,9 @@ Top-left, you'll see:
 - **KM** — how far you've flown (your distance score). It tracks the ship's
   actual travel through the world, so the number stays honest on phone and
   desktop alike.
-- **FUEL** — a separate Signal-Blue bar under distance (once sparkles unlock).
-  It drains as you fly; diamonds refill it. Empty means engines die and the run
-  fails.
+- **Fuel** — a small Signal-Blue sparkle and bar under distance (once sparkles
+  unlock). No caption. It drains as you fly; diamonds refill it. Empty means
+  engines die and the run fails.
 - **DESTROYED** — how many asteroids you've broken apart (appears after your
   first smash).
 
@@ -351,8 +351,8 @@ keep the full high-refresh path — travel speed stays matched either way.
 ## Fuel and sparkles
 
 Once sparkles are in play (Journey from level 4; Open Space after the opening
-stretch), your ship burns **fuel** as it flies. A blue **FUEL** bar shows how
-much is left.
+stretch), your ship burns **fuel** as it flies. A blue sparkle + bar under
+distance shows how much is left.
 
 - **Collect a diamond → refill fuel.** A glowing **Signal-Blue four-point
   sparkle** drifts down the corridor. Fly into it — you'll hear a short chime and
