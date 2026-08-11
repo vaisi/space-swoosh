@@ -1,8 +1,9 @@
 // HazardLabProfile.js
-// Finite sandbox run: Phase / Sweep / Repulsor / Drift Current (almost no
+// Finite sandbox run: Phase / Sweep / Repulsor / Drift / Wormhole (almost no
 // simple rocks), shields/sparkles from KM 0, no Journey progress side effects.
 // Changes:
-// - Balanced focus across all four lab types (even mix after Journey rollout).
+// - Wormhole in LAB_FOCUS so portal emerge framing can be practiced in-lab.
+// - Balanced focus across lab types (even mix after Journey rollout).
 // - allowAdjacentSetPieces so practice rows can stack set pieces.
 // - Created file: HazardLabProfile extending RunProfile with isHazardLab.
 
@@ -12,8 +13,8 @@ import { PLAY_MODE, RunProfile } from './RunProfile.js';
 
 const JOURNEY_ACTION_FROM_KM = 0;
 
-/** Even practice mix — mirrors the four shipped lab hazards. */
-const LAB_FOCUS = ['phase', 'sweepGate', 'repulsor', 'driftCurrent'];
+/** Even practice mix — includes wormholes for portal exit framing. */
+const LAB_FOCUS = ['phase', 'sweepGate', 'repulsor', 'driftCurrent', 'wormhole'];
 
 export class HazardLabProfile extends RunProfile {
     constructor(game) {

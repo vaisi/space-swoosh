@@ -7,7 +7,8 @@
 // - Dropped chapter blurb lines under headings (clutter + story spoilers);
 //   keep name + level range only.
 // - Always-unlocked Hazard Lab tile pinned above Troposphere (sandbox for
-//   Phase Asteroid + Sweep Gate; does not affect journeyProgress).
+//   phase / sweep / repulsor / drift / wormhole practice; does not affect
+//   journeyProgress).
 // - Star tally / tile pips use per-level starSlots (L1–3: one, L4: two, L5+: three).
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Tile star pips are solid when earned and hollow when not (they used to be a

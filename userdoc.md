@@ -14,8 +14,9 @@
 > moving rocks, blue lights, then the shield.
 >
 > **Hazard Lab:** At the top of the Journey map, an always-unlocked **LAB** tile
-> lets you practice square blooms, sweeps, push nodes, and wind currents (also
-> in the main Journey). It does **not** change your Journey level unlocks or stars.
+> lets you practice square blooms, sweeps, push nodes, wind currents, and
+> portals (also in the main Journey). It does **not** change your Journey level
+> unlocks or stars.
 >
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
 > sometimes lights up on the left or right edge. Bank into it for a fresh shield
@@ -177,8 +178,8 @@ Choosing Journey opens the level map: chapter by chapter, a numbered tile per
 level with its three stars underneath. It opens roughly where you left off.
 
 - **Hazard Lab** sits at the top — always unlocked. Tap **LAB** to practice the
-  newer hazards (square blooms, sweeps, push nodes, full-width wind currents)
-  without touching Journey progress.
+  newer hazards (square blooms, sweeps, push nodes, wind currents, portals)
+  without touching Journey progress. Lab runs are longer (~12,000 KM).
 - **Scroll** with the mouse wheel, or drag up and down on touch.
 - The tile outlined in **blue** is the next level you haven't cleared.
 - **Faded** tiles are still locked — you can see what's coming, but not play it yet.
@@ -385,9 +386,9 @@ the timers. Don't confuse it with the thick **black** side barriers — those
 still end the run.
 
 Blue **portal** rings are also safe: fly into one and you hear a deep echoing
-warp suck you in, then a second warp as you emerge ahead with a fresh shield —
-still sitting where the ship usually sits on screen. The rocks around a portal
-can still crash you if you miss the ring itself — aim for the blue.
+warp suck you in, then a second warp as space briefly wobbles on the way out
+and you emerge ahead with a fresh shield. The rocks around a portal can still
+crash you if you miss the ring itself — aim for the blue.
 
 ## Flight style
 

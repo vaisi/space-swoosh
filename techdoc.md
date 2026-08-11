@@ -29,7 +29,7 @@
 >
 > **Hazard Lab (sandbox):** Always-unlocked Journey-map tile → `PLAY_MODE.hazardLab`
 > / `HazardLabProfile`. Practice for **Phase**, **Sweep**, **Repulsor**, **Drift
-> Current** (also in Journey/Open Space). Finish/crash skips `recordLevelResult`.
+> Current**, and **Wormhole**. Finish/crash skips `recordLevelResult`.
 > Logbook observes during lab via `isHazardLab()`.
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
@@ -163,7 +163,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
 | `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–40 voice; holds belt until done. |
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
-| `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake; `seatToShip()` for cruise-seat snaps (wormhole emerge); skips update during `wormholeTransit`. |
+| `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
 | `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision). |
@@ -391,8 +391,8 @@ always-unlocked **HAZARD LAB** tile → `Game.beginHazardLab()`.
 
 | Piece | Role |
 | --- | --- |
-| `config/HazardLabConfig.js` | `HAZARD_LAB` descriptor: phase / sweepGate / repulsor / driftCurrent, goal 6000 KM, `starSlots: 0`. |
-| `modes/HazardLabProfile.js` | Mid difficulty, `simpleChance` 0.1, even focus mix, wall boosts off. |
+| `config/HazardLabConfig.js` | `HAZARD_LAB` descriptor: phase / sweepGate / repulsor / driftCurrent / wormhole, goal 12000 KM, `starSlots: 0`. |
+| `modes/HazardLabProfile.js` | Mid difficulty, `simpleChance` 0.1, even focus mix (incl. wormhole), wall boosts off. |
 | `Game.isLevelRun()` | Journey **or** Hazard Lab (finish gate, flyout, outcome UI). |
 | `finishJourneyLevel` | Lab branch builds outcome only — no `recordLevelResult`. |
 
@@ -407,6 +407,9 @@ push interacts logbook like BH pull.
 
 **Drift Current:** full-width flowing shear lines; lateral wind only
 (`checkCollision` false). Dash flow direction matches shove (left or right).
+
+**Wormhole:** paired entry/exit portals; lab includes them for practice. Exit
+uses the original camera catch-up wobble (no custom framing).
 
 Style Swoosh skips Sweep / Repulsor / Drift Current.
 
@@ -625,7 +628,7 @@ Obstacle probes are meant to hug the drawn ink:
 | Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render). Shield smash destroys only the part hit: a moon clip leaves the core; a core hit clears the whole cluster. Render cull uses full cluster radius so moons are never collidable while undrawn. |
 | Shooting star | 8-point star polygon + projectile circles (projectiles still drawn when the star body is culled). Shield smash clips only the shots you hit; body hit clears the star. |
 | Black hole | Core radius only (glow/pulse are VFX) |
-| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera skips scroll during transit; on emerge `Camera.seatToShip(0.80)` pins framing to the cruise seat + syncs velocity; `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge |
+| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera keeps scrolling during the hop so emerge catch-up is the spacetime wobble (original behavior); `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge |
 
 `ObstacleManager.update()` advances every obstacle (orbits, movers, shots)
 **before** running shield/fatal collision, so hit tests match the ink painted
@@ -817,8 +820,8 @@ leaderboard; both are included in the `game_over` GA event (`fail_reason`:
    (Open Space 100 KM; Journey L4+ at 0 KM). L1–3 stay fuel-free.
 2. **Drain:** Each KM delta subtracts `config.fuel.drainPerKm` (~0.00025 → full
    tank lasts ~4000 KM / ~35–40s at ~100 KM/s). Skipped during level-clear /
-   obstacle cutscenes, wormhole transit, and ~1.4s after a portal hop (hard
-   camera re-seat via `seatToShip` must not bill teleport distance as fuel).
+   obstacle cutscenes, wormhole transit, and ~1.4s after a portal hop (camera
+   catch-up must not bill teleport distance as fuel).
 3. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
    clamped to `fuel.max` (1). Popup `+FUEL`. No salvage after `fuelDying`.
 4. **Empty:** `beginFuelDying()` → ship `forwardSpeedScale` eases to 0 over
