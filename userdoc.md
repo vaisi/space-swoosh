@@ -385,9 +385,9 @@ the timers. Don't confuse it with the thick **black** side barriers — those
 still end the run.
 
 Blue **portal** rings are also safe: fly into one and you hear a deep echoing
-warp suck you in, then a second warp as you emerge ahead with a fresh shield.
-The rocks around a portal can still crash you if you miss the ring itself —
-aim for the blue.
+warp suck you in, then a second warp as you emerge ahead with a fresh shield —
+still sitting where the ship usually sits on screen. The rocks around a portal
+can still crash you if you miss the ring itself — aim for the blue.
 
 ## Flight style
 

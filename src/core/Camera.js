@@ -1,9 +1,16 @@
 // Camera.js
 // Scroll position + world→screen mapping.
 // Changes:
+// - seatToShip() snaps framing to the cruise seat (used after wormhole emerge);
+//   update() skips scroll while spacecraft.wormholeTransit so the hop freeze
+//   cannot desync the camera under a frozen ship.
 // - Catch-up camera: ship leads; camera cruises and accelerates when the ship
 //   rides too high. Stronger lag response so turns don't feel mushy.
 // - Advances with `game.tickScale` so web and native share one pace.
+
+const REF_FPS = 60;
+/** Screen Y fraction matching LevelIntroSequence cruise seat. */
+export const CRUISE_SCREEN_SEAT = 0.80;
 
 export class Camera {
     constructor(game) {
@@ -20,9 +27,28 @@ export class Camera {
         this.shake = { x: 0, y: 0 };
     }
 
-    update(speedFactor = 1) {
-        const tickScale = this.game.tickScale ?? 1;
+    /**
+     * Pin the camera so the ship sits at `screenYFraction` of the frame
+     * (0 = top) and sync scroll velocity to the ship's climb. Used after
+     * wormhole emerge (and same math as level-intro handoff).
+     */
+    seatToShip(screenYFraction = CRUISE_SCREEN_SEAT) {
         const ship = this.game.spacecraft;
+        if (!ship) return;
+
+        this.y = ship.y - this.game.height * screenYFraction;
+        const climb = Math.abs(ship.verticalVelocity || this.speed);
+        this.velocity = -climb / REF_FPS;
+        this.totalDistance = Math.abs(this.y);
+    }
+
+    update(speedFactor = 1) {
+        const ship = this.game.spacecraft;
+        // Ship is frozen in world space during a portal hop — don't keep
+        // scrolling or the emerge snap / soft catch-up leaves it low on screen.
+        if (ship?.wormholeTransit) return;
+
+        const tickScale = this.game.tickScale ?? 1;
 
         // Screen Y of the ship (0 = top of view). Ideal is lower on screen.
         const shipScreenY = ship.y - this.y;
