@@ -203,7 +203,7 @@ const OBSTACLE_ENTRIES = [
         category: 'obstacles',
         name: 'Drift Current',
         definition:
-            'A full-width band of flowing ink shear lines that shove the ship sideways while you are inside. No rails, no solid body — just the current.',
+            'A full-width band of flowing ink shear lines that shove the ship left or right while you are inside. No rails, no solid body — just the current.',
         remark: 'Weather with opinions.',
         unlockMode: 'observeThenInteract',
         icon: 'driftCurrent',

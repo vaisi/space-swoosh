@@ -1,6 +1,11 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - DriftCurrent: keep the light dash look; only lineDashOffset flips so some
+//   bands flow left and some right (no chevrons / heavy dashes).
+// - SweepGate: thinner blade; travels across screen L→R or R→L while slowly
+//   spinning (exits off the far edge). DriftCurrent dash flow matches shove
+//   direction. Repulsor push strength bumped (~1.55).
 // - Wormhole hop calls Game.noteTeleportFuelPause() so teleport distance does
 //   not drain the fuel tank during the hop + camera re-seat.
 // - PhaseAsteroid (`phase`): square → 4 outer squares with springy overshoot +
@@ -754,9 +759,16 @@ class SweepGate extends BaseObstacle {
         super(game, x, y, size);
         // Half-length each side of the pivot → full whip span.
         this.halfLength = size * 2.8;
-        this.halfWidth = Math.max(1.25, size * 0.08);
-        // Per-tick spin (same units as BaseObstacle): ~full turn every 3.5–5s.
-        this.rotationSpeed = (0.018 + Math.random() * 0.012) * (Math.random() < 0.5 ? -1 : 1);
+        // Slimmer blade — was ~0.08×size and read a bit chunky on device.
+        this.halfWidth = Math.max(0.85, size * 0.045);
+        // Cross the corridor L→R or R→L while slowly spinning, then exit.
+        this.travelDir = Math.random() < 0.5 ? -1 : 1;
+        this.travelSpeed = game.baseUnit * (1.05 + Math.random() * 0.45);
+        // Slow tumble (~full turn every 8–12s at 60fps tickScale).
+        this.rotationSpeed = (0.007 + Math.random() * 0.005) * (Math.random() < 0.5 ? -1 : 1);
+        // Enter from the off-screen edge opposite the travel direction.
+        const pad = this.halfLength * 1.15;
+        this.x = this.travelDir > 0 ? -pad : game.width + pad;
     }
 
     render(ctx) {
@@ -765,12 +777,16 @@ class SweepGate extends BaseObstacle {
         if (relativeY + extent < 0 || relativeY - extent > this.game.height) {
             return;
         }
+        // Fully off the sides after the cross — skip draw.
+        if (this.x + extent < 0 || this.x - extent > this.game.width) {
+            return;
+        }
 
         ctx.save();
         ctx.translate(this.x, relativeY);
         ctx.rotate(this.rotation);
         ctx.fillStyle = color.ink;
-        // Full diameter line through the pivot (windscreen-wiper blade).
+        // Full diameter line through the pivot (crossing whip blade).
         ctx.fillRect(
             -this.halfLength,
             -this.halfWidth,
@@ -802,6 +818,8 @@ class SweepGate extends BaseObstacle {
 
     update() {
         super.update();
+        const dt = this.game.dt ?? (1 / 60);
+        this.x += this.travelDir * this.travelSpeed * dt;
     }
 }
 
@@ -812,7 +830,8 @@ class SweepGate extends BaseObstacle {
 class RepulsorObstacle extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size);
-        this.pushStrength = 1.15;
+        // Slightly firmer shove so the field reads before you kiss the core.
+        this.pushStrength = 1.55;
         this.pushRadius = size * 10;
         this.pulsePhase = Math.random() * Math.PI * 2;
         this.rotationSpeed *= 0.2;
@@ -910,7 +929,9 @@ class DriftCurrent extends BaseObstacle {
 
     update() {
         const dt = this.game.dt ?? (1 / 60);
-        this.flowPhase += dt * this.game.baseUnit * 3.4 * this.direction;
+        // Phase always advances forward; direction alone flips force + dashes.
+        // (Multiplying phase by direction too made left/right tunnels look identical.)
+        this.flowPhase += dt * this.game.baseUnit * 3.4;
 
         const ship = this.game.spacecraft;
         if (!ship || ship.wormholeTransit) return;
@@ -946,6 +967,7 @@ class DriftCurrent extends BaseObstacle {
             const offset = ((this.flowPhase + i * u * 0.8) % (dash * 2) + dash * 2) % (dash * 2);
             ctx.beginPath();
             ctx.setLineDash([dash, dash * 0.85]);
+            // Sign of lineDashOffset = flow direction (matches shove).
             ctx.lineDashOffset = -offset * this.direction;
             ctx.moveTo(0, yy);
             ctx.lineTo(this.game.width, yy);
@@ -2101,22 +2123,12 @@ export class ObstacleManager {
     }
 
     spawnSweepGate(x, width) {
+        // Blade seats itself off-screen and crosses; only the Y row matters.
         const size = this.game.baseUnit * (1.05 + Math.random() * 0.35);
-        const halfLen = size * 2.8;
-        const margin = halfLen * 0.55;
-        const position = this.findValidPosition(
-            halfLen * 0.7,
-            margin,
-            this.game.width - margin,
-            this.nextSpawnY,
-            15
-        );
-        if (!position) return;
-
         this.obstacles.push(new SweepGate(
             this.game,
-            position.x,
-            position.y,
+            this.game.width * 0.5,
+            this.nextSpawnY,
             size
         ));
     }

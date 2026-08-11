@@ -399,12 +399,14 @@ always-unlocked **HAZARD LAB** tile → `Game.beginHazardLab()`.
 **Square Bloom (`phase`):** one square → four rotating outer squares (spring +
 lock) + soft push while open; fly the centre gap; squares lethal, field only shoves.
 
-**Sweep Gate:** slim rotating ink line (no hub, no trail); OBB hit.
+**Sweep Gate:** thin ink blade that enters off-screen, crosses L→R or R→L with a
+slow tumble, then exits the far edge; OBB hit (no hub / trail).
 
-**Repulsor Node:** solid core + soft outward push (`ship.x` shove); core lethal;
+**Repulsor Node:** solid core + soft outward push (`ship.x` shove, strength ~1.55); core lethal;
 push interacts logbook like BH pull.
 
-**Drift Current:** full-width flowing shear lines; lateral wind only (`checkCollision` false).
+**Drift Current:** full-width flowing shear lines; lateral wind only
+(`checkCollision` false). Dash flow direction matches shove (left or right).
 
 Style Swoosh skips Sweep / Repulsor / Drift Current.
 

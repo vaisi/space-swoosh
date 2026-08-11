@@ -4,6 +4,8 @@
 // level locked. The list is taller than the screen, so it scrolls (wheel or
 // drag — Game owns the gesture and hands us the offset).
 // Changes:
+// - Dropped chapter blurb lines under headings (clutter + story spoilers);
+//   keep name + level range only.
 // - Always-unlocked Hazard Lab tile pinned above Troposphere (sandbox for
 //   Phase Asteroid + Sweep Gate; does not affect journeyProgress).
 // - Star tally / tile pips use per-level starSlots (L1–3: one, L4: two, L5+: three).
@@ -12,7 +14,7 @@
 //   faint fill), matching the outcome screen's objective rows.
 // - Created file.
 
-import { color, font } from '../../brand/tokens.js';
+import { color } from '../../brand/tokens.js';
 import {
     drawFramedTile,
     drawSparkle,
@@ -67,7 +69,6 @@ export function renderJourneyMap(game) {
     const tileW = Math.min(unit * 8, (L.width - gap * (columns - 1)) / columns);
     const tileH = tileW * 1.15;
     const chapterLabelPx = Math.max(10, unit * 1.05);
-    const chapterBlurbPx = Math.max(9, unit * 0.92);
 
     // Clip to the viewport, then draw the whole list translated by the scroll.
     ctx.save();
@@ -86,13 +87,11 @@ export function renderJourneyMap(game) {
     y = drawChapterHeading(game, {
         chapter: {
             name: 'Hazard Lab',
-            blurb: 'Blooms, sweeps, push nodes, drift lanes. Progress stays put.',
             from: 'LAB',
             to: '',
         },
         L, y,
         labelPx: chapterLabelPx,
-        blurbPx: chapterBlurbPx,
         locked: false,
         lab: true,
     });
@@ -119,7 +118,6 @@ export function renderJourneyMap(game) {
         y = drawChapterHeading(game, {
             chapter, L, y,
             labelPx: chapterLabelPx,
-            blurbPx: chapterBlurbPx,
             locked: !isLevelUnlocked(game.journeyProgress, chapter.from),
         });
 
@@ -169,7 +167,7 @@ export function renderJourneyMap(game) {
     };
 }
 
-function drawChapterHeading(game, { chapter, L, y, labelPx, blurbPx, locked, lab = false }) {
+function drawChapterHeading(game, { chapter, L, y, labelPx, locked, lab = false }) {
     const ctx = game.ctx;
 
     ctx.save();
@@ -193,15 +191,7 @@ function drawChapterHeading(game, { chapter, L, y, labelPx, blurbPx, locked, lab
 
     drawDivider(ctx, L.left + nameW + labelPx * 1.6, L.right - labelPx * 3.4, y);
 
-    ctx.save();
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.font = `500 ${blurbPx}px ${font.ui}`;
-    ctx.fillStyle = locked ? color.ink30 : color.ink55;
-    ctx.fillText(chapter.blurb, L.left, y + blurbPx * 1.9);
-    ctx.restore();
-
-    return y + blurbPx * 1.9 + game.baseUnit * 2;
+    return y + game.baseUnit * 2.2;
 }
 
 /** Always-unlocked sandbox tile — signal stroke, LAB label, no star pips. */
