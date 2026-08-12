@@ -835,8 +835,8 @@ Firebase Explorations, break down `game_over` + `journey_level_end` by
    `speedBoostTimer > 0` (free flight during the blue-edge rush).
 3. **Magnet assist:** While not `fuelDying`, each sparkle in
    `Collectible.update` eases toward the ship when
-   `dist < spacecraft.radius * fuel.magnetRadiusScale` (3.5). Pull strength is
-   `fuel.magnetPull` (0.12) × `tickScale` × proximity falloff
+   `dist < spacecraft.radius * fuel.magnetRadiusScale` (4.25). Pull strength is
+   `fuel.magnetPull` (0.15) × `tickScale` × proximity falloff
    `(1 - dist / magnetRadius)`. Collection still requires circle overlap
    (`size + ship.radius`). No pull / no salvage after engines die.
 4. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
