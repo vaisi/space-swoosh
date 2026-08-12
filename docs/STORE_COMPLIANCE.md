@@ -1,7 +1,8 @@
 <!--
   docs/STORE_COMPLIANCE.md
   Changes: Firebase Analytics on Capacitor Android — declare gameplay analytics
-  in Data Safety / App Privacy; Ad ID collection disabled in AndroidManifest.
+  in Data Safety / App Privacy; Ad ID collection disabled and AD_ID permission
+  stripped from merged manifest (Play Advertising ID declaration = No).
 -->
 
 # Store compliance checklist
@@ -34,7 +35,7 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 ## Google Play Console
 
 - [ ] Privacy policy URL on the store listing.
-- [ ] Data safety form: Name (optional, leaderboard), Gameplay content, Purchase history, **App activity / analytics** (Firebase); data encrypted in transit; users can request deletion via support email. Advertising ID is **not** collected (`google_analytics_adid_collection_enabled=false`).
+- [ ] Data safety form: Name (optional, leaderboard), Gameplay content, Purchase history, **App activity / analytics** (Firebase); data encrypted in transit; users can request deletion via support email. Advertising ID is **not** collected (`google_analytics_adid_collection_enabled=false` + `AD_ID` `tools:node="remove"`). Play **App content → Advertising ID** = **No**.
 - [ ] IARC content rating questionnaire.
 - [ ] If the developer account is personal and created after Nov 2023: start a closed test with 12 testers for 14 days before production.
 
@@ -43,6 +44,11 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 - Project: `spaceswoosh-faa9c` (package `com.orbi.spaceswoosh`).
 - Place `google-services.json` at `android/app/google-services.json` (gitignored; each machine / CI must supply it).
 - Events flow through `src/services/Analytics.js` → `@capacitor-firebase/analytics`.
+- Advertising ID: `android/app/src/main/AndroidManifest.xml` sets
+  `google_analytics_adid_collection_enabled=false` and
+  `tools:node="remove"` on `com.google.android.gms.permission.AD_ID` so the
+  Play Advertising ID declaration can remain **No** (Firebase would otherwise
+  merge the permission into the AAB).
 - Debug: enable Analytics DebugView for the device, then play a run and watch `game_over` / `journey_level_end` in Firebase Console.
 - Most-played ship: break down `game_over` / `journey_level_end` by `ship_id` (also `equip_ship` for menu selection).
 - Theme / sound: `set_theme` (`theme`), `set_sound` (master mute on/off), `set_sound_channel` (music/sfx/voice).

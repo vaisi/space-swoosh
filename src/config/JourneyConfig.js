@@ -5,6 +5,8 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - Sparkles star targets eased by 1 (floor 2; scaled levels −1) so the
+//   pre-finish sparkle that often can't be reached no longer blocks the star.
 // - Star 2 is sparkle *count* (`sparklesTarget`), not style points — fuel
 //   diamonds are the collectible; label "Collect sparkles".
 // - STEPS unlocks: driftCurrent L15, phase L20, repulsor L25, sweepGate L31
@@ -72,12 +74,14 @@ const GOAL_KM_MILESTONE_BONUS = 1000;
 const GOAL_KM_MILESTONE_LEVELS = new Set([10, 15, 20, 25, 30, 35, 40]);
 
 // Sparkles needed for the second star, per 1000 KM (levels with sparkles).
+// Targets are 1 below the raw curve so a sparkle stranded past the finish gate
+// does not make the star feel unreachable.
 const SPARKLES_TARGET_PER_1000KM = 1;
 /** First level that can spawn sparkles (fuel + sparkles star). */
 export const POINTS_FROM_LEVEL = 4;
 /** First level that can spawn shields (and earn the smash star). */
 export const SHIELDS_FROM_LEVEL = 5;
-const SPARKLES_STAR_FLOOR = 3;
+const SPARKLES_STAR_FLOOR = 2;
 const SMASH_STAR_FLOOR = 1;
 const SMASH_AFTER_TEACH = 2;
 const SMASH_LEVELS_PER_STEP = 7;
@@ -102,7 +106,7 @@ function sparklesTargetFor(levelNumber, goalKm) {
     if (levelNumber === POINTS_FROM_LEVEL) return SPARKLES_STAR_FLOOR;
     return Math.max(
         SPARKLES_STAR_FLOOR,
-        Math.round((goalKm / 1000) * SPARKLES_TARGET_PER_1000KM)
+        Math.round((goalKm / 1000) * SPARKLES_TARGET_PER_1000KM) - 1
     );
 }
 

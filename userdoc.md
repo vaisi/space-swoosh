@@ -2,6 +2,10 @@
 
 > How to play. No spoilers, just the essentials.
 >
+> **Privacy (Android store):** The game may send anonymous gameplay analytics
+> (for example which ship you flew). It does **not** use the device Advertising
+> ID for ads or tracking.
+>
 > **iPhone / iPad:** The App Store build is the **native** Space Swoosh app
 > (smooth high-refresh play). Android uses the store build from the same game
 > family; web remains at spaceswoosh.app. Controls and modes are the same —
@@ -337,7 +341,7 @@ you can see its edges. On phones the charcoal stage fills the safe area (bone
 ink may show in the notch / home-indicator strips). Turn arcs and cruise speed
 are meant to feel the same as on a computer — if a build ever feels half-speed
 with KM racing ahead, that build is wrong; report the menu stamp
-(e.g. `BUILD 27 · WEB`).
+(e.g. `BUILD 28 · WEB`).
 
 **iPhone / iPad (Safari or Chrome):** the game targets a steadier ~60 frames per
 second and a slightly lighter retina resolution so motion stays cool and playable
@@ -360,7 +364,9 @@ shows how much is left.
   the shield).
 
 Journey's second star asks you to **collect N sparkles** on that level (count,
-not style points). Pause and end screens show your sparkle total.
+not style points). The target is intentionally one under a full clear so a
+diamond that spawns past the finish line does not block the star. Pause and end
+screens show your sparkle total.
 
 ## Style points
 

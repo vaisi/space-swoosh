@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- AndroidManifest.xml — Capacitor host. Changes: disable Firebase Analytics Advertising ID collection (gameplay-only telemetry). -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- AndroidManifest.xml — Capacitor host. Changes: disable Firebase AD ID collection and strip AD_ID permission so Play "No" declaration matches the AAB. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -48,4 +49,9 @@
     <!-- Wall-boop haptic tick (@capacitor/haptics also declares this; keep
          explicit so a merge miss never silently drops vibration). -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Firebase Analytics merges AD_ID via play-services; remove so Play Console
+         "Does your app use an advertising ID? → No" matches the uploaded AAB. -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
 </manifest>

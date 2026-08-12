@@ -43,11 +43,14 @@
 > when nothing is stored. Dark: charcoal paper, bone ink, vivid mint (`#3DFF9A`).
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
-> **BUILD 27 (Android store):** Firebase Analytics on Capacitor Android
+> **BUILD 28 (Android store):** Firebase Analytics on Capacitor Android
 > (`@capacitor-firebase/analytics`). Premium ships IAP + menu browse/buy.
 > `UNLOCK_ALL_SKINS = false` for store — Focus/Flicker/Ember/Saber free; all
-> other ships gated via RevenueCat. Menu stamp `BUILD 27 · NATIVE` / `WEB`.
-> versionCode **27** / versionName **1.0.27**.
+> other ships gated via RevenueCat. Advertising ID: collection disabled
+> (`google_analytics_adid_collection_enabled=false`) and
+> `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
+> so Play Console declaration can stay **No**. Menu stamp `BUILD 28 · NATIVE` /
+> `WEB`. versionCode **28** / versionName **1.0.28**.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
@@ -135,7 +138,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
 | `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics, Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
-| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme` (`theme` light\|dark), `set_sound` (`sound` on\|off), `set_sound_channel` (`channel` + `enabled`). |
+| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Params sanitized to string/number (booleans → 0/1) so Android does not drop custom events. Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. Android: AD ID collection off + `AD_ID` permission stripped in `AndroidManifest.xml` for Play declaration **No**. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership cache + purchase / restore. Free = no `productId` (Focus/Flicker/Ember/Saber). `UNLOCK_ALL_SKINS` is **`false` for store**; set `true` only for local playtest. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
@@ -362,7 +365,8 @@ The Source 33–36, Arrival 37–40.
 Star **slots** scale with the teach band: **L1–3 → 1**, **L4 → 2**, **L5+ → 3**
 (distance / sparkles / smash). Outcome and map show `earned / slots` (e.g. `1/1`,
 `2/2`, `3/3`). Storage still holds three booleans per level; unused slots stay
-false. Sparkles star opens at L4 (floor **3** sparkles, then ~1 per 1,000 km).
+false. Sparkles star opens at L4 (floor **2** sparkles, then ~1 per 1,000 km
+minus 1 — eased so a sparkle past the finish gate does not block the star).
 Smash star opens at L5 (1 smash, then from 2 toward a hard cap of **6**). Mode
 select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
 
@@ -783,7 +787,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
   playfield edges read on desktop (centered, max-width 500px, 2:3). Mobile fills
   the safe area with the charcoal stage; bone ink shows in notch / home-indicator
   insets. `theme-color` matches the bone surround. Native status bar uses
-  `Style.Dark` + charcoal background. Menu stamp: `BUILD 27 · NATIVE` / `WEB`.
+  `Style.Dark` + charcoal background. Menu stamp: `BUILD 28 · NATIVE` / `WEB`.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at

@@ -9,6 +9,9 @@
 //   covered by this module until Firebase is added there.
 // - Run-end / equip events carry ship_id so Firebase can rank most-played ships.
 // - Pref events: set_theme, set_sound (master), set_sound_channel (music/sfx/voice).
+// - Sanitize params for Firebase (string | number only). Booleans like
+//   `completed: true` were putBoolean'd by the plugin and can cause Android to
+//   drop the whole custom event — convert to 0/1. Truncate long strings.
 
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAnalytics } from '@capacitor-firebase/analytics';
@@ -16,6 +19,31 @@ import { FirebaseAnalytics } from '@capacitor-firebase/analytics';
 const MEASUREMENT_ID = 'G-SMEY63Z40C';
 
 const isNative = () => Capacitor.isNativePlatform();
+
+/**
+ * Firebase Analytics only accepts string / number (long|double) params.
+ * Booleans and nested values get rejected or silently dropped on Android.
+ */
+function sanitizeParams(params = {}) {
+    const out = {};
+    for (const [key, value] of Object.entries(params)) {
+        if (value === undefined || value === null) continue;
+        if (typeof value === 'boolean') {
+            out[key] = value ? 1 : 0;
+            continue;
+        }
+        if (typeof value === 'number') {
+            if (Number.isFinite(value)) out[key] = value;
+            continue;
+        }
+        if (typeof value === 'string') {
+            out[key] = value.length > 100 ? value.slice(0, 100) : value;
+            continue;
+        }
+        out[key] = String(value).slice(0, 100);
+    }
+    return out;
+}
 
 /**
  * Load Google Analytics — web only, and only once. Previously this was a pair
@@ -44,9 +72,11 @@ export function initAnalytics() {
  * @param {object} [params] Flat key/value payload.
  */
 export function track(name, params = {}) {
+    const safe = sanitizeParams(params);
+
     if (isNative()) {
-        FirebaseAnalytics.logEvent({ name, params }).catch(() => {
-            // Analytics must never be able to break a run.
+        FirebaseAnalytics.logEvent({ name, params: safe }).catch((err) => {
+            console.warn('[analytics] logEvent failed', name, err);
         });
         return;
     }
@@ -54,7 +84,7 @@ export function track(name, params = {}) {
     if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
 
     try {
-        window.gtag('event', name, params);
+        window.gtag('event', name, safe);
     } catch {
         // Analytics must never be able to break a run.
     }
