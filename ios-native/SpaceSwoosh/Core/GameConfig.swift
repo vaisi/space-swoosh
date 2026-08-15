@@ -1,13 +1,20 @@
 // GameConfig.swift
-// Changes: Phase C — Open Space tunables mirrored from shared/game-constants.json.
+// Changes: C.5.1 — full-phone playfield; KM still normalized to 800px Android CSS.
 
 import Foundation
 import CoreGraphics
 
 enum GameConfig {
     static let simDt: CGFloat = 1.0 / 60.0
-    /// JS: abs(Δcamera.y) * (100/60)
+    /// JS: abs(Δcamera.y) * (100/60) in CSS pixels. Scale to this height so
+    /// a tall iPhone and a short Android CSS canvas award KM at the same pace.
     static let kmPerPixel: CGFloat = 100.0 / 60.0
+    static let kmReferenceHeight: CGFloat = 800
+
+    static func kmDelta(dy: CGFloat, playfieldHeight: CGFloat) -> CGFloat {
+        let scale = kmReferenceHeight / max(playfieldHeight, 1)
+        return abs(dy) * scale * kmPerPixel
+    }
 
     enum Spacecraft {
         static let radiusUnits: CGFloat = 1
@@ -19,7 +26,8 @@ enum GameConfig {
     }
 
     enum Playfield {
-        static let aspect: CGFloat = 2.0 / 3.0
+        /// Full device; no letterbox.
+        static let fillsDevice = true
     }
 
     enum Fuel {
@@ -52,9 +60,15 @@ enum GameConfig {
         static let simpleChance: CGFloat = 0.65
         static let maxRowSpawns = 3
         static let maxClusterCount = 4
+        static let sparkleFirstWait: CGFloat = 3.2
+        static let sparkleMin: CGFloat = 2.6
+        static let sparkleSpan: CGFloat = 2.6
+        static let shieldInterval: CGFloat = 5
+        static let wallBoostInterval: CGFloat = 22
     }
 
     enum Obstacles {
+        /// Set-piece size band (JS `config.obstacles`). Simple clusters use 0.9…1.4.
         static let minSizeUnits: CGFloat = 2.5
         static let maxSizeUnits: CGFloat = 6.25
         static let scaling = (startDensity: CGFloat(0.7), maxDensity: CGFloat(1.5), rampUpDistance: CGFloat(10000))
@@ -78,7 +92,8 @@ enum GameConfig {
     }
 
     enum Stress {
-        static let obstacleSlots = 48
+        static let obstacleSlots = 64
+        static let extraPartSlots = 48
         static let sparkleSlots = 24
         static let glowSlots = 16
         static let pickupSlots = 16

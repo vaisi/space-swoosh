@@ -6,10 +6,15 @@
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch** (kept in-repo for reference / parity until Journey
-> sign-off). Android remains Capacitor. Phase C Open Space combat is in
-> `ios-native/` (spawn, fuel, shields, swoosh). Spec:
+> sign-off). Android remains Capacitor. Phase C.5 Open Space combat is in
+> `ios-native/` (JS hitboxes + silhouettes, spawn, fuel, shields, swoosh). Spec:
 > [`shared/game-constants.json`](shared/game-constants.json). See
-> [`ios-native/README.md`](ios-native/README.md). Codemagic stamps
+> [`ios-native/README.md`](ios-native/README.md). Phase C.5 ports JS
+> per-type hitboxes and silhouettes onto the baked sprite pool (no global
+> 0.72 shrink; wormhole/drift non-lethal). KM is `Δy × (800 / playfieldHeight)
+> × (100/60)` so any phone height matches Android CSS pace. Playfield is
+> the full device (no 2:3 letterbox). Pickups follow
+> Android intervals and silhouettes (plus, tall wall slab). Codemagic stamps
 > `CFBundleVersion` ≥ 2 on each TestFlight upload (ASC already has 1.0.0 (1)).
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
@@ -979,7 +984,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | --- | --- |
 | `SpaceSwoosh/App/` | SwiftUI menu + `SpriteView` host |
 | `SpaceSwoosh/Core/` | `GameConfig` (incl. stress caps), fixed-step clock, pacing HUD |
-| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, trail ring, `ObstacleField` slots |
+| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, `CombatSimulator`, `HazardCollision` |
 | `SpaceSwoosh/Render/` | `BakePipeline`, `PooledSpriteField`, ribbon trail, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
@@ -988,6 +993,9 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 hot draws are textures / pooled sprites; sim at 1/60 with interpolated
 presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
-Phase B stress scene held 120 Hz. Phase C Open Space: `CombatSimulator` fills
-the same pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see
-`shared/game-constants.json`). Crash and fuel-out end the run. No LOD tier.
+Phase B stress scene held 120 Hz. Phase C.5 Open Space: `CombatSimulator`
+fills the same pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see
+`shared/game-constants.json`). `HazardCollision` ports JS per-type geometry
+(circle / AABB / OBB / polygon / moons). Wormhole and drift are non-lethal.
+Art is baked silhouettes + extra pooled parts (moons, phase plates, wind
+lines). Crash and fuel-out end the run. No LOD tier.

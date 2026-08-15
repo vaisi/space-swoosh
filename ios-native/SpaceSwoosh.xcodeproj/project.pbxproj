@@ -23,6 +23,7 @@
 		99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */; };
 		EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B4487A50892B18E56E9252 /* CombatParity.swift */; };
 		578C9A7D63FB784D94CAA42D /* CombatSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7029C3E4F6EB6C97A5F1D611 /* CombatSimulator.swift */; };
+		B8770DBFAFA9F3A4584BA7B0 /* HazardCollision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0871048511B16134F49F6AC5 /* HazardCollision.swift */; };
 		DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D2C43869B699798FD0DFC5 /* ObstacleState.swift */; };
 		E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */; };
 		F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */; };
@@ -50,6 +51,7 @@
 		BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRibbonTexture.swift; sourceTree = "<group>"; };
 		A5B4487A50892B18E56E9252 /* CombatParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatParity.swift; sourceTree = "<group>"; };
 		7029C3E4F6EB6C97A5F1D611 /* CombatSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatSimulator.swift; sourceTree = "<group>"; };
+		0871048511B16134F49F6AC5 /* HazardCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardCollision.swift; sourceTree = "<group>"; };
 		14D2C43869B699798FD0DFC5 /* ObstacleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObstacleState.swift; sourceTree = "<group>"; };
 		394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipSimulator.swift; sourceTree = "<group>"; };
 		0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRingBuffer.swift; sourceTree = "<group>"; };
@@ -150,6 +152,7 @@
 			children = (
 				A5B4487A50892B18E56E9252,
 				7029C3E4F6EB6C97A5F1D611,
+				0871048511B16134F49F6AC5,
 				14D2C43869B699798FD0DFC5,
 				394B4BABF977D9B915F6D5C5,
 				0BDA3D967612F47FA382CB20,
@@ -239,6 +242,7 @@
 				99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */,
 				EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */,
 				578C9A7D63FB784D94CAA42D /* CombatSimulator.swift in Sources */,
+				B8770DBFAFA9F3A4584BA7B0 /* HazardCollision.swift in Sources */,
 				DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */,
 				E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */,
 				F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */,
@@ -285,7 +289,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -307,7 +311,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

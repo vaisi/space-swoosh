@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Phase C — Open Space spawn, collide, fuel, shield, swoosh from JS spec.
+// Changes: C.5.1 — reference-height KM; Android sparkle/shield/wall spawn + hit sizes.
 
 import Foundation
 import CoreGraphics
@@ -24,10 +24,16 @@ struct RunState {
     var swooshCooldown: CGFloat = 0
     var nextSpawnY: CGFloat = 0
     var sparkleCooldown: CGFloat = 0
-    var shieldCooldown: CGFloat = 2.4
-    var wallBoostCooldown: CGFloat = 8
+    var shieldCooldown: CGFloat = 0
+    var wallBoostCooldown: CGFloat = 0
+    var sparklesLive: Bool = false
+    var shieldsLive: Bool = false
+    var wallBoostsLive: Bool = false
     var rng: UInt64 = 0xC0FFEE
     var lastFlipAt: CGFloat = -1
+    var teleportT: CGFloat = 0
+    var teleportPartner: Int = -1
+    var invulnT: CGFloat = 0
 
     var shieldActive: Bool { shieldTimer > 0 }
     var speedBoostActive: Bool { speedBoostTimer > 0 }
@@ -56,17 +62,28 @@ enum CombatSimulator {
             run.lastFlipAt = run.scoreKm
         }
 
+        if run.teleportT > 0 {
+            run.teleportT = max(0, run.teleportT - dt)
+            if run.teleportT == 0 {
+                HazardCollision.finishTeleport(world: &world, run: &run)
+            }
+        }
+        if run.invulnT > 0 {
+            run.invulnT = max(0, run.invulnT - dt)
+        }
+
         let prevY = world.ship.y
         var ship = ShipSimulator()
-        if run.speedBoostActive {
-            // 1.82× matches JS wall-boost gameplay speed.
-            stepBoostedShip(world: &world, dt: dt, command: command, factor: 1.82)
-        } else {
-            ship.step(world: &world, dt: dt, command: command)
+        if run.teleportT <= 0 {
+            if run.speedBoostActive {
+                stepBoostedShip(world: &world, dt: dt, command: command, factor: 1.82)
+            } else {
+                ship.step(world: &world, dt: dt, command: command)
+            }
         }
 
         let dy = abs(world.ship.y - prevY)
-        let kmDelta = dy * GameConfig.kmPerPixel
+        let kmDelta = GameConfig.kmDelta(dy: dy, playfieldHeight: world.height)
         run.scoreKm += kmDelta
 
         if run.speedBoostActive {
@@ -96,11 +113,13 @@ enum CombatSimulator {
         }
 
         spawnBelt(world: &world, run: &run)
-        moveHazards(world: &world, dt: dt)
+        moveHazards(world: &world, run: &run, dt: dt)
+        HazardCollision.applyFields(world: &world, run: run, dt: dt)
         recycleBehind(world: &world)
         magnetSparkles(world: &world, run: run, dt: dt)
         collectPickups(world: &world, run: &run)
         detectSwoosh(world: world, run: &run)
+        HazardCollision.tryTeleport(world: &world, run: &run)
         collide(world: &world, run: &run)
     }
 
@@ -150,22 +169,40 @@ enum CombatSimulator {
             spawnRow(world: &world, run: &run, atY: run.nextSpawnY)
         }
 
-        run.sparkleCooldown -= GameConfig.simDt
-        if run.scoreKm >= GameConfig.Profile.collectiblesFromScore, run.sparkleCooldown <= 0 {
-            spawnPickup(world: &world, kind: .sparkle, y: world.ship.y + world.height * 0.95, run: &run)
-            run.sparkleCooldown = 2.6 + rand01(&run.rng) * 2.6
+        let ahead = world.ship.y + world.height
+        if run.scoreKm >= GameConfig.Profile.collectiblesFromScore {
+            if !run.sparklesLive {
+                run.sparklesLive = true
+                run.sparkleCooldown = GameConfig.Profile.sparkleFirstWait
+            }
+            run.sparkleCooldown -= GameConfig.simDt
+            if run.sparkleCooldown <= 0 {
+                spawnPickup(world: &world, kind: .sparkle, y: ahead, run: &run)
+                run.sparkleCooldown = GameConfig.Profile.sparkleMin
+                    + rand01(&run.rng) * GameConfig.Profile.sparkleSpan
+            }
         }
-
-        run.shieldCooldown -= GameConfig.simDt
-        if run.scoreKm >= GameConfig.Profile.shieldsFromScore, run.shieldCooldown <= 0 {
-            spawnPickup(world: &world, kind: .shield, y: world.ship.y + world.height * 0.92, run: &run)
-            run.shieldCooldown = 7 + rand01(&run.rng) * 5
+        if run.scoreKm >= GameConfig.Profile.shieldsFromScore {
+            if !run.shieldsLive {
+                run.shieldsLive = true
+                run.shieldCooldown = 0
+            }
+            run.shieldCooldown -= GameConfig.simDt
+            if run.shieldCooldown <= 0 {
+                spawnPickup(world: &world, kind: .shield, y: ahead, run: &run)
+                run.shieldCooldown = GameConfig.Profile.shieldInterval
+            }
         }
-
-        run.wallBoostCooldown -= GameConfig.simDt
-        if run.scoreKm >= GameConfig.Profile.wallBoostsFromScore, run.wallBoostCooldown <= 0 {
-            spawnPickup(world: &world, kind: .wallBoost, y: world.ship.y + world.height * 0.7, run: &run)
-            run.wallBoostCooldown = 20 + rand01(&run.rng) * 6
+        if run.scoreKm >= GameConfig.Profile.wallBoostsFromScore {
+            if !run.wallBoostsLive {
+                run.wallBoostsLive = true
+                run.wallBoostCooldown = 0
+            }
+            run.wallBoostCooldown -= GameConfig.simDt
+            if run.wallBoostCooldown <= 0 {
+                spawnPickup(world: &world, kind: .wallBoost, y: ahead, run: &run)
+                run.wallBoostCooldown = GameConfig.Profile.wallBoostInterval
+            }
         }
     }
 
@@ -181,40 +218,10 @@ enum CombatSimulator {
             let lane = (CGFloat(i) + 0.5) / CGFloat(spawnCount)
             let x = world.width * (0.18 + lane * 0.64 + (rand01(&run.rng) - 0.5) * 0.08)
             if type == "simple" {
-                let n = min(GameConfig.Profile.maxClusterCount, 2 + Int(dens))
-                for k in 0..<n {
-                    placeObstacle(
-                        world: &world,
-                        kind: [.circle, .triangle, .square][k % 3],
-                        x: min(world.width * 0.88, max(world.width * 0.12, x + CGFloat(k - 1) * world.baseUnit * 3.2)),
-                        y: atY + CGFloat(k) * world.baseUnit * 1.2,
-                        moving: false,
-                        run: &run
-                    )
-                }
+                spawnSimpleCluster(world: &world, run: &run, atY: atY, dens: dens)
             } else {
-                placeObstacle(
-                    world: &world,
-                    kind: kind(for: type),
-                    x: type == "sideBarrier"
-                        ? (rand01(&run.rng) < 0.5 ? world.baseUnit * 2.2 : world.width - world.baseUnit * 2.2)
-                        : x,
-                    y: atY,
-                    moving: type == "moving" || type == "shooting" || type == "driftCurrent",
-                    run: &run
-                )
+                placeHazard(world: &world, type: type, x: x, y: atY, run: &run)
             }
-        }
-    }
-
-    private static func kind(for type: String) -> ObstacleKind {
-        switch type {
-        case "sideBarrier": return .square
-        case "complex", "phase": return .diamond
-        case "pulsating": return .circle
-        case "wormhole", "sweepGate": return .ring
-        case "blackhole", "repulsor": return .hole
-        default: return .triangle
         }
     }
 
@@ -227,29 +234,274 @@ enum CombatSimulator {
         return types[idx]
     }
 
-    private static func placeObstacle(
+    private static func spawnSimpleCluster(
+        world: inout WorldState,
+        run: inout RunState,
+        atY: CGFloat,
+        dens: CGFloat
+    ) {
+        let n = min(GameConfig.Profile.maxClusterCount, 2 + Int(dens))
+        for k in 0..<n {
+            let size = world.baseUnit * (0.9 + rand01(&run.rng) * 0.5)
+            let x = min(
+                world.width * 0.88,
+                max(world.width * 0.12, world.width * (0.2 + CGFloat(k) * 0.18) + (rand01(&run.rng) - 0.5) * world.baseUnit * 2)
+            )
+            placeSimple(
+                world: &world,
+                kind: [.circle, .triangle, .square][k % 3],
+                x: x,
+                y: atY + CGFloat(k) * world.baseUnit * 1.2,
+                size: size,
+                run: &run
+            )
+        }
+    }
+
+    private static func placeSimple(
         world: inout WorldState,
         kind: ObstacleKind,
         x: CGFloat,
         y: CGFloat,
-        moving: Bool,
+        size: CGFloat,
         run: inout RunState
     ) {
-        guard let i = world.obstacles.firstIndex(where: { !$0.active }) else { return }
-        let sizeMix = GameConfig.Obstacles.minSizeUnits
-            + (GameConfig.Obstacles.maxSizeUnits - GameConfig.Obstacles.minSizeUnits) * rand01(&run.rng)
-        let glow = kind == .ring || kind == .hole
-        world.obstacles[i] = ObstacleState(
-            active: true,
-            kind: kind,
-            x: x,
-            y: y,
-            radius: world.baseUnit * sizeMix * (kind == .square && x < world.width * 0.2 ? 1.4 : 1),
-            rotation: 0,
-            spin: moving ? 0 : ((rand01(&run.rng) < 0.5) ? -0.4 : 0.4),
-            glow: glow,
-            vx: moving ? (rand01(&run.rng) < 0.5 ? -1 : 1) * world.width * 0.12 : 0
-        )
+        guard let i = freeSlot(world) else { return }
+        var o = ObstacleState.inactive()
+        o.active = true
+        o.kind = kind
+        o.x = x
+        o.y = y
+        o.radius = size
+        o.baseRadius = size
+        o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60
+        o.lethal = true
+        world.obstacles[i] = o
+    }
+
+    private static func placeHazard(
+        world: inout WorldState,
+        type: String,
+        x: CGFloat,
+        y: CGFloat,
+        run: inout RunState
+    ) {
+        let u = world.baseUnit
+        let setSize = u * (GameConfig.Obstacles.minSizeUnits
+            + (GameConfig.Obstacles.maxSizeUnits - GameConfig.Obstacles.minSizeUnits) * rand01(&run.rng))
+        switch type {
+        case "sideBarrier":
+            spawnSideBarriers(world: &world, y: y)
+        case "complex":
+            guard let i = freeSlot(world) else { return }
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .complex
+            o.x = x
+            o.y = y
+            o.radius = setSize * 0.64
+            o.baseRadius = o.radius
+            o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60
+            o.moonCount = 2 + Int(rand01(&run.rng) * 3)
+            o.moonMask = UInt8((1 << o.moonCount) - 1)
+            o.moonDist = setSize * 1.2
+            o.moonSize = setSize * 0.2
+            o.moonSpin = (0.02 + rand01(&run.rng) * 0.02) * 60
+            o.lethal = true
+            world.obstacles[i] = o
+        case "moving":
+            guard let i = freeSlot(world) else { return }
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .pentagon
+            o.x = x
+            o.y = y
+            o.radius = setSize * 0.8
+            o.baseRadius = o.radius
+            o.originX = x
+            o.vx = (rand01(&run.rng) < 0.5 ? -1 : 1) * u * 2
+            o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60
+            o.lethal = true
+            world.obstacles[i] = o
+        case "shooting":
+            guard let i = freeSlot(world) else { return }
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .star
+            o.x = x
+            o.y = y
+            o.radius = setSize
+            o.baseRadius = setSize
+            o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60
+            o.shotCooldown = 2
+            o.shotSize = setSize * 0.2
+            o.lethal = true
+            world.obstacles[i] = o
+        case "driftCurrent":
+            guard let i = freeSlot(world) else { return }
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .drift
+            o.x = world.width * 0.5
+            o.y = y
+            o.radius = u * 2
+            o.baseRadius = o.radius
+            o.halfW = world.width * 0.5
+            o.halfH = u * (4.2 + rand01(&run.rng) * 1.4) * 0.5
+            o.driftDir = rand01(&run.rng) < 0.5 ? -1 : 1
+            o.lethal = false
+            o.spin = 0
+            world.obstacles[i] = o
+        case "pulsating":
+            guard let i = freeSlot(world) else { return }
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .pulsating
+            o.x = x
+            o.y = y
+            o.radius = setSize
+            o.baseRadius = setSize
+            o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60
+            o.lethal = true
+            world.obstacles[i] = o
+        case "phase":
+            guard let i = freeSlot(world) else { return }
+            let size = u * (1.25 + rand01(&run.rng) * 0.35)
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .phase
+            o.x = min(world.width - size * 3, max(size * 3, x))
+            o.y = y
+            o.radius = size
+            o.baseRadius = size
+            o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60 * 0.22
+            o.bloomDuration = 3.6 + rand01(&run.rng) * 0.5
+            o.phase = rand01(&run.rng) * .pi * 2
+            o.lethal = true
+            world.obstacles[i] = o
+        case "wormhole":
+            spawnWormholePair(world: &world, y: y, run: &run)
+        case "repulsor":
+            guard let i = freeSlot(world) else { return }
+            let size = u * (1.1 + rand01(&run.rng) * 0.35)
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .repulsor
+            o.x = x
+            o.y = y
+            o.radius = size
+            o.baseRadius = size
+            o.glow = true
+            o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60 * 0.2
+            o.lethal = true
+            world.obstacles[i] = o
+        case "blackhole":
+            guard let i = freeSlot(world) else { return }
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .blackhole
+            o.x = x
+            o.y = y
+            o.radius = u * 3
+            o.baseRadius = o.radius
+            o.glow = true
+            o.lethal = true
+            world.obstacles[i] = o
+        case "sweepGate":
+            guard let i = freeSlot(world) else { return }
+            let size = u * (1.05 + rand01(&run.rng) * 0.35)
+            let dir: CGFloat = rand01(&run.rng) < 0.5 ? -1 : 1
+            let halfLen = size * 2.8
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .sweep
+            o.x = dir > 0 ? -halfLen * 1.15 : world.width + halfLen * 1.15
+            o.y = y
+            o.radius = size
+            o.baseRadius = size
+            o.halfW = halfLen
+            o.halfH = max(0.85, size * 0.045)
+            o.vx = dir * u * (1.05 + rand01(&run.rng) * 0.45)
+            o.spin = (0.007 + rand01(&run.rng) * 0.005) * (rand01(&run.rng) < 0.5 ? -1 : 1) * 60
+            o.lethal = true
+            world.obstacles[i] = o
+        default:
+            placeSimple(world: &world, kind: .circle, x: x, y: y, size: u * 1.1, run: &run)
+        }
+    }
+
+    private static func spawnSideBarriers(world: inout WorldState, y: CGFloat) {
+        let width = world.baseUnit * 2
+        let height = world.baseUnit * 15
+        for isLeft in [true, false] {
+            guard let i = freeSlot(world) else { return }
+            var o = ObstacleState.inactive()
+            o.active = true
+            o.kind = .slab
+            o.x = isLeft ? width / 2 : world.width - width / 2
+            o.y = y
+            o.radius = width
+            o.baseRadius = width
+            o.halfW = width / 2
+            o.halfH = height / 2
+            o.spin = 0
+            o.lethal = true
+            world.obstacles[i] = o
+        }
+    }
+
+    private static func spawnWormholePair(world: inout WorldState, y: CGFloat, run: inout RunState) {
+        let size = world.baseUnit * 2
+        let margin = size * 4
+        guard let entryI = freeSlot(world) else { return }
+        let entryX = margin + rand01(&run.rng) * (world.width - margin * 2)
+        var entry = ObstacleState.inactive()
+        entry.active = true
+        entry.kind = .wormhole
+        entry.x = entryX
+        entry.y = y
+        entry.radius = size
+        entry.baseRadius = size
+        entry.glow = true
+        entry.lethal = false
+        entry.isExit = false
+        world.obstacles[entryI] = entry
+
+        let rocks = 2 + Int(rand01(&run.rng) * 2)
+        for k in 0..<rocks {
+            let angle = (.pi * 2 * CGFloat(k)) / CGFloat(rocks)
+            let dist = world.baseUnit * (8 + rand01(&run.rng) * 2)
+            let rx = entryX + cos(angle) * dist
+            if rx > margin, rx < world.width - margin {
+                placeSimple(
+                    world: &world,
+                    kind: [.circle, .triangle, .square][k % 3],
+                    x: rx,
+                    y: y + sin(angle) * dist,
+                    size: world.baseUnit * (1 + rand01(&run.rng)),
+                    run: &run
+                )
+            }
+        }
+
+        guard let exitI = freeSlot(world) else { return }
+        var exit = ObstacleState.inactive()
+        exit.active = true
+        exit.kind = .wormhole
+        exit.x = margin + rand01(&run.rng) * (world.width - margin * 2)
+        exit.y = y + world.height * 0.8
+        exit.radius = size
+        exit.baseRadius = size
+        exit.glow = true
+        exit.lethal = false
+        exit.isExit = true
+        exit.partner = entryI
+        world.obstacles[exitI] = exit
+        world.obstacles[entryI].partner = exitI
+    }
+
+    private static func freeSlot(_ world: WorldState) -> Int? {
+        world.obstacles.firstIndex(where: { !$0.active })
     }
 
     private static func spawnPickup(
@@ -261,33 +513,113 @@ enum CombatSimulator {
         guard let i = world.pickups.firstIndex(where: { !$0.active }) else { return }
         let x: CGFloat
         if kind == .wallBoost {
-            x = rand01(&run.rng) < 0.5 ? world.baseUnit * 1.4 : world.width - world.baseUnit * 1.4
+            let halfW = world.baseUnit * 0.9 / 2
+            x = rand01(&run.rng) < 0.5 ? halfW : world.width - halfW
         } else {
-            x = world.width * (0.18 + rand01(&run.rng) * 0.64)
+            let margin = world.baseUnit * 4
+            x = margin + rand01(&run.rng) * (world.width - margin * 2)
         }
-        world.pickups[i] = PickupState(active: true, kind: kind, x: x, y: y, phase: 0)
+        world.pickups[i] = PickupState(active: true, kind: kind, x: x, y: y, phase: rand01(&run.rng) * .pi * 2)
     }
 
-    private static func moveHazards(world: inout WorldState, dt: CGFloat) {
+    private static func moveHazards(world: inout WorldState, run: inout RunState, dt: CGFloat) {
         for i in 0..<world.obstacles.count {
             guard world.obstacles[i].active else { continue }
             world.obstacles[i].rotation += world.obstacles[i].spin * dt
-            if world.obstacles[i].vx != 0 {
+            switch world.obstacles[i].kind {
+            case .pentagon:
                 world.obstacles[i].x += world.obstacles[i].vx * dt
-                let r = world.obstacles[i].radius
-                if world.obstacles[i].x < r {
-                    world.obstacles[i].x = r
-                    world.obstacles[i].vx = abs(world.obstacles[i].vx)
-                } else if world.obstacles[i].x > world.width - r {
-                    world.obstacles[i].x = world.width - r
-                    world.obstacles[i].vx = -abs(world.obstacles[i].vx)
+                if abs(world.obstacles[i].x - world.obstacles[i].originX) > world.width * 0.3 {
+                    world.obstacles[i].vx *= -1
+                }
+            case .sweep:
+                world.obstacles[i].x += world.obstacles[i].vx * dt
+                let extent = world.obstacles[i].halfW
+                if world.obstacles[i].x + extent < -extent
+                    || world.obstacles[i].x - extent > world.width + extent {
+                    world.obstacles[i].active = false
+                }
+            case .pulsating:
+                world.obstacles[i].radius += 0.5 * dt
+                if world.obstacles[i].radius > world.obstacles[i].baseRadius * 2 {
+                    world.obstacles[i].radius = world.obstacles[i].baseRadius
+                }
+            case .phase:
+                stepPhase(&world.obstacles[i], dt: dt)
+            case .complex:
+                world.obstacles[i].moonAngle += world.obstacles[i].moonSpin * dt
+            case .star:
+                world.obstacles[i].shotCooldown -= dt
+                if world.obstacles[i].shotCooldown <= 0 {
+                    world.obstacles[i].shotCooldown = 2
+                    fireShot(world: &world, from: world.obstacles[i], run: &run)
+                }
+            case .wormhole, .repulsor, .blackhole, .drift:
+                world.obstacles[i].phase += dt * (world.obstacles[i].kind == .drift ? world.baseUnit * 3.4 : 3.2)
+            case .projectile:
+                world.obstacles[i].x += world.obstacles[i].vx * dt
+                world.obstacles[i].y += world.obstacles[i].originX * dt
+            default:
+                if world.obstacles[i].vx != 0 {
+                    world.obstacles[i].x += world.obstacles[i].vx * dt
+                    let r = world.obstacles[i].radius
+                    if world.obstacles[i].x < r {
+                        world.obstacles[i].x = r
+                        world.obstacles[i].vx = abs(world.obstacles[i].vx)
+                    } else if world.obstacles[i].x > world.width - r {
+                        world.obstacles[i].x = world.width - r
+                        world.obstacles[i].vx = -abs(world.obstacles[i].vx)
+                    }
                 }
             }
         }
         for i in 0..<world.pickups.count {
             guard world.pickups[i].active else { continue }
-            world.pickups[i].phase += dt * 2.2
+            world.pickups[i].phase += dt * 3
         }
+    }
+
+    private static func stepPhase(_ o: inout ObstacleState, dt: CGFloat) {
+        o.phase += dt * 2.2
+        let t = o.phaseVel + dt / max(o.bloomDuration, 0.1)
+        o.phaseVel = t >= 1 ? t - 1 : t
+        let breathe: CGFloat
+        let u = o.phaseVel
+        let smooth: (CGFloat) -> CGFloat = { a in a * a * (3 - 2 * a) }
+        if u < 0.14 {
+            breathe = 0
+        } else if u < 0.32 {
+            breathe = smooth((u - 0.14) / 0.18)
+        } else if u < 0.78 {
+            breathe = 1
+        } else {
+            breathe = 1 - smooth((u - 0.78) / 0.22)
+        }
+        let target = o.radius * 2.45 * breathe
+        let expanding = target >= o.displaySpread - 0.5
+        let k: CGFloat = expanding ? 220 : 160
+        let damp: CGFloat = expanding ? 8.5 : 14
+        let acc = (target - o.displaySpread) * k - o.moonSpin * damp
+        o.moonSpin += acc * dt
+        o.displaySpread += o.moonSpin * dt
+    }
+
+    private static func fireShot(world: inout WorldState, from star: ObstacleState, run: inout RunState) {
+        guard let i = freeSlot(world) else { return }
+        let a = rand01(&run.rng) * .pi * 2
+        let speed = world.baseUnit * 3
+        var shot = ObstacleState.inactive()
+        shot.active = true
+        shot.kind = .projectile
+        shot.x = star.x
+        shot.y = star.y
+        shot.radius = star.shotSize
+        shot.baseRadius = star.shotSize
+        shot.vx = cos(a) * speed
+        shot.originX = sin(a) * speed
+        shot.lethal = true
+        shot.spin = 0
+        world.obstacles[i] = shot
     }
 
     private static func recycleBehind(world: inout WorldState) {
@@ -320,13 +652,27 @@ enum CombatSimulator {
 
     private static func collectPickups(world: inout WorldState, run: inout RunState) {
         let shipR = world.baseUnit * GameConfig.Spacecraft.radiusUnits
+        let u = world.baseUnit
         for i in 0..<world.pickups.count {
             guard world.pickups[i].active else { continue }
-            let d = hypot(world.pickups[i].x - world.ship.x, world.pickups[i].y - world.ship.y)
-            let hitR = shipR + world.baseUnit * (world.pickups[i].kind == .wallBoost ? 1.6 : 1.15)
-            guard d < hitR else { continue }
+            let p = world.pickups[i]
+            let hit: Bool
+            switch p.kind {
+            case .sparkle:
+                hit = hypot(p.x - world.ship.x, p.y - world.ship.y) < shipR + u * 1.15
+            case .shield:
+                hit = hypot(p.x - world.ship.x, p.y - world.ship.y) < shipR + u * 2
+            case .wallBoost:
+                let halfW = u * 0.9 / 2
+                let halfH = u * 10 / 2
+                hit = world.ship.x - shipR < p.x + halfW
+                    && world.ship.x + shipR > p.x - halfW
+                    && world.ship.y - shipR < p.y + halfH
+                    && world.ship.y + shipR > p.y - halfH
+            }
+            guard hit else { continue }
             world.pickups[i].active = false
-            switch world.pickups[i].kind {
+            switch p.kind {
             case .sparkle:
                 guard !run.fuelDying else { break }
                 run.fuel = min(GameConfig.Fuel.max, run.fuel + GameConfig.Fuel.refillPerCollectible)
@@ -347,13 +693,19 @@ enum CombatSimulator {
         let yBand = shipR * GameConfig.StyleSwoosh.yBand
         var left: CGFloat?
         var right: CGFloat?
-        for o in world.obstacles where o.active {
-            if abs(o.y - world.ship.y) > yBand + o.radius { continue }
-            if o.x + o.radius < world.ship.x {
-                let gap = world.ship.x - (o.x + o.radius)
+        for o in world.obstacles where o.active && o.lethal {
+            let ext: CGFloat
+            switch o.kind {
+            case .slab, .sweep: ext = o.halfW
+            case .square: ext = o.radius * 0.7
+            default: ext = o.radius
+            }
+            if abs(o.y - world.ship.y) > yBand + ext { continue }
+            if o.x + ext < world.ship.x {
+                let gap = world.ship.x - (o.x + ext)
                 if gap < maxClear { left = gap }
-            } else if o.x - o.radius > world.ship.x {
-                let gap = (o.x - o.radius) - world.ship.x
+            } else if o.x - ext > world.ship.x {
+                let gap = (o.x - ext) - world.ship.x
                 if gap < maxClear { right = gap }
             }
         }
@@ -364,18 +716,40 @@ enum CombatSimulator {
     }
 
     private static func collide(world: inout WorldState, run: inout RunState) {
+        if run.teleportT > 0 || run.invulnT > 0 { return }
+        if HazardCollision.inWormholeSafeZone(world: world, shipX: world.ship.x, shipY: world.ship.y) {
+            return
+        }
         let shipR = world.baseUnit * GameConfig.Spacecraft.radiusUnits
             * (run.shieldActive ? 1.5 : 1)
         for i in 0..<world.obstacles.count {
-            guard world.obstacles[i].active else { continue }
-            let d = hypot(world.obstacles[i].x - world.ship.x, world.obstacles[i].y - world.ship.y)
-            guard d < shipR + world.obstacles[i].radius * 0.72 else { continue }
+            guard world.obstacles[i].active, world.obstacles[i].lethal else { continue }
             if run.shieldActive {
-                world.obstacles[i].active = false
-                run.points += GameConfig.Points.perAsteroid
-                run.obstaclesDestroyed += 1
-                run.scoreKm += 10
-            } else if !run.fuelDying {
+                switch HazardCollision.shieldSmash(
+                    o: world.obstacles[i],
+                    shipX: world.ship.x,
+                    shipY: world.ship.y,
+                    shipR: shipR
+                ) {
+                case .none:
+                    continue
+                case .moon(let bit):
+                    world.obstacles[i].moonMask &= ~UInt8(1 << bit)
+                    run.points += GameConfig.Points.perAsteroid
+                    run.obstaclesDestroyed += 1
+                    run.scoreKm += 10
+                case .destroy:
+                    world.obstacles[i].active = false
+                    run.points += GameConfig.Points.perAsteroid
+                    run.obstaclesDestroyed += 1
+                    run.scoreKm += 10
+                }
+            } else if HazardCollision.hits(
+                o: world.obstacles[i],
+                shipX: world.ship.x,
+                shipY: world.ship.y,
+                shipR: shipR
+            ), !run.fuelDying {
                 run.isOver = true
                 run.failReason = .crash
                 return

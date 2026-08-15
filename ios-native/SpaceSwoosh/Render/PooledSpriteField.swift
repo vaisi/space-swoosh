@@ -1,10 +1,11 @@
 // PooledSpriteField.swift
-// Changes: Phase C — sync combat pickups (sparkle / shield / wall boost) from slots.
+// Changes: C.5.1 — Android pickup look: sparkle 1.15×, ink plus + rings, tall wall slab.
 
 import SpriteKit
 
 final class PooledSpriteField: SKNode {
     private let bodyNodes: [SKSpriteNode]
+    private let extraNodes: [SKSpriteNode]
     private let glowNodes: [SKSpriteNode]
     private let pickupNodes: [SKSpriteNode]
     private let bake: BakePipeline
@@ -20,6 +21,16 @@ final class PooledSpriteField: SKNode {
             bodies.append(node)
         }
         bodyNodes = bodies
+
+        var extras: [SKSpriteNode] = []
+        for _ in 0..<GameConfig.Stress.extraPartSlots {
+            let node = SKSpriteNode(texture: bake.part(for: .circle))
+            node.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+            node.isHidden = true
+            node.zPosition = 4.2
+            extras.append(node)
+        }
+        extraNodes = extras
 
         var glows: [SKSpriteNode] = []
         for _ in 0..<GameConfig.Stress.glowSlots {
@@ -38,12 +49,21 @@ final class PooledSpriteField: SKNode {
             node.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             node.isHidden = true
             node.zPosition = 6
+            for name in ["ring0", "ring1"] {
+                let ring = SKSpriteNode(texture: bake.ring)
+                ring.name = name
+                ring.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+                ring.zPosition = -1
+                ring.isHidden = true
+                node.addChild(ring)
+            }
             pickups.append(node)
         }
         pickupNodes = pickups
 
         super.init()
         for node in bodyNodes { addChild(node) }
+        for node in extraNodes { addChild(node) }
         for node in glowNodes { addChild(node) }
         for node in pickupNodes { addChild(node) }
     }
@@ -56,6 +76,7 @@ final class PooledSpriteField: SKNode {
     func sync(world: WorldState, cameraY: CGFloat, sceneHeight: CGFloat) {
         let screenY = sceneHeight * 0.22
         var glowUsed = 0
+        var extraUsed = 0
 
         for i in 0..<bodyNodes.count {
             let node = bodyNodes[i]
@@ -65,57 +86,185 @@ final class PooledSpriteField: SKNode {
             }
             let o = world.obstacles[i]
             let y = screenY + (o.y - cameraY)
-            node.isHidden = false
-            node.texture = bake.part(for: o.kind)
-            node.position = CGPoint(x: o.x, y: y)
-            node.zRotation = o.rotation
-            let side = o.radius * 2.2
-            node.size = CGSize(width: side, height: side)
+            let merge = HazardCollision.mergeFactor(o)
+
+            if o.kind == .drift || (o.kind == .phase && merge < 0.05) {
+                node.isHidden = true
+            } else {
+                node.isHidden = false
+                if o.kind == .wormhole {
+                    node.texture = bake.wormhole(isExit: o.isExit, paired: o.paired)
+                } else {
+                    node.texture = bake.part(for: o.kind)
+                }
+                node.position = CGPoint(x: o.x, y: y)
+                node.zRotation = o.kind == .slab || o.kind == .drift ? 0 : o.rotation
+                node.size = bodySize(o)
+                node.alpha = o.kind == .phase ? max(0.15, merge) : 1
+                node.colorBlendFactor = 0
+            }
+
+            extraUsed = emitExtras(
+                o: o,
+                screenY: y,
+                world: world,
+                used: extraUsed
+            )
 
             if o.glow, glowUsed < glowNodes.count {
                 let glow = glowNodes[glowUsed]
                 glowUsed += 1
                 glow.isHidden = false
-                glow.texture = (o.kind == .hole) ? bake.glowInk : bake.glowSignal
+                glow.texture = (o.kind == .blackhole || o.kind == .repulsor) ? bake.glowInk : bake.glowSignal
                 glow.position = CGPoint(x: o.x, y: y)
                 glow.size = CGSize(width: o.radius * 3.4, height: o.radius * 3.4)
-                glow.alpha = 0.85
+                glow.alpha = o.kind == .wormhole && o.paired ? 0.25 : 0.85
             }
         }
         for i in glowUsed..<glowNodes.count {
             glowNodes[i].isHidden = true
         }
+        for i in extraUsed..<extraNodes.count {
+            extraNodes[i].isHidden = true
+        }
 
         for i in 0..<pickupNodes.count {
             let node = pickupNodes[i]
+            let rings = node.children.compactMap { $0 as? SKSpriteNode }
             if i >= world.pickups.count || !world.pickups[i].active {
                 node.isHidden = true
+                for ring in rings { ring.isHidden = true }
                 continue
             }
             let p = world.pickups[i]
-            let pulse = 0.75 + 0.25 * sin(p.phase)
             node.isHidden = false
             node.position = CGPoint(x: p.x, y: screenY + (p.y - cameraY))
             switch p.kind {
             case .sparkle:
+                let pulse = 1 + sin(p.phase) * 0.12
                 node.texture = bake.sparkle
                 node.color = .white
                 node.colorBlendFactor = 0
                 let side = world.baseUnit * 1.15 * pulse
                 node.size = CGSize(width: side, height: side)
-                node.alpha = 0.7 + 0.3 * pulse
-            case .shield:
-                node.texture = bake.part(for: .ring)
-                let side = world.baseUnit * 2.2 * pulse
-                node.size = CGSize(width: side, height: side)
+                node.zRotation = p.phase * 0.17
                 node.alpha = 1
+                for ring in rings { ring.isHidden = true }
+            case .shield:
+                let size = world.baseUnit * 2
+                node.texture = bake.plus
+                node.color = .white
+                node.colorBlendFactor = 0
+                node.size = CGSize(width: size, height: size)
+                node.zRotation = 0
+                node.alpha = 1
+                let t = (p.phase / (.pi * 2)).truncatingRemainder(dividingBy: 1)
+                for (idx, ring) in rings.enumerated() {
+                    let tt = (t + CGFloat(idx) * 0.5).truncatingRemainder(dividingBy: 1)
+                    let radius = size * (0.5 + tt * 0.8)
+                    ring.isHidden = false
+                    ring.texture = bake.ring
+                    ring.size = CGSize(width: radius * 2, height: radius * 2)
+                    ring.alpha = pow(1 - tt, 1.8) * 0.9
+                    ring.position = .zero
+                }
             case .wallBoost:
-                node.texture = bake.part(for: .square)
+                node.texture = bake.part(for: .slab)
                 node.color = BrandColors.UI.signal
                 node.colorBlendFactor = 1
-                node.size = CGSize(width: world.baseUnit * 0.7, height: world.baseUnit * 4.2)
-                node.alpha = 0.95
+                node.size = CGSize(width: world.baseUnit * 0.9, height: world.baseUnit * 10)
+                node.zRotation = 0
+                node.alpha = 0.72 + 0.18 * sin(p.phase)
+                for ring in rings { ring.isHidden = true }
             }
         }
+    }
+
+    private func bodySize(_ o: ObstacleState) -> CGSize {
+        switch o.kind {
+        case .square:
+            let s = o.radius * 0.7 * 2
+            return CGSize(width: s, height: s)
+        case .phase:
+            let s = o.radius * 0.72 * 2
+            return CGSize(width: s, height: s)
+        case .sweep:
+            return CGSize(width: o.halfW * 2, height: max(2, o.halfH * 2))
+        case .slab:
+            return CGSize(width: o.halfW * 2, height: o.halfH * 2)
+        case .wormhole:
+            let pulse = 1 + sin(o.phase) * 0.1
+            let s = o.radius * 2 * pulse
+            return CGSize(width: s, height: s)
+        case .repulsor:
+            let s = o.radius * 6.2
+            return CGSize(width: s, height: s)
+        default:
+            let s = o.radius * 2
+            return CGSize(width: s, height: s)
+        }
+    }
+
+    private func emitExtras(
+        o: ObstacleState,
+        screenY: CGFloat,
+        world: WorldState,
+        used: Int
+    ) -> Int {
+        var used = used
+        switch o.kind {
+        case .complex:
+            for i in 0..<o.moonCount where o.moonAlive(i) && used < extraNodes.count {
+                let p = HazardCollision.moonWorld(o: o, index: i)
+                let node = extraNodes[used]
+                used += 1
+                node.isHidden = false
+                node.texture = bake.part(for: .circle)
+                node.position = CGPoint(x: p.x, y: screenY + (p.y - o.y))
+                node.zRotation = 0
+                let s = o.moonSize * 2
+                node.size = CGSize(width: s, height: s)
+                node.alpha = 1
+                node.colorBlendFactor = 0
+            }
+        case .phase:
+            let merge = HazardCollision.mergeFactor(o)
+            if merge < 0.999 {
+                for i in 0..<4 where used < extraNodes.count {
+                    let pos = HazardCollision.pieceLocal(o, index: i)
+                    let node = extraNodes[used]
+                    used += 1
+                    node.isHidden = false
+                    node.texture = bake.part(for: .square)
+                    let c = cos(o.rotation)
+                    let s = sin(o.rotation)
+                    let wx = o.x + pos.x * c - pos.y * s
+                    let wy = screenY + pos.x * s + pos.y * c
+                    node.position = CGPoint(x: wx, y: wy)
+                    node.zRotation = o.rotation + HazardCollision.pieceSpin(o, index: i)
+                    let side = o.radius * 0.36 * 2
+                    node.size = CGSize(width: side, height: side)
+                    node.alpha = 1 - merge
+                    node.colorBlendFactor = 0
+                }
+            }
+        case .drift:
+            let lines = 7
+            for i in 0..<lines where used < extraNodes.count {
+                let node = extraNodes[used]
+                used += 1
+                let yy = screenY - o.halfH * 0.72 + (CGFloat(i) / CGFloat(lines - 1)) * o.halfH * 1.44
+                node.isHidden = false
+                node.texture = bake.part(for: .drift)
+                node.position = CGPoint(x: world.width * 0.5, y: yy)
+                node.zRotation = 0
+                node.size = CGSize(width: world.width, height: max(2, world.baseUnit * 0.14))
+                node.alpha = 1
+                node.colorBlendFactor = 0
+            }
+        default:
+            break
+        }
+        return used
     }
 }

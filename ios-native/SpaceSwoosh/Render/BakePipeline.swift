@@ -1,6 +1,5 @@
 // BakePipeline.swift
-// Changes: Phase B — one-time texture bake (hull, ribbon, obstacle parts, glows).
-// Nothing on the hot path tessellates paths.
+// Changes: C.5.1 — ink plus for Android-matching shield pickup.
 
 import SpriteKit
 import UIKit
@@ -11,6 +10,8 @@ final class BakePipeline {
     let glowSignal: SKTexture
     let glowInk: SKTexture
     let sparkle: SKTexture
+    let ring: SKTexture
+    let plus: SKTexture
     private let parts: [ObstacleKind: SKTexture]
 
     static let shared = BakePipeline()
@@ -21,19 +22,42 @@ final class BakePipeline {
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)
         sparkle = Self.diamond(color: BrandColors.UI.signal, size: 48)
+        ring = Self.ring(size: 96)
+        plus = Self.plus(size: 96)
+        let circle = Self.filledCircle(size: 96)
+        let square = Self.square(size: 96)
+        let hole = Self.hole(size: 96)
         parts = [
-            .circle: Self.filledCircle(size: 96),
+            .circle: circle,
             .triangle: Self.polygon(points: 3, size: 96),
-            .square: Self.square(size: 96),
-            .diamond: Self.diamond(color: BrandColors.UI.ink, size: 96),
-            .ring: Self.ring(size: 96),
-            .hole: Self.hole(size: 96)
+            .square: square,
+            .pentagon: Self.polygon(points: 5, size: 96),
+            .star: Self.star(size: 96),
+            .complex: circle,
+            .pulsating: circle,
+            .phase: square,
+            .sweep: Self.blade(width: 256, height: 32),
+            .slab: Self.slab(width: 32, height: 256),
+            .drift: Self.windDash(width: 256, height: 16),
+            .wormhole: Self.dashedRing(size: 96, color: BrandColors.UI.signal),
+            .repulsor: Self.repulsor(size: 128),
+            .blackhole: hole,
+            .projectile: circle
         ]
     }
 
     func part(for kind: ObstacleKind) -> SKTexture {
         parts[kind] ?? parts[.circle]!
     }
+
+    func wormhole(isExit: Bool, paired: Bool) -> SKTexture {
+        if paired { return Self.dashedRingCachedInk30 }
+        return isExit ? Self.dashedRingCachedInk : Self.dashedRingCachedSignal
+    }
+
+    private static let dashedRingCachedSignal = dashedRing(size: 96, color: BrandColors.UI.signal)
+    private static let dashedRingCachedInk = dashedRing(size: 96, color: BrandColors.UI.ink)
+    private static let dashedRingCachedInk30 = dashedRing(size: 96, color: BrandColors.UI.ink30)
 
     private static func filledCircle(size: CGFloat) -> SKTexture {
         image(size: size) { cg, mid, r in
@@ -45,7 +69,7 @@ final class BakePipeline {
     private static func square(size: CGFloat) -> SKTexture {
         image(size: size) { cg, mid, r in
             cg.setFillColor(BrandColors.UI.ink.cgColor)
-            let s = r * 1.55
+            let s = r * 1.4
             cg.fill(CGRect(x: mid - s / 2, y: mid - s / 2, width: s, height: s))
         }
     }
@@ -56,6 +80,22 @@ final class BakePipeline {
             for i in 0..<points {
                 let a = -CGFloat.pi / 2 + CGFloat(i) * (.pi * 2 / CGFloat(points))
                 let p = CGPoint(x: mid + cos(a) * r, y: mid + sin(a) * r)
+                if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
+            }
+            path.closeSubpath()
+            cg.setFillColor(BrandColors.UI.ink.cgColor)
+            cg.addPath(path)
+            cg.fillPath()
+        }
+    }
+
+    private static func star(size: CGFloat) -> SKTexture {
+        image(size: size) { cg, mid, r in
+            let path = CGMutablePath()
+            for i in 0..<8 {
+                let rad = i % 2 == 0 ? r : r * 0.5
+                let a = CGFloat(i) * .pi / 4
+                let p = CGPoint(x: mid + cos(a) * rad, y: mid + sin(a) * rad)
                 if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
             }
             path.closeSubpath()
@@ -79,10 +119,33 @@ final class BakePipeline {
         }
     }
 
+    private static func plus(size: CGFloat) -> SKTexture {
+        image(size: size) { cg, mid, r in
+            cg.setStrokeColor(BrandColors.UI.ink.cgColor)
+            cg.setLineWidth(max(4, r * 0.28))
+            cg.setLineCap(.round)
+            let arm = r * 0.85
+            cg.move(to: CGPoint(x: mid - arm, y: mid))
+            cg.addLine(to: CGPoint(x: mid + arm, y: mid))
+            cg.move(to: CGPoint(x: mid, y: mid - arm))
+            cg.addLine(to: CGPoint(x: mid, y: mid + arm))
+            cg.strokePath()
+        }
+    }
+
     private static func ring(size: CGFloat) -> SKTexture {
         image(size: size) { cg, mid, r in
             cg.setStrokeColor(BrandColors.UI.signal.cgColor)
             cg.setLineWidth(max(3, r * 0.18))
+            cg.strokeEllipse(in: CGRect(x: mid - r, y: mid - r, width: r * 2, height: r * 2))
+        }
+    }
+
+    private static func dashedRing(size: CGFloat, color: UIColor) -> SKTexture {
+        image(size: size) { cg, mid, r in
+            cg.setStrokeColor(color.cgColor)
+            cg.setLineWidth(max(3, r * 0.12))
+            cg.setLineDash(phase: 0, lengths: [6, 6])
             cg.strokeEllipse(in: CGRect(x: mid - r, y: mid - r, width: r * 2, height: r * 2))
         }
     }
@@ -93,6 +156,55 @@ final class BakePipeline {
             cg.fillEllipse(in: CGRect(x: mid - r, y: mid - r, width: r * 2, height: r * 2))
             cg.setBlendMode(.clear)
             cg.fillEllipse(in: CGRect(x: mid - r * 0.38, y: mid - r * 0.38, width: r * 0.76, height: r * 0.76))
+        }
+    }
+
+    private static func blade(width: CGFloat, height: CGFloat) -> SKTexture {
+        rectImage(width: width, height: height) { cg, w, h in
+            cg.setFillColor(BrandColors.UI.ink.cgColor)
+            let pad: CGFloat = 2
+            cg.fill(CGRect(x: pad, y: pad, width: w - pad * 2, height: h - pad * 2))
+        }
+    }
+
+    private static func slab(width: CGFloat, height: CGFloat) -> SKTexture {
+        rectImage(width: width, height: height) { cg, w, h in
+            cg.setFillColor(BrandColors.UI.ink.cgColor)
+            cg.fill(CGRect(x: 0, y: 0, width: w, height: h))
+        }
+    }
+
+    private static func windDash(width: CGFloat, height: CGFloat) -> SKTexture {
+        rectImage(width: width, height: height) { cg, w, h in
+            cg.setStrokeColor(BrandColors.UI.ink30.cgColor)
+            cg.setLineWidth(max(1.2, h * 0.35))
+            cg.setLineDash(phase: 0, lengths: [14, 12])
+            cg.setLineCap(.round)
+            cg.move(to: CGPoint(x: 4, y: h / 2))
+            cg.addLine(to: CGPoint(x: w - 4, y: h / 2))
+            cg.strokePath()
+        }
+    }
+
+    private static func repulsor(size: CGFloat) -> SKTexture {
+        image(size: size) { cg, mid, r in
+            cg.setStrokeColor(BrandColors.UI.ink30.cgColor)
+            cg.setLineWidth(max(1.5, r * 0.08))
+            cg.setLineDash(phase: 0, lengths: [r * 0.35, r * 0.22])
+            let ringR = r * 0.95
+            cg.strokeEllipse(in: CGRect(x: mid - ringR, y: mid - ringR, width: ringR * 2, height: ringR * 2))
+            cg.setLineDash(phase: 0, lengths: [])
+            for i in 0..<8 {
+                let a = CGFloat(i) / 8 * .pi * 2
+                let r0 = r * 0.42
+                let r1 = r * 0.62
+                cg.move(to: CGPoint(x: mid + cos(a) * r0, y: mid + sin(a) * r0))
+                cg.addLine(to: CGPoint(x: mid + cos(a) * r1, y: mid + sin(a) * r1))
+            }
+            cg.strokePath()
+            cg.setFillColor(BrandColors.UI.ink.cgColor)
+            let core = r * 0.32
+            cg.fillEllipse(in: CGRect(x: mid - core, y: mid - core, width: core * 2, height: core * 2))
         }
     }
 
@@ -139,6 +251,24 @@ final class BakePipeline {
             cg.setFillColor(UIColor.clear.cgColor)
             cg.fill(CGRect(origin: .zero, size: bounds))
             draw(cg, size / 2, size * 0.38)
+        }
+        let texture = SKTexture(image: image)
+        texture.filteringMode = .linear
+        return texture
+    }
+
+    private static func rectImage(
+        width: CGFloat,
+        height: CGFloat,
+        draw: (CGContext, CGFloat, CGFloat) -> Void
+    ) -> SKTexture {
+        let bounds = CGSize(width: width, height: height)
+        let renderer = UIGraphicsImageRenderer(size: bounds)
+        let image = renderer.image { ctx in
+            let cg = ctx.cgContext
+            cg.setFillColor(UIColor.clear.cgColor)
+            cg.fill(CGRect(origin: .zero, size: bounds))
+            draw(cg, width, height)
         }
         let texture = SKTexture(image: image)
         texture.filteringMode = .linear

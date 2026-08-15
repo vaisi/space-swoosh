@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Phase C — Open Space combat loop on baked pools; game-over handoff.
+// Changes: C.5 — hide hull during wormhole hop so the fade matches JS transit.
 
 import SpriteKit
 
@@ -140,7 +140,7 @@ final class PlayScene: SKScene {
         let screenY = size.height * 0.22
         hullNode?.position = CGPoint(x: ship.x, y: screenY)
         hullNode?.zRotation = -ship.tangent
-        hullNode?.alpha = run.fuelDying ? 0.45 : 1
+        hullNode?.alpha = run.teleportT > 0 ? 0 : (run.fuelDying ? 0.45 : 1)
 
         if run.shieldActive {
             shieldHalo?.isHidden = false

@@ -1,7 +1,7 @@
 # codemagic.yaml
 # Changes:
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
-# - Floor build number at 2 — App Store Connect already has 1.0.0 (1).
+# - Floor build number at 3 for C.5 TestFlight.
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
 workflows:
@@ -73,22 +73,22 @@ workflows:
           if [ "$AS" -gt "$NEXT" ]; then NEXT=$AS; fi
           if [ "$CM" -gt "$NEXT" ]; then NEXT=$CM; fi
           NEXT=$((NEXT + 1))
-          # ASC already accepted 1.0.0 (1). Never reuse 1.
-          if [ "$NEXT" -lt 2 ]; then NEXT=2; fi
+          # ASC already has 1.0.0 (1); repo floor is 3 for C.5.
+          if [ "$NEXT" -lt 3 ]; then NEXT=3; fi
           echo "Build numbers — TestFlight=$TF AppStore=$AS Codemagic=$CM → using $NEXT"
           echo "NATIVE_BUILD_NUMBER=$NEXT" >> "$CM_ENV"
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios-native/SpaceSwoosh/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" ios-native/SpaceSwoosh/Info.plist
           STAMPED=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios-native/SpaceSwoosh/Info.plist)
           echo "Info.plist CFBundleVersion=$STAMPED"
-          if [ "$STAMPED" = "1" ] || [ "$STAMPED" = '$(CURRENT_PROJECT_VERSION)' ]; then
+          if [ "$STAMPED" = "1" ] || [ "$STAMPED" = "2" ] || [ "$STAMPED" = '$(CURRENT_PROJECT_VERSION)' ]; then
             echo "ERROR: CFBundleVersion did not increment (still $STAMPED)."
             exit 1
           fi
       - name: Build native IPA
         script: |
           EXPORT_PLIST=/Users/builder/export_options.plist
-          : "${NATIVE_BUILD_NUMBER:=2}"
+          : "${NATIVE_BUILD_NUMBER:=3}"
           XCARGS="CURRENT_PROJECT_VERSION=${NATIVE_BUILD_NUMBER} MARKETING_VERSION=1.0.0"
           if [ -f "$EXPORT_PLIST" ]; then
             xcode-project build-ipa \

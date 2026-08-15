@@ -1,5 +1,5 @@
 // WorldState.swift
-// Changes: Phase C — pickups + empty combat field (no stress seed on start).
+// Changes: C.5 — obstacle slots use ObstacleState.inactive() factory.
 
 import Foundation
 import CoreGraphics
@@ -32,10 +32,7 @@ struct WorldState {
             distance: 0
         )
         let obstacles = Array(
-            repeating: ObstacleState(
-                active: false, kind: .circle, x: 0, y: 0, radius: 1,
-                rotation: 0, spin: 0, glow: false, vx: 0
-            ),
+            repeating: ObstacleState.inactive(),
             count: GameConfig.Stress.obstacleSlots
         )
         let pickups = Array(

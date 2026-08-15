@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Phase C — Open Space HUD (KM / fuel / shield) + crash/fuel game over.
+// Changes: C.5.1 — full-phone playfield (no 2:3 letterbox); HUD stays in the safe area.
 
 import SwiftUI
 import SpriteKit
@@ -14,13 +14,12 @@ struct PlayContainerView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let playSize = Self.letterboxedPlaySize(in: geo.size)
             ZStack {
-                BrandColors.paperDeep.ignoresSafeArea()
+                BrandColors.paper.ignoresSafeArea()
 
                 SpriteView(scene: scene, options: [.ignoresSiblingOrder])
-                    .frame(width: playSize.width, height: playSize.height)
-                    .clipped()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .ignoresSafeArea()
 
                 VStack {
                     HStack {
@@ -54,6 +53,8 @@ struct PlayContainerView: View {
                         .padding(.bottom, 12)
                     #endif
                 }
+                .padding(.top, geo.safeAreaInsets.top)
+                .padding(.bottom, geo.safeAreaInsets.bottom)
 
                 if session.isOver {
                     VStack(spacing: 16) {
@@ -84,8 +85,8 @@ struct PlayContainerView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
                 UIApplication.shared.isIdleTimerDisabled = true
-                scene.scaleMode = .aspectFit
-                scene.size = playSize
+                scene.scaleMode = .resizeFill
+                scene.size = geo.size
                 scene.pacingMonitor = pacing
                 scene.session = session
                 scene.startRun()
@@ -95,18 +96,10 @@ struct PlayContainerView: View {
                 scene.stopRun()
             }
             .onChange(of: geo.size) { newSize in
-                scene.size = Self.letterboxedPlaySize(in: newSize)
+                scene.size = newSize
             }
         }
-    }
-
-    private static func letterboxedPlaySize(in bounds: CGSize) -> CGSize {
-        let targetAspect: CGFloat = 2.0 / 3.0
-        let boundsAspect = bounds.width / max(bounds.height, 1)
-        if boundsAspect > targetAspect {
-            return CGSize(width: bounds.height * targetAspect, height: bounds.height)
-        }
-        return CGSize(width: bounds.width, height: bounds.width / targetAspect)
+        .ignoresSafeArea()
     }
 }
 

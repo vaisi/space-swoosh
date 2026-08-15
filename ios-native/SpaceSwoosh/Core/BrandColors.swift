@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: Phase A — light-theme paper/ink/signal tokens ported from brand/tokens.js.
+// Changes: C.5 — ink30 for drift bands and muted wormhole rings.
 
 import SwiftUI
 import UIKit
@@ -17,6 +17,7 @@ enum BrandColors {
         static let paper = UIColor(red: 225 / 255, green: 217 / 255, blue: 193 / 255, alpha: 1)
         static let paperDeep = UIColor(red: 211 / 255, green: 201 / 255, blue: 172 / 255, alpha: 1)
         static let ink = UIColor(red: 26 / 255, green: 26 / 255, blue: 26 / 255, alpha: 1)
+        static let ink30 = UIColor(red: 26 / 255, green: 26 / 255, blue: 26 / 255, alpha: 0.30)
         static let signal = UIColor(red: 0, green: 0, blue: 1, alpha: 1)
         static let trail = UIColor(red: 26 / 255, green: 26 / 255, blue: 26 / 255, alpha: 1)
     }
