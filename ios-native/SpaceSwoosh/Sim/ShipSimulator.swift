@@ -1,5 +1,5 @@
 // ShipSimulator.swift
-// Changes: Slice D — zigzag flip + Arc half-π banks (820 ms, wall bounce 0.7×).
+// Changes: let for unmutated y (Xcode 26 warning).
 
 import Foundation
 import CoreGraphics
@@ -47,7 +47,7 @@ struct ShipSimulator {
             * speedScale
         let dist = speed * dt
         var x = world.ship.x + sin(rad) * world.ship.zigzagSign * dist
-        var y = world.ship.y + cos(rad) * dist
+        let y = world.ship.y + cos(rad) * dist
         clampWall(world: &world, x: &x)
         world.ship.x = x
         world.ship.y = y
@@ -93,7 +93,7 @@ struct ShipSimulator {
 
         let keep: CGFloat = world.ship.arcActive ? 0.86 : 0.95
         world.ship.verticalVel = world.ship.verticalVel * keep + desired * (1 - keep)
-        var y = world.ship.y + world.ship.verticalVel * dt
+        let y = world.ship.y + world.ship.verticalVel * dt
 
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let minX = radius * wallMarginFactor

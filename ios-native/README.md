@@ -37,5 +37,6 @@ node ios-native/scripts/generate-pbxproj.mjs
 
 ## Build
 
-Codemagic: **iOS Native → TestFlight**. Each upload must use a new
-`CFBundleVersion` (Apple already has **1.0.0 (1)**). CI stamps **2+**.
+Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
+Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
+(Apple already has **1.0.0 (1)**). CI stamps **3+**.

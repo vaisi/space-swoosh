@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Per-chip HUD opacity — KM/fuel at 2s, pause at 3s, smash/PTS unlock.
+// Changes: Xcode 26 onChange(old,new); HUD chip stagger.
 
 import SwiftUI
 import SpriteKit
@@ -149,7 +149,7 @@ struct PlayContainerView: View {
                 VoicePlayer.shared.enabled = settings.voiceEnabled && !settings.muted
                 scene.startRun(currentLaunch)
             }
-            .onChange(of: paused) { isPaused in
+            .onChange(of: paused) { _, isPaused in
                 scene.isPaused = isPaused
                 if isPaused {
                     MusicPlayer.shared.pause()
@@ -163,7 +163,7 @@ struct PlayContainerView: View {
                 UIApplication.shared.isIdleTimerDisabled = false
                 scene.stopRun()
             }
-            .onChange(of: geo.size) { newSize in
+            .onChange(of: geo.size) { _, newSize in
                 scene.size = newSize
             }
         }

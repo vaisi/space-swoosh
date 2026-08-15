@@ -145,7 +145,7 @@ enum CombatSimulator {
         }
 
         let prevY = world.ship.y
-        var ship = ShipSimulator()
+        let ship = ShipSimulator()
         if run.teleportT <= 0 {
             let dying: CGFloat
             if run.fuelDying {
@@ -289,7 +289,7 @@ enum CombatSimulator {
         if run.profile.maxRowSpawns >= 3, rand01(&run.rng) >= 0.9 { spawnCount = 3 }
         let dens = run.profile.density(scoreKm: run.scoreKm)
         var lastType: String?
-        for i in 0..<spawnCount {
+        for _ in 0..<spawnCount {
             var type = pickType(types, run: &run)
             if !run.profile.allowAdjacentSetPieces, type != "simple", type == lastType {
                 type = types.contains("simple") ? "simple" : type
