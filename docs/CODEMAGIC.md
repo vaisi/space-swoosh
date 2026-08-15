@@ -1,6 +1,7 @@
 <!--
   docs/CODEMAGIC.md
   Changes:
+  - iOS CI stamps CFBundleVersion ≥ 2 (ASC already has 1.0.0 (1)).
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
 -->
@@ -121,3 +122,12 @@ Paste into `CM_KEYSTORE`. Set the three password/alias variables to match.
 ## iOS project note
 
 Native app: `ios-native/SpaceSwoosh.xcodeproj`, scheme **SpaceSwoosh**, bundle `com.orbi.spaceswoosh`.
+
+Apple treats **version + build** as unique. Marketing version can stay `1.0.0`;
+**CFBundleVersion** (the number in parentheses) must go up every upload.
+App Store Connect already has **1.0.0 (1)**. Re-uploading build `1` is rejected
+(`ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE`) and no new row appears in TestFlight.
+
+CI writes the next number into `Info.plist` before `xcodebuild` (floor **2**).
+Confirm in the Codemagic log: `Info.plist CFBundleVersion=` should be **2 or higher**.
+After processing (5–30 min), TestFlight shows **1.0.0 (2)** (or higher).

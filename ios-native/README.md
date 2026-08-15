@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Phase C — Open Space combat, shared constants, golden zigzag helper.
+  Changes: Phase C Open Space; CI stamps CFBundleVersion ≥ 2 for TestFlight.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -30,7 +30,10 @@ npm run constants:golden
 
 ## Build
 
-Codemagic: **iOS Native → TestFlight**. After adding Swift files:
+Codemagic: **iOS Native → TestFlight**. Each upload must use a new
+`CFBundleVersion` (Apple already has **1.0.0 (1)**). CI stamps **2+**.
+
+After adding Swift files:
 
 ```bash
 node ios-native/scripts/generate-pbxproj.mjs

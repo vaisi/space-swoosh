@@ -1,7 +1,7 @@
 # codemagic.yaml
 # Changes:
-# - Unique CFBundleVersion: max(TestFlight, App Store, Codemagic BUILD_NUMBER)+guard
-#   so re-uploads don't hit ASC "attribute value already used".
+# - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
+# - Floor build number at 2 — App Store Connect already has 1.0.0 (1).
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
 workflows:
@@ -18,7 +18,6 @@ workflows:
         XCODE_PROJECT: ios-native/SpaceSwoosh.xcodeproj
         XCODE_SCHEME: SpaceSwoosh
         BUNDLE_ID: com.orbi.spaceswoosh
-        APP_STORE_APPLE_ID: $APP_STORE_APPLE_ID
       xcode: latest
     triggering:
       events:
@@ -62,29 +61,46 @@ workflows:
       - name: Increment build number
         script: |
           set -euo pipefail
-          cd ios-native
-          TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
-          AS=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
-          # Codemagic BUILD_NUMBER is monotonic per app; use as a floor.
-          CM="${BUILD_NUMBER:-0}"
+          digits() { printf '%s' "$1" | tr -cd '0-9'; }
+          if [ -z "${APP_STORE_APPLE_ID:-}" ]; then
+            echo "WARN: APP_STORE_APPLE_ID is empty — TestFlight lookup skipped. Set it in group spaceswoosh."
+          fi
+          TF=$(digits "$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || true)")
+          AS=$(digits "$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || true)")
+          CM=$(digits "${BUILD_NUMBER:-0}")
+          TF=${TF:-0}; AS=${AS:-0}; CM=${CM:-0}
           NEXT=$TF
           if [ "$AS" -gt "$NEXT" ]; then NEXT=$AS; fi
           if [ "$CM" -gt "$NEXT" ]; then NEXT=$CM; fi
           NEXT=$((NEXT + 1))
+          # ASC already accepted 1.0.0 (1). Never reuse 1.
+          if [ "$NEXT" -lt 2 ]; then NEXT=2; fi
           echo "Build numbers — TestFlight=$TF AppStore=$AS Codemagic=$CM → using $NEXT"
-          agvtool new-version -all "$NEXT"
+          echo "NATIVE_BUILD_NUMBER=$NEXT" >> "$CM_ENV"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios-native/SpaceSwoosh/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" ios-native/SpaceSwoosh/Info.plist
+          STAMPED=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios-native/SpaceSwoosh/Info.plist)
+          echo "Info.plist CFBundleVersion=$STAMPED"
+          if [ "$STAMPED" = "1" ] || [ "$STAMPED" = '$(CURRENT_PROJECT_VERSION)' ]; then
+            echo "ERROR: CFBundleVersion did not increment (still $STAMPED)."
+            exit 1
+          fi
       - name: Build native IPA
         script: |
           EXPORT_PLIST=/Users/builder/export_options.plist
+          : "${NATIVE_BUILD_NUMBER:=2}"
+          XCARGS="CURRENT_PROJECT_VERSION=${NATIVE_BUILD_NUMBER} MARKETING_VERSION=1.0.0"
           if [ -f "$EXPORT_PLIST" ]; then
             xcode-project build-ipa \
               --project "$XCODE_PROJECT" \
               --scheme "$XCODE_SCHEME" \
+              --archive-xcargs "$XCARGS" \
               --export-options-plist "$EXPORT_PLIST"
           else
             xcode-project build-ipa \
               --project "$XCODE_PROJECT" \
-              --scheme "$XCODE_SCHEME"
+              --scheme "$XCODE_SCHEME" \
+              --archive-xcargs "$XCARGS"
           fi
     artifacts:
       - build/ios/ipa/*.ipa

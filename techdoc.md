@@ -9,7 +9,8 @@
 > sign-off). Android remains Capacitor. Phase C Open Space combat is in
 > `ios-native/` (spawn, fuel, shields, swoosh). Spec:
 > [`shared/game-constants.json`](shared/game-constants.json). See
-> [`ios-native/README.md`](ios-native/README.md).
+> [`ios-native/README.md`](ios-native/README.md). Codemagic stamps
+> `CFBundleVersion` ≥ 2 on each TestFlight upload (ASC already has 1.0.0 (1)).
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime

@@ -11,8 +11,9 @@
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight Phase C is **Open Space only** (dodge, fuel, shields) — not
-> Journey, Hazard Lab, or the full ship roster yet. Android and web remain the
-> complete game.
+> Journey, Hazard Lab, or the full ship roster yet. Install the **newest**
+> TestFlight build (1.0.0 **(2)** or higher) — build **(1)** is the first
+> upload, not the latest combat build. Android and web remain the complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap
