@@ -10,6 +10,7 @@
 		9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4D8F969D08F5398B379BC3 /* GameSession.swift */; };
 		A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8731093D35B65890AC3B94D /* PlayContainerView.swift */; };
 		76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */; };
+		1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */; };
 		AA6253922C82E114A08F96A6 /* HapticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A387EF898151927984771A73 /* HapticsService.swift */; };
 		EFE745DA4075261482F299F9 /* SfxPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EEFD56E50FD27D345126C2E /* SfxPlayer.swift */; };
 		276519B04400881558B3FD9C /* CopyBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B19E3A07C7916B4007E8E0C /* CopyBank.swift */; };
@@ -46,6 +47,7 @@
 		8B4D8F969D08F5398B379BC3 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
 		F8731093D35B65890AC3B94D /* PlayContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayContainerView.swift; sourceTree = "<group>"; };
 		1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		A387EF898151927984771A73 /* HapticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsService.swift; sourceTree = "<group>"; };
 		9EEFD56E50FD27D345126C2E /* SfxPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SfxPlayer.swift; sourceTree = "<group>"; };
 		0B19E3A07C7916B4007E8E0C /* CopyBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyBank.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				8B4D8F969D08F5398B379BC3,
 				F8731093D35B65890AC3B94D,
 				1F2C40BA6C5A4E305B4E6B12,
+				81B78C3CBC76324FAFD2BE4C,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -269,6 +272,7 @@
 				9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */,
 				A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */,
 				76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */,
+				1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */,
 				AA6253922C82E114A08F96A6 /* HapticsService.swift in Sources */,
 				EFE745DA4075261482F299F9 /* SfxPlayer.swift in Sources */,
 				276519B04400881558B3FD9C /* CopyBank.swift in Sources */,

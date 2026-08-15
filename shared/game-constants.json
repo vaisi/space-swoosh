@@ -28,6 +28,8 @@
     "speed": 0.08,
     "zigzagAngleDeg": 52,
     "zigzagSpeedScale": 1.45,
+    "arcRadius": 0.2,
+    "arcDuration": 820,
     "trailSpacing": 10,
     "maxBank": 0.96,
     "tailOffset": 0.6

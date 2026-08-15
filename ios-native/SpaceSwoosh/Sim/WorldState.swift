@@ -11,6 +11,12 @@ struct ShipState {
     var bank: CGFloat
     var zigzagSign: CGFloat
     var distance: CGFloat
+    var arcActive: Bool
+    var arcDir: CGFloat
+    var arcProgress: CGFloat
+    var arcStartX: CGFloat
+    var arcDuration: CGFloat
+    var verticalVel: CGFloat
 }
 
 struct WorldState {
@@ -35,7 +41,13 @@ struct WorldState {
             tangent: 0,
             bank: 0,
             zigzagSign: 1,
-            distance: 0
+            distance: 0,
+            arcActive: false,
+            arcDir: 1,
+            arcProgress: 0,
+            arcStartX: width * 0.5,
+            arcDuration: GameConfig.Spacecraft.arcDurationMs / 1000,
+            verticalVel: 0
         )
         let obstacles = Array(
             repeating: ObstacleState.inactive(),
@@ -69,7 +81,13 @@ enum WorldInterpolator {
             tangent: a.tangent + (b.tangent - a.tangent) * alpha,
             bank: a.bank + (b.bank - a.bank) * alpha,
             zigzagSign: b.zigzagSign,
-            distance: a.distance + (b.distance - a.distance) * alpha
+            distance: a.distance + (b.distance - a.distance) * alpha,
+            arcActive: b.arcActive,
+            arcDir: b.arcDir,
+            arcProgress: a.arcProgress + (b.arcProgress - a.arcProgress) * alpha,
+            arcStartX: b.arcStartX,
+            arcDuration: b.arcDuration,
+            verticalVel: a.verticalVel + (b.verticalVel - a.verticalVel) * alpha
         )
     }
 }

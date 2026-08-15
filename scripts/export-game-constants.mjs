@@ -35,6 +35,8 @@ const out = {
     speed: GameConfig.spacecraft.speed,
     zigzagAngleDeg: GameConfig.spacecraft.zigzagAngleDeg,
     zigzagSpeedScale: GameConfig.spacecraft.zigzagSpeedScale,
+    arcRadius: GameConfig.spacecraft.arcRadius,
+    arcDuration: GameConfig.spacecraft.arcDuration,
     trailSpacing: GameConfig.spacecraft.trailSpacing,
     maxBank: 0.96,
     tailOffset: 0.6,

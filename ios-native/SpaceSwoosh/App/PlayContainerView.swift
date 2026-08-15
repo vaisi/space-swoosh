@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Slice D — pause, CopyBank game-over, +FUEL HUD, sparkle stats.
+// Changes: Slice D — milestones, points HUD, local PB, settings mute.
 
 import SwiftUI
 import SpriteKit
@@ -8,11 +8,11 @@ import UIKit
 struct PlayContainerView: View {
     var onExit: () -> Void
 
+    @ObservedObject private var settings = SettingsStore.shared
     @StateObject private var pacing = FramePacingMonitor()
     @StateObject private var session = GameSession()
     @State private var scene = PlayScene(size: CGSize(width: 390, height: 844))
     @State private var paused = false
-    @State private var muted = false
 
     var body: some View {
         GeometryReader { geo in
@@ -41,7 +41,11 @@ struct PlayContainerView: View {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("\(session.scoreKm) KM")
                                 .font(.system(size: 16, weight: .bold, design: .monospaced))
-                            Text(session.shieldActive ? "SHIELD" : "\(session.destroyed) SMASH")
+                            if session.points > 0 {
+                                Text("\(session.points) PTS")
+                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            }
+                            Text(session.shieldActive ? "SHIELD" : (session.destroyed > 0 ? "\(session.destroyed) SMASH" : "FLICKER"))
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                         }
                         .foregroundStyle(BrandColors.ink)
@@ -52,6 +56,18 @@ struct PlayContainerView: View {
                     if session.fuelLive {
                         FuelBar(fuel: session.fuel, low: session.fuelLow)
                             .padding(.horizontal, 12)
+                    }
+
+                    if !session.milestoneText.isEmpty {
+                        Text(session.milestoneText)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(BrandColors.ink)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(BrandColors.paperTint.opacity(0.92))
+                            .opacity(Double(session.milestoneOpacity))
+                            .padding(.top, 12)
                     }
 
                     Spacer()
@@ -81,7 +97,7 @@ struct PlayContainerView: View {
                 scene.size = geo.size
                 scene.pacingMonitor = pacing
                 scene.session = session
-                SfxPlayer.shared.muted = muted
+                SfxPlayer.shared.muted = settings.muted
                 scene.startRun()
             }
             .onDisappear {
@@ -106,10 +122,9 @@ struct PlayContainerView: View {
                 menuButton("RESUME")
             }
             Button {
-                muted.toggle()
-                SfxPlayer.shared.muted = muted
+                settings.toggleMute()
             } label: {
-                menuButton(muted ? "SOUND OFF" : "SOUND ON")
+                menuButton(settings.muted ? "SOUND OFF" : "SOUND ON")
             }
             Button(action: onExit) {
                 menuButton("EXIT")
@@ -134,6 +149,15 @@ struct PlayContainerView: View {
                     .font(.system(size: 34, weight: .bold, design: .monospaced))
                 Text("KM")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundStyle(BrandColors.ink55)
+            }
+            if session.isNewBest {
+                Text("NEW BEST  \(session.personalBest) KM")
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundStyle(BrandColors.signal)
+            } else if session.personalBest > 0 {
+                Text("BEST  \(session.personalBest) KM")
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
                     .foregroundStyle(BrandColors.ink55)
             }
             HStack(spacing: 28) {

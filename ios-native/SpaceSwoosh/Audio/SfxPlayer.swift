@@ -11,6 +11,7 @@ final class SfxPlayer {
     private var players: [AVAudioPlayerNode] = []
     private var boop: AVAudioPCMBuffer?
     private var collect: AVAudioPCMBuffer?
+    private var turn: AVAudioPCMBuffer?
     private var next = 0
     private var started = false
     var muted = false
@@ -19,6 +20,7 @@ final class SfxPlayer {
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
         boop = Self.makeBoop(format: format)
         collect = Self.makeCollect(format: format)
+        turn = Self.makeTurn(format: format)
         for _ in 0..<6 {
             let node = AVAudioPlayerNode()
             engine.attach(node)
@@ -46,6 +48,10 @@ final class SfxPlayer {
 
     func playCollect() {
         play(collect)
+    }
+
+    func playTurn() {
+        play(turn)
     }
 
     private func play(_ buffer: AVAudioPCMBuffer?) {
@@ -101,6 +107,19 @@ final class SfxPlayer {
                 }
             }
             data[i] = Float(max(-1, min(1, s)))
+        }
+        return buf
+    }
+
+    private static func makeTurn(format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        let rate = format.sampleRate
+        let n = Int(rate * 0.08)
+        guard let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(n)) else { return nil }
+        buf.frameLength = AVAudioFrameCount(n)
+        guard let data = buf.floatChannelData?[0] else { return nil }
+        for i in 0..<n {
+            let t = Double(i) / rate
+            data[i] = Float(sin(2 * .pi * 440 * t) * envelope(t, attack: 0.006, peak: 0.12, dur: 0.07))
         }
         return buf
     }

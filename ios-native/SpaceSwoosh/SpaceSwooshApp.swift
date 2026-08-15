@@ -1,15 +1,17 @@
 // SpaceSwooshApp.swift
-// Changes: Phase A — SwiftUI app entry; portrait-only native shell for SpriteKit play.
+// Changes: Slice D — follow SettingsStore light/night paper.
 
 import SwiftUI
 
 @main
 struct SpaceSwooshApp: App {
+    @ObservedObject private var settings = SettingsStore.shared
+
     var body: some Scene {
         WindowGroup {
             RootView()
                 .statusBarHidden(true)
-                .preferredColorScheme(.light)
+                .preferredColorScheme(settings.isDark ? .dark : .light)
         }
     }
 }

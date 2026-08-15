@@ -21,6 +21,9 @@ enum GameConfig {
         static let speed: CGFloat = 0.08
         static let zigzagAngleDeg: CGFloat = 52
         static let zigzagSpeedScale: CGFloat = 1.45
+        static let arcRadius: CGFloat = 0.2
+        static let arcDurationMs: CGFloat = 820
+        static let arcVerticalBoost: CGFloat = 0.55
         static let trailMaxPoints: Int = 80
         static let trailFadePerTick: CGFloat = 1.0 / 180.0
         static let trailSpacing: CGFloat = 10
@@ -86,20 +89,33 @@ enum GameConfig {
     }
 
     enum Unlocks {
-        static let table: [(type: String, score: CGFloat)] = [
-            ("simple", 0),
-            ("sideBarrier", 1000),
-            ("complex", 1000),
-            ("moving", 2000),
-            ("shooting", 3000),
-            ("driftCurrent", 3500),
-            ("pulsating", 4000),
-            ("phase", 4500),
-            ("wormhole", 5000),
-            ("repulsor", 5500),
-            ("blackhole", 6000),
-            ("sweepGate", 7000),
+        static let table: [(type: String, score: CGFloat, message: String)] = [
+            ("simple", 0, "Watch out for asteroids!"),
+            ("sideBarrier", 1000, "Warning: Side barriers detected!"),
+            ("complex", 1000, "Warning: Asteroids with orbiting debris detected!"),
+            ("moving", 2000, "Caution: Moving asteroids detected!"),
+            ("shooting", 3000, "Warning: Hostile asteroids detected!"),
+            ("driftCurrent", 3500, "Crosswinds detected — lateral currents ahead!"),
+            ("pulsating", 4000, "Warning: Unstable asteroids ahead!"),
+            ("phase", 4500, "Square blooms detected — they spring open and shove!"),
+            ("wormhole", 5000, "Spatial anomalies detected!"),
+            ("repulsor", 5500, "Repulsor fields detected — they push, not pull!"),
+            ("blackhole", 6000, "Gravitational anomalies detected!"),
+            ("sweepGate", 7000, "Sweep lines ahead — timed corridors!"),
         ]
+    }
+
+    enum Milestones {
+        static let table: [(score: CGFloat, message: String)] = [
+            (1000, "Breaking atmosphere..."),
+            (2000, "Warning: Complex asteroids detected..."),
+            (5000, "Caution: Asteroid belts ahead..."),
+            (10000, "Deep space detected..."),
+            (25000, "Unknown signals ahead..."),
+            (50000, "Approaching the void..."),
+        ]
+        static let teachKm: CGFloat = 80
+        static let atmosphereKm: CGFloat = 200
     }
 
     enum Stress {

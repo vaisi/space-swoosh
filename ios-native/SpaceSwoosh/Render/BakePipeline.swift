@@ -14,7 +14,15 @@ final class BakePipeline {
     let plus: SKTexture
     private let parts: [ObstacleKind: SKTexture]
 
-    static let shared = BakePipeline()
+    private static var cache: [Bool: BakePipeline] = [:]
+
+    static func current() -> BakePipeline {
+        let night = SettingsStore.shared.isDark
+        if let hit = cache[night] { return hit }
+        let baked = BakePipeline()
+        cache[night] = baked
+        return baked
+    }
 
     private init() {
         hull = FlickerHullTexture.make(logicalRadius: 28, scale: 3)

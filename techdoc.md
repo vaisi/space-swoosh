@@ -6,9 +6,9 @@
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Slice D wave 1 is in
-> `ios-native/`: **Flicker** tear hull + `TEAR_HITBOX`, ribbon trail, wall jelly
-> / BOOP, `+FUEL` + dying coast, crash blast, CopyBank menu/death lines, pause.
-> C.5 combat (JS hazard hitboxes, silhouettes, spawn, shields, swoosh) remains.
+> `ios-native/`: Slice D Open Space product on **Flicker** — tear hull, Arc +
+> zigzag, leftover spawn rules, BH Y-pull, milestones, local PB, night paper.
+> C.5 combat (JS hazard hitboxes, silhouettes, shields, swoosh) remains.
 > Spec: [`shared/game-constants.json`](shared/game-constants.json) v2. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
@@ -992,9 +992,9 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 hot draws are textures / pooled sprites; sim at 1/60 with interpolated
 presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
-Phase B stress scene held 120 Hz. Slice D wave 1: Flicker tear + `TEAR_HITBOX`,
-ribbon (`t^0.6` width, 80 samples), 420 ms wall jelly, BOOP / `+FUEL` popups,
-900 ms dying coast, crash blast, CopyBank lines. C.5 combat remains:
+Phase B stress scene held 120 Hz. Slice D: Flicker tear + `TEAR_HITBOX`, Arc/zigzag, overlap spawn, cluster
+`2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,
+milestones, local PB, night paper. C.5 combat remains:
 `CombatSimulator` fills pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see
 `shared/game-constants.json` v2). `HazardCollision` ports JS per-type geometry.
 Wormhole and drift are non-lethal. No LOD tier. Arc and the other 22 skins

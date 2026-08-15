@@ -1,5 +1,5 @@
 // ShipSimulator.swift
-// Changes: Slice D — fuel-dying scale, wall BOOP + jelly, trail spacing/fade.
+// Changes: Slice D — zigzag flip + Arc half-π banks (820 ms, wall bounce 0.7×).
 
 import Foundation
 import CoreGraphics
@@ -7,6 +7,8 @@ import CoreGraphics
 enum SteerCommand {
     case none
     case flip
+    case bankLeft
+    case bankRight
 }
 
 struct ShipSimulator {
@@ -16,9 +18,25 @@ struct ShipSimulator {
         world: inout WorldState,
         dt: CGFloat,
         command: SteerCommand,
-        speedScale: CGFloat = 1
+        speedScale: CGFloat = 1,
+        style: FlightStyle = .zigzag
     ) {
-        if command == .flip {
+        if style == .arc {
+            stepArc(world: &world, dt: dt, command: command, speedScale: speedScale)
+        } else {
+            stepZigzag(world: &world, dt: dt, command: command, speedScale: speedScale)
+        }
+        finishMove(world: &world, dt: dt)
+    }
+
+    private func stepZigzag(
+        world: inout WorldState,
+        dt: CGFloat,
+        command: SteerCommand,
+        speedScale: CGFloat
+    ) {
+        world.ship.arcActive = false
+        if command == .flip || command == .bankLeft || command == .bankRight {
             world.ship.zigzagSign *= -1
         }
 
@@ -28,18 +46,97 @@ struct ShipSimulator {
             * GameConfig.Spacecraft.zigzagSpeedScale
             * speedScale
         let dist = speed * dt
-
         var x = world.ship.x + sin(rad) * world.ship.zigzagSign * dist
         var y = world.ship.y + cos(rad) * dist
+        clampWall(world: &world, x: &x)
+        world.ship.x = x
+        world.ship.y = y
+        world.ship.tangent = world.ship.zigzagSign * rad
+        world.ship.bank = world.ship.tangent
+        world.ship.distance += cos(rad) * dist
+        world.ship.verticalVel = speed * cos(rad)
+    }
+
+    private func stepArc(
+        world: inout WorldState,
+        dt: CGFloat,
+        command: SteerCommand,
+        speedScale: CGFloat
+    ) {
+        if command == .bankLeft {
+            beginArc(world: &world, dir: -1)
+        } else if command == .bankRight {
+            beginArc(world: &world, dir: 1)
+        } else if command == .flip {
+            beginArc(world: &world, dir: world.ship.x < world.width * 0.5 ? -1 : 1)
+        }
+
+        let base = GameConfig.Spacecraft.speed * world.height * speedScale
+        var desired = base
+        var x = world.ship.x
+        let prevX = x
+        let prevY = world.ship.y
+
+        if world.ship.arcActive {
+            let dur = max(world.ship.arcDuration, 0.05)
+            world.ship.arcProgress = min(1, world.ship.arcProgress + dt / dur)
+            let angle = world.ship.arcDir * .pi * world.ship.arcProgress
+            let radius = GameConfig.Spacecraft.arcRadius * world.width
+            x = world.ship.arcStartX + sin(angle) * radius
+            let boost = sin(world.ship.arcProgress * .pi) * base * GameConfig.Spacecraft.arcVerticalBoost
+            desired = base + boost
+            if world.ship.arcProgress >= 1 {
+                x = world.ship.arcStartX
+                world.ship.arcActive = false
+            }
+        }
+
+        let keep: CGFloat = world.ship.arcActive ? 0.86 : 0.95
+        world.ship.verticalVel = world.ship.verticalVel * keep + desired * (1 - keep)
+        var y = world.ship.y + world.ship.verticalVel * dt
 
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
-        let margin = radius * wallMarginFactor
-        let minX = margin
-        let maxX = world.width - margin
-        world.wallBoopSide = 0
-        if world.boopCooldown > 0 {
-            world.boopCooldown = max(0, world.boopCooldown - dt)
+        let minX = radius * wallMarginFactor
+        let maxX = world.width - minX
+        if x < minX {
+            x = minX
+            noteBoop(world: &world, side: -1)
+            beginArc(world: &world, dir: 1, from: x, durationScale: 0.7)
+        } else if x > maxX {
+            x = maxX
+            noteBoop(world: &world, side: 1)
+            beginArc(world: &world, dir: -1, from: x, durationScale: 0.7)
         }
+
+        world.ship.x = x
+        world.ship.y = y
+        let vx = x - prevX
+        let vy = y - prevY
+        if hypot(vx, vy) > 0.15 {
+            world.ship.tangent = atan2(vx, vy)
+        }
+        let target = max(-GameConfig.Spacecraft.maxBank, min(GameConfig.Spacecraft.maxBank, world.ship.tangent))
+        world.ship.bank += (target - world.ship.bank) * 0.28
+        world.ship.distance += max(0, vy)
+    }
+
+    private func beginArc(
+        world: inout WorldState,
+        dir: CGFloat,
+        from: CGFloat? = nil,
+        durationScale: CGFloat = 1
+    ) {
+        world.ship.arcActive = true
+        world.ship.arcDir = dir
+        world.ship.arcProgress = 0
+        world.ship.arcStartX = from ?? world.ship.x
+        world.ship.arcDuration = GameConfig.Spacecraft.arcDurationMs / 1000 * durationScale
+    }
+
+    private func clampWall(world: inout WorldState, x: inout CGFloat) {
+        let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
+        let minX = radius * wallMarginFactor
+        let maxX = world.width - minX
         if x < minX {
             x = minX
             world.ship.zigzagSign = 1
@@ -49,28 +146,26 @@ struct ShipSimulator {
             world.ship.zigzagSign = -1
             noteBoop(world: &world, side: 1)
         }
+    }
 
+    private func finishMove(world: inout WorldState, dt: CGFloat) {
+        if world.boopCooldown > 0 {
+            world.boopCooldown = max(0, world.boopCooldown - dt)
+        }
         if world.jellyElapsedMs >= 0 {
             world.jellyElapsedMs += dt * 1000
             if world.jellyElapsedMs >= GameConfig.Flicker.wallJellyMs {
                 world.jellyElapsedMs = -1
             }
         }
-
-        let tangent = world.ship.zigzagSign * rad
-        world.ship.x = x
-        world.ship.y = y
-        world.ship.tangent = tangent
-        world.ship.bank = tangent
-        world.ship.distance += cos(rad) * dist
-
+        let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let tail = radius * GameConfig.Spacecraft.tailOffset
-        let tx = x - sin(tangent) * tail
-        let ty = y - cos(tangent) * tail
+        let tx = world.ship.x - sin(world.ship.bank) * tail
+        let ty = world.ship.y - cos(world.ship.bank) * tail
         world.trail.pushIfMoved(
             x: tx,
             y: ty,
-            tangent: tangent,
+            tangent: world.ship.bank,
             minSpacing: GameConfig.Spacecraft.trailSpacing
         )
         world.trail.fade(by: GameConfig.Spacecraft.trailFadePerTick)

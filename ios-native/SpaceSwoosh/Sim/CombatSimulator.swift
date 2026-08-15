@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Slice D — tear hitbox, dying coast, popups, crash blast, world fade.
+// Changes: Slice D — overlap spawn, cluster-by-KM, milestones, Arc style.
 
 import Foundation
 import CoreGraphics
@@ -42,6 +42,15 @@ struct RunState {
     var sfxBoop: Bool = false
     var sfxCollect: Bool = false
     var sfxCrash: Bool = false
+    var sfxTurn: Bool = false
+    var announcedMask: UInt16 = 1
+    var milestoneMask: UInt16 = 0
+    var taughtSteer: Bool = false
+    var taughtAtmosphere: Bool = false
+    var milestoneText: String = ""
+    var milestoneOpacity: CGFloat = 0
+    var milestoneT: CGFloat = 0
+    var flightStyle: FlightStyle = .zigzag
 
     var shieldActive: Bool { shieldTimer > 0 }
     var speedBoostActive: Bool { speedBoostTimer > 0 }
@@ -72,8 +81,9 @@ enum CombatSimulator {
             return
         }
 
-        if command == .flip {
+        if command != .none {
             run.lastFlipAt = run.scoreKm
+            run.sfxTurn = true
         }
 
         if run.teleportT > 0 {
@@ -97,7 +107,13 @@ enum CombatSimulator {
                 dying = 1
             }
             let boost: CGFloat = run.speedBoostActive ? 1.82 : 1
-            ship.step(world: &world, dt: dt, command: command, speedScale: dying * boost)
+            ship.step(
+                world: &world,
+                dt: dt,
+                command: command,
+                speedScale: dying * boost,
+                style: run.flightStyle
+            )
             if world.wallBoopSide != 0 {
                 emitBoop(world: world, run: &run)
             }
@@ -142,6 +158,7 @@ enum CombatSimulator {
         detectSwoosh(world: world, run: &run)
         HazardCollision.tryTeleport(world: &world, run: &run)
         collide(world: &world, run: &run)
+        tickMilestones(run: &run, dt: dt)
         FloatPopupBuffer.tick(&run.popups, dt: dt)
     }
 
@@ -211,15 +228,27 @@ enum CombatSimulator {
         if GameConfig.Profile.maxRowSpawns >= 2, rand01(&run.rng) >= 0.7 { spawnCount = 2 }
         if GameConfig.Profile.maxRowSpawns >= 3, rand01(&run.rng) >= 0.9 { spawnCount = 3 }
         let dens = density(scoreKm: run.scoreKm)
+        var lastType: String?
         for i in 0..<spawnCount {
-            let type = pickType(types, run: &run)
-            let lane = (CGFloat(i) + 0.5) / CGFloat(spawnCount)
-            let x = world.width * (0.18 + lane * 0.64 + (rand01(&run.rng) - 0.5) * 0.08)
+            var type = pickType(types, run: &run)
+            if type != "simple", type == lastType {
+                type = "simple"
+            }
             if type == "simple" {
                 spawnSimpleCluster(world: &world, run: &run, atY: atY, dens: dens)
             } else {
-                placeHazard(world: &world, type: type, x: x, y: atY, run: &run)
+                let size = world.baseUnit * 2.2
+                let pos = findValidPosition(
+                    world: world,
+                    size: size,
+                    minX: world.width * 0.18,
+                    maxX: world.width * 0.82,
+                    baseY: atY,
+                    run: &run
+                )
+                placeHazard(world: &world, type: type, x: pos.x, y: pos.y, run: &run)
             }
+            lastType = type
         }
     }
 
@@ -238,22 +267,116 @@ enum CombatSimulator {
         atY: CGFloat,
         dens: CGFloat
     ) {
-        let n = min(GameConfig.Profile.maxClusterCount, 2 + Int(dens))
+        let base = 2 + Int(run.scoreKm / 8000)
+        let extra = Int(rand01(&run.rng) * dens)
+        let n = min(GameConfig.Profile.maxClusterCount, max(1, base + extra))
         for k in 0..<n {
             let size = world.baseUnit * (0.9 + rand01(&run.rng) * 0.5)
-            let x = min(
-                world.width * 0.88,
-                max(world.width * 0.12, world.width * (0.2 + CGFloat(k) * 0.18) + (rand01(&run.rng) - 0.5) * world.baseUnit * 2)
+            let minX = world.width * (0.12 + CGFloat(k) * 0.16)
+            let maxX = min(world.width * 0.88, minX + world.width * 0.22)
+            let pos = findValidPosition(
+                world: world,
+                size: size,
+                minX: minX,
+                maxX: max(minX + 1, maxX),
+                baseY: atY,
+                run: &run
             )
             placeSimple(
                 world: &world,
                 kind: [.circle, .triangle, .square][k % 3],
-                x: x,
-                y: atY + CGFloat(k) * world.baseUnit * 1.2,
+                x: pos.x,
+                y: pos.y,
                 size: size,
                 run: &run
             )
         }
+    }
+
+    private static func findValidPosition(
+        world: WorldState,
+        size: CGFloat,
+        minX: CGFloat,
+        maxX: CGFloat,
+        baseY: CGFloat,
+        run: inout RunState
+    ) -> (x: CGFloat, y: CGFloat) {
+        var last = (x: (minX + maxX) * 0.5, y: baseY)
+        for _ in 0..<5 {
+            let x = minX + rand01(&run.rng) * max(1, maxX - minX)
+            let y = baseY + (rand01(&run.rng) - 0.5) * world.height * 0.15
+            last = (x, y)
+            if !overlaps(world: world, x: x, y: y, size: size) {
+                return last
+            }
+        }
+        return last
+    }
+
+    private static func overlaps(world: WorldState, x: CGFloat, y: CGFloat, size: CGFloat) -> Bool {
+        for o in world.obstacles where o.active {
+            let other = max(o.radius, max(o.halfW, o.halfH))
+            if hypot(x - o.x, y - o.y) < size + other * 1.5 {
+                return true
+            }
+        }
+        return false
+    }
+
+    private static func tickMilestones(run: inout RunState, dt: CGFloat) {
+        if !run.taughtSteer, run.scoreKm >= GameConfig.Milestones.teachKm, run.lastFlipAt >= 0 {
+            run.taughtSteer = true
+            showMilestone(
+                run: &run,
+                run.flightStyle == .zigzag
+                    ? "Tap to change direction"
+                    : "Bank LEFT or RIGHT to move in arcs"
+            )
+        }
+        if !run.taughtAtmosphere, run.scoreKm >= GameConfig.Milestones.atmosphereKm, run.taughtSteer {
+            run.taughtAtmosphere = true
+            showMilestone(run: &run, "Breaking the atmosphere!")
+        }
+        for (i, entry) in GameConfig.Unlocks.table.enumerated() {
+            let bit = UInt16(1 << i)
+            if run.scoreKm >= entry.score, run.announcedMask & bit == 0 {
+                run.announcedMask |= bit
+                if i > 0 {
+                    showMilestone(run: &run, entry.message)
+                }
+            }
+        }
+        for (i, entry) in GameConfig.Milestones.table.enumerated() {
+            let bit = UInt16(1 << i)
+            if run.scoreKm >= entry.score, run.milestoneMask & bit == 0 {
+                run.milestoneMask |= bit
+                showMilestone(run: &run, entry.message)
+            }
+        }
+        guard !run.milestoneText.isEmpty else {
+            run.milestoneOpacity = 0
+            return
+        }
+        run.milestoneT += dt
+        let fadeIn: CGFloat = 0.5
+        let hold: CGFloat = 2.0
+        let fadeOut: CGFloat = 0.5
+        if run.milestoneT < fadeIn {
+            run.milestoneOpacity = run.milestoneT / fadeIn
+        } else if run.milestoneT < fadeIn + hold {
+            run.milestoneOpacity = 1
+        } else if run.milestoneT < fadeIn + hold + fadeOut {
+            run.milestoneOpacity = 1 - (run.milestoneT - fadeIn - hold) / fadeOut
+        } else {
+            run.milestoneText = ""
+            run.milestoneOpacity = 0
+        }
+    }
+
+    private static func showMilestone(run: inout RunState, _ text: String) {
+        run.milestoneText = text
+        run.milestoneT = 0
+        run.milestoneOpacity = 0
     }
 
     private static func placeSimple(

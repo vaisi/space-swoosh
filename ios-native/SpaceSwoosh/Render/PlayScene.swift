@@ -37,7 +37,8 @@ final class PlayScene: SKScene {
         previousWorld = world
         currentWorld = world
 
-        let bake = BakePipeline.shared
+        run.flightStyle = SettingsStore.shared.flightStyle
+        let bake = BakePipeline.current()
         backgroundColor = BrandColors.UI.paper
 
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
@@ -108,7 +109,14 @@ final class PlayScene: SKScene {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first, !run.isOver else { return }
-        input.handleTap(at: touch.location(in: self), sceneWidth: size.width)
+        let loc = touch.location(in: self)
+        input.handleTap(at: loc, sceneWidth: size.width, style: run.flightStyle)
+        input.handleDragBegin(at: loc)
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first, !run.isOver else { return }
+        input.handleDrag(at: touch.location(in: self), style: run.flightStyle)
     }
 
     override func update(_ currentTime: TimeInterval) {
@@ -165,6 +173,10 @@ final class PlayScene: SKScene {
         }
         if run.sfxCrash {
             run.sfxCrash = false
+        }
+        if run.sfxTurn {
+            run.sfxTurn = false
+            SfxPlayer.shared.playTurn()
         }
     }
 

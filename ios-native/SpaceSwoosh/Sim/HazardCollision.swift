@@ -1,5 +1,5 @@
 // HazardCollision.swift
-// Changes: C.5 — JS per-type hitboxes, non-lethal drift/wormhole, field forces.
+// Changes: Slice D — advanced black-hole Y-pull after 1000 KM.
 
 import Foundation
 import CoreGraphics
@@ -100,15 +100,24 @@ enum HazardCollision {
                 let edge = max(0, ny * ny)
                 world.ship.x += o.driftDir * world.baseUnit * 0.1 * (0.55 + 0.45 * edge) * tick
             case .repulsor:
-                shove(world: &world, ox: o.x, oy: o.y, radius: o.radius * 10, strength: 1.55, tick: tick, inward: false)
+                shove(world: &world, ox: o.x, oy: o.y, radius: o.radius * 10, strength: 1.55, tick: tick, inward: false, pullY: false)
             case .blackhole:
-                shove(world: &world, ox: o.x, oy: o.y, radius: o.radius * 11, strength: 1.1, tick: tick, inward: true)
+                shove(
+                    world: &world,
+                    ox: o.x,
+                    oy: o.y,
+                    radius: o.radius * 11,
+                    strength: 1.1,
+                    tick: tick,
+                    inward: true,
+                    pullY: run.scoreKm > 1000
+                )
             case .phase:
                 let open = displayOpen(o)
                 guard open >= 0.25 else { continue }
                 let fieldR = o.radius * 3.8 * (0.55 + 0.45 * min(1, open))
                 let strength = ((min(1, open) - 0.25) / 0.75) * 0.95
-                shove(world: &world, ox: o.x, oy: o.y, radius: fieldR, strength: strength, tick: tick, inward: false)
+                shove(world: &world, ox: o.x, oy: o.y, radius: fieldR, strength: strength, tick: tick, inward: false, pullY: false)
             default:
                 break
             }
@@ -175,7 +184,8 @@ enum HazardCollision {
         radius: CGFloat,
         strength: CGFloat,
         tick: CGFloat,
-        inward: Bool
+        inward: Bool,
+        pullY: Bool
     ) {
         let dx = inward ? (ox - world.ship.x) : (world.ship.x - ox)
         let dy = inward ? (oy - world.ship.y) : (world.ship.y - oy)
@@ -183,6 +193,9 @@ enum HazardCollision {
         guard dist > 0, dist < radius else { return }
         let force = (1 - dist / radius) * strength * tick
         world.ship.x += (dx / dist) * force
+        if pullY {
+            world.ship.y += (dy / dist) * force
+        }
     }
 
     private static func circle(
