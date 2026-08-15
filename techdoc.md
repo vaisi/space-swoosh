@@ -7,7 +7,8 @@
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Slice E is in
 > `ios-native/`: Open Space on **Flicker** plus **Journey** (40 levels / 113 stars),
-> **Hazard Lab**, Signal lore, logbook, intro beats, finish flyout. Voice MP3s
+> **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
+> lean-preserving clear flyout, L40 `ENDING_BEATS` captions (no lights show). Voice MP3s
 > play when bundled under `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`,
 > `first-boop.mp3`, `swoosh-voice.mp3`); captions still run if the files are
 > missing. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3

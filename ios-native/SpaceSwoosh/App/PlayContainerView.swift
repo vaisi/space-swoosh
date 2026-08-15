@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Slice E — Journey/Lab HUD, captions, outcome actions, voice mute.
+// Changes: Slice E polish — captions cover L40 ending; no concatenated note.
 
 import SwiftUI
 import SpriteKit
@@ -240,12 +240,6 @@ struct PlayContainerView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(BrandColors.ink55)
                 .multilineTextAlignment(.center)
-            if !outcome.endingNote.isEmpty {
-                Text(outcome.endingNote)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(BrandColors.ink)
-                    .multilineTextAlignment(.center)
-            }
             ForEach(0..<outcome.starSlots, id: \.self) { i in
                 HStack {
                     Circle()

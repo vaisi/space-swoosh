@@ -36,8 +36,10 @@
 		A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */; };
 		D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78C3E515B75F5AFACA0EA5F /* PopupField.swift */; };
 		5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */; };
+		DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DB2DBDE0437D9FB98867 /* StreakField.swift */; };
 		99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */; };
 		87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */; };
+		5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECBDDDE316344C763EADABE /* CinematicFlight.swift */; };
 		EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B4487A50892B18E56E9252 /* CombatParity.swift */; };
 		578C9A7D63FB784D94CAA42D /* CombatSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7029C3E4F6EB6C97A5F1D611 /* CombatSimulator.swift */; };
 		0405605E5D39FE9723F9C203 /* FloatPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22F7DD72D5CE35B970A8A40 /* FloatPopup.swift */; };
@@ -126,8 +128,10 @@
 		6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PooledSpriteField.swift; sourceTree = "<group>"; };
 		C78C3E515B75F5AFACA0EA5F /* PopupField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupField.swift; sourceTree = "<group>"; };
 		E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RibbonTrailNode.swift; sourceTree = "<group>"; };
+		3086DB2DBDE0437D9FB98867 /* StreakField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakField.swift; sourceTree = "<group>"; };
 		BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRibbonTexture.swift; sourceTree = "<group>"; };
 		5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinemaSimulator.swift; sourceTree = "<group>"; };
+		DECBDDDE316344C763EADABE /* CinematicFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicFlight.swift; sourceTree = "<group>"; };
 		A5B4487A50892B18E56E9252 /* CombatParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatParity.swift; sourceTree = "<group>"; };
 		7029C3E4F6EB6C97A5F1D611 /* CombatSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatSimulator.swift; sourceTree = "<group>"; };
 		B22F7DD72D5CE35B970A8A40 /* FloatPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatPopup.swift; sourceTree = "<group>"; };
@@ -299,6 +303,7 @@
 				6D9C2266E5757995489D1B37,
 				C78C3E515B75F5AFACA0EA5F,
 				E3E76E4E12F12A36B4EF70AD,
+				3086DB2DBDE0437D9FB98867,
 				BBB1844B0C8B74B44F3F727B,
 			);
 			path = Render;
@@ -308,6 +313,7 @@
 			isa = PBXGroup;
 			children = (
 				5842A5443CE0BBB83DE597D9,
+				DECBDDDE316344C763EADABE,
 				A5B4487A50892B18E56E9252,
 				7029C3E4F6EB6C97A5F1D611,
 				B22F7DD72D5CE35B970A8A40,
@@ -507,8 +513,10 @@
 				A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */,
 				D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */,
 				5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */,
+				DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */,
 				99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */,
 				87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */,
+				5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */,
 				EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */,
 				578C9A7D63FB784D94CAA42D /* CombatSimulator.swift in Sources */,
 				0405605E5D39FE9723F9C203 /* FloatPopup.swift in Sources */,

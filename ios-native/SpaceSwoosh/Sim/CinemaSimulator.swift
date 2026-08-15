@@ -1,5 +1,5 @@
 // CinemaSimulator.swift
-// Changes: Slice E — Journey/Lab intro beats + finish flyout (baked, no SKShapeNode).
+// Changes: Slice E polish — Android intro roll, streak fade, clear timings, L40 captions.
 
 import Foundation
 import CoreGraphics
@@ -8,31 +8,40 @@ enum CinemaPhase {
     case introArrive
     case introSettle
     case introTitle
+    case introWait
     case play
     case clearHold
     case clearBoost
     case clearFade
+    case endingCaptions
 }
 
 enum CinemaSimulator {
     static let arrive: CGFloat = 0.72
     static let settle: CGFloat = 0.28
-    static let clearHold: CGFloat = 0.315
-    static let clearBoost: CGFloat = 1.26
-    static let clearFade: CGFloat = 0.385
     static let beatFade: CGFloat = 0.35
 
-    static func beginLevelRun(run: inout RunState) {
+    static func beginLevelRun(world: inout WorldState, run: inout RunState) {
         run.cinema = .introArrive
         run.cinemaT = 0
+        run.introElapsed = 0
         run.worldAlpha = 0
         run.pauseSpawning = true
         run.hudLive = false
         run.inputLocked = true
         run.introBeatIndex = 0
         run.introVoiceDone = run.profile.mode != .journey
+        run.introVoiceStarted = false
         run.captionText = ""
         run.captionOpacity = 0
+        run.seatY = CinematicFlight.startSeat
+        run.cameraLead = 0
+        run.cinemaBoost = CinematicFlight.startBoost
+        run.streakAlpha = 1
+        world.ship.x = world.width * 0.5
+        world.ship.bank = 0
+        world.ship.tangent = 0
+        world.ship.arcActive = false
         if run.profile.mode == .journey, run.profile.level >= 1 {
             run.logbookMarks.append(.interact(LogbookCatalog.levelEntryId(run.profile.level)))
         }
@@ -46,7 +55,11 @@ enum CinemaSimulator {
         run.inputLocked = true
         run.shieldTimer = 5
         run.finishLineY = world.ship.y
-        run.exitLift = 0
+        run.cameraLead = 0
+        run.seatY = CinematicFlight.cruiseSeat
+        run.cinemaBoost = 1
+        run.cinemaHeading = CinematicFlight.captureArcHeading(world.ship)
+        run.cameraSpeed = max(abs(world.ship.verticalVel), GameConfig.Spacecraft.speed * world.height)
         run.logbookMarks.append(.interact("finishGate"))
     }
 
@@ -57,12 +70,18 @@ enum CinemaSimulator {
         command _: SteerCommand
     ) -> Bool {
         switch run.cinema {
-        case .introArrive, .introSettle, .introTitle:
+        case .introArrive, .introSettle, .introTitle, .introWait:
             tickIntro(world: &world, run: &run, dt: dt)
             FloatPopupBuffer.tick(&run.popups, dt: dt)
             return true
         case .clearHold, .clearBoost, .clearFade:
             tickClear(world: &world, run: &run, dt: dt)
+            return true
+        case .endingCaptions:
+            tickCaption(run: &run, dt: dt)
+            if run.captionText.isEmpty, run.pendingBeats.isEmpty {
+                finishClear(run: &run)
+            }
             return true
         case .play:
             tickCaption(run: &run, dt: dt)
@@ -72,86 +91,175 @@ enum CinemaSimulator {
 
     private static func tickIntro(world: inout WorldState, run: inout RunState, dt: CGFloat) {
         run.cinemaT += dt
+        run.introElapsed += dt
+        run.streakAlpha = showerFade(run.introElapsed)
         switch run.cinema {
         case .introArrive:
-            let t = min(1, run.cinemaT / arrive)
+            let t = CinematicFlight.easeOut(run.cinemaT / arrive)
             run.worldAlpha = min(1, t * 1.2)
+            run.cinemaBoost = CinematicFlight.lerp(CinematicFlight.startBoost, 1.08, t)
+            run.seatY = CinematicFlight.lerp(CinematicFlight.startSeat, CinematicFlight.cruiseSeat, t)
+            CinematicFlight.streamCenter(world: &world, dt: dt, boost: run.cinemaBoost)
             if run.cinemaT >= arrive {
                 run.cinema = .introSettle
                 run.cinemaT = 0
                 run.worldAlpha = 1
             }
         case .introSettle:
+            let t = CinematicFlight.easeInOut(run.cinemaT / settle)
             run.worldAlpha = 1
+            run.cinemaBoost = CinematicFlight.lerp(1.08, 1, t)
+            run.seatY = CinematicFlight.cruiseSeat
+            CinematicFlight.streamCenter(world: &world, dt: dt, boost: run.cinemaBoost)
             if run.cinemaT >= settle {
-                run.cinema = .introTitle
-                run.cinemaT = 0
-                showNextBeat(run: &run)
+                handoffAfterSettle(run: &run)
             }
         case .introTitle:
+            run.seatY = CinematicFlight.cruiseSeat
+            run.streakAlpha = 0
             tickCaption(run: &run, dt: dt)
-            if run.captionText.isEmpty, run.introBeatIndex >= run.profile.introBeats.count, run.introVoiceDone {
-                run.cinema = .play
-                run.cinemaT = 0
-                run.pauseSpawning = false
-                run.hudLive = true
-                run.inputLocked = false
-                run.worldAlpha = 1
+            if run.captionText.isEmpty,
+               run.introBeatIndex >= run.profile.introBeats.count,
+               run.introVoiceDone {
+                enterPlay(run: &run)
+            }
+        case .introWait:
+            run.seatY = CinematicFlight.cruiseSeat
+            run.streakAlpha = 0
+            if run.cinemaT >= CinematicFlight.openWait {
+                enterPlay(run: &run)
             }
         default:
             break
         }
-        _ = world
+    }
+
+    private static func handoffAfterSettle(run: inout RunState) {
+        run.cinemaT = 0
+        run.cinemaBoost = 1
+        run.seatY = CinematicFlight.cruiseSeat
+        run.streakAlpha = 0
+        if run.profile.introBeats.isEmpty {
+            run.cinema = .introWait
+        } else {
+            run.cinema = .introTitle
+            showNextBeat(run: &run)
+        }
+    }
+
+    private static func enterPlay(run: inout RunState) {
+        run.cinema = .play
+        run.cinemaT = 0
+        run.pauseSpawning = false
+        run.hudLive = true
+        run.inputLocked = false
+        run.worldAlpha = 1
+        run.seatY = CinematicFlight.cruiseSeat
+        run.streakAlpha = 0
+        run.cinemaBoost = 1
+    }
+
+    private static func showerFade(_ elapsed: CGFloat) -> CGFloat {
+        let total = arrive + settle
+        let t = max(0, min(1, elapsed / total))
+        let hold: CGFloat = 0.22
+        if t <= hold { return 1 }
+        return 1 - CinematicFlight.easeOut((t - hold) / (1 - hold))
     }
 
     private static func tickClear(world: inout WorldState, run: inout RunState, dt: CGFloat) {
         run.cinemaT += dt
-        run.shieldTimer = max(run.shieldTimer, 0.2)
-        let boost: CGFloat
+        run.shieldTimer = max(run.shieldTimer, 2)
+        run.seatY = CinematicFlight.cruiseSeat
+        let prevY = world.ship.y
+        var boost: CGFloat = 1
+        var camFactor: CGFloat = 1
         switch run.cinema {
         case .clearHold:
             boost = 1
-            if run.cinemaT >= clearHold {
+            camFactor = 1
+            if run.cinemaT >= CinematicFlight.clearHold {
                 run.cinema = .clearBoost
                 run.cinemaT = 0
                 run.logbookMarks.append(.instant("spaceTravelBoost"))
             }
         case .clearBoost:
-            let t = min(1, run.cinemaT / 0.77)
-            boost = 1 + 6.2 * (1 - (1 - t) * (1 - t))
-            run.exitLift += world.height * 0.55 * dt
-            if run.cinemaT >= clearBoost {
+            let rampT = CinematicFlight.easeOut(run.cinemaT / CinematicFlight.clearRamp)
+            boost = CinematicFlight.lerp(1, CinematicFlight.boostTarget, rampT)
+            camFactor = CinematicFlight.lerp(1, CinematicFlight.cameraBoost, min(1, run.cinemaT / CinematicFlight.clearRamp))
+            let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
+            let screenY = world.height * run.seatY + run.cameraLead
+            let gone = screenY > world.height + radius * CinematicFlight.exitMargin
+            if (gone && run.cinemaT >= CinematicFlight.clearBoostMin)
+                || run.cinemaT >= CinematicFlight.clearBoostCap {
                 run.cinema = .clearFade
                 run.cinemaT = 0
             }
         case .clearFade:
-            boost = 7.2
-            run.exitLift += world.height * 0.55 * dt
-            run.worldAlpha = max(0, 1 - run.cinemaT / clearFade)
-            if run.cinemaT >= clearFade {
-                run.isOver = true
-                run.completed = true
-                run.failReason = nil
-                run.cinema = .play
+            boost = CinematicFlight.boostTarget
+            camFactor = CinematicFlight.cameraBoost
+            run.worldAlpha = max(0, 1 - run.cinemaT / CinematicFlight.clearFade)
+            if run.cinemaT >= CinematicFlight.clearFade {
+                beginAfterFade(run: &run)
             }
         default:
-            boost = 1
+            break
         }
 
-        var ship = ShipSimulator()
-        ship.step(
+        var heading = run.cinemaHeading
+        CinematicFlight.stream(
             world: &world,
             dt: dt,
-            command: .none,
-            speedScale: boost * run.profile.speedMultiplier,
-            style: run.flightStyle
+            boost: boost * run.profile.speedMultiplier,
+            style: run.flightStyle,
+            heading: &heading
         )
+        run.cinemaHeading = heading
+        let shipDy = world.ship.y - prevY
+        run.cameraLead += shipDy - run.cameraSpeed * camFactor * dt
+        run.cameraLead = max(0, run.cameraLead)
+
         CombatSimulator.moveHazards(world: &world, run: &run, dt: dt)
         HazardCollision.applyFields(world: &world, run: run, dt: dt)
         CombatSimulator.collectPickups(world: &world, run: &run)
         CombatSimulator.collide(world: &world, run: &run)
         FloatPopupBuffer.tick(&run.popups, dt: dt)
         BlastBuffer.tick(&run.blast, dt: dt)
+    }
+
+    private static func beginAfterFade(run: inout RunState) {
+        run.worldAlpha = 0
+        if run.profile.mode == .journey, run.profile.level >= JourneyConfig.totalLevels {
+            run.cinema = .endingCaptions
+            run.cinemaT = 0
+            run.pendingBeats = endingBeats()
+            run.captionText = ""
+            if run.captionText.isEmpty {
+                showQueuedBeat(run: &run)
+            }
+        } else {
+            finishClear(run: &run)
+        }
+    }
+
+    private static func endingBeats() -> [IntroBeat] {
+        var beats: [IntroBeat] = [
+            IntroBeat(text: GeneratedJourneyData.endingPayload, gapAfterMs: 800)
+        ]
+        beats.append(contentsOf: GeneratedJourneyData.endingAfterPayload)
+        beats.append(contentsOf: GeneratedJourneyData.endingLights)
+        beats.append(contentsOf: GeneratedJourneyData.endingFinal)
+        return beats.filter { !$0.text.isEmpty }
+    }
+
+    private static func finishClear(run: inout RunState) {
+        run.isOver = true
+        run.completed = true
+        run.failReason = nil
+        run.cinema = .play
+        run.endingT = 0
+        run.captionText = ""
+        run.captionOpacity = 0
     }
 
     static func enqueueBeats(_ beats: [IntroBeat], run: inout RunState) {

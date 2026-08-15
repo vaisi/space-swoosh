@@ -12,7 +12,8 @@
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
 > **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP, blue `+FUEL`,
-> NAV captions, and a Space Log. Voice lines play if the build includes them;
+> NAV captions, a Space Log, and the same run-start roll / finish flyout as
+> Android. Voice lines play if the build includes them;
 > turn Voice off in Options if you want captions only. Not the other ships, IAP,
 > or the online board yet. Install the **newest** TestFlight build. Android and
 > web remain the complete game.

@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Slice E — RunProfile spawn/goals, Journey/Lab cinema, logbook marks.
+// Changes: Slice E polish — cinema seat/lead fields on RunState.
 
 import Foundation
 import CoreGraphics
@@ -67,7 +67,13 @@ struct RunState {
     var pauseSpawning: Bool = false
     var completed: Bool = false
     var finishLineY: CGFloat = 0
-    var exitLift: CGFloat = 0
+    var seatY: CGFloat = CinematicFlight.cruiseSeat
+    var cameraLead: CGFloat = 0
+    var cameraSpeed: CGFloat = 0
+    var cinemaBoost: CGFloat = 1
+    var cinemaHeading: CGFloat = 0
+    var introElapsed: CGFloat = 0
+    var streakAlpha: CGFloat = 0
     var logbookMarks: [LogbookMark] = []
     var sfxFirstBoop: Bool = false
     var sfxSwooshVoice: Bool = false

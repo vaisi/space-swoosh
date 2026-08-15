@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Slice E — Journey/Lab captions, stars, outcome flavor, logbook flush.
+// Changes: Slice E polish — L40 captions live in cinema; outcome has no ending blob.
 
 import Foundation
 import Combine
@@ -16,7 +16,6 @@ struct LevelOutcome: Equatable {
     var labels: [String]
     var values: [String]
     var goalKm: Int
-    var endingNote: String
 }
 
 final class GameSession: ObservableObject {
@@ -58,7 +57,9 @@ final class GameSession: ObservableObject {
         points = run.points
         isOver = run.isOver
         worldAlpha = run.worldAlpha
-        overlayAlpha = run.isOver ? (run.completed ? 1 : min(1, run.endingT / 0.45)) : 0
+        overlayAlpha = run.isOver
+            ? min(1, run.endingT / (run.completed ? CinematicFlight.screenIn : 0.45))
+            : 0
         milestoneText = run.milestoneText
         milestoneOpacity = run.milestoneOpacity
         captionText = run.captionText
@@ -143,7 +144,6 @@ final class GameSession: ObservableObject {
         var values: [String] = []
         var title: String
         var flavor: String
-        var endingNote = ""
 
         if lab {
             title = completed ? "LAB CLEAR" : "LAB FAILED"
@@ -179,12 +179,6 @@ final class GameSession: ObservableObject {
                 title = "LEVEL FAILED"
             } else if spec.level >= JourneyConfig.totalLevels {
                 title = "JOURNEY COMPLETE"
-                endingNote = [
-                    GeneratedJourneyData.endingPayload,
-                    GeneratedJourneyData.endingAfterPayload.first?.text,
-                    GeneratedJourneyData.endingLights.first?.text,
-                    GeneratedJourneyData.endingFinal.first?.text
-                ].compactMap { $0 }.joined(separator: " ")
             } else {
                 title = "LEVEL \(spec.level) CLEAR"
             }
@@ -209,8 +203,7 @@ final class GameSession: ObservableObject {
             starSlots: slots,
             labels: labels,
             values: Array(values.prefix(slots)),
-            goalKm: Int(run.profile.goalKm),
-            endingNote: endingNote
+            goalKm: Int(run.profile.goalKm)
         )
     }
 }

@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Slice E — run profile, intro voice, finish-gate jets, exit lift.
+// Changes: Slice E polish — seat/camera cinema, streak shower, Open Space intro.
 
 import SpriteKit
 import QuartzCore
@@ -24,6 +24,7 @@ final class PlayScene: SKScene {
     private var lastFrameTime: TimeInterval?
     private var leftGate: SKSpriteNode?
     private var rightGate: SKSpriteNode?
+    private var streakField: StreakField?
     private var launch: PlayLaunch = .openSpace
 
     func startRun(_ launch: PlayLaunch = .openSpace) {
@@ -38,15 +39,12 @@ final class PlayScene: SKScene {
         SfxPlayer.shared.start()
         HapticsService.prepare()
 
-        let world = WorldState.initial(width: size.width, height: size.height)
-        previousWorld = world
-        currentWorld = world
-
+        var world = WorldState.initial(width: size.width, height: size.height)
         run.flightStyle = SettingsStore.shared.flightStyle
         run.profile = launch.profile
-        if launch.isLevelRun {
-            CinemaSimulator.beginLevelRun(run: &run)
-        }
+        CinemaSimulator.beginLevelRun(world: &world, run: &run)
+        previousWorld = world
+        currentWorld = world
         let bake = BakePipeline.current()
         backgroundColor = BrandColors.UI.paper
 
@@ -101,6 +99,12 @@ final class PlayScene: SKScene {
         right.zPosition = 8
         addChild(right)
         rightGate = right
+
+        let streaks = StreakField(texture: bake.part(for: .drift))
+        streaks.zPosition = 3
+        streaks.reset(width: world.width, height: world.height)
+        addChild(streaks)
+        streakField = streaks
 
         isPaused = false
         running = true
@@ -174,7 +178,7 @@ final class PlayScene: SKScene {
         }
 
         let ship = WorldInterpolator.ship(previousWorld?.ship ?? world.ship, world.ship, alpha: result.alpha)
-        present(ship: ship, world: world)
+        present(ship: ship, world: world, frameDelta: frameDelta)
 
         var obs = 0
         for o in world.obstacles where o.active { obs += 1 }
@@ -225,9 +229,14 @@ final class PlayScene: SKScene {
         }
     }
 
-    private func present(ship: ShipState, world: WorldState) {
-        let cameraY = ship.y
-        let screenY = size.height * 0.22 + run.exitLift
+    private func present(ship: ShipState, world: WorldState, frameDelta: CGFloat) {
+        let cameraY = CinematicFlight.presentCameraY(
+            shipY: ship.y,
+            seatY: run.seatY,
+            cameraLead: run.cameraLead,
+            height: size.height
+        )
+        let screenY = size.height * CinematicFlight.cruiseSeat + (ship.y - cameraY)
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let nowMs = CGFloat(CACurrentMediaTime() * 1000)
         let breath = 0.9 + 0.06 * sin(nowMs * 0.0056) + 0.04 * sin(nowMs * 0.0088)
@@ -287,6 +296,15 @@ final class PlayScene: SKScene {
             sceneHeight: size.height
         )
         presentGate(shipY: ship.y, cameraY: cameraY, screenY: screenY, world: world)
+        let showerSpeed = 0.45 + run.streakAlpha * 0.55
+        streakField?.alpha = run.worldAlpha
+        streakField?.sync(
+            alpha: run.streakAlpha,
+            width: world.width,
+            height: size.height,
+            dt: frameDelta,
+            speedFactor: showerSpeed
+        )
     }
 
     private func presentGate(shipY: CGFloat, cameraY: CGFloat, screenY: CGFloat, world: WorldState) {

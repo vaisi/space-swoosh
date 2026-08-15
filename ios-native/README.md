@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Slice E — Journey, Hazard Lab, lore, logbook, voice channel.
+  Changes: Slice E polish — intro roll, streak shower, clear flyout, L40 captions.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -12,22 +12,21 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - **Flicker** Open Space (Slice D feel) still live
 - **Journey:** lore once → map → 40 levels / 113 stars / 7 chapters, teach L1–5
 - **Hazard Lab:** 12k KM sandbox (phase / sweep / repulsor / drift / wormhole)
-- Level intro beats + finish flyout (baked gate jets, no per-frame `SKShapeNode`)
+- Intro: 720/280 ms roll from below, 18 baked streaks, then NAV beats (Open Space waits 200 ms)
+- Clear: Android hold / ramp / min / cap / fade; lean preserved; hull leaves the top
+- L40 clear: sequenced `ENDING_BEATS` captions, then `JOURNEY COMPLETE` (no lights show)
 - **Logbook** observe / interact / known
 - Options: flight, mute, **voice**, night paper
 - Persistence: `journeyProgress`, `logbookProgress` (same keys as Android)
 
-Voice files are optional. Drop Android’s clips here, then regenerate the project:
-
-`ios-native/SpaceSwoosh/Voice/level-1.mp3` … `level-40.mp3`  
-`first-boop.mp3`, `swoosh-voice.mp3`
+Voice clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`).
 
 Not yet: remaining 22 skins, IAP, Supabase board, Firebase.
 
 ### Gate
 
-Play L1–5 teach, a mid-game level, L40 clear cinema, Lab 12k, logbook unlocks,
-voice on/off, 120 Hz on Journey density.
+Play L1–5 teach, a mid-game level, L40 caption ending, Lab 12k, logbook unlocks,
+voice on/off, 120 Hz with the streak pool on.
 
 ```bash
 npm run constants:export
