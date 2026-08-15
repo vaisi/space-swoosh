@@ -51,7 +51,6 @@
 		091BE23C010931EE6C4F761E /* SpaceSwooshApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B46362F53342EC376D581E /* SpaceSwooshApp.swift */; };
 		630079499D908838C6A12464 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 32BB636196F91ED59D7A4919 /* Assets.xcassets */; };
 		C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */; };
-		CD14897CB6D01E24EB376D66 /* ElevenLabs_2026-08-10T22_34_02_PerfectSwoosh_gen_sp100_s50_sb75_v3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 575F035CAEBCA6FB4820A1D2 /* ElevenLabs_2026-08-10T22_34_02_PerfectSwoosh_gen_sp100_s50_sb75_v3.mp3 */; };
 		B95FAC1CDF18116221820286 /* first-boop.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2D4D442D32179AD9F6647D05 /* first-boop.mp3 */; };
 		556CD86FFD8E59E7D8C8C85D /* level-1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A05CFF82F2F2783B40DEB35B /* level-1.mp3 */; };
 		2459B479E767D4114D262849 /* level-10.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 73E2D0128588C45A1B077A5D /* level-10.mp3 */; };
@@ -140,7 +139,6 @@
 		9B844881344C2CA52B89178C /* WallJelly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallJelly.swift; sourceTree = "<group>"; };
 		082D090C673D6BD3BAE36892 /* WorldState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldState.swift; sourceTree = "<group>"; };
 		49B46362F53342EC376D581E /* SpaceSwooshApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceSwooshApp.swift; sourceTree = "<group>"; };
-		575F035CAEBCA6FB4820A1D2 /* ElevenLabs_2026-08-10T22_34_02_PerfectSwoosh_gen_sp100_s50_sb75_v3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ElevenLabs_2026-08-10T22_34_02_PerfectSwoosh_gen_sp100_s50_sb75_v3.mp3; sourceTree = "<group>"; };
 		2D4D442D32179AD9F6647D05 /* first-boop.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = first-boop.mp3; sourceTree = "<group>"; };
 		A05CFF82F2F2783B40DEB35B /* level-1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-1.mp3; sourceTree = "<group>"; };
 		73E2D0128588C45A1B077A5D /* level-10.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-10.mp3; sourceTree = "<group>"; };
@@ -327,7 +325,6 @@
 		F5B3BEE6E32F0D2A799F98BE /* Voice */ = {
 			isa = PBXGroup;
 			children = (
-				575F035CAEBCA6FB4820A1D2,
 				2D4D442D32179AD9F6647D05,
 				A05CFF82F2F2783B40DEB35B,
 				73E2D0128588C45A1B077A5D,
@@ -429,7 +426,6 @@
 			files = (
 				630079499D908838C6A12464 /* Assets.xcassets in Resources */,
 				C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */,
-				CD14897CB6D01E24EB376D66 /* ElevenLabs_2026-08-10T22_34_02_PerfectSwoosh_gen_sp100_s50_sb75_v3.mp3 in Resources */,
 				B95FAC1CDF18116221820286 /* first-boop.mp3 in Resources */,
 				556CD86FFD8E59E7D8C8C85D /* level-1.mp3 in Resources */,
 				2459B479E767D4114D262849 /* level-10.mp3 in Resources */,

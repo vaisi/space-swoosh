@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: Slice E — also pack Voice/*.mp3 if present; floor version still 3.
+// Changes: Slice E — pack named Voice clips only; skip ElevenLabs drafts.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -25,7 +25,11 @@ function walk(dir, out = []) {
 }
 
 const swiftFiles = walk(appRoot).filter((f) => f.endsWith('.swift'));
-const voiceFiles = walk(appRoot).filter((f) => f.endsWith('.mp3') || f.endsWith('.m4a'));
+const voiceFiles = walk(appRoot).filter((f) => {
+  const name = path.basename(f);
+  if (name.includes('ElevenLabs')) return false;
+  return /^(level-\d+|first-boop|swoosh-voice)\.(mp3|m4a)$/.test(name);
+});
 const infoPlist = path.join(appRoot, 'Info.plist');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');
 
