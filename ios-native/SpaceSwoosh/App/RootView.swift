@@ -1,5 +1,5 @@
 // RootView.swift
-// Changes: Phase A — minimal menu → play shell mirroring Cap appScreen entry.
+// Changes: Phase C — Open Space play entry.
 
 import SwiftUI
 
@@ -20,10 +20,10 @@ struct RootView: View {
                         .font(.system(size: 34, weight: .bold, design: .default))
                         .foregroundStyle(BrandColors.ink)
                         .tracking(2)
-                    Text("NATIVE · PHASE A")
+                    Text("NATIVE · PHASE C")
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
                         .foregroundStyle(BrandColors.ink55)
-                    Text("Butter core — fixed-step sim, ribbon trail, pacing HUD.")
+                    Text("Open Space — dodge, fuel, shields. Tap to flip.")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(BrandColors.ink80)
                         .multilineTextAlignment(.center)

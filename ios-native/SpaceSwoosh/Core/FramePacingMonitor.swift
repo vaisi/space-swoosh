@@ -1,5 +1,5 @@
 // FramePacingMonitor.swift
-// Changes: Phase A — p50/p95/p99 frame-time HUD + Low Power / thermal flags.
+// Changes: Phase B — load-line (obstacles / sparkles / trail) on the debug HUD.
 
 import Foundation
 import Combine
@@ -8,6 +8,11 @@ import UIKit
 final class FramePacingMonitor: ObservableObject {
     @Published private(set) var summaryLine: String = "pacing…"
     @Published private(set) var flagsLine: String = ""
+    @Published private(set) var loadLine: String = ""
+
+    private var loadObstacles = 0
+    private var loadSparkles = 0
+    private var loadTrail = 0
 
     private var samplesMs: [Double] = []
     private let capacity = 240
@@ -18,6 +23,12 @@ final class FramePacingMonitor: ObservableObject {
 
     init() {
         samplesMs = Array(repeating: 0, count: capacity)
+    }
+
+    func setLoadLine(obstacles: Int, sparkles: Int, trail: Int) {
+        loadObstacles = obstacles
+        loadSparkles = sparkles
+        loadTrail = trail
     }
 
     /// Call from the SpriteKit update thread (main). No heap growth in steady state.
@@ -68,6 +79,7 @@ final class FramePacingMonitor: ObservableObject {
         }
         let maxFps = UIScreen.main.maximumFramesPerSecond
         flagsLine = "displayMax \(maxFps)Hz  LPM \(lowPower ? "ON" : "off")  thermal \(thermalLabel)"
+        loadLine = "load  obs \(loadObstacles)  spark \(loadSparkles)  trail \(loadTrail)"
     }
 
     private func percentile(_ sorted: [Double], _ p: Double) -> Double {

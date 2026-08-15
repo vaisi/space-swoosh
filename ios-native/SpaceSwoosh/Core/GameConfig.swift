@@ -1,25 +1,88 @@
 // GameConfig.swift
-// Changes: Phase A — shared tunables from GameConfig.js (spacecraft + camera subset).
+// Changes: Phase C — Open Space tunables mirrored from shared/game-constants.json.
 
 import Foundation
 import CoreGraphics
 
 enum GameConfig {
-    /// Fixed simulation timestep (seconds). Presentation interpolates at display rate.
     static let simDt: CGFloat = 1.0 / 60.0
+    /// JS: abs(Δcamera.y) * (100/60)
+    static let kmPerPixel: CGFloat = 100.0 / 60.0
 
     enum Spacecraft {
         static let radiusUnits: CGFloat = 1
-        /// Fraction of playfield height per sim-second (matches JS baseSpeed ≈ speed × height).
         static let speed: CGFloat = 0.08
         static let zigzagAngleDeg: CGFloat = 52
         static let zigzagSpeedScale: CGFloat = 1.45
-        static let trailMaxPoints: Int = 80
+        static let trailMaxPoints: Int = 160
         static let trailFadePerSecond: CGFloat = 60.0 / 360.0
     }
 
     enum Playfield {
-        /// Logical aspect used for letterboxing (width:height).
         static let aspect: CGFloat = 2.0 / 3.0
+    }
+
+    enum Fuel {
+        static let max: CGFloat = 1
+        static let start: CGFloat = 1
+        static let drainPerKm: CGFloat = 0.00025
+        static let refillPerCollectible: CGFloat = 0.45
+        static let dyingDurationMs: CGFloat = 900
+        static let lowThreshold: CGFloat = 0.28
+        static let magnetRadiusScale: CGFloat = 4.25
+        static let magnetPull: CGFloat = 0.15
+    }
+
+    enum Points {
+        static let perAsteroid = 1
+        static let perSwoosh = 15
+    }
+
+    enum StyleSwoosh {
+        static let maxClearance: CGFloat = 1.65
+        static let maxPairYDelta: CGFloat = 3.2
+        static let yBand: CGFloat = 1.35
+        static let cooldownMs: CGFloat = 420
+    }
+
+    enum Profile {
+        static let shieldsFromScore: CGFloat = 500
+        static let collectiblesFromScore: CGFloat = 100
+        static let wallBoostsFromScore: CGFloat = 12000
+        static let simpleChance: CGFloat = 0.65
+        static let maxRowSpawns = 3
+        static let maxClusterCount = 4
+    }
+
+    enum Obstacles {
+        static let minSizeUnits: CGFloat = 2.5
+        static let maxSizeUnits: CGFloat = 6.25
+        static let scaling = (startDensity: CGFloat(0.7), maxDensity: CGFloat(1.5), rampUpDistance: CGFloat(10000))
+    }
+
+    enum Unlocks {
+        static let table: [(type: String, score: CGFloat)] = [
+            ("simple", 0),
+            ("sideBarrier", 1000),
+            ("complex", 1000),
+            ("moving", 2000),
+            ("shooting", 3000),
+            ("driftCurrent", 3500),
+            ("pulsating", 4000),
+            ("phase", 4500),
+            ("wormhole", 5000),
+            ("repulsor", 5500),
+            ("blackhole", 6000),
+            ("sweepGate", 7000),
+        ]
+    }
+
+    enum Stress {
+        static let obstacleSlots = 48
+        static let sparkleSlots = 24
+        static let glowSlots = 16
+        static let pickupSlots = 16
+        static let recycleLeadScreens: CGFloat = 2.4
+        static let recycleBehindScreens: CGFloat = 0.35
     }
 }

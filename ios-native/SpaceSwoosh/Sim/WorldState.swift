@@ -1,5 +1,5 @@
 // WorldState.swift
-// Changes: Phase A — interpolatable ship + trail snapshot for fixed-step / display split.
+// Changes: Phase C — pickups + empty combat field (no stress seed on start).
 
 import Foundation
 import CoreGraphics
@@ -15,13 +15,15 @@ struct ShipState {
 struct WorldState {
     var ship: ShipState
     var trail: TrailRingBuffer
+    var obstacles: [ObstacleState]
+    var pickups: [PickupState]
     var width: CGFloat
     var height: CGFloat
     var baseUnit: CGFloat
 
     static func initial(width: CGFloat, height: CGFloat) -> WorldState {
         let base = width / 40
-        var trail = TrailRingBuffer(capacity: GameConfig.Spacecraft.trailMaxPoints)
+        let trail = TrailRingBuffer(capacity: GameConfig.Spacecraft.trailMaxPoints)
         let ship = ShipState(
             x: width * 0.5,
             y: height * 0.22,
@@ -29,9 +31,22 @@ struct WorldState {
             zigzagSign: 1,
             distance: 0
         )
+        let obstacles = Array(
+            repeating: ObstacleState(
+                active: false, kind: .circle, x: 0, y: 0, radius: 1,
+                rotation: 0, spin: 0, glow: false, vx: 0
+            ),
+            count: GameConfig.Stress.obstacleSlots
+        )
+        let pickups = Array(
+            repeating: PickupState(active: false, kind: .sparkle, x: 0, y: 0, phase: 0),
+            count: GameConfig.Stress.pickupSlots
+        )
         return WorldState(
             ship: ship,
             trail: trail,
+            obstacles: obstacles,
+            pickups: pickups,
             width: width,
             height: height,
             baseUnit: base

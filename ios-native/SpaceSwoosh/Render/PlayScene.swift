@@ -1,21 +1,22 @@
 // PlayScene.swift
-// Changes: Phase A — display-rate SpriteKit scene, fixed-step sim, ribbon trail, pacing hook.
+// Changes: Phase C — Open Space combat loop on baked pools; game-over handoff.
 
 import SpriteKit
 
 final class PlayScene: SKScene {
     weak var pacingMonitor: FramePacingMonitor?
+    weak var session: GameSession?
 
     private let input = InputService()
-    private let simulator = ShipSimulator()
     private var clock = FixedStepSimulator()
-
     private var previousWorld: WorldState?
     private var currentWorld: WorldState?
+    private var run = RunState()
 
     private var hullNode: SKSpriteNode?
+    private var shieldHalo: SKSpriteNode?
     private var trailNode: RibbonTrailNode?
-    private var distanceLabel: SKLabelNode?
+    private var pooledField: PooledSpriteField?
     private var running = false
     private var lastFrameTime: TimeInterval?
 
@@ -24,23 +25,18 @@ final class PlayScene: SKScene {
         clock.reset()
         input.reset()
         lastFrameTime = nil
+        run = RunState()
+        session?.reset()
 
         let world = WorldState.initial(width: size.width, height: size.height)
         previousWorld = world
         currentWorld = world
 
+        let bake = BakePipeline.shared
         backgroundColor = BrandColors.UI.paper
 
-        // Soft paper panels (static shapes — allowed; not on the mutating hot path).
-        let band = SKSpriteNode(color: BrandColors.UI.paperDeep, size: CGSize(width: size.width, height: 2))
-        band.position = CGPoint(x: size.width / 2, y: size.height * 0.08)
-        band.alpha = 0.35
-        band.zPosition = 0
-        addChild(band)
-
-        let trailTexture = TrailRibbonTexture.make()
         let ribbon = RibbonTrailNode(
-            texture: trailTexture,
+            texture: bake.trail,
             maxSegments: GameConfig.Spacecraft.trailMaxPoints - 1,
             baseWidth: world.baseUnit * 0.55
         )
@@ -48,23 +44,23 @@ final class PlayScene: SKScene {
         addChild(ribbon)
         trailNode = ribbon
 
-        let hullTexture = FocusHullTexture.make(logicalRadius: world.baseUnit)
-        let hull = SKSpriteNode(texture: hullTexture)
-        let hullSize = world.baseUnit * 2.2
-        hull.size = CGSize(width: hullSize, height: hullSize)
+        let pool = PooledSpriteField(bake: bake)
+        pool.zPosition = 4
+        addChild(pool)
+        pooledField = pool
+
+        let halo = SKSpriteNode(texture: bake.glowSignal)
+        halo.blendMode = .add
+        halo.isHidden = true
+        halo.zPosition = 9
+        addChild(halo)
+        shieldHalo = halo
+
+        let hull = SKSpriteNode(texture: bake.hull)
+        hull.size = CGSize(width: world.baseUnit * 2.2, height: world.baseUnit * 2.2)
         hull.zPosition = 10
         addChild(hull)
         hullNode = hull
-
-        let label = SKLabelNode(fontNamed: "Menlo-Bold")
-        label.fontSize = 14
-        label.fontColor = BrandColors.UI.ink
-        label.horizontalAlignmentMode = .left
-        label.verticalAlignmentMode = .top
-        label.position = CGPoint(x: 16, y: size.height - 16)
-        label.zPosition = 100
-        addChild(label)
-        distanceLabel = label
 
         isPaused = false
         running = true
@@ -78,10 +74,6 @@ final class PlayScene: SKScene {
     override func didMove(to view: SKView) {
         view.preferredFramesPerSecond = 120
         view.ignoresSiblingOrder = true
-        #if DEBUG
-        view.showsFPS = false
-        view.showsNodeCount = false
-        #endif
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -98,14 +90,12 @@ final class PlayScene: SKScene {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
-        input.handleTap(at: location, sceneWidth: size.width)
+        guard let touch = touches.first, !run.isOver else { return }
+        input.handleTap(at: touch.location(in: self), sceneWidth: size.width)
     }
 
     override func update(_ currentTime: TimeInterval) {
-        guard running else { return }
-
+        guard running, !run.isOver else { return }
         pacingMonitor?.recordFrame(at: currentTime)
 
         let frameDelta: CGFloat
@@ -121,33 +111,52 @@ final class PlayScene: SKScene {
 
         let result = clock.tick(frameDelta: frameDelta) {
             let command = self.input.consumeSteerCommand()
-            self.simulator.step(world: &world, dt: GameConfig.simDt, command: command)
+            CombatSimulator.step(
+                world: &world,
+                run: &self.run,
+                dt: GameConfig.simDt,
+                command: command
+            )
         }
         currentWorld = world
+        session?.apply(run: run)
 
-        let alpha = result.alpha
-        let prev = previousWorld ?? world
-        let ship = WorldInterpolator.ship(prev.ship, world.ship, alpha: alpha)
-        present(ship: ship, trail: world.trail, world: world)
+        let ship = WorldInterpolator.ship(previousWorld?.ship ?? world.ship, world.ship, alpha: result.alpha)
+        present(ship: ship, world: world)
+
+        var obs = 0
+        for o in world.obstacles where o.active { obs += 1 }
+        var pk = 0
+        for p in world.pickups where p.active { pk += 1 }
+        pacingMonitor?.setLoadLine(
+            obstacles: obs,
+            sparkles: pk,
+            trail: GameConfig.Spacecraft.trailMaxPoints
+        )
     }
 
-    private func present(ship: ShipState, trail: TrailRingBuffer, world: WorldState) {
-        // Camera: keep ship near lower third; world Y is climb distance.
+    private func present(ship: ShipState, world: WorldState) {
         let cameraY = ship.y
         let screenY = size.height * 0.22
-
         hullNode?.position = CGPoint(x: ship.x, y: screenY)
         hullNode?.zRotation = -ship.tangent
+        hullNode?.alpha = run.fuelDying ? 0.45 : 1
+
+        if run.shieldActive {
+            shieldHalo?.isHidden = false
+            shieldHalo?.position = CGPoint(x: ship.x, y: screenY)
+            let r = world.baseUnit * 4.2
+            shieldHalo?.size = CGSize(width: r, height: r)
+        } else {
+            shieldHalo?.isHidden = true
+        }
 
         trailNode?.sync(
-            trail: trail,
+            trail: world.trail,
             cameraY: cameraY,
             sceneHeight: size.height,
             maxAge: 1.15
         )
-
-        let km = Int(ship.distance / max(world.baseUnit, 1))
-        distanceLabel?.text = "\(km) KM"
-        distanceLabel?.position = CGPoint(x: 16, y: size.height - 16)
+        pooledField?.sync(world: world, cameraY: cameraY, sceneHeight: size.height)
     }
 }

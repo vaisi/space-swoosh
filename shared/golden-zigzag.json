@@ -1,0 +1,6 @@
+{
+  "height": 844,
+  "dt": 0.016666666666666666,
+  "firstStepDeltaX": 1.2858234136852085,
+  "note": "JS zigzag one tick; Swift CombatParity.firstStepDeltaX(height: 844) should match within 1e-4"
+}

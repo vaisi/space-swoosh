@@ -1,5 +1,5 @@
 // RibbonTrailNode.swift
-// Changes: Phase A — pooled textured quad segments (no SKShapeNode / no per-frame paths).
+// Changes: Phase B — still pooled quads; capacity now matches Nyan-length wake.
 
 import SpriteKit
 

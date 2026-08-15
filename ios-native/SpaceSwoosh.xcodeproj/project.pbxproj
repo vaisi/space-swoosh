@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4D8F969D08F5398B379BC3 /* GameSession.swift */; };
 		A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8731093D35B65890AC3B94D /* PlayContainerView.swift */; };
 		76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */; };
 		4A319F5374A235778FC3D43B /* BrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6EA96BFCECAE6E841B49379 /* BrandColors.swift */; };
@@ -14,10 +15,15 @@
 		C4AF55705D2EB5771D427307 /* FramePacingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C680DE1D2E9D0A52140D7847 /* FramePacingMonitor.swift */; };
 		44DA51F240B9A608BC47A84E /* GameConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A886B9C134FE88D37B990C7 /* GameConfig.swift */; };
 		74A8A627E67F859E9B14028C /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90419B24548F3DDF98C2E7E /* InputService.swift */; };
+		C05DAB3B91F8482E9BC52541 /* BakePipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC91D803627C8826BAD1FB84 /* BakePipeline.swift */; };
 		6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */; };
 		CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628FF1116246728150EFF6C1 /* PlayScene.swift */; };
+		A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */; };
 		5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */; };
 		99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */; };
+		EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B4487A50892B18E56E9252 /* CombatParity.swift */; };
+		578C9A7D63FB784D94CAA42D /* CombatSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7029C3E4F6EB6C97A5F1D611 /* CombatSimulator.swift */; };
+		DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D2C43869B699798FD0DFC5 /* ObstacleState.swift */; };
 		E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */; };
 		F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */; };
 		1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082D090C673D6BD3BAE36892 /* WorldState.swift */; };
@@ -28,6 +34,7 @@
 
 /* Begin PBXFileReference section */
 		71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpaceSwoosh.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B4D8F969D08F5398B379BC3 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
 		F8731093D35B65890AC3B94D /* PlayContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayContainerView.swift; sourceTree = "<group>"; };
 		1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		C6EA96BFCECAE6E841B49379 /* BrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandColors.swift; sourceTree = "<group>"; };
@@ -35,10 +42,15 @@
 		C680DE1D2E9D0A52140D7847 /* FramePacingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramePacingMonitor.swift; sourceTree = "<group>"; };
 		6A886B9C134FE88D37B990C7 /* GameConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfig.swift; sourceTree = "<group>"; };
 		F90419B24548F3DDF98C2E7E /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
+		AC91D803627C8826BAD1FB84 /* BakePipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BakePipeline.swift; sourceTree = "<group>"; };
 		8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHullTexture.swift; sourceTree = "<group>"; };
 		628FF1116246728150EFF6C1 /* PlayScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayScene.swift; sourceTree = "<group>"; };
+		6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PooledSpriteField.swift; sourceTree = "<group>"; };
 		E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RibbonTrailNode.swift; sourceTree = "<group>"; };
 		BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRibbonTexture.swift; sourceTree = "<group>"; };
+		A5B4487A50892B18E56E9252 /* CombatParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatParity.swift; sourceTree = "<group>"; };
+		7029C3E4F6EB6C97A5F1D611 /* CombatSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatSimulator.swift; sourceTree = "<group>"; };
+		14D2C43869B699798FD0DFC5 /* ObstacleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObstacleState.swift; sourceTree = "<group>"; };
 		394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipSimulator.swift; sourceTree = "<group>"; };
 		0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRingBuffer.swift; sourceTree = "<group>"; };
 		082D090C673D6BD3BAE36892 /* WorldState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldState.swift; sourceTree = "<group>"; };
@@ -94,6 +106,7 @@
 		F327074CB480E367B08EDFC1 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				8B4D8F969D08F5398B379BC3,
 				F8731093D35B65890AC3B94D,
 				1F2C40BA6C5A4E305B4E6B12,
 			);
@@ -122,8 +135,10 @@
 		6BB6D1839E25C9B48655515C /* Render */ = {
 			isa = PBXGroup;
 			children = (
+				AC91D803627C8826BAD1FB84,
 				8B1F87CDBF2878FCB1110BBF,
 				628FF1116246728150EFF6C1,
+				6D9C2266E5757995489D1B37,
 				E3E76E4E12F12A36B4EF70AD,
 				BBB1844B0C8B74B44F3F727B,
 			);
@@ -133,6 +148,9 @@
 		0C9AF417F2AD255E43B44FCC /* Sim */ = {
 			isa = PBXGroup;
 			children = (
+				A5B4487A50892B18E56E9252,
+				7029C3E4F6EB6C97A5F1D611,
+				14D2C43869B699798FD0DFC5,
 				394B4BABF977D9B915F6D5C5,
 				0BDA3D967612F47FA382CB20,
 				082D090C673D6BD3BAE36892,
@@ -205,6 +223,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */,
 				A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */,
 				76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */,
 				4A319F5374A235778FC3D43B /* BrandColors.swift in Sources */,
@@ -212,10 +231,15 @@
 				C4AF55705D2EB5771D427307 /* FramePacingMonitor.swift in Sources */,
 				44DA51F240B9A608BC47A84E /* GameConfig.swift in Sources */,
 				74A8A627E67F859E9B14028C /* InputService.swift in Sources */,
+				C05DAB3B91F8482E9BC52541 /* BakePipeline.swift in Sources */,
 				6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */,
 				CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */,
+				A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */,
 				5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */,
 				99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */,
+				EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */,
+				578C9A7D63FB784D94CAA42D /* CombatSimulator.swift in Sources */,
+				DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */,
 				E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */,
 				F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */,
 				1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */,
@@ -262,6 +286,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -283,6 +308,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

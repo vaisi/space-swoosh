@@ -1,5 +1,5 @@
 // ShipSimulator.swift
-// Changes: Phase A — zigzag flight + wall bounce + trail emit (JS Spacecraft zigzag subset).
+// Changes: Phase B — unchanged zigzag; trail emits into the longer stress wake.
 
 import Foundation
 import CoreGraphics

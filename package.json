@@ -15,7 +15,9 @@
     "sync": "cap sync",
     "open:android": "cap open android",
     "open:ios": "cap open ios",
-    "run:android": "npm run build:native && cap run android"
+    "run:android": "npm run build:native && cap run android",
+    "constants:export": "node scripts/export-game-constants.mjs",
+    "constants:golden": "node scripts/golden-zigzag.mjs"
   },
   "keywords": [
     "game",

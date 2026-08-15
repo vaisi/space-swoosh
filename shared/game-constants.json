@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "source": "src/config/GameConfig.js + src/modes/RunProfile.js",
+  "simDt": 0.016666666666666666,
+  "fuel": {
+    "max": 1,
+    "start": 1,
+    "drainPerKm": 0.00025,
+    "refillPerCollectible": 0.45,
+    "dyingDurationMs": 900,
+    "lowThreshold": 0.28,
+    "magnetRadiusScale": 4.25,
+    "magnetPull": 0.15
+  },
+  "points": {
+    "perAsteroid": 1,
+    "perSwoosh": 15
+  },
+  "styleSwoosh": {
+    "maxClearance": 1.65,
+    "maxPairYDelta": 3.2,
+    "yBand": 1.35,
+    "cooldownMs": 420
+  },
+  "spacecraft": {
+    "radius": 1,
+    "speed": 0.08,
+    "zigzagAngleDeg": 52,
+    "zigzagSpeedScale": 1.45
+  },
+  "obstacles": {
+    "minSize": 2.5,
+    "maxSize": 6.25,
+    "scaling": {
+      "startDensity": 0.7,
+      "maxDensity": 1.5,
+      "rampUpDistance": 10000
+    }
+  },
+  "profile": {
+    "shieldsFromScore": 500,
+    "collectiblesFromScore": 100,
+    "wallBoostsFromScore": 12000,
+    "obstaclesFromScore": 0,
+    "simpleChance": 0.65,
+    "maxRowSpawns": 3,
+    "maxClusterCount": 4
+  },
+  "kmPerPixel": 1.6666666666666667,
+  "openWorldUnlocks": [
+    {
+      "type": "simple",
+      "score": 0
+    },
+    {
+      "type": "sideBarrier",
+      "score": 1000
+    },
+    {
+      "type": "complex",
+      "score": 1000
+    },
+    {
+      "type": "moving",
+      "score": 2000
+    },
+    {
+      "type": "shooting",
+      "score": 3000
+    },
+    {
+      "type": "driftCurrent",
+      "score": 3500
+    },
+    {
+      "type": "pulsating",
+      "score": 4000
+    },
+    {
+      "type": "phase",
+      "score": 4500
+    },
+    {
+      "type": "wormhole",
+      "score": 5000
+    },
+    {
+      "type": "repulsor",
+      "score": 5500
+    },
+    {
+      "type": "blackhole",
+      "score": 6000
+    },
+    {
+      "type": "sweepGate",
+      "score": 7000
+    }
+  ]
+}

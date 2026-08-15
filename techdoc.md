@@ -5,10 +5,11 @@
 >
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
-> **retired before launch** (kept in-repo for reference / parity until Phase C
-> sign-off). Android remains Capacitor. Phase A butter core is in place:
-> fixed-step 1/60 sim, display-rate render, pooled ribbon trail, pacing HUD,
-> `CADisableMinimumFrameDurationOnPhone`. See [`ios-native/README.md`](ios-native/README.md).
+> **retired before launch** (kept in-repo for reference / parity until Journey
+> sign-off). Android remains Capacitor. Phase C Open Space combat is in
+> `ios-native/` (spawn, fuel, shields, swoosh). Spec:
+> [`shared/game-constants.json`](shared/game-constants.json). See
+> [`ios-native/README.md`](ios-native/README.md).
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -45,7 +46,9 @@
 >
 > **BUILD 28 (Android store):** Firebase Analytics on Capacitor Android
 > (`@capacitor-firebase/analytics`). Premium ships IAP + menu browse/buy.
-> `UNLOCK_ALL_SKINS = false` for store — Focus/Flicker/Ember/Saber free; all
+> **Pro lives:** free pool (10 start, +6/6h, cap 10); spend on death/fuel;
+> weekly/yearly Pro = unlimited lives; yearly also one-time pick any 3 ships.
+> `UNLOCK_ALL_SKINS` / `UNLOCK_PRO` = false for store — Focus/Flicker/Ember/Saber free; all
 > other ships gated via RevenueCat. Advertising ID: collection disabled
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
@@ -62,7 +65,10 @@
 >
 > **Supabase:** Open Space leaderboard uses **vaisi's Project**
 > (`ptzaxgslzjefaxdkrvyr`). Table `public.high_scores` + RLS (SELECT/INSERT only
-> for anon). Schema in `supabase/migrations/`. No auth / no Journey cloud sync yet.
+> for anon). Client uses `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` only
+> (anon/publishable is public by design; never ship `service_role` / secret).
+> See §2 “Supabase API keys”. Schema in `supabase/migrations/`. No auth / no
+> Journey cloud sync yet.
 
 ## 1. Overview
 
@@ -110,6 +116,30 @@ changing env vars.
 
 Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md). Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
 
+### Supabase API keys (correct usage)
+
+The Open Space client only needs two values. Both are **public by design** once
+the game is built — Vite inlines any `VITE_*` var into the bundle / native shell.
+
+| Env var | Dashboard source | Privilege |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | Project URL (Settings → API / Connect) | Identifies the project |
+| `VITE_SUPABASE_ANON_KEY` | **anon** (Legacy API Keys) or **publishable** (`sb_publishable_…`) | Low — subject to RLS |
+
+**Never** put `service_role` or a secret key (`sb_secret_…`) in `.env` as a
+`VITE_*` var, in source, or in GitHub/Codemagic game-build env groups. Those
+bypass RLS and are for dashboard / trusted server work only (e.g. cleaning
+abusive rows). This repo does not use a secret key.
+
+Safety for the leaderboard is **RLS**, not key secrecy: `high_scores` allows
+public SELECT + INSERT with column checks; no UPDATE/DELETE for `anon`. Keeping
+`.env` out of git is hygiene (rotation, per-env builds), matching `.env.example`.
+CI stores the same public vars as “secrets” for the same reason.
+
+Optional later: migrate legacy `anon` → publishable key
+([Supabase migration guide](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys));
+RLS behavior stays the same.
+
 ### Open Space leaderboard (Supabase)
 
 | Piece | Role |
@@ -139,8 +169,9 @@ game build env. Journey progress and Open Space personal best stay in
 | `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics, Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Params sanitized to string/number (booleans → 0/1) so Android does not drop custom events. Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. Android: AD ID collection off + `AD_ID` permission stripped in `AndroidManifest.xml` for Play declaration **No**. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
-| `services/Purchases.js` | RevenueCat wrapper (native only); no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership cache + purchase / restore. Free = no `productId` (Focus/Flicker/Ember/Saber). `UNLOCK_ALL_SKINS` is **`false` for store**; set `true` only for local playtest. |
+| `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
+| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). `UNLOCK_ALL_SKINS` / `UNLOCK_PRO` are **`false` for store**. |
+| `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). Spend on crash/fuel; Pro bypasses. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
 | `ships/skinDefs.js` | Ship roster (Focus…Saber…Nyan…Cinder) composed from hulls + trails + boop signatures. |
@@ -161,10 +192,13 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
 | `ui/screens/LogbookScreen.js` | Space Log screen: category tabs; Journey rows text-only; other tabs keep icon cards. |
-| `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first). |
+| `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
-| `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles. |
+| `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles; lives chip. |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
+| `ui/screens/ProPaywallScreen.js` | Empty lives → weekly / yearly Pro offers + restore. |
+| `ui/screens/AnnualShipPickScreen.js` | Yearly Pro one-time pick of up to 3 premium ships. |
+| `ui/LivesChip.js` | Compact lives / ∞ + regen countdown. |
 | `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost off the top, fade world, fade screen in. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
 | `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–40 voice; holds belt until done. |
@@ -823,6 +857,29 @@ leaderboard; both are included in the `game_over` GA event (`fail_reason`:
 Firebase Explorations, break down `game_over` + `journey_level_end` by
 `ship_id` (event count or users) for most-played ship.
 
+### Lives + Pro (economy)
+
+Free players have a **lives** pool for Open Space and Journey (Hazard Lab is free):
+
+| Rule | Value |
+| --- | --- |
+| Start | 10 |
+| Regen | +6 every 6 hours while below cap (catch-up offline) |
+| Cap | 10 |
+| Spend | 1 on crash or fuel-out (`gameOver`) — not on start, quit, or level clear |
+| Gate | Cannot start a new Open Space / Journey run at 0 lives |
+
+`services/Lives.js` persists `{ lives, nextRegenAt }` under `livesState`.
+
+**Pro** (RevenueCat entitlement `pro`):
+
+| Product | ID | Effect |
+| --- | --- | --- |
+| Weekly | `com.orbi.spaceswoosh.pro.weekly` | Unlimited lives |
+| Yearly | `com.orbi.spaceswoosh.pro.yearly` | Unlimited lives + one-time pick any 3 premium ships (device-local `annualShipPicks`; kept after sub ends) |
+
+UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly claim. Screens show a lives chip (`ui/LivesChip.js`).
+
 ### Fuel system (data flow)
 
 1. **Gate:** Fuel UI + drain only when `Game.isFuelLive()` — i.e.
@@ -920,9 +977,9 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | Path | Role |
 | --- | --- |
 | `SpaceSwoosh/App/` | SwiftUI menu + `SpriteView` host |
-| `SpaceSwoosh/Core/` | `GameConfig`, fixed-step clock, frame-pacing monitor |
-| `SpaceSwoosh/Sim/` | `WorldState`, zigzag `ShipSimulator`, trail ring buffer |
-| `SpaceSwoosh/Render/` | `PlayScene`, baked Focus hull, pooled ribbon trail |
+| `SpaceSwoosh/Core/` | `GameConfig` (incl. stress caps), fixed-step clock, pacing HUD |
+| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, trail ring, `ObstacleField` slots |
+| `SpaceSwoosh/Render/` | `BakePipeline`, `PooledSpriteField`, ribbon trail, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
@@ -930,4 +987,6 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 hot draws are textures / pooled sprites; sim at 1/60 with interpolated
 presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
-Phase B will add atlas bake + worst-case load scene.
+Phase B stress scene held 120 Hz. Phase C Open Space: `CombatSimulator` fills
+the same pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see
+`shared/game-constants.json`). Crash and fuel-out end the run. No LOD tier.

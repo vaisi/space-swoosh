@@ -4,12 +4,15 @@
 >
 > **Privacy (Android store):** The game may send anonymous gameplay analytics
 > (for example which ship you flew). It does **not** use the device Advertising
-> ID for ads or tracking.
+> ID for ads or tracking. Open Space scores use a public project key with
+> server-side row limits (read + submit only; no player accounts). Call signs
+> you submit are stored on the online board; Journey progress and Open Space
+> personal bests stay on your device.
 >
-> **iPhone / iPad:** The App Store build is the **native** Space Swoosh app
-> (smooth high-refresh play). Android uses the store build from the same game
-> family; web remains at spaceswoosh.app. Controls and modes are the same —
-> steer left/right, survive, Journey or Open Space.
+> **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
+> app. TestFlight Phase C is **Open Space only** (dodge, fuel, shields) — not
+> Journey, Hazard Lab, or the full ship roster yet. Android and web remain the
+> complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap
@@ -37,6 +40,13 @@
 > **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
 > night paper — charcoal ground, light ink, vivid mint accents.
+>
+> **Lives:** You start with **10** lives for Journey and Open Space. Crashing or
+> running out of fuel costs **1** life (clearing a Journey level does not). Lives
+> refill **+6 every 6 hours**, never above 10. At zero, you can wait or go **Pro**
+> (unlimited lives): about **$1.99 / week** or **$19.99 / year**. Yearly Pro also
+> lets you permanently unlock any **3** premium ships. Hazard Lab does not use
+> lives. Use **Options → Restore Purchases** after reinstalling.
 
 ## The goal
 
@@ -219,7 +229,7 @@ Options opens a short list:
 | **Controls** | Flight style (Zigzag or Arc) and how steering works. |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
-| **Restore Purchases** | Re-sync ship unlocks after reinstall (iOS / Android). |
+| **Restore Purchases** | Re-sync ship unlocks and Pro after reinstall (iOS / Android). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
 main menu.
@@ -287,6 +297,10 @@ Focus, Flicker, Ember, and Saber are free forever. Every other ship is a store
 unlock on the apps (IAP). On the main menu you can scroll the whole roster —
 owned ships equip; locked ones show a price (tap the ship to buy). Options →
 Ship works the same way. Use **Options → Restore Purchases** after reinstalling.
+
+**Pro (yearly)** also includes a one-time pick of any **3** premium ships — those
+stay unlocked even if the subscription ends. You can still buy other ships
+individually anytime.
 
 The shaped ships lean into their turns, and the trail curls out from behind them
 along the path you actually flew. You only crash where the hull actually is —
