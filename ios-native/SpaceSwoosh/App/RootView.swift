@@ -1,5 +1,5 @@
 // RootView.swift
-// Changes: Slice D — mode select (Journey/Lab locked), options, theme, flight style.
+// Changes: Slice E — unlock Journey/Lab, lore, map, logbook, voice option.
 
 import SwiftUI
 
@@ -7,12 +7,17 @@ enum ShellScreen {
     case menu
     case modeSelect
     case options
+    case lore
+    case journeyMap
+    case logbook
     case play
 }
 
 struct RootView: View {
     @ObservedObject private var settings = SettingsStore.shared
+    @ObservedObject private var journey = JourneyStore.shared
     @State private var screen: ShellScreen = .menu
+    @State private var launch: PlayLaunch = .openSpace
     @State private var menuFlavor = CopyBank.pick(.menu)
     @State private var journeyBlurb = CopyBank.pick(.modeJourney)
     @State private var openBlurb = CopyBank.pick(.modeOpenWorld)
@@ -28,11 +33,31 @@ struct RootView: View {
                 modeSelect
             case .options:
                 options
+            case .lore:
+                LoreView(
+                    onBack: { screen = .modeSelect },
+                    onContinue: { screen = .journeyMap }
+                )
+            case .journeyMap:
+                JourneyMapView(
+                    onBack: { screen = .modeSelect },
+                    onLogbook: { screen = .logbook },
+                    onPlay: { next in
+                        launch = next
+                        screen = .play
+                    }
+                )
+            case .logbook:
+                LogbookView(onBack: { screen = .journeyMap })
             case .play:
-                PlayContainerView(onExit: {
-                    screen = .modeSelect
-                    menuFlavor = CopyBank.pick(.menu)
-                })
+                PlayContainerView(
+                    launch: launch,
+                    onMenu: {
+                        screen = .modeSelect
+                        menuFlavor = CopyBank.pick(.menu)
+                    },
+                    onMap: { screen = .journeyMap }
+                )
                 .transition(.opacity)
             }
         }
@@ -52,33 +77,49 @@ struct RootView: View {
                 .foregroundStyle(BrandColors.ink55)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 36)
-            Text("Flicker · Open Space")
+            Text("Flicker · Slice E")
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .foregroundStyle(BrandColors.ink80)
             Spacer()
-            inkButton("PLAY") {
+            ShellChrome.inkButton("PLAY") {
                 journeyBlurb = CopyBank.pick(.modeJourney)
                 openBlurb = CopyBank.pick(.modeOpenWorld)
                 screen = .modeSelect
             }
-            ghostButton("OPTIONS") { screen = .options }
+            ShellChrome.ghostButton("OPTIONS") { screen = .options }
                 .padding(.bottom, 36)
         }
     }
 
     private var modeSelect: some View {
         VStack(alignment: .leading, spacing: 16) {
-            header("SELECT", back: { screen = .menu })
+            ShellChrome.header("SELECT", back: { screen = .menu })
             modeCard(
                 title: "OPEN SPACE",
                 blurb: openBlurb,
                 locked: false,
                 footer: pbLine
             ) {
+                launch = .openSpace
                 screen = .play
             }
-            modeCard(title: "JOURNEY", blurb: journeyBlurb, locked: true, footer: "Coming with Slice E") {}
-            modeCard(title: "HAZARD LAB", blurb: "Practice the rare set-pieces.", locked: true, footer: "Coming with Slice E") {}
+            modeCard(
+                title: "JOURNEY",
+                blurb: journeyBlurb,
+                locked: false,
+                footer: journeyFooter
+            ) {
+                screen = journey.snapshot.loreSeen ? .journeyMap : .lore
+            }
+            modeCard(
+                title: "HAZARD LAB",
+                blurb: "Practice the rare set-pieces.",
+                locked: false,
+                footer: "Always unlocked · nothing counts"
+            ) {
+                launch = .hazardLab
+                screen = .play
+            }
             Spacer()
         }
         .padding(.horizontal, 24)
@@ -94,39 +135,34 @@ struct RootView: View {
         return parts.isEmpty ? "No personal best yet" : parts.joined(separator: "  ·  ")
     }
 
+    private var journeyFooter: String {
+        let stars = JourneyProgress.totalStars(journey.snapshot)
+        let next = JourneyProgress.nextPlayable(journey.snapshot)
+        return "\(stars) / \(JourneyConfig.totalStars)  ·  Level \(next)"
+    }
+
     private var options: some View {
         VStack(alignment: .leading, spacing: 14) {
-            header("OPTIONS", back: { screen = .menu })
+            ShellChrome.header("OPTIONS", back: { screen = .menu })
             Text("Vessel. Controls. Signal.")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(BrandColors.ink55)
-            inkButton(settings.flightStyle == .zigzag ? "FLIGHT  ZIGZAG" : "FLIGHT  ARC") {
+            ShellChrome.inkButton(settings.flightStyle == .zigzag ? "FLIGHT  ZIGZAG" : "FLIGHT  ARC") {
                 settings.setFlightStyle(settings.flightStyle == .zigzag ? .arc : .zigzag)
             }
-            inkButton(settings.muted ? "SOUND  OFF" : "SOUND  ON") {
+            ShellChrome.inkButton(settings.muted ? "SOUND  OFF" : "SOUND  ON") {
                 settings.toggleMute()
             }
-            inkButton(settings.isDark ? "THEME  NIGHT" : "THEME  PAPER") {
+            ShellChrome.inkButton(settings.voiceEnabled ? "VOICE  ON" : "VOICE  OFF") {
+                settings.toggleVoice()
+            }
+            ShellChrome.inkButton(settings.isDark ? "THEME  NIGHT" : "THEME  PAPER") {
                 settings.toggleTheme()
             }
             Spacer()
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
-    }
-
-    private func header(_ title: String, back: @escaping () -> Void) -> some View {
-        HStack {
-            Button(action: back) {
-                Text("BACK")
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundStyle(BrandColors.ink)
-            }
-            Spacer()
-            Text(title)
-                .font(.system(size: 16, weight: .bold, design: .monospaced))
-                .foregroundStyle(BrandColors.ink)
-        }
     }
 
     private func modeCard(
@@ -162,25 +198,5 @@ struct RootView: View {
             .opacity(locked ? 0.55 : 1)
         }
         .disabled(locked)
-    }
-
-    private func inkButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 16, weight: .bold, design: .monospaced))
-                .foregroundStyle(BrandColors.paper)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(BrandColors.signal)
-        }
-        .padding(.horizontal, 16)
-    }
-
-    private func ghostButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
-                .foregroundStyle(BrandColors.ink)
-        }
     }
 }

@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "source": "src/config/GameConfig.js + src/modes/RunProfile.js + skinDefs/CopyBank",
+  "version": 3,
+  "source": "GameConfig + RunProfile + JourneyConfig + JourneyNarrative + Logbook + CopyBank",
   "simDt": 0.016666666666666666,
   "defaultShipId": "flicker",
   "fuel": {
@@ -143,6 +143,50 @@
       "No goal marker. Only distance, and how far your name travels.",
       "One continuous flight. Crash ends it. Fame is optional, but recorded.",
       "The void has no exit. Your score does."
+    ],
+    "fail": [
+      "Short of the mark. The goal noticed.",
+      "Almost. Almost is still debris.",
+      "The finish line remains unimpressed.",
+      "Insufficient distance. Excess optimism.",
+      "Try again. The rocks are waiting.",
+      "Trajectory incomplete. Ego intact. For now.",
+      "You stopped. The level did not care.",
+      "Close enough is a myth. Fascinating.",
+      "The goal was ahead. You were not.",
+      "Failure: educational. Also final."
+    ],
+    "clearPartial": [
+      "Adequate. The remaining stars disagree.",
+      "Cleared. Perfection postponed.",
+      "The way ahead is open. The stars are picky.",
+      "Forward. The unfinished business remains.",
+      "Level secured. Ambition: pending.",
+      "You lived. The stars want more.",
+      "Progress noted. Brilliance deferred.",
+      "Clearance granted. Applause withheld.",
+      "Onward. Two truths can wait.",
+      "The chapter continues. So do the gaps."
+    ],
+    "clearFlawless": [
+      "Flawless. Fascinating.",
+      "Three stars. Zero excuses.",
+      "Perfect. Annoyingly so.",
+      "Three stars. The rocks remember.",
+      "Smashed, scored, finished. Excellent.",
+      "All stars. No notes.",
+      "Logic and luck, briefly allied.",
+      "Immaculate. The void takes notes.",
+      "Three of three. Probability sulks.",
+      "Flawless ascent. Continue."
+    ],
+    "journeyComplete": [
+      "You are away. Live long and prosper.",
+      "Exosphere cleared. Nothing holds you now.",
+      "Journey complete. The void applauds quietly.",
+      "Forty levels. Zero patience for rocks.",
+      "Away. As promised.",
+      "The atmosphere is behind you. Stay that way."
     ]
   },
   "obstacles": {
@@ -213,5 +257,2121 @@
       "type": "sweepGate",
       "score": 7000
     }
-  ]
+  ],
+  "journey": {
+    "totalLevels": 40,
+    "totalStars": 113,
+    "starsPerLevel": 3,
+    "pointsFromLevel": 4,
+    "shieldsFromLevel": 5,
+    "lore": "A message came to us out of the dark, torn apart by the distance. Its pieces are still scattered along the way it travelled. NAV will guide you back to find who sent it.",
+    "loreTitle": "The Call",
+    "loreEntryId": "signalCall",
+    "chapters": [
+      {
+        "id": "learning",
+        "name": "First Light",
+        "blurb": "Learn the path. Listen to NAV.",
+        "from": 1,
+        "to": 5
+      },
+      {
+        "id": "journey",
+        "name": "The Long Way",
+        "blurb": "Follow the signal back to its source.",
+        "from": 6,
+        "to": 12
+      },
+      {
+        "id": "message",
+        "name": "Fragments",
+        "blurb": "The message begins to take shape.",
+        "from": 13,
+        "to": 19
+      },
+      {
+        "id": "tooold",
+        "name": "Deep Static",
+        "blurb": "The signal is older than it should be.",
+        "from": 20,
+        "to": 26
+      },
+      {
+        "id": "whowerethey",
+        "name": "The Senders",
+        "blurb": "Piece by piece, they come into focus.",
+        "from": 27,
+        "to": 32
+      },
+      {
+        "id": "earth",
+        "name": "The Source",
+        "blurb": "The trail ends at a single world.",
+        "from": 33,
+        "to": 36
+      },
+      {
+        "id": "homecoming",
+        "name": "Arrival",
+        "blurb": "Whatever waits, you are almost there.",
+        "from": 37,
+        "to": 40
+      }
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "chapterId": "learning",
+        "chapterName": "First Light",
+        "difficulty": 0.16,
+        "goalKm": 1250,
+        "types": [],
+        "focusType": null,
+        "introduces": null,
+        "sparklesTarget": 0,
+        "smashTarget": 0,
+        "starSlots": 1
+      },
+      {
+        "level": 2,
+        "chapterId": "learning",
+        "chapterName": "First Light",
+        "difficulty": 0.22,
+        "goalKm": 2000,
+        "types": [
+          "simple"
+        ],
+        "focusType": null,
+        "introduces": "simple",
+        "sparklesTarget": 0,
+        "smashTarget": 0,
+        "starSlots": 1
+      },
+      {
+        "level": 3,
+        "chapterId": "learning",
+        "chapterName": "First Light",
+        "difficulty": 0.28,
+        "goalKm": 3000,
+        "types": [
+          "simple",
+          "moving"
+        ],
+        "focusType": "moving",
+        "introduces": "moving",
+        "sparklesTarget": 0,
+        "smashTarget": 0,
+        "starSlots": 1
+      },
+      {
+        "level": 4,
+        "chapterId": "learning",
+        "chapterName": "First Light",
+        "difficulty": 0.3,
+        "goalKm": 4000,
+        "types": [
+          "simple",
+          "moving"
+        ],
+        "focusType": "moving",
+        "introduces": null,
+        "sparklesTarget": 2,
+        "smashTarget": 0,
+        "starSlots": 2
+      },
+      {
+        "level": 5,
+        "chapterId": "learning",
+        "chapterName": "First Light",
+        "difficulty": 0.32,
+        "goalKm": 7500,
+        "types": [
+          "simple",
+          "moving"
+        ],
+        "focusType": "moving",
+        "introduces": null,
+        "sparklesTarget": 7,
+        "smashTarget": 1,
+        "starSlots": 3
+      },
+      {
+        "level": 6,
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
+        "difficulty": 0.42,
+        "goalKm": 8000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": "sideBarrier",
+        "sparklesTarget": 7,
+        "smashTarget": 2,
+        "starSlots": 3
+      },
+      {
+        "level": 7,
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
+        "difficulty": 0.42,
+        "goalKm": 8500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 8,
+        "smashTarget": 2,
+        "starSlots": 3
+      },
+      {
+        "level": 8,
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
+        "difficulty": 0.42,
+        "goalKm": 9000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier"
+        ],
+        "focusType": "moving",
+        "introduces": null,
+        "sparklesTarget": 8,
+        "smashTarget": 2,
+        "starSlots": 3
+      },
+      {
+        "level": 9,
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
+        "difficulty": 0.5,
+        "goalKm": 9500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex"
+        ],
+        "focusType": "complex",
+        "introduces": "complex",
+        "sparklesTarget": 9,
+        "smashTarget": 2,
+        "starSlots": 3
+      },
+      {
+        "level": 10,
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
+        "difficulty": 0.5,
+        "goalKm": 11000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 10,
+        "smashTarget": 2,
+        "starSlots": 3
+      },
+      {
+        "level": 11,
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
+        "difficulty": 0.5,
+        "goalKm": 11500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex"
+        ],
+        "focusType": "complex",
+        "introduces": null,
+        "sparklesTarget": 11,
+        "smashTarget": 2,
+        "starSlots": 3
+      },
+      {
+        "level": 12,
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
+        "difficulty": 0.58,
+        "goalKm": 12000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting"
+        ],
+        "focusType": "shooting",
+        "introduces": "shooting",
+        "sparklesTarget": 11,
+        "smashTarget": 2,
+        "starSlots": 3
+      },
+      {
+        "level": 13,
+        "chapterId": "message",
+        "chapterName": "Fragments",
+        "difficulty": 0.58,
+        "goalKm": 12500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 12,
+        "smashTarget": 3,
+        "starSlots": 3
+      },
+      {
+        "level": 14,
+        "chapterId": "message",
+        "chapterName": "Fragments",
+        "difficulty": 0.58,
+        "goalKm": 13000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting"
+        ],
+        "focusType": "complex",
+        "introduces": null,
+        "sparklesTarget": 12,
+        "smashTarget": 3,
+        "starSlots": 3
+      },
+      {
+        "level": 15,
+        "chapterId": "message",
+        "chapterName": "Fragments",
+        "difficulty": 0.62,
+        "goalKm": 14500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent"
+        ],
+        "focusType": "driftCurrent",
+        "introduces": "driftCurrent",
+        "sparklesTarget": 14,
+        "smashTarget": 3,
+        "starSlots": 3
+      },
+      {
+        "level": 16,
+        "chapterId": "message",
+        "chapterName": "Fragments",
+        "difficulty": 0.62,
+        "goalKm": 15000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 14,
+        "smashTarget": 3,
+        "starSlots": 3
+      },
+      {
+        "level": 17,
+        "chapterId": "message",
+        "chapterName": "Fragments",
+        "difficulty": 0.68,
+        "goalKm": 15500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating"
+        ],
+        "focusType": "pulsating",
+        "introduces": "pulsating",
+        "sparklesTarget": 15,
+        "smashTarget": 3,
+        "starSlots": 3
+      },
+      {
+        "level": 18,
+        "chapterId": "message",
+        "chapterName": "Fragments",
+        "difficulty": 0.68,
+        "goalKm": 16000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 15,
+        "smashTarget": 3,
+        "starSlots": 3
+      },
+      {
+        "level": 19,
+        "chapterId": "message",
+        "chapterName": "Fragments",
+        "difficulty": 0.68,
+        "goalKm": 16500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating"
+        ],
+        "focusType": "complex",
+        "introduces": null,
+        "sparklesTarget": 16,
+        "smashTarget": 3,
+        "starSlots": 3
+      },
+      {
+        "level": 20,
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
+        "difficulty": 0.72,
+        "goalKm": 18000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase"
+        ],
+        "focusType": "phase",
+        "introduces": "phase",
+        "sparklesTarget": 17,
+        "smashTarget": 4,
+        "starSlots": 3
+      },
+      {
+        "level": 21,
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
+        "difficulty": 0.72,
+        "goalKm": 18500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 18,
+        "smashTarget": 4,
+        "starSlots": 3
+      },
+      {
+        "level": 22,
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
+        "difficulty": 0.78,
+        "goalKm": 19000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole"
+        ],
+        "focusType": "wormhole",
+        "introduces": "wormhole",
+        "sparklesTarget": 18,
+        "smashTarget": 4,
+        "starSlots": 3
+      },
+      {
+        "level": 23,
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
+        "difficulty": 0.78,
+        "goalKm": 19500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 19,
+        "smashTarget": 4,
+        "starSlots": 3
+      },
+      {
+        "level": 24,
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
+        "difficulty": 0.78,
+        "goalKm": 20000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole"
+        ],
+        "focusType": "complex",
+        "introduces": null,
+        "sparklesTarget": 19,
+        "smashTarget": 4,
+        "starSlots": 3
+      },
+      {
+        "level": 25,
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
+        "difficulty": 0.84,
+        "goalKm": 21500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor"
+        ],
+        "focusType": "repulsor",
+        "introduces": "repulsor",
+        "sparklesTarget": 21,
+        "smashTarget": 4,
+        "starSlots": 3
+      },
+      {
+        "level": 26,
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
+        "difficulty": 0.84,
+        "goalKm": 22000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 21,
+        "smashTarget": 4,
+        "starSlots": 3
+      },
+      {
+        "level": 27,
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
+        "difficulty": 0.9,
+        "goalKm": 22500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole"
+        ],
+        "focusType": "blackhole",
+        "introduces": "blackhole",
+        "sparklesTarget": 22,
+        "smashTarget": 5,
+        "starSlots": 3
+      },
+      {
+        "level": 28,
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
+        "difficulty": 0.9,
+        "goalKm": 23000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 22,
+        "smashTarget": 5,
+        "starSlots": 3
+      },
+      {
+        "level": 29,
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
+        "difficulty": 0.9,
+        "goalKm": 23500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole"
+        ],
+        "focusType": "complex",
+        "introduces": null,
+        "sparklesTarget": 23,
+        "smashTarget": 5,
+        "starSlots": 3
+      },
+      {
+        "level": 30,
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
+        "difficulty": 0.9,
+        "goalKm": 25000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole"
+        ],
+        "focusType": "shooting",
+        "introduces": null,
+        "sparklesTarget": 24,
+        "smashTarget": 5,
+        "starSlots": 3
+      },
+      {
+        "level": 31,
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
+        "difficulty": 0.95,
+        "goalKm": 25500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "sweepGate",
+        "introduces": "sweepGate",
+        "sparklesTarget": 25,
+        "smashTarget": 5,
+        "starSlots": 3
+      },
+      {
+        "level": 32,
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
+        "difficulty": 0.95,
+        "goalKm": 26000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 25,
+        "smashTarget": 5,
+        "starSlots": 3
+      },
+      {
+        "level": 33,
+        "chapterId": "earth",
+        "chapterName": "The Source",
+        "difficulty": 0.95,
+        "goalKm": 26500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "complex",
+        "introduces": null,
+        "sparklesTarget": 26,
+        "smashTarget": 5,
+        "starSlots": 3
+      },
+      {
+        "level": 34,
+        "chapterId": "earth",
+        "chapterName": "The Source",
+        "difficulty": 1,
+        "goalKm": 27000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "moving",
+        "introduces": null,
+        "sparklesTarget": 26,
+        "smashTarget": 6,
+        "starSlots": 3
+      },
+      {
+        "level": 35,
+        "chapterId": "earth",
+        "chapterName": "The Source",
+        "difficulty": 1,
+        "goalKm": 28500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "sideBarrier",
+        "introduces": null,
+        "sparklesTarget": 28,
+        "smashTarget": 6,
+        "starSlots": 3
+      },
+      {
+        "level": 36,
+        "chapterId": "earth",
+        "chapterName": "The Source",
+        "difficulty": 1,
+        "goalKm": 29000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "complex",
+        "introduces": null,
+        "sparklesTarget": 28,
+        "smashTarget": 6,
+        "starSlots": 3
+      },
+      {
+        "level": 37,
+        "chapterId": "homecoming",
+        "chapterName": "Arrival",
+        "difficulty": 1,
+        "goalKm": 29500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "shooting",
+        "introduces": null,
+        "sparklesTarget": 29,
+        "smashTarget": 6,
+        "starSlots": 3
+      },
+      {
+        "level": 38,
+        "chapterId": "homecoming",
+        "chapterName": "Arrival",
+        "difficulty": 1,
+        "goalKm": 30000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "driftCurrent",
+        "introduces": null,
+        "sparklesTarget": 29,
+        "smashTarget": 6,
+        "starSlots": 3
+      },
+      {
+        "level": 39,
+        "chapterId": "homecoming",
+        "chapterName": "Arrival",
+        "difficulty": 1,
+        "goalKm": 30500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "pulsating",
+        "introduces": null,
+        "sparklesTarget": 30,
+        "smashTarget": 6,
+        "starSlots": 3
+      },
+      {
+        "level": 40,
+        "chapterId": "homecoming",
+        "chapterName": "Arrival",
+        "difficulty": 1,
+        "goalKm": 32000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "phase",
+        "introduces": null,
+        "sparklesTarget": 31,
+        "smashTarget": 6,
+        "starSlots": 3
+      }
+    ],
+    "messages": {
+      "1": "There you are. Tap once. Let me see you turn.",
+      "2": "Rocks ahead. Don't look at them. Look at the room between them.",
+      "3": "That one is moving. Learn its path before you choose yours.",
+      "4": "See the blue light? Take it. It will help us hold the signal together.",
+      "5": "Take the shield. For a few seconds... you can survive what should stop you.",
+      "6": "Good. You can fly. Now let's find whoever called us.",
+      "7": "We're retracing the signal's path. The old relay lanes fold the distance for us.",
+      "8": "The transmission crossed thousands of systems. Most of it didn't survive.",
+      "9": "There's an old relay ahead. Pass close. It may still remember part of the signal.",
+      "10": "It does. A sequence of prime numbers. Someone wanted us to know this wasn't noise.",
+      "11": "They were trying very hard... not to be missed.",
+      "12": "I like them already. Keep going.",
+      "13": "Another relay. This fragment describes their star. Yellow. Ordinary. Stable.",
+      "14": "Eight planets. They lived on the third.",
+      "15": "Mostly ocean. One moon. A thin little atmosphere.",
+      "16": "They sent pictures too. The encoding is damaged... but I'm working on it.",
+      "17": "There are buildings. Machines. Faces, I think.",
+      "18": "And music. They put music in a message to strangers. That may be my favourite thing about them.",
+      "19": "They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.",
+      "20": "I've finished dating the transmission. There's a problem.",
+      "21": "It was already more than a million years old... when we received it.",
+      "22": "Don't stop. Old doesn't mean gone. Not necessarily.",
+      "23": "No later transmissions appear anywhere along the route. One message, and then silence.",
+      "24": "A civilization loud enough to send this... should have left something else behind.",
+      "25": "I'm searching. Keep flying.",
+      "26": "Nothing. There's nothing.",
+      "27": "I recovered part of their anatomy. Two arms. Two legs. Upright.",
+      "28": "Five digits on each hand. Rather useful design, actually.",
+      "29": "Another image cleared. Blue sky. Green vegetation. White clouds.",
+      "30": "Fascinating. I found their name for the planet. Translation is still resolving.",
+      "31": "Their star has a name too. One syllable.",
+      "32": "Sol. They called it Sol.",
+      "33": "The planet was called Earth.",
+      "34": "I found their entry in the old archive... Their entire entry is one word. Unremarkable.",
+      "35": "Unremarkable. They sang into the dark, and we filed them under \"unremarkable.\"",
+      "36": "We weren't the first to search. They were.",
+      "37": "Sol is ahead. No artificial signals. No active structures.",
+      "38": "Earth is still there. The ones who called... are not.",
+      "39": "We came a million years too late. Let's answer them anyway.",
+      "40": "There it is. Let them hear us."
+    },
+    "introBeats": {
+      "1": [
+        {
+          "text": "There you are.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Tap once.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Let me see you turn.",
+          "gapAfterMs": 400
+        }
+      ],
+      "2": [
+        {
+          "text": "Rocks ahead.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Don't look at them.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Look at the room between them.",
+          "gapAfterMs": 400
+        }
+      ],
+      "3": [
+        {
+          "text": "That one is moving.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Learn its path before you choose yours.",
+          "gapAfterMs": 400
+        }
+      ],
+      "4": [
+        {
+          "text": "See the blue light?",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Take it.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "It will help us hold the signal together.",
+          "gapAfterMs": 400
+        }
+      ],
+      "5": [
+        {
+          "text": "Take the shield.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "For a few seconds... you can survive what should stop you.",
+          "gapAfterMs": 400
+        }
+      ],
+      "6": [
+        {
+          "text": "Good.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "You can fly.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Now let's find whoever called us.",
+          "gapAfterMs": 400
+        }
+      ],
+      "7": [
+        {
+          "text": "We're retracing the signal's path.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "The old relay lanes fold the distance for us.",
+          "gapAfterMs": 400
+        }
+      ],
+      "8": [
+        {
+          "text": "The transmission crossed thousands of systems.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "Most of it didn't survive.",
+          "gapAfterMs": 400
+        }
+      ],
+      "9": [
+        {
+          "text": "There's an old relay ahead.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Pass close.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "It may still remember part of the signal.",
+          "gapAfterMs": 400
+        }
+      ],
+      "10": [
+        {
+          "text": "It does.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "A sequence of prime numbers.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Someone wanted us to know this wasn't noise.",
+          "gapAfterMs": 400
+        }
+      ],
+      "11": [
+        {
+          "text": "They were trying very hard...",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "not to be missed.",
+          "gapAfterMs": 400
+        }
+      ],
+      "12": [
+        {
+          "text": "I like them already.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Keep going.",
+          "gapAfterMs": 400
+        }
+      ],
+      "13": [
+        {
+          "text": "Another relay.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "This fragment describes their star.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Yellow.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Ordinary.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Stable.",
+          "gapAfterMs": 400
+        }
+      ],
+      "14": [
+        {
+          "text": "Eight planets.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "They lived on the third.",
+          "gapAfterMs": 400
+        }
+      ],
+      "15": [
+        {
+          "text": "Mostly ocean.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "One moon.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "A thin little atmosphere.",
+          "gapAfterMs": 400
+        }
+      ],
+      "16": [
+        {
+          "text": "They sent pictures too.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "The encoding is damaged",
+          "gapAfterMs": 350
+        },
+        {
+          "text": "...but I'm working on it.",
+          "gapAfterMs": 400
+        }
+      ],
+      "17": [
+        {
+          "text": "There are buildings.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Machines.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Faces, I think.",
+          "gapAfterMs": 400
+        }
+      ],
+      "18": [
+        {
+          "text": "And music.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "They put music in a message to strangers.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "That may be my favourite thing about them.",
+          "gapAfterMs": 400
+        }
+      ],
+      "19": [
+        {
+          "text": "They only sent it once.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "A hello into the dark, with no hope of an answer.",
+          "gapAfterMs": 700
+        },
+        {
+          "text": "And they sent it anyway.",
+          "gapAfterMs": 400
+        }
+      ],
+      "20": [
+        {
+          "text": "I've finished dating the transmission.",
+          "gapAfterMs": 700
+        },
+        {
+          "text": "There's a problem.",
+          "gapAfterMs": 400
+        }
+      ],
+      "21": [
+        {
+          "text": "It was already more than a million years old...",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "when we received it.",
+          "gapAfterMs": 400
+        }
+      ],
+      "22": [
+        {
+          "text": "Don't stop.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Old doesn't mean gone.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "Not necessarily.",
+          "gapAfterMs": 400
+        }
+      ],
+      "23": [
+        {
+          "text": "No later transmissions appear anywhere along the route.",
+          "gapAfterMs": 800
+        },
+        {
+          "text": "One message,",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "and then silence.",
+          "gapAfterMs": 400
+        }
+      ],
+      "24": [
+        {
+          "text": "A civilization loud enough to send this...",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "should have left something else behind.",
+          "gapAfterMs": 400
+        }
+      ],
+      "25": [
+        {
+          "text": "I'm searching.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Keep flying.",
+          "gapAfterMs": 400
+        }
+      ],
+      "26": [
+        {
+          "text": "Nothing.",
+          "gapAfterMs": 2000
+        },
+        {
+          "text": "There's nothing.",
+          "gapAfterMs": 400
+        }
+      ],
+      "27": [
+        {
+          "text": "I recovered part of their anatomy.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Two arms.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Two legs.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Upright.",
+          "gapAfterMs": 400
+        }
+      ],
+      "28": [
+        {
+          "text": "Five digits on each hand.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Rather useful design, actually.",
+          "gapAfterMs": 400
+        }
+      ],
+      "29": [
+        {
+          "text": "Another image cleared.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Blue sky.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Green vegetation.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "White clouds.",
+          "gapAfterMs": 400
+        }
+      ],
+      "30": [
+        {
+          "text": "Fascinating.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "I found their name for the planet.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Translation is still resolving.",
+          "gapAfterMs": 400
+        }
+      ],
+      "31": [
+        {
+          "text": "Their star has a name too.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "One syllable.",
+          "gapAfterMs": 400
+        }
+      ],
+      "32": [
+        {
+          "text": "Sol.",
+          "gapAfterMs": 800
+        },
+        {
+          "text": "They called it Sol.",
+          "gapAfterMs": 400
+        }
+      ],
+      "33": [
+        {
+          "text": "The planet was called Earth.",
+          "gapAfterMs": 400
+        }
+      ],
+      "34": [
+        {
+          "text": "I found their entry in the old archive...",
+          "gapAfterMs": 700
+        },
+        {
+          "text": "Their entire entry is one word.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "Unremarkable.",
+          "gapAfterMs": 400
+        }
+      ],
+      "35": [
+        {
+          "text": "Unremarkable.",
+          "gapAfterMs": 800
+        },
+        {
+          "text": "They sang into the dark, and we filed them under \"unremarkable.\"",
+          "gapAfterMs": 400
+        }
+      ],
+      "36": [
+        {
+          "text": "We weren't the first to search.",
+          "gapAfterMs": 700
+        },
+        {
+          "text": "They were.",
+          "gapAfterMs": 400
+        }
+      ],
+      "37": [
+        {
+          "text": "Sol is ahead.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "No artificial signals.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "No active structures.",
+          "gapAfterMs": 400
+        }
+      ],
+      "38": [
+        {
+          "text": "Earth is still there.",
+          "gapAfterMs": 1000
+        },
+        {
+          "text": "The ones who called...",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "are not.",
+          "gapAfterMs": 400
+        }
+      ],
+      "39": [
+        {
+          "text": "We came a million years too late.",
+          "gapAfterMs": 800
+        },
+        {
+          "text": "Let's answer them anyway.",
+          "gapAfterMs": 400
+        }
+      ],
+      "40": [
+        {
+          "text": "There it is.",
+          "gapAfterMs": 800
+        },
+        {
+          "text": "Let them hear us.",
+          "gapAfterMs": 400
+        }
+      ]
+    },
+    "firstBoopBeats": [
+      {
+        "text": "The walls forgive.",
+        "gapAfterMs": 400
+      },
+      {
+        "text": "Little else out here does.",
+        "gapAfterMs": 400
+      }
+    ],
+    "ending": {
+      "payload": "WE HEARD YOU.",
+      "afterPayload": [
+        {
+          "text": "I'm sorry they never knew.",
+          "gapAfterMs": 1200
+        }
+      ],
+      "onLightsAppear": [
+        {
+          "text": "Oh.",
+          "gapAfterMs": 900
+        }
+      ],
+      "final": [
+        {
+          "text": "We weren't the only ones who answered."
+        }
+      ]
+    },
+    "defaultBeatGapMs": 400
+  },
+  "hazardLab": {
+    "id": "hazardLab",
+    "level": 0,
+    "chapterId": "lab",
+    "chapterName": "Hazard Lab",
+    "difficulty": 0.45,
+    "goalKm": 12000,
+    "types": [
+      "phase",
+      "sweepGate",
+      "repulsor",
+      "driftCurrent",
+      "wormhole"
+    ],
+    "focusType": null,
+    "introduces": null,
+    "sparklesTarget": 0,
+    "smashTarget": 0,
+    "starSlots": 0,
+    "isHazardLab": true,
+    "intro": "Hazard Lab — blooms, sweeps, push nodes, wind, and portals. Practice only — nothing counts toward Journey."
+  },
+  "logbook": {
+    "categories": [
+      {
+        "id": "obstacles",
+        "label": "Obstacles"
+      },
+      {
+        "id": "boosts",
+        "label": "Boosts"
+      },
+      {
+        "id": "levels",
+        "label": "Journey"
+      },
+      {
+        "id": "void",
+        "label": "From the Void"
+      }
+    ],
+    "entries": [
+      {
+        "id": "asteroidCircle",
+        "category": "obstacles",
+        "name": "Round Asteroid",
+        "definition": "A solid ink disc. The most common simple body — circular collision, no edges to thread.",
+        "remark": "Geometry at its most agreeable.",
+        "unlockMode": "observeThenInteract",
+        "icon": "asteroidCircle"
+      },
+      {
+        "id": "asteroidTriangle",
+        "category": "obstacles",
+        "name": "Shard Asteroid",
+        "definition": "A triangular ink shard. Same family as the round rock, sharper silhouette; corners matter at glancing contact.",
+        "remark": "Three points. One opinion.",
+        "unlockMode": "observeThenInteract",
+        "icon": "asteroidTriangle"
+      },
+      {
+        "id": "asteroidSquare",
+        "category": "obstacles",
+        "name": "Block Asteroid",
+        "definition": "A square ink block. Axis-aligned after rotation; slightly smaller fill so its visual weight matches the circle and triangle.",
+        "remark": "Right angles in a wrong place.",
+        "unlockMode": "observeThenInteract",
+        "icon": "asteroidSquare"
+      },
+      {
+        "id": "sideBarrier",
+        "category": "obstacles",
+        "name": "Side Barrier",
+        "definition": "Paired vertical walls that narrow the corridor. Collision geometry is rectangular; clearance is a matter of arc discipline.",
+        "remark": "The edges of the page also bite.",
+        "unlockMode": "observeThenInteract",
+        "icon": "sideBarrier"
+      },
+      {
+        "id": "complex",
+        "category": "obstacles",
+        "name": "Complex Asteroid",
+        "definition": "A primary disc with orbiting debris moons. Hitboxes include satellites. With a shield up, smashing a moon removes only that moon; the core must be hit to clear the cluster. Threading awards style if clearance is tight enough.",
+        "remark": "One rock. Several opinions.",
+        "unlockMode": "observeThenInteract",
+        "icon": "complex"
+      },
+      {
+        "id": "moving",
+        "category": "obstacles",
+        "name": "Moving Asteroid",
+        "definition": "A pentagon that drifts laterally across the flight path. Past position is not future position.",
+        "remark": "Inertia has hobbies.",
+        "unlockMode": "observeThenInteract",
+        "icon": "moving"
+      },
+      {
+        "id": "shooting",
+        "category": "obstacles",
+        "name": "Shooting Asteroid",
+        "definition": "A star-form hazard that emits projectiles. Both body and shot count as lethal contact without a shield. With a shield up, smashing a shot removes only that shot; the star must be hit to clear it.",
+        "remark": "It objects at range. Noted.",
+        "unlockMode": "observeThenInteract",
+        "icon": "shooting"
+      },
+      {
+        "id": "pulsating",
+        "category": "obstacles",
+        "name": "Pulsating Asteroid",
+        "definition": "A disc whose radius expands and resets on a cycle. A gap that fits now may not fit on the next beat.",
+        "remark": "Breathing rock. Illogical, yet consistent.",
+        "unlockMode": "observeThenInteract",
+        "icon": "pulsating"
+      },
+      {
+        "id": "phase",
+        "category": "obstacles",
+        "name": "Square Bloom",
+        "definition": "One ink square that springs into four rotating outer squares (overshoot, then magnetic lock) and breathes back. While expanded, a soft push shoves the ship — squares still kill on contact. Fly the open centre.",
+        "remark": "Geometry that inhales.",
+        "unlockMode": "observeThenInteract",
+        "icon": "phase"
+      },
+      {
+        "id": "sweepGate",
+        "category": "obstacles",
+        "name": "Sweep Gate",
+        "definition": "A slim ink line that spins through the corridor like a wiper blade. No hub, no trail — just the blade. Style swoosh does not score on this set piece.",
+        "remark": "A clock with teeth.",
+        "unlockMode": "observeThenInteract",
+        "icon": "sweepGate"
+      },
+      {
+        "id": "repulsor",
+        "category": "obstacles",
+        "name": "Repulsor Node",
+        "definition": "A solid ink core that pushes the ship away in a wide soft field — the opposite of a black hole. The core is lethal; the push alone counts as contact for the log.",
+        "remark": "Personal space, enforced.",
+        "unlockMode": "observeThenInteract",
+        "icon": "repulsor"
+      },
+      {
+        "id": "driftCurrent",
+        "category": "obstacles",
+        "name": "Drift Current",
+        "definition": "A full-width band of flowing ink shear lines that shove the ship left or right while you are inside. No rails, no solid body — just the current.",
+        "remark": "Weather with opinions.",
+        "unlockMode": "observeThenInteract",
+        "icon": "driftCurrent"
+      },
+      {
+        "id": "wormhole",
+        "category": "obstacles",
+        "name": "Wormhole Gate",
+        "definition": "Paired entry and exit rings. Crossing the entry teleports the ship to the exit and grants a brief deflector.",
+        "remark": "You arrive elsewhere. The rocks do not apologize.",
+        "unlockMode": "observeThenInteract",
+        "icon": "wormhole"
+      },
+      {
+        "id": "blackhole",
+        "category": "obstacles",
+        "name": "Black Hole",
+        "definition": "A gravitational anomaly that pulls the ship toward its core. The body itself remains a solid collision. Pull alone counts as contact for the log.",
+        "remark": "Attraction without consent. Classic.",
+        "unlockMode": "observeThenInteract",
+        "icon": "blackhole"
+      },
+      {
+        "id": "spaceBoop",
+        "category": "obstacles",
+        "name": "Space BOOP",
+        "definition": "Contact with the screen sidewall. The hull compresses against the edge of the playfield; the event is audible and annotated BOOP.",
+        "remark": "The universe has borders. They squeak.",
+        "unlockMode": "instant",
+        "icon": "spaceBoop"
+      },
+      {
+        "id": "shield",
+        "category": "boosts",
+        "name": "Deflector Shield",
+        "definition": "A Signal-Blue energy envelope lasting several seconds. While active, asteroid contact destroys the rock instead of the ship.",
+        "remark": "Temporary immortality. Do not file under permanent.",
+        "unlockMode": "observeThenInteract",
+        "icon": "shield"
+      },
+      {
+        "id": "wallBoost",
+        "category": "boosts",
+        "name": "Wall Boost",
+        "definition": "A rare thin Signal-Blue slab on a random left or right edge, seen only on deep runs (past 12000 KM). Banking into it grants a fresh deflector shield and a strong forward speed boost. Safer than ink side barriers — blue means charge, not crash.",
+        "remark": "The wall finally has manners.",
+        "unlockMode": "observeThenInteract",
+        "icon": "wallBoost"
+      },
+      {
+        "id": "pointsSparkle",
+        "category": "boosts",
+        "name": "Fuel Sparkle",
+        "definition": "A Signal-Blue diamond that refills ship fuel on contact. Miss too many and the engines die. Appears along the corridor once sparkles unlock for the run.",
+        "remark": "Brightness you can burn.",
+        "unlockMode": "observeThenInteract",
+        "icon": "pointsSparkle"
+      },
+      {
+        "id": "styleSwoosh",
+        "category": "boosts",
+        "name": "Style Swoosh",
+        "definition": "Awarded when the ship threads a narrow gap between two obstacles without contact. Grants style points and a brief Signal-Blue flourish.",
+        "remark": "Precision is its own currency.",
+        "unlockMode": "instant",
+        "icon": "styleSwoosh"
+      },
+      {
+        "id": "deflectorSmash",
+        "category": "boosts",
+        "name": "Deflector Smash",
+        "definition": "Shielded impact that pulverizes an obstacle. Debris particles mark the event; points and the destroyed counter advance — including during the level-clear flyout.",
+        "remark": "Manners optional. Physics mandatory.",
+        "unlockMode": "instant",
+        "icon": "deflectorSmash"
+      },
+      {
+        "id": "finishGate",
+        "category": "boosts",
+        "name": "Finish Gate",
+        "definition": "Journey destination: a Signal-Blue energy stream fired between two wall emitters. Crossing it begins the level-clear sequence; the final score locks when the results screen fades in.",
+        "remark": "The stream is not a suggestion.",
+        "unlockMode": "observeThenInteract",
+        "icon": "finishGate"
+      },
+      {
+        "id": "spaceTravelBoost",
+        "category": "boosts",
+        "name": "Space Travel Boost",
+        "definition": "Autopilot acceleration after a cleared Journey level. The ship centres, boosts off-screen, and the world yields the outcome report.",
+        "remark": "Exit velocity: theatrical.",
+        "unlockMode": "instant",
+        "icon": "spaceTravelBoost"
+      },
+      {
+        "id": "signalCall",
+        "category": "levels",
+        "name": "The Call",
+        "definition": "A message came to us out of the dark, torn apart by the distance. Its pieces are still scattered along the way it travelled. NAV will guide you back to find who sent it.",
+        "remark": "Keep moving. Listen to the voice.",
+        "unlockMode": "instant",
+        "icon": "level"
+      },
+      {
+        "id": "level_1",
+        "category": "levels",
+        "name": "Day 1",
+        "definition": "There you are. Tap once. Let me see you turn.",
+        "remark": "Early flight. The voice is teaching.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_2",
+        "category": "levels",
+        "name": "Day 2",
+        "definition": "Rocks ahead. Don't look at them. Look at the room between them.",
+        "remark": "Early flight. The voice is teaching.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_3",
+        "category": "levels",
+        "name": "Day 3",
+        "definition": "That one is moving. Learn its path before you choose yours.",
+        "remark": "Early flight. The voice is teaching.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_4",
+        "category": "levels",
+        "name": "Day 4",
+        "definition": "See the blue light? Take it. It will help us hold the signal together.",
+        "remark": "Early flight. The voice is teaching.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_5",
+        "category": "levels",
+        "name": "Day 5",
+        "definition": "Take the shield. For a few seconds... you can survive what should stop you.",
+        "remark": "Early flight. The voice is teaching.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_6",
+        "category": "levels",
+        "name": "Day 6",
+        "definition": "Good. You can fly. Now let's find whoever called us.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_7",
+        "category": "levels",
+        "name": "Day 7",
+        "definition": "We're retracing the signal's path. The old relay lanes fold the distance for us.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_8",
+        "category": "levels",
+        "name": "Day 8",
+        "definition": "The transmission crossed thousands of systems. Most of it didn't survive.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_9",
+        "category": "levels",
+        "name": "Day 9",
+        "definition": "There's an old relay ahead. Pass close. It may still remember part of the signal.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_10",
+        "category": "levels",
+        "name": "Day 10",
+        "definition": "It does. A sequence of prime numbers. Someone wanted us to know this wasn't noise.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_11",
+        "category": "levels",
+        "name": "Day 11",
+        "definition": "They were trying very hard... not to be missed.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_12",
+        "category": "levels",
+        "name": "Day 12",
+        "definition": "I like them already. Keep going.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_13",
+        "category": "levels",
+        "name": "Day 13",
+        "definition": "Another relay. This fragment describes their star. Yellow. Ordinary. Stable.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_14",
+        "category": "levels",
+        "name": "Day 14",
+        "definition": "Eight planets. They lived on the third.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_15",
+        "category": "levels",
+        "name": "Day 15",
+        "definition": "Mostly ocean. One moon. A thin little atmosphere.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_16",
+        "category": "levels",
+        "name": "Day 16",
+        "definition": "They sent pictures too. The encoding is damaged... but I'm working on it.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_17",
+        "category": "levels",
+        "name": "Day 17",
+        "definition": "There are buildings. Machines. Faces, I think.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_18",
+        "category": "levels",
+        "name": "Day 18",
+        "definition": "And music. They put music in a message to strangers. That may be my favourite thing about them.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_19",
+        "category": "levels",
+        "name": "Day 19",
+        "definition": "They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_20",
+        "category": "levels",
+        "name": "Day 20",
+        "definition": "I've finished dating the transmission. There's a problem.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_21",
+        "category": "levels",
+        "name": "Day 21",
+        "definition": "It was already more than a million years old... when we received it.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_22",
+        "category": "levels",
+        "name": "Day 22",
+        "definition": "Don't stop. Old doesn't mean gone. Not necessarily.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_23",
+        "category": "levels",
+        "name": "Day 23",
+        "definition": "No later transmissions appear anywhere along the route. One message, and then silence.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_24",
+        "category": "levels",
+        "name": "Day 24",
+        "definition": "A civilization loud enough to send this... should have left something else behind.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_25",
+        "category": "levels",
+        "name": "Day 25",
+        "definition": "I'm searching. Keep flying.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_26",
+        "category": "levels",
+        "name": "Day 26",
+        "definition": "Nothing. There's nothing.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_27",
+        "category": "levels",
+        "name": "Day 27",
+        "definition": "I recovered part of their anatomy. Two arms. Two legs. Upright.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_28",
+        "category": "levels",
+        "name": "Day 28",
+        "definition": "Five digits on each hand. Rather useful design, actually.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_29",
+        "category": "levels",
+        "name": "Day 29",
+        "definition": "Another image cleared. Blue sky. Green vegetation. White clouds.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_30",
+        "category": "levels",
+        "name": "Day 30",
+        "definition": "Fascinating. I found their name for the planet. Translation is still resolving.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_31",
+        "category": "levels",
+        "name": "Day 31",
+        "definition": "Their star has a name too. One syllable.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_32",
+        "category": "levels",
+        "name": "Day 32",
+        "definition": "Sol. They called it Sol.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_33",
+        "category": "levels",
+        "name": "Day 33",
+        "definition": "The planet was called Earth.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_34",
+        "category": "levels",
+        "name": "Day 34",
+        "definition": "I found their entry in the old archive... Their entire entry is one word. Unremarkable.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_35",
+        "category": "levels",
+        "name": "Day 35",
+        "definition": "Unremarkable. They sang into the dark, and we filed them under \"unremarkable.\"",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_36",
+        "category": "levels",
+        "name": "Day 36",
+        "definition": "We weren't the first to search. They were.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_37",
+        "category": "levels",
+        "name": "Day 37",
+        "definition": "Sol is ahead. No artificial signals. No active structures.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_38",
+        "category": "levels",
+        "name": "Day 38",
+        "definition": "Earth is still there. The ones who called... are not.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_39",
+        "category": "levels",
+        "name": "Day 39",
+        "definition": "We came a million years too late. Let's answer them anyway.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_40",
+        "category": "levels",
+        "name": "Day 40",
+        "definition": "There it is. Let them hear us.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      }
+    ],
+    "observedPending": [
+      "Sensors registered the phenomenon. Interaction required before a full reading.",
+      "Visual contact confirmed. Understanding remains provisional.",
+      "Catalogued by outline only. Direct contact will complete the entry.",
+      "Observed. The definition is incomplete until we touch it — carefully."
+    ],
+    "empty": "The pages are blank. Explore space. Then explore the space log.",
+    "emptyCategory": {
+      "obstacles": "No contacts logged. The rocks are patient.",
+      "boosts": "No boosts recorded. Opportunity is still theoretical.",
+      "levels": "No flight reports filed. Begin a Journey.",
+      "void": "No transmissions. Sensors remain optimistic."
+    }
+  }
 }

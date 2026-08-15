@@ -1,5 +1,5 @@
 // HazardCollision.swift
-// Changes: Slice D — advanced black-hole Y-pull after 1000 KM.
+// Changes: Slice E — BH Y-pull follows the active run profile.
 
 import Foundation
 import CoreGraphics
@@ -110,7 +110,7 @@ enum HazardCollision {
                     strength: 1.1,
                     tick: tick,
                     inward: true,
-                    pullY: run.scoreKm > 1000
+                    pullY: run.profile.advancedBlackHoles(scoreKm: run.scoreKm)
                 )
             case .phase:
                 let open = displayOpen(o)

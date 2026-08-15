@@ -5,11 +5,13 @@
 >
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
-> **retired before launch**. Android remains Capacitor. Slice D wave 1 is in
-> `ios-native/`: Slice D Open Space product on **Flicker** — tear hull, Arc +
-> zigzag, leftover spawn rules, BH Y-pull, milestones, local PB, night paper.
-> C.5 combat (JS hazard hitboxes, silhouettes, shields, swoosh) remains.
-> Spec: [`shared/game-constants.json`](shared/game-constants.json) v2. See
+> **retired before launch**. Android remains Capacitor. Slice E is in
+> `ios-native/`: Open Space on **Flicker** plus **Journey** (40 levels / 113 stars),
+> **Hazard Lab**, Signal lore, logbook, intro beats, finish flyout. Voice MP3s
+> play when bundled under `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`,
+> `first-boop.mp3`, `swoosh-voice.mp3`); captions still run if the files are
+> missing. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
+> + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
 > `CFBundleVersion` ≥ 3 on each TestFlight upload.

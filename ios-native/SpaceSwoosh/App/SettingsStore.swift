@@ -1,5 +1,5 @@
 // SettingsStore.swift
-// Changes: Slice D — persist flight style, theme, mute (Android localStorage keys).
+// Changes: Slice E — Voice channel (soundVoiceEnabled) next to mute.
 
 import Foundation
 import Combine
@@ -15,13 +15,20 @@ final class SettingsStore: ObservableObject {
     @Published var flightStyle: FlightStyle
     @Published var isDark: Bool
     @Published var muted: Bool
+    @Published var voiceEnabled: Bool
 
     private init() {
         let style = UserDefaults.standard.string(forKey: "spaceswoosh.flightStyle")
         flightStyle = style == FlightStyle.arc.rawValue ? .arc : .zigzag
         isDark = UserDefaults.standard.string(forKey: "ssTheme") == "dark"
         muted = UserDefaults.standard.bool(forKey: "soundMuted")
+        if UserDefaults.standard.object(forKey: "soundVoiceEnabled") == nil {
+            voiceEnabled = true
+        } else {
+            voiceEnabled = UserDefaults.standard.bool(forKey: "soundVoiceEnabled")
+        }
         SfxPlayer.shared.muted = muted
+        VoicePlayer.shared.enabled = voiceEnabled && !muted
     }
 
     func setFlightStyle(_ style: FlightStyle) {
@@ -37,7 +44,14 @@ final class SettingsStore: ObservableObject {
     func toggleMute() {
         muted.toggle()
         SfxPlayer.shared.muted = muted
+        VoicePlayer.shared.enabled = voiceEnabled && !muted
         UserDefaults.standard.set(muted, forKey: "soundMuted")
+    }
+
+    func toggleVoice() {
+        voiceEnabled.toggle()
+        VoicePlayer.shared.enabled = voiceEnabled && !muted
+        UserDefaults.standard.set(voiceEnabled, forKey: "soundVoiceEnabled")
     }
 }
 

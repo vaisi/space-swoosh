@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Slice D — overlap spawn, cluster-by-KM, milestones, Arc style.
+// Changes: Slice E — RunProfile spawn/goals, Journey/Lab cinema, logbook marks.
 
 import Foundation
 import CoreGraphics
@@ -51,6 +51,29 @@ struct RunState {
     var milestoneOpacity: CGFloat = 0
     var milestoneT: CGFloat = 0
     var flightStyle: FlightStyle = .zigzag
+    var profile: RunProfile = .openSpace()
+    var cinema: CinemaPhase = .play
+    var cinemaT: CGFloat = 0
+    var introBeatIndex: Int = 0
+    var introVoiceDone: Bool = true
+    var introVoiceStarted: Bool = false
+    var introGapT: CGFloat = 0
+    var captionText: String = ""
+    var captionOpacity: CGFloat = 0
+    var captionT: CGFloat = 0
+    var captionHold: CGFloat = 0
+    var captionGap: CGFloat = 0
+    var pendingBeats: [IntroBeat] = []
+    var pauseSpawning: Bool = false
+    var completed: Bool = false
+    var finishLineY: CGFloat = 0
+    var exitLift: CGFloat = 0
+    var logbookMarks: [LogbookMark] = []
+    var sfxFirstBoop: Bool = false
+    var sfxSwooshVoice: Bool = false
+    var hudLive: Bool = true
+    var inputLocked: Bool = false
+    var firstBoopDone: Bool = false
 
     var shieldActive: Bool { shieldTimer > 0 }
     var speedBoostActive: Bool { speedBoostTimer > 0 }
@@ -75,13 +98,20 @@ enum CombatSimulator {
     ) {
         if run.isOver {
             run.endingT += dt
-            run.worldAlpha = max(0, 1 - (run.endingT / 2.0) * 1.2)
+            if !run.completed {
+                run.worldAlpha = max(0, 1 - (run.endingT / 2.0) * 1.2)
+            }
             FloatPopupBuffer.tick(&run.popups, dt: dt)
             BlastBuffer.tick(&run.blast, dt: dt)
             return
         }
 
-        if command != .none {
+        if CinemaSimulator.tick(world: &world, run: &run, dt: dt, command: command) {
+            return
+        }
+
+        let steer = run.inputLocked ? SteerCommand.none : command
+        if steer != .none {
             run.lastFlipAt = run.scoreKm
             run.sfxTurn = true
         }
@@ -110,8 +140,8 @@ enum CombatSimulator {
             ship.step(
                 world: &world,
                 dt: dt,
-                command: command,
-                speedScale: dying * boost,
+                command: steer,
+                speedScale: dying * boost * run.profile.speedMultiplier,
                 style: run.flightStyle
             )
             if world.wallBoopSide != 0 {
@@ -144,6 +174,7 @@ enum CombatSimulator {
             run.fuelDyingT += dt
             if run.fuelDyingT >= GameConfig.Fuel.dyingDurationMs / 1000 {
                 run.isOver = true
+                run.completed = false
                 run.failReason = .fuel
                 return
             }
@@ -158,6 +189,9 @@ enum CombatSimulator {
         detectSwoosh(world: world, run: &run)
         HazardCollision.tryTeleport(world: &world, run: &run)
         collide(world: &world, run: &run)
+        if !run.profile.isEndless, run.scoreKm >= run.profile.goalKm, !run.isOver {
+            CinemaSimulator.beginClear(world: world, run: &run)
+        }
         tickMilestones(run: &run, dt: dt)
         FloatPopupBuffer.tick(&run.popups, dt: dt)
     }
@@ -169,23 +203,28 @@ enum CombatSimulator {
         let y = world.ship.y - radius * 1.75
         FloatPopupBuffer.spawn(&run.popups, kind: .boop, x: x, y: y, vy: -1.6)
         run.sfxBoop = true
+        if !run.firstBoopDone {
+            run.firstBoopDone = true
+            run.sfxFirstBoop = true
+            run.logbookMarks.append(.interact("spaceBoop"))
+        }
     }
 
     private static func spawnBelt(world: inout WorldState, run: inout RunState) {
+        if run.pauseSpawning { return }
         if run.nextSpawnY == 0 {
             run.nextSpawnY = world.ship.y + world.height * 0.9
         }
-        let gapMin = world.height * 0.25
-        let gapMax = world.height * 0.4
+        let gap = run.profile.gapRange(height: world.height)
         var guardCount = 0
         while run.nextSpawnY < world.ship.y + world.height && guardCount < 4 {
             guardCount += 1
-            run.nextSpawnY += gapMin + rand01(&run.rng) * (gapMax - gapMin)
+            run.nextSpawnY += gap.min + rand01(&run.rng) * (gap.max - gap.min)
             spawnRow(world: &world, run: &run, atY: run.nextSpawnY)
         }
 
         let ahead = world.ship.y + world.height
-        if run.scoreKm >= GameConfig.Profile.collectiblesFromScore {
+        if run.scoreKm >= run.profile.collectiblesFromKm {
             if !run.sparklesLive {
                 run.sparklesLive = true
                 run.sparkleCooldown = GameConfig.Profile.sparkleFirstWait
@@ -197,7 +236,7 @@ enum CombatSimulator {
                     + rand01(&run.rng) * GameConfig.Profile.sparkleSpan
             }
         }
-        if run.scoreKm >= GameConfig.Profile.shieldsFromScore {
+        if run.scoreKm >= run.profile.shieldsFromKm {
             if !run.shieldsLive {
                 run.shieldsLive = true
                 run.shieldCooldown = 0
@@ -208,7 +247,7 @@ enum CombatSimulator {
                 run.shieldCooldown = GameConfig.Profile.shieldInterval
             }
         }
-        if run.scoreKm >= GameConfig.Profile.wallBoostsFromScore {
+        if run.scoreKm >= run.profile.wallBoostsFromKm {
             if !run.wallBoostsLive {
                 run.wallBoostsLive = true
                 run.wallBoostCooldown = 0
@@ -222,17 +261,20 @@ enum CombatSimulator {
     }
 
     private static func spawnRow(world: inout WorldState, run: inout RunState, atY: CGFloat) {
-        let types = unlockedTypes(scoreKm: run.scoreKm)
+        if run.scoreKm < run.profile.obstaclesFromKm { return }
+        let types = run.profile.unlockedTypes(scoreKm: run.scoreKm)
         guard !types.isEmpty else { return }
+        let live = world.obstacles.filter(\.active).count
+        if live >= run.profile.maxOnScreen { return }
         var spawnCount = 1
-        if GameConfig.Profile.maxRowSpawns >= 2, rand01(&run.rng) >= 0.7 { spawnCount = 2 }
-        if GameConfig.Profile.maxRowSpawns >= 3, rand01(&run.rng) >= 0.9 { spawnCount = 3 }
-        let dens = density(scoreKm: run.scoreKm)
+        if run.profile.maxRowSpawns >= 2, rand01(&run.rng) >= 0.7 { spawnCount = 2 }
+        if run.profile.maxRowSpawns >= 3, rand01(&run.rng) >= 0.9 { spawnCount = 3 }
+        let dens = run.profile.density(scoreKm: run.scoreKm)
         var lastType: String?
         for i in 0..<spawnCount {
             var type = pickType(types, run: &run)
-            if type != "simple", type == lastType {
-                type = "simple"
+            if !run.profile.allowAdjacentSetPieces, type != "simple", type == lastType {
+                type = types.contains("simple") ? "simple" : type
             }
             if type == "simple" {
                 spawnSimpleCluster(world: &world, run: &run, atY: atY, dens: dens)
@@ -253,12 +295,19 @@ enum CombatSimulator {
     }
 
     private static func pickType(_ types: [String], run: inout RunState) -> String {
-        if rand01(&run.rng) < GameConfig.Profile.simpleChance, types.contains("simple") {
+        if rand01(&run.rng) < run.profile.simpleChance, types.contains("simple") {
             return "simple"
         }
-        let idx = Int(run.rng % UInt64(types.count))
+        let others = types.filter { $0 != "simple" }
+        if others.isEmpty { return types.contains("simple") ? "simple" : types[0] }
+        if let focus = run.profile.liveFocusType(&run.rng),
+           others.contains(focus),
+           rand01(&run.rng) < run.profile.focusChance {
+            return focus
+        }
+        let idx = Int(run.rng % UInt64(others.count))
         _ = rand01(&run.rng)
-        return types[idx]
+        return others[idx]
     }
 
     private static func spawnSimpleCluster(
@@ -267,9 +316,7 @@ enum CombatSimulator {
         atY: CGFloat,
         dens: CGFloat
     ) {
-        let base = 2 + Int(run.scoreKm / 8000)
-        let extra = Int(rand01(&run.rng) * dens)
-        let n = min(GameConfig.Profile.maxClusterCount, max(1, base + extra))
+        let n = run.profile.clusterCount(scoreKm: run.scoreKm, dens: dens, roll: rand01(&run.rng))
         for k in 0..<n {
             let size = world.baseUnit * (0.9 + rand01(&run.rng) * 0.5)
             let minX = world.width * (0.12 + CGFloat(k) * 0.16)
@@ -324,6 +371,27 @@ enum CombatSimulator {
     }
 
     private static func tickMilestones(run: inout RunState, dt: CGFloat) {
+        guard run.profile.runsMilestones else {
+            if run.milestoneText.isEmpty {
+                run.milestoneOpacity = 0
+            } else {
+                run.milestoneT += dt
+                let fadeIn: CGFloat = 0.5
+                let hold: CGFloat = 2.0
+                let fadeOut: CGFloat = 0.5
+                if run.milestoneT < fadeIn {
+                    run.milestoneOpacity = run.milestoneT / fadeIn
+                } else if run.milestoneT < fadeIn + hold {
+                    run.milestoneOpacity = 1
+                } else if run.milestoneT < fadeIn + hold + fadeOut {
+                    run.milestoneOpacity = 1 - (run.milestoneT - fadeIn - hold) / fadeOut
+                } else {
+                    run.milestoneText = ""
+                    run.milestoneOpacity = 0
+                }
+            }
+            return
+        }
         if !run.taughtSteer, run.scoreKm >= GameConfig.Milestones.teachKm, run.lastFlipAt >= 0 {
             run.taughtSteer = true
             showMilestone(
@@ -398,6 +466,9 @@ enum CombatSimulator {
         o.spin = (rand01(&run.rng) - 0.5) * 0.05 * 60
         o.lethal = true
         world.obstacles[i] = o
+        if let id = LogbookCatalog.simpleId(for: kind) {
+            run.logbookMarks.append(.observe(id))
+        }
     }
 
     private static func placeHazard(
@@ -410,6 +481,9 @@ enum CombatSimulator {
         let u = world.baseUnit
         let setSize = u * (GameConfig.Obstacles.minSizeUnits
             + (GameConfig.Obstacles.maxSizeUnits - GameConfig.Obstacles.minSizeUnits) * rand01(&run.rng))
+        if let id = LogbookCatalog.obstacleId(for: type) {
+            run.logbookMarks.append(.observe(id))
+        }
         switch type {
         case "sideBarrier":
             spawnSideBarriers(world: &world, y: y)
@@ -641,9 +715,10 @@ enum CombatSimulator {
             x = margin + rand01(&run.rng) * (world.width - margin * 2)
         }
         world.pickups[i] = PickupState(active: true, kind: kind, x: x, y: y, phase: rand01(&run.rng) * .pi * 2)
+        run.logbookMarks.append(.observe(LogbookCatalog.pickupId(for: kind)))
     }
 
-    private static func moveHazards(world: inout WorldState, run: inout RunState, dt: CGFloat) {
+    static func moveHazards(world: inout WorldState, run: inout RunState, dt: CGFloat) {
         for i in 0..<world.obstacles.count {
             guard world.obstacles[i].active else { continue }
             world.obstacles[i].rotation += world.obstacles[i].spin * dt
@@ -771,7 +846,7 @@ enum CombatSimulator {
         }
     }
 
-    private static func collectPickups(world: inout WorldState, run: inout RunState) {
+    static func collectPickups(world: inout WorldState, run: inout RunState) {
         let shipR = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let u = world.baseUnit
         for i in 0..<world.pickups.count {
@@ -793,6 +868,7 @@ enum CombatSimulator {
             }
             guard hit else { continue }
             world.pickups[i].active = false
+            run.logbookMarks.append(.interact(LogbookCatalog.pickupId(for: p.kind)))
             switch p.kind {
             case .sparkle:
                 guard !run.fuelDying else { break }
@@ -835,6 +911,8 @@ enum CombatSimulator {
         if left != nil, right != nil {
             run.points += GameConfig.Points.perSwoosh
             run.swooshCooldown = GameConfig.StyleSwoosh.cooldownMs / 1000
+            run.sfxSwooshVoice = true
+            run.logbookMarks.append(.interact("styleSwoosh"))
             FloatPopupBuffer.spawn(
                 &run.popups,
                 kind: .swoosh,
@@ -845,7 +923,7 @@ enum CombatSimulator {
         }
     }
 
-    private static func collide(world: inout WorldState, run: inout RunState) {
+    static func collide(world: inout WorldState, run: inout RunState) {
         if run.teleportT > 0 || run.invulnT > 0 { return }
         if HazardCollision.inWormholeSafeZone(world: world, shipX: world.ship.x, shipY: world.ship.y) {
             return
@@ -866,6 +944,7 @@ enum CombatSimulator {
                     run.points += GameConfig.Points.perAsteroid
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
+                    markSmash(run: &run, obstacle: world.obstacles[i])
                     FloatPopupBuffer.spawn(
                         &run.popups,
                         kind: .smash,
@@ -880,6 +959,7 @@ enum CombatSimulator {
                     run.points += GameConfig.Points.perAsteroid
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
+                    markSmash(run: &run, obstacle: world.obstacles[i])
                     FloatPopupBuffer.spawn(&run.popups, kind: .smash, x: ox, y: oy, vy: 2)
                 }
             } else if ShipHitbox.hits(
@@ -887,8 +967,13 @@ enum CombatSimulator {
                 ship: world.ship,
                 radius: shipR,
                 shield: false
-            ), !run.fuelDying {
+                ), !run.fuelDying {
+                markInteract(run: &run, obstacle: world.obstacles[i])
+                if run.cinema == .clearHold || run.cinema == .clearBoost || run.cinema == .clearFade {
+                    continue
+                }
                 run.isOver = true
+                run.completed = false
                 run.failReason = .crash
                 run.hullHidden = true
                 run.sfxCrash = true
@@ -900,6 +985,36 @@ enum CombatSimulator {
                 )
                 return
             }
+        }
+    }
+
+    private static func markSmash(run: inout RunState, obstacle: ObstacleState) {
+        markInteract(run: &run, obstacle: obstacle)
+        run.logbookMarks.append(.interact("deflectorSmash"))
+    }
+
+    private static func markInteract(run: inout RunState, obstacle: ObstacleState) {
+        if let id = LogbookCatalog.simpleId(for: obstacle.kind) {
+            run.logbookMarks.append(.interact(id))
+            return
+        }
+        let type: String?
+        switch obstacle.kind {
+        case .slab: type = "sideBarrier"
+        case .complex: type = "complex"
+        case .pentagon: type = "moving"
+        case .star, .projectile: type = "shooting"
+        case .pulsating: type = "pulsating"
+        case .phase: type = "phase"
+        case .sweep: type = "sweepGate"
+        case .repulsor: type = "repulsor"
+        case .drift: type = "driftCurrent"
+        case .wormhole: type = "wormhole"
+        case .blackhole: type = "blackhole"
+        default: type = nil
+        }
+        if let type, let id = LogbookCatalog.obstacleId(for: type) {
+            run.logbookMarks.append(.interact(id))
         }
     }
 

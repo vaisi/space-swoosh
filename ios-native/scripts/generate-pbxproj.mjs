@@ -1,6 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: Floor CURRENT_PROJECT_VERSION at 3 for C.5 TestFlight;
-// keep VERSIONING_SYSTEM = apple-generic so CI can stamp later builds.
+// Changes: Slice E — also pack Voice/*.mp3 if present; floor version still 3.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -26,6 +25,7 @@ function walk(dir, out = []) {
 }
 
 const swiftFiles = walk(appRoot).filter((f) => f.endsWith('.swift'));
+const voiceFiles = walk(appRoot).filter((f) => f.endsWith('.mp3') || f.endsWith('.m4a'));
 const infoPlist = path.join(appRoot, 'Info.plist');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');
 
@@ -63,6 +63,9 @@ function ensureFile(filePath, hint) {
 }
 
 for (const f of swiftFiles) ensureFile(f, 'sourcecode.swift');
+for (const f of voiceFiles) {
+  ensureFile(f, f.endsWith('.m4a') ? 'file' : 'audio.mp3');
+}
 ensureFile(infoPlist, 'text.plist.xml');
 ensureFile(privacyPlist, 'text.plist.xml');
 
@@ -84,7 +87,7 @@ function groupFor(dirRel) {
 }
 
 groupFor('SpaceSwoosh');
-for (const f of [...swiftFiles, infoPlist, privacyPlist]) {
+for (const f of [...swiftFiles, ...voiceFiles, infoPlist, privacyPlist]) {
   const rel = path.relative(root, f).replace(/\\/g, '/');
   const dir = path.posix.dirname(rel);
   const parts = dir.split('/');
@@ -123,6 +126,10 @@ for (const f of swiftFiles) {
 pbx += `\t\t${assets.build} /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ${assets.ref} /* Assets.xcassets */; };\n`;
 const privacy = ensureFile(path.join(appRoot, 'PrivacyInfo.xcprivacy'));
 pbx += `\t\t${privacy.build} /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ${privacy.ref} /* PrivacyInfo.xcprivacy */; };\n`;
+for (const f of voiceFiles) {
+  const meta = ensureFile(f);
+  pbx += `\t\t${meta.build} /* ${meta.name} in Resources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
+}
 
 pbx += `/* End PBXBuildFile section */
 
@@ -234,7 +241,7 @@ pbx += `/* End PBXGroup section */
 			files = (
 				${assets.build} /* Assets.xcassets in Resources */,
 				${privacy.build} /* PrivacyInfo.xcprivacy in Resources */,
-			);
+${voiceFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}\t\t\t);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */

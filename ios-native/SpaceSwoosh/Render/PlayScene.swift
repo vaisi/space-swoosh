@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Slice D — Flicker hull/jelly/trail, popups, blast, dying/crash present.
+// Changes: Slice E — run profile, intro voice, finish-gate jets, exit lift.
 
 import SpriteKit
 import QuartzCore
@@ -22,14 +22,19 @@ final class PlayScene: SKScene {
     private var blastField: BlastField?
     private var running = false
     private var lastFrameTime: TimeInterval?
+    private var leftGate: SKSpriteNode?
+    private var rightGate: SKSpriteNode?
+    private var launch: PlayLaunch = .openSpace
 
-    func startRun() {
+    func startRun(_ launch: PlayLaunch = .openSpace) {
+        self.launch = launch
         removeAllChildren()
         clock.reset()
         input.reset()
         lastFrameTime = nil
         run = RunState()
         session?.reset()
+        VoicePlayer.shared.reset()
         SfxPlayer.shared.start()
         HapticsService.prepare()
 
@@ -38,6 +43,10 @@ final class PlayScene: SKScene {
         currentWorld = world
 
         run.flightStyle = SettingsStore.shared.flightStyle
+        run.profile = launch.profile
+        if launch.isLevelRun {
+            CinemaSimulator.beginLevelRun(run: &run)
+        }
         let bake = BakePipeline.current()
         backgroundColor = BrandColors.UI.paper
 
@@ -80,6 +89,19 @@ final class PlayScene: SKScene {
         addChild(hull)
         hullNode = hull
 
+        let left = SKSpriteNode(texture: bake.glowSignal)
+        left.blendMode = .add
+        left.isHidden = true
+        left.zPosition = 8
+        addChild(left)
+        leftGate = left
+        let right = SKSpriteNode(texture: bake.glowSignal)
+        right.blendMode = .add
+        right.isHidden = true
+        right.zPosition = 8
+        addChild(right)
+        rightGate = right
+
         isPaused = false
         running = true
     }
@@ -87,6 +109,7 @@ final class PlayScene: SKScene {
     func stopRun() {
         running = false
         isPaused = true
+        VoicePlayer.shared.stop()
     }
 
     override func didMove(to view: SKView) {
@@ -108,14 +131,14 @@ final class PlayScene: SKScene {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first, !run.isOver else { return }
+        guard let touch = touches.first, !run.isOver, !run.inputLocked else { return }
         let loc = touch.location(in: self)
         input.handleTap(at: loc, sceneWidth: size.width, style: run.flightStyle)
         input.handleDragBegin(at: loc)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first, !run.isOver else { return }
+        guard let touch = touches.first, !run.isOver, !run.inputLocked else { return }
         input.handleDrag(at: touch.location(in: self), style: run.flightStyle)
     }
 
@@ -146,6 +169,9 @@ final class PlayScene: SKScene {
         currentWorld = world
         consumeSfx()
         session?.apply(run: run)
+        if !run.logbookMarks.isEmpty {
+            run.logbookMarks.removeAll()
+        }
 
         let ship = WorldInterpolator.ship(previousWorld?.ship ?? world.ship, world.ship, alpha: result.alpha)
         present(ship: ship, world: world)
@@ -178,11 +204,30 @@ final class PlayScene: SKScene {
             run.sfxTurn = false
             SfxPlayer.shared.playTurn()
         }
+        if run.sfxFirstBoop {
+            run.sfxFirstBoop = false
+            VoicePlayer.shared.playFirstBoop()
+            CinemaSimulator.enqueueBeats(GeneratedJourneyData.firstBoopBeats, run: &run)
+        }
+        if run.sfxSwooshVoice {
+            run.sfxSwooshVoice = false
+            VoicePlayer.shared.playSwoosh()
+        }
+        if run.cinema == .introTitle, !run.introVoiceStarted {
+            run.introVoiceStarted = true
+            if run.profile.mode == .journey {
+                VoicePlayer.shared.playLevel(run.profile.level) { [weak self] in
+                    self?.run.introVoiceDone = true
+                }
+            } else {
+                run.introVoiceDone = true
+            }
+        }
     }
 
     private func present(ship: ShipState, world: WorldState) {
         let cameraY = ship.y
-        let screenY = size.height * 0.22
+        let screenY = size.height * 0.22 + run.exitLift
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let nowMs = CGFloat(CACurrentMediaTime() * 1000)
         let breath = 0.9 + 0.06 * sin(nowMs * 0.0056) + 0.04 * sin(nowMs * 0.0088)
@@ -241,5 +286,30 @@ final class PlayScene: SKScene {
             cameraY: cameraY,
             sceneHeight: size.height
         )
+        presentGate(shipY: ship.y, cameraY: cameraY, screenY: screenY, world: world)
+    }
+
+    private func presentGate(shipY: CGFloat, cameraY: CGFloat, screenY: CGFloat, world: WorldState) {
+        guard !run.profile.isEndless else {
+            leftGate?.isHidden = true
+            rightGate?.isHidden = true
+            return
+        }
+        let remaining = max(0, run.profile.goalKm - run.scoreKm)
+        let scale = GameConfig.kmReferenceHeight / max(world.height, 1)
+        let remainingWorld = remaining / max(scale * GameConfig.kmPerPixel, 0.0001)
+        let worldY = run.finishLineY > 0 ? run.finishLineY : shipY + remainingWorld
+        let y = screenY + (worldY - cameraY)
+        let visible = remaining < 900 || run.finishLineY > 0
+        let w = world.baseUnit * 2.4
+        let h = world.baseUnit * 14
+        leftGate?.isHidden = !visible
+        rightGate?.isHidden = !visible
+        leftGate?.position = CGPoint(x: w * 0.6, y: y)
+        rightGate?.position = CGPoint(x: world.width - w * 0.6, y: y)
+        leftGate?.size = CGSize(width: w, height: h)
+        rightGate?.size = CGSize(width: w, height: h)
+        leftGate?.alpha = run.worldAlpha * 0.85
+        rightGate?.alpha = run.worldAlpha * 0.85
     }
 }

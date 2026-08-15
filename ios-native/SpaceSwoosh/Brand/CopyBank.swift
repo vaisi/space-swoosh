@@ -1,5 +1,5 @@
 // CopyBank.swift
-// Changes: Slice D — Android CopyBank pools; pick once per enter, skip last line.
+// Changes: Slice E — Journey fail / partial / flawless / complete pools.
 
 import Foundation
 
@@ -10,6 +10,10 @@ enum CopyPool: String {
     case victory
     case modeJourney
     case modeOpenWorld
+    case fail
+    case clearPartial
+    case clearFlawless
+    case journeyComplete
 }
 
 enum CopyBank {
@@ -93,6 +97,54 @@ enum CopyBank {
         "The void has no exit. Your score does.",
     ]
 
+    static let fail: [String] = [
+        "Short of the mark. The goal noticed.",
+        "Almost. Almost is still debris.",
+        "The finish line remains unimpressed.",
+        "Insufficient distance. Excess optimism.",
+        "Try again. The rocks are waiting.",
+        "Trajectory incomplete. Ego intact. For now.",
+        "You stopped. The level did not care.",
+        "Close enough is a myth. Fascinating.",
+        "The goal was ahead. You were not.",
+        "Failure: educational. Also final.",
+    ]
+
+    static let clearPartial: [String] = [
+        "Adequate. The remaining stars disagree.",
+        "Cleared. Perfection postponed.",
+        "The way ahead is open. The stars are picky.",
+        "Forward. The unfinished business remains.",
+        "Level secured. Ambition: pending.",
+        "You lived. The stars want more.",
+        "Progress noted. Brilliance deferred.",
+        "Clearance granted. Applause withheld.",
+        "Onward. Two truths can wait.",
+        "The chapter continues. So do the gaps.",
+    ]
+
+    static let clearFlawless: [String] = [
+        "Flawless. Fascinating.",
+        "Three stars. Zero excuses.",
+        "Perfect. Annoyingly so.",
+        "Three stars. The rocks remember.",
+        "Smashed, scored, finished. Excellent.",
+        "All stars. No notes.",
+        "Logic and luck, briefly allied.",
+        "Immaculate. The void takes notes.",
+        "Three of three. Probability sulks.",
+        "Flawless ascent. Continue.",
+    ]
+
+    static let journeyComplete: [String] = [
+        "You are away. Live long and prosper.",
+        "Exosphere cleared. Nothing holds you now.",
+        "Journey complete. The void applauds quietly.",
+        "Forty levels. Zero patience for rocks.",
+        "Away. As promised.",
+        "The atmosphere is behind you. Stay that way.",
+    ]
+
     static func lines(for pool: CopyPool) -> [String] {
         switch pool {
         case .menu: return menu
@@ -101,7 +153,19 @@ enum CopyBank {
         case .victory: return victory
         case .modeJourney: return modeJourney
         case .modeOpenWorld: return modeOpenWorld
+        case .fail: return fail
+        case .clearPartial: return clearPartial
+        case .clearFlawless: return clearFlawless
+        case .journeyComplete: return journeyComplete
         }
+    }
+
+    static func journeyFlavor(completed: Bool, level: Int, stars: [Bool], starSlots: Int) -> String {
+        if !completed { return pick(.fail) }
+        if level >= JourneyConfig.totalLevels { return pick(.journeyComplete) }
+        let slots = max(1, starSlots)
+        if stars.prefix(slots).allSatisfy({ $0 }) { return pick(.clearFlawless) }
+        return pick(.clearPartial)
     }
 
     static func pick(_ pool: CopyPool) -> String {

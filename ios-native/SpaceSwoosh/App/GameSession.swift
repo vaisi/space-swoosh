@@ -1,9 +1,23 @@
 // GameSession.swift
-// Changes: Slice D — milestones, points HUD, local Open Space PB per style.
+// Changes: Slice E — Journey/Lab captions, stars, outcome flavor, logbook flush.
 
 import Foundation
 import Combine
 import CoreGraphics
+
+struct LevelOutcome: Equatable {
+    var launch: PlayLaunch
+    var completed: Bool
+    var title: String
+    var flavor: String
+    var stars: [Bool]
+    var newStars: [Bool]
+    var starSlots: Int
+    var labels: [String]
+    var values: [String]
+    var goalKm: Int
+    var endingNote: String
+}
 
 final class GameSession: ObservableObject {
     @Published var scoreKm: Int = 0
@@ -23,13 +37,20 @@ final class GameSession: ObservableObject {
     @Published var milestoneOpacity: CGFloat = 0
     @Published var personalBest: Int = 0
     @Published var isNewBest: Bool = false
+    @Published var captionText: String = ""
+    @Published var captionOpacity: CGFloat = 0
+    @Published var hudLive: Bool = true
+    @Published var goalKm: Int = 0
+    @Published var launch: PlayLaunch = .openSpace
+    @Published var outcome: LevelOutcome?
+    @Published var logbookToast: String = ""
 
     private var flavorPicked = false
 
     func apply(run: RunState) {
         scoreKm = Int(run.scoreKm)
         fuel = run.fuel
-        fuelLive = run.sparklesLive
+        fuelLive = run.sparklesLive && run.hudLive
         fuelLow = run.sparklesLive && run.fuel > 0 && run.fuel <= GameConfig.Fuel.lowThreshold
         shieldActive = run.shieldActive
         destroyed = run.obstaclesDestroyed
@@ -37,21 +58,41 @@ final class GameSession: ObservableObject {
         points = run.points
         isOver = run.isOver
         worldAlpha = run.worldAlpha
-        overlayAlpha = run.isOver ? min(1, run.endingT / 0.45) : 0
+        overlayAlpha = run.isOver ? (run.completed ? 1 : min(1, run.endingT / 0.45)) : 0
         milestoneText = run.milestoneText
         milestoneOpacity = run.milestoneOpacity
+        captionText = run.captionText
+        captionOpacity = run.captionOpacity
+        hudLive = run.hudLive
+        goalKm = run.profile.isEndless ? 0 : Int(run.profile.goalKm)
+        launch = playLaunch(from: run.profile)
+
+        let logActive = run.profile.mode == .journey || run.profile.mode == .hazardLab
+        if !run.logbookMarks.isEmpty {
+            if LogbookStore.shared.apply(run.logbookMarks, active: logActive) {
+                logbookToast = LogbookStore.shared.toast
+            }
+        }
+        if !LogbookStore.shared.toast.isEmpty {
+            logbookToast = LogbookStore.shared.toast
+        }
+
         if run.isOver, !flavorPicked {
             flavorPicked = true
-            failTitle = "MISSION FAILED"
-            switch run.failReason {
-            case .fuel:
-                failDetail = CopyBank.pick(.fuelOut)
-            case .crash, .none:
-                failDetail = CopyBank.pick(.crash)
+            if run.profile.mode == .openSpace {
+                failTitle = "MISSION FAILED"
+                switch run.failReason {
+                case .fuel:
+                    failDetail = CopyBank.pick(.fuelOut)
+                case .crash, .none:
+                    failDetail = CopyBank.pick(.crash)
+                }
+                let recorded = OpenWorldProgress.record(score: Int(run.scoreKm), style: run.flightStyle)
+                personalBest = recorded.best
+                isNewBest = recorded.isNew
+            } else {
+                outcome = makeOutcome(run: run)
             }
-            let recorded = OpenWorldProgress.record(score: Int(run.scoreKm), style: run.flightStyle)
-            personalBest = recorded.best
-            isNewBest = recorded.isNew
         }
     }
 
@@ -73,6 +114,103 @@ final class GameSession: ObservableObject {
         milestoneOpacity = 0
         personalBest = 0
         isNewBest = false
+        captionText = ""
+        captionOpacity = 0
+        hudLive = true
+        goalKm = 0
+        outcome = nil
+        logbookToast = ""
         flavorPicked = false
+        LogbookStore.shared.clearToast()
+    }
+
+    private func playLaunch(from profile: RunProfile) -> PlayLaunch {
+        switch profile.mode {
+        case .openSpace: return .openSpace
+        case .journey: return .journey(profile.level)
+        case .hazardLab: return .hazardLab
+        }
+    }
+
+    private func makeOutcome(run: RunState) -> LevelOutcome {
+        let lab = run.profile.mode == .hazardLab
+        let spec = run.profile.descriptor
+        let completed = run.completed
+        var stars = [false, false, false]
+        var newStars = [false, false, false]
+        var slots = run.profile.starSlots
+        var labels: [String] = []
+        var values: [String] = []
+        var title: String
+        var flavor: String
+        var endingNote = ""
+
+        if lab {
+            title = completed ? "LAB CLEAR" : "LAB FAILED"
+            flavor = completed
+                ? "Lab clear. The new rocks behaved."
+                : (run.failReason == .fuel
+                    ? CopyBank.pick(.fuelOut)
+                    : "Lab interrupted. The rocks are still curious.")
+            slots = 0
+        } else if let spec {
+            stars = JourneyConfig.evaluateStars(
+                spec,
+                completed: completed,
+                sparklesCollected: run.sparklesCollected,
+                obstaclesDestroyed: run.obstaclesDestroyed
+            )
+            let recorded = JourneyStore.shared.record(
+                level: spec.level,
+                stars: stars,
+                points: run.points,
+                completed: completed
+            )
+            stars = recorded.stars
+            newStars = recorded.newStars
+            slots = spec.starSlots
+            labels = JourneyConfig.starLabels(for: spec)
+            values = [
+                "\(Int(run.scoreKm)) / \(Int(spec.goalKm))",
+                "\(run.sparklesCollected) / \(spec.sparklesTarget)",
+                "\(run.obstaclesDestroyed) / \(spec.smashTarget)"
+            ]
+            if !completed {
+                title = "LEVEL FAILED"
+            } else if spec.level >= JourneyConfig.totalLevels {
+                title = "JOURNEY COMPLETE"
+                endingNote = [
+                    GeneratedJourneyData.endingPayload,
+                    GeneratedJourneyData.endingAfterPayload.first?.text,
+                    GeneratedJourneyData.endingLights.first?.text,
+                    GeneratedJourneyData.endingFinal.first?.text
+                ].compactMap { $0 }.joined(separator: " ")
+            } else {
+                title = "LEVEL \(spec.level) CLEAR"
+            }
+            flavor = CopyBank.journeyFlavor(
+                completed: completed,
+                level: spec.level,
+                stars: stars,
+                starSlots: slots
+            )
+        } else {
+            title = completed ? "CLEAR" : "FAILED"
+            flavor = ""
+        }
+
+        return LevelOutcome(
+            launch: playLaunch(from: run.profile),
+            completed: completed,
+            title: title,
+            flavor: flavor,
+            stars: stars,
+            newStars: newStars,
+            starSlots: slots,
+            labels: labels,
+            values: Array(values.prefix(slots)),
+            goalKm: Int(run.profile.goalKm),
+            endingNote: endingNote
+        )
     }
 }
