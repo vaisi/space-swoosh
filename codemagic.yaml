@@ -1,7 +1,8 @@
 # codemagic.yaml
 # Changes:
-# - iOS signing: add ios_signing (app_store + bundle id), verbose use-profiles,
-#   and export_options.plist on build-ipa so Manual signing gets a real profile.
+# - Drop ios_signing early gate (fails if no App Store profile was uploaded to
+#   Codemagic identities). Rely on ASC fetch-signing-files --create + use-profiles.
+# - iOS signing: verbose use-profiles; export_options.plist only if present.
 # - iOS workflow builds native SpriteKit app (ios-native/) only — Capacitor
 #   iOS is no longer built or published. Android stays Capacitor.
 # - Secrets live in Codemagic environment group "spaceswoosh" — see
@@ -17,9 +18,6 @@ workflows:
     environment:
       groups:
         - spaceswoosh
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.orbi.spaceswoosh
       vars:
         XCODE_PROJECT: ios-native/SpaceSwoosh.xcodeproj
         XCODE_SCHEME: SpaceSwoosh
@@ -57,10 +55,17 @@ workflows:
           agvtool new-version -all $((LATEST + 1))
       - name: Build native IPA
         script: |
-          xcode-project build-ipa \
-            --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            --export-options-plist /Users/builder/export_options.plist
+          EXPORT_PLIST=/Users/builder/export_options.plist
+          if [ -f "$EXPORT_PLIST" ]; then
+            xcode-project build-ipa \
+              --project "$XCODE_PROJECT" \
+              --scheme "$XCODE_SCHEME" \
+              --export-options-plist "$EXPORT_PLIST"
+          else
+            xcode-project build-ipa \
+              --project "$XCODE_PROJECT" \
+              --scheme "$XCODE_SCHEME"
+          fi
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log

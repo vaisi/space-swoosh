@@ -50,16 +50,24 @@ Mark secrets as Secret.
 4. Name the integration **SpaceSwoosh** (matches `codemagic.yaml`).
 5. Create the iOS app record with bundle id `com.orbi.spaceswoosh` if it does not exist yet, then put its numeric Apple ID into `APP_STORE_APPLE_ID`.
 
-## 3b. Code signing identities (required for IPA)
+## 3b. Code signing (how CI gets profiles)
 
-In Codemagic → Team settings → **codemagic.yaml settings → Code signing identities**:
+The iOS workflow uses the **SpaceSwoosh** App Store Connect API key to
+`fetch-signing-files --type IOS_APP_STORE --create` during the build. You do
+**not** need the Codemagic `ios_signing:` YAML block for this path.
 
-1. **iOS certificates** → **Generate certificate** → type **Apple Distribution** → use the SpaceSwoosh API key.
-2. **iOS provisioning profiles** → either:
-   - **Fetch profiles** and download the **App Store** profile for `com.orbi.spaceswoosh`, or
-   - Create **App Store Connect** profile on developer.apple.com for that App ID, then Fetch/upload it here.
+Still useful in Codemagic → Code signing identities:
+1. **Generate** an **Apple Distribution** certificate (once).
+2. Optional: create an **App Store Connect** profile on developer.apple.com for
+   `com.orbi.spaceswoosh` (see below) so Apple already has one for `--create` to find.
 
-The YAML `ios_signing` block expects an App Store profile + matching Distribution cert for `com.orbi.spaceswoosh`. Without these, archive fails with “requires a provisioning profile”.
+### Create App Store profile on developer.apple.com
+
+1. Certificates, Identifiers & Profiles → **Profiles** → **+**
+2. **Distribution → App Store Connect** (not Developer ID / Ad Hoc)
+3. App ID: **`com.orbi.spaceswoosh`**
+4. Select your **Apple Distribution** certificate
+5. Name it → Generate → Download (optional; CI can also create via API)
 
 ## 4. Android upload keystore (generate once, back up forever)
 
