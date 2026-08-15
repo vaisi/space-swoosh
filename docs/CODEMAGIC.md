@@ -50,6 +50,17 @@ Mark secrets as Secret.
 4. Name the integration **SpaceSwoosh** (matches `codemagic.yaml`).
 5. Create the iOS app record with bundle id `com.orbi.spaceswoosh` if it does not exist yet, then put its numeric Apple ID into `APP_STORE_APPLE_ID`.
 
+## 3b. Code signing identities (required for IPA)
+
+In Codemagic → Team settings → **codemagic.yaml settings → Code signing identities**:
+
+1. **iOS certificates** → **Generate certificate** → type **Apple Distribution** → use the SpaceSwoosh API key.
+2. **iOS provisioning profiles** → either:
+   - **Fetch profiles** and download the **App Store** profile for `com.orbi.spaceswoosh`, or
+   - Create **App Store Connect** profile on developer.apple.com for that App ID, then Fetch/upload it here.
+
+The YAML `ios_signing` block expects an App Store profile + matching Distribution cert for `com.orbi.spaceswoosh`. Without these, archive fails with “requires a provisioning profile”.
+
 ## 4. Android upload keystore (generate once, back up forever)
 
 On your machine (JDK already installed):

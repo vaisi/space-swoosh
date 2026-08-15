@@ -1,9 +1,9 @@
 # codemagic.yaml
 # Changes:
+# - iOS signing: add ios_signing (app_store + bundle id), verbose use-profiles,
+#   and export_options.plist on build-ipa so Manual signing gets a real profile.
 # - iOS workflow builds native SpriteKit app (ios-native/) only — Capacitor
 #   iOS is no longer built or published. Android stays Capacitor.
-# - Dropped email publishing until NOTIFY_EMAIL is set (Codemagic rejects
-#   unresolved $NOTIFY_EMAIL as 'none' and blocks the YAML UI).
 # - Secrets live in Codemagic environment group "spaceswoosh" — see
 #   docs/CODEMAGIC.md.
 
@@ -17,6 +17,9 @@ workflows:
     environment:
       groups:
         - spaceswoosh
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.orbi.spaceswoosh
       vars:
         XCODE_PROJECT: ios-native/SpaceSwoosh.xcodeproj
         XCODE_SCHEME: SpaceSwoosh
@@ -34,10 +37,19 @@ workflows:
     scripts:
       - name: Set up code signing
         script: |
+          set -e
           keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
           keychain add-certificates
-          xcode-project use-profiles --project "$XCODE_PROJECT"
+          echo "=== Local provisioning profiles ==="
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles" || true
+          xcode-project use-profiles \
+            --project "$XCODE_PROJECT" \
+            -v
+          echo "=== Export options (if generated) ==="
+          cat /Users/builder/export_options.plist 2>/dev/null || true
       - name: Increment build number
         script: |
           cd ios-native
@@ -47,7 +59,8 @@ workflows:
         script: |
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME"
+            --scheme "$XCODE_SCHEME" \
+            --export-options-plist /Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
