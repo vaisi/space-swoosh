@@ -1,5 +1,5 @@
 // BakePipeline.swift
-// Changes: C.5.1 — ink plus for Android-matching shield pickup.
+// Changes: Slice D — Flicker tear hull instead of Focus diamond.
 
 import SpriteKit
 import UIKit
@@ -17,7 +17,7 @@ final class BakePipeline {
     static let shared = BakePipeline()
 
     private init() {
-        hull = FocusHullTexture.make(logicalRadius: 28, scale: 3)
+        hull = FlickerHullTexture.make(logicalRadius: 28, scale: 3)
         trail = TrailRibbonTexture.make()
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)

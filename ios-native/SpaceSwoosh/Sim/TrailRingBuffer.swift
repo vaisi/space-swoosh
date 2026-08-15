@@ -1,5 +1,5 @@
 // TrailRingBuffer.swift
-// Changes: Phase A — fixed-capacity trail ring; overwrite oldest; age in place (no realloc).
+// Changes: Slice D — opacity fade 1/180 per tick, trailSpacing gate, seed for spring.
 
 import Foundation
 import CoreGraphics
@@ -8,7 +8,8 @@ struct TrailPoint {
     var x: CGFloat
     var y: CGFloat
     var tangent: CGFloat
-    var age: CGFloat
+    var opacity: CGFloat
+    var seed: CGFloat
 }
 
 struct TrailRingBuffer {
@@ -20,7 +21,7 @@ struct TrailRingBuffer {
     init(capacity: Int) {
         self.capacity = max(capacity, 2)
         self.points = Array(
-            repeating: TrailPoint(x: 0, y: 0, tangent: 0, age: 0),
+            repeating: TrailPoint(x: 0, y: 0, tangent: 0, opacity: 0, seed: 0.5),
             count: self.capacity
         )
     }
@@ -30,22 +31,34 @@ struct TrailRingBuffer {
         count = 0
     }
 
-    mutating func push(x: CGFloat, y: CGFloat, tangent: CGFloat) {
+    mutating func pushIfMoved(x: CGFloat, y: CGFloat, tangent: CGFloat, minSpacing: CGFloat) {
+        if count > 0 {
+            let last = self[count - 1]
+            if hypot(x - last.x, y - last.y) <= minSpacing { return }
+        }
         if count == capacity {
             head = (head + 1) % capacity
             count -= 1
         }
         let index = (head + count) % capacity
-        points[index] = TrailPoint(x: x, y: y, tangent: tangent, age: 0)
+        let seed = CGFloat((index * 37) % 100) / 100
+        points[index] = TrailPoint(x: x, y: y, tangent: tangent, opacity: 1, seed: seed)
         count += 1
     }
 
-    mutating func age(by dt: CGFloat) {
+    mutating func fade(by amount: CGFloat) {
         guard count > 0 else { return }
+        var write = 0
         for i in 0..<count {
-            let index = (head + i) % capacity
-            points[index].age += dt
+            var p = self[i]
+            p.opacity -= amount
+            if p.opacity > 0 {
+                let dest = (head + write) % capacity
+                points[dest] = p
+                write += 1
+            }
         }
+        count = write
     }
 
     subscript(i: Int) -> TrailPoint {

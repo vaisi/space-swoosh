@@ -1,7 +1,8 @@
 {
-  "version": 1,
-  "source": "src/config/GameConfig.js + src/modes/RunProfile.js",
+  "version": 2,
+  "source": "src/config/GameConfig.js + src/modes/RunProfile.js + skinDefs/CopyBank",
   "simDt": 0.016666666666666666,
+  "defaultShipId": "flicker",
   "fuel": {
     "max": 1,
     "start": 1,
@@ -26,7 +27,121 @@
     "radius": 1,
     "speed": 0.08,
     "zigzagAngleDeg": 52,
-    "zigzagSpeedScale": 1.45
+    "zigzagSpeedScale": 1.45,
+    "trailSpacing": 10,
+    "maxBank": 0.96,
+    "tailOffset": 0.6
+  },
+  "flicker": {
+    "id": "flicker",
+    "hitbox": [
+      {
+        "x": 0,
+        "y": -0.61,
+        "r": 0.1
+      },
+      {
+        "x": 0,
+        "y": -0.35,
+        "r": 0.23
+      },
+      {
+        "x": 0,
+        "y": 0.16,
+        "r": 0.53
+      },
+      {
+        "x": -0.33,
+        "y": 0.28,
+        "r": 0.33
+      },
+      {
+        "x": 0.32,
+        "y": 0.28,
+        "r": 0.34
+      }
+    ],
+    "trailMaxPoints": 80,
+    "trailFadePerTick": 0.005555555555555556,
+    "trailWidthScale": 0.6,
+    "wallTrailMode": "spring",
+    "wallJellyMs": 420,
+    "boopCooldownMs": 180,
+    "shieldHitboxScale": 1.5
+  },
+  "copy": {
+    "menu": [
+      "Clearance is a choice.",
+      "The void does not grade on a curve.",
+      "Probability of boredom: negligible.",
+      "Your trajectory is illogical, yet effective.",
+      "Asteroids ahead. Manners optional.",
+      "Space is empty. Your excuses need not be.",
+      "Logic suggests you press Play.",
+      "The ship is ready. Are you.",
+      "Distance is a suggestion. Survival is not.",
+      "Fascinating place for a mistake.",
+      "No life signs. Plenty of rock.",
+      "Turn left. Or right. Or become debris.",
+      "The leaderboard remembers. So does the void.",
+      "Inertia is patient. You are not.",
+      "A calm mind. A sharp arc. A short life, otherwise.",
+      "Welcome back. The asteroids missed you. Briefly.",
+      "Flight is simple. Remaining intact is the thesis.",
+      "Sensors detect ambition. Also rocks.",
+      "Live long. Or at least past the next belt.",
+      "Paper universe. Real consequences."
+    ],
+    "crash": [
+      "Trajectory terminated. Fascinating.",
+      "Inertia was consulted. It declined.",
+      "The asteroid had the right of way. Regrettably.",
+      "Structural integrity: historical.",
+      "That was not a gap. Noted.",
+      "Survival probability just hit zero. Efficient.",
+      "The rock remains unimpressed.",
+      "Your arc was elegant. The ending was not.",
+      "Debris now. Formally.",
+      "Impact confirmed. Ego optional.",
+      "Physics filed a complaint. It won.",
+      "A learning opportunity. Loudly delivered."
+    ],
+    "fuelOut": [
+      "Out of fuel. The void does not tow.",
+      "No sparkles. No fuel.",
+      "Tank empty. Sad.",
+      "Fuel expended. Ambition remains unpaid.",
+      "No thrust. Plenty of scenery.",
+      "You ran on sparkles. Then you did not.",
+      "Propellant: historical. Trajectory: optimistic.",
+      "Blue diamonds refill the tank. Miss enough and this is the result."
+    ],
+    "victory": [
+      "Live long and prosper.",
+      "The void yields. Temporarily.",
+      "Distance conquered. Humility recommended.",
+      "Mission complete. The rocks are disappointed.",
+      "You outran probability. Barely.",
+      "End of line. Beginning of legend. Perhaps."
+    ],
+    "modeJourney": [
+      "Deep space. Level by level.",
+      "Recommended. The Logbook opens here.",
+      "Chart the void. Fill the Logbook.",
+      "Forty levels outward. Catalogue as you go.",
+      "Ordered exploration. Logbook entries unlock here.",
+      "Climb the chapters. Write the field manual.",
+      "Deep space, structured. Your Logbook writes here."
+    ],
+    "modeOpenWorld": [
+      "One run, no finish line.",
+      "Fly until you crash.",
+      "Let your name echo through space.",
+      "Endless corridor. The leaderboard is listening.",
+      "No goal marker. Only distance, and how far your name travels.",
+      "One continuous flight. Crash ends it. Fame is optional, but recorded.",
+      "The void has no exit. Your score does."
+    ]
   },
   "obstacles": {
     "minSize": 2.5,

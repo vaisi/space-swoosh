@@ -5,17 +5,14 @@
 >
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
-> **retired before launch** (kept in-repo for reference / parity until Journey
-> sign-off). Android remains Capacitor. Phase C.5 Open Space combat is in
-> `ios-native/` (JS hitboxes + silhouettes, spawn, fuel, shields, swoosh). Spec:
-> [`shared/game-constants.json`](shared/game-constants.json). See
-> [`ios-native/README.md`](ios-native/README.md). Phase C.5 ports JS
-> per-type hitboxes and silhouettes onto the baked sprite pool (no global
-> 0.72 shrink; wormhole/drift non-lethal). KM is `Δy × (800 / playfieldHeight)
-> × (100/60)` so any phone height matches Android CSS pace. Playfield is
-> the full device (no 2:3 letterbox). Pickups follow
-> Android intervals and silhouettes (plus, tall wall slab). Codemagic stamps
-> `CFBundleVersion` ≥ 2 on each TestFlight upload (ASC already has 1.0.0 (1)).
+> **retired before launch**. Android remains Capacitor. Slice D wave 1 is in
+> `ios-native/`: **Flicker** tear hull + `TEAR_HITBOX`, ribbon trail, wall jelly
+> / BOOP, `+FUEL` + dying coast, crash blast, CopyBank menu/death lines, pause.
+> C.5 combat (JS hazard hitboxes, silhouettes, spawn, shields, swoosh) remains.
+> Spec: [`shared/game-constants.json`](shared/game-constants.json) v2. See
+> [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
+> × (100/60)`. Playfield is the full device. Codemagic stamps
+> `CFBundleVersion` ≥ 3 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -982,10 +979,12 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | SwiftUI menu + `SpriteView` host |
-| `SpaceSwoosh/Core/` | `GameConfig` (incl. stress caps), fixed-step clock, pacing HUD |
-| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, `CombatSimulator`, `HazardCollision` |
-| `SpaceSwoosh/Render/` | `BakePipeline`, `PooledSpriteField`, ribbon trail, `PlayScene` |
+| `SpaceSwoosh/App/` | SwiftUI menu + pause + CopyBank game-over + `SpriteView` host |
+| `SpaceSwoosh/Brand/` | `CopyBank` (menu / crash / fuelOut pools) |
+| `SpaceSwoosh/Audio/` | Baked boop/collect PCM + Light haptic |
+| `SpaceSwoosh/Core/` | `GameConfig` (Flicker + fuel + stress caps), fixed-step clock, pacing HUD |
+| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, `ShipHitbox`, jelly, `CombatSimulator`, `HazardCollision` |
+| `SpaceSwoosh/Render/` | Flicker hull bake, ribbon + smudge, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
@@ -993,9 +992,10 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 hot draws are textures / pooled sprites; sim at 1/60 with interpolated
 presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
-Phase B stress scene held 120 Hz. Phase C.5 Open Space: `CombatSimulator`
-fills the same pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see
-`shared/game-constants.json`). `HazardCollision` ports JS per-type geometry
-(circle / AABB / OBB / polygon / moons). Wormhole and drift are non-lethal.
-Art is baked silhouettes + extra pooled parts (moons, phase plates, wind
-lines). Crash and fuel-out end the run. No LOD tier.
+Phase B stress scene held 120 Hz. Slice D wave 1: Flicker tear + `TEAR_HITBOX`,
+ribbon (`t^0.6` width, 80 samples), 420 ms wall jelly, BOOP / `+FUEL` popups,
+900 ms dying coast, crash blast, CopyBank lines. C.5 combat remains:
+`CombatSimulator` fills pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see
+`shared/game-constants.json` v2). `HazardCollision` ports JS per-type geometry.
+Wormhole and drift are non-lethal. No LOD tier. Arc and the other 22 skins
+are still later slices.

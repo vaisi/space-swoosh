@@ -1,5 +1,5 @@
 // WorldState.swift
-// Changes: C.5 — obstacle slots use ObstacleState.inactive() factory.
+// Changes: Slice D — bank, wall jelly clock, boop side for Flicker feel.
 
 import Foundation
 import CoreGraphics
@@ -8,6 +8,7 @@ struct ShipState {
     var x: CGFloat
     var y: CGFloat
     var tangent: CGFloat
+    var bank: CGFloat
     var zigzagSign: CGFloat
     var distance: CGFloat
 }
@@ -20,6 +21,10 @@ struct WorldState {
     var width: CGFloat
     var height: CGFloat
     var baseUnit: CGFloat
+    var jellyElapsedMs: CGFloat
+    var jellySide: CGFloat
+    var wallBoopSide: CGFloat
+    var boopCooldown: CGFloat
 
     static func initial(width: CGFloat, height: CGFloat) -> WorldState {
         let base = width / 40
@@ -28,6 +33,7 @@ struct WorldState {
             x: width * 0.5,
             y: height * 0.22,
             tangent: 0,
+            bank: 0,
             zigzagSign: 1,
             distance: 0
         )
@@ -46,7 +52,11 @@ struct WorldState {
             pickups: pickups,
             width: width,
             height: height,
-            baseUnit: base
+            baseUnit: base,
+            jellyElapsedMs: -1,
+            jellySide: 1,
+            wallBoopSide: 0,
+            boopCooldown: 0
         )
     }
 }
@@ -57,6 +67,7 @@ enum WorldInterpolator {
             x: a.x + (b.x - a.x) * alpha,
             y: a.y + (b.y - a.y) * alpha,
             tangent: a.tangent + (b.tangent - a.tangent) * alpha,
+            bank: a.bank + (b.bank - a.bank) * alpha,
             zigzagSign: b.zigzagSign,
             distance: a.distance + (b.distance - a.distance) * alpha
         )

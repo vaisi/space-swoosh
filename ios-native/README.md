@@ -1,31 +1,28 @@
 <!--
   ios-native/README.md
-  Changes: C.5.1 — KM normalized to 800px Android height; pickup look/spawn match.
+  Changes: Slice D wave 1 — Flicker micro-parity, +FUEL, CopyBank, endings.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
 
 True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoosh`.
 
-## Phase C.5 scope (current)
+## Slice D wave 1 (current)
 
-- Open Space combat on the Phase B bake/pool renderer
-- Per-type JS hitboxes (`HazardCollision.swift`) — no global 0.72 shrink
-- Full-phone playfield (no 2:3 letterbox). KM still uses an 800px reference height.
-- Pickups: sparkle 1.15× + magnet, ink plus + rings every 5s, wall slab 0.9×10 @ 22s
-- Real silhouettes: blade, slab, pentagon, star, moons, dashed portal, wind
-- Wormhole / drift are non-lethal; sweep is a thin OBB; simples use 0.9–1.4× `baseUnit`
-- Unlock ladder (simple → sweep) by KM
-- Fuel, magnet, shield smash (core vs moon), wall boost, swoosh, teleport
-- Crash or fuel-out → game over + Play Again
-- Shared spec: [`../shared/game-constants.json`](../shared/game-constants.json)
-- Golden helper: `CombatParity.zigzagSampleX` / `npm run constants:golden`
+- **Flicker** is the only playable hull (baked `tearPath`, `TEAR_HITBOX`, ribbon + spring jelly)
+- Wall **BOOP** popup + Light haptic + 320→180 Hz blip
+- Sparkle **+FUEL** popup + B5→F#6 chime; empty tank coasts 900 ms then fuel-out
+- Crash: 30-particle blast + world fade; title always **MISSION FAILED** + CopyBank line
+- Menu tagline from CopyBank (new line each visit)
+- Pause: Resume / Sound / Exit
+- Open Space combat from C.5 (JS hitboxes, silhouettes, pickups, KM @ 800px ref)
+- Shared spec: [`../shared/game-constants.json`](../shared/game-constants.json) v2
 
-Not yet: Journey, Hazard Lab, 23 skins, IAP, voice, leaderboard.
+Not yet: Arc, Journey, Hazard Lab, remaining 22 skins, IAP, voice, leaderboard.
 
 ### Gate
 
-Side-by-side vs Android: rocks look like the JS types, deaths match the ink,
+Side-by-side vs Android **on Flicker**: tear ink, ribbon, BOOP, +FUEL, death lines.
 120 Hz holds — no LOD / no per-frame `SKShapeNode`.
 
 ```bash

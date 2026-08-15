@@ -1,5 +1,5 @@
 // ShipSimulator.swift
-// Changes: Phase B — unchanged zigzag; trail emits into the longer stress wake.
+// Changes: Slice D — fuel-dying scale, wall BOOP + jelly, trail spacing/fade.
 
 import Foundation
 import CoreGraphics
@@ -15,45 +15,72 @@ struct ShipSimulator {
     func step(
         world: inout WorldState,
         dt: CGFloat,
-        command: SteerCommand
+        command: SteerCommand,
+        speedScale: CGFloat = 1
     ) {
         if command == .flip {
             world.ship.zigzagSign *= -1
         }
 
         let rad = GameConfig.Spacecraft.zigzagAngleDeg * .pi / 180
-        // Matches JS: baseSpeed = speed × height; path speed × zigzagSpeedScale.
         let speed = GameConfig.Spacecraft.speed
             * world.height
             * GameConfig.Spacecraft.zigzagSpeedScale
+            * speedScale
         let dist = speed * dt
 
         var x = world.ship.x + sin(rad) * world.ship.zigzagSign * dist
-        // SpriteKit Y+ up. JS canvas Y+ down; vertical advance magnitude matches.
         var y = world.ship.y + cos(rad) * dist
 
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let margin = radius * wallMarginFactor
         let minX = margin
         let maxX = world.width - margin
+        world.wallBoopSide = 0
+        if world.boopCooldown > 0 {
+            world.boopCooldown = max(0, world.boopCooldown - dt)
+        }
         if x < minX {
             x = minX
             world.ship.zigzagSign = 1
+            noteBoop(world: &world, side: -1)
         } else if x > maxX {
             x = maxX
             world.ship.zigzagSign = -1
+            noteBoop(world: &world, side: 1)
+        }
+
+        if world.jellyElapsedMs >= 0 {
+            world.jellyElapsedMs += dt * 1000
+            if world.jellyElapsedMs >= GameConfig.Flicker.wallJellyMs {
+                world.jellyElapsedMs = -1
+            }
         }
 
         let tangent = world.ship.zigzagSign * rad
         world.ship.x = x
         world.ship.y = y
         world.ship.tangent = tangent
+        world.ship.bank = tangent
         world.ship.distance += cos(rad) * dist
 
-        let tail = radius * 0.6
+        let tail = radius * GameConfig.Spacecraft.tailOffset
         let tx = x - sin(tangent) * tail
         let ty = y - cos(tangent) * tail
-        world.trail.push(x: tx, y: ty, tangent: tangent)
-        world.trail.age(by: dt)
+        world.trail.pushIfMoved(
+            x: tx,
+            y: ty,
+            tangent: tangent,
+            minSpacing: GameConfig.Spacecraft.trailSpacing
+        )
+        world.trail.fade(by: GameConfig.Spacecraft.trailFadePerTick)
+    }
+
+    private func noteBoop(world: inout WorldState, side: CGFloat) {
+        guard world.boopCooldown <= 0 else { return }
+        world.boopCooldown = GameConfig.Flicker.boopCooldownMs / 1000
+        world.wallBoopSide = side
+        world.jellyElapsedMs = 0
+        world.jellySide = side
     }
 }

@@ -10,12 +10,11 @@
 > personal bests stay on your device.
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
-> app. TestFlight is **Open Space only** (dodge, fuel, shields) — not Journey,
-> Hazard Lab, or the full ship roster yet. Hazards should now match Android
-> shapes and hits (thin sweep blade, tall side walls, dashed portals you can
-> fly through). KM pace and pickups (blue sparkles, plus-shields, tall edge
-> boosts) should feel like Android. Install the **newest** TestFlight build.
-> Android and web remain the complete game.
+> app. TestFlight is **Open Space on Flicker** — tear-shaped ship, one flowing
+> wake, wall BOOP, blue `+FUEL` sparkles, and the same dry one-liners as Android
+> when you open the app or crash. Not Journey, Hazard Lab, Arc, or the other
+> ships yet. Hazards should match Android shapes and hits. Install the **newest**
+> TestFlight build. Android and web remain the complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap

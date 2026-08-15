@@ -1,5 +1,5 @@
 // FocusHullTexture.swift
-// Changes: Phase A — one-time Focus reticle bake into SKTexture (no per-frame paths).
+// Changes: Slice D — unused on the playfield (Flicker is the starter). Kept for Slice F.
 
 import SpriteKit
 import UIKit

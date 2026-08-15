@@ -1,33 +1,37 @@
 // RootView.swift
-// Changes: Phase C — Open Space play entry.
+// Changes: Slice D — CopyBank menu tagline; Flicker Open Space entry.
 
 import SwiftUI
 
 struct RootView: View {
     @State private var showingPlay = false
+    @State private var menuFlavor = CopyBank.pick(.menu)
 
     var body: some View {
         ZStack {
             BrandColors.paper.ignoresSafeArea()
 
             if showingPlay {
-                PlayContainerView(onExit: { showingPlay = false })
-                    .transition(.opacity)
+                PlayContainerView(onExit: {
+                    showingPlay = false
+                    menuFlavor = CopyBank.pick(.menu)
+                })
+                .transition(.opacity)
             } else {
-                VStack(spacing: 28) {
+                VStack(spacing: 22) {
                     Spacer()
                     Text("SPACE SWOOSH")
                         .font(.system(size: 34, weight: .bold, design: .default))
                         .foregroundStyle(BrandColors.ink)
                         .tracking(2)
-                    Text("NATIVE · PHASE C")
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    Text(menuFlavor)
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(BrandColors.ink55)
-                    Text("Open Space — dodge, fuel, shields. Tap to flip.")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(BrandColors.ink80)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, 36)
+                    Text("Flicker · Open Space")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(BrandColors.ink80)
                     Spacer()
                     Button {
                         showingPlay = true

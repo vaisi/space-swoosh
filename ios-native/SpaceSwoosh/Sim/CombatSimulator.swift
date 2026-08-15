@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: C.5.1 — reference-height KM; Android sparkle/shield/wall spawn + hit sizes.
+// Changes: Slice D — tear hitbox, dying coast, popups, crash blast, world fade.
 
 import Foundation
 import CoreGraphics
@@ -34,6 +34,14 @@ struct RunState {
     var teleportT: CGFloat = 0
     var teleportPartner: Int = -1
     var invulnT: CGFloat = 0
+    var endingT: CGFloat = 0
+    var worldAlpha: CGFloat = 1
+    var hullHidden: Bool = false
+    var popups: [FloatPopup] = Array(repeating: FloatPopup(), count: FloatPopupBuffer.capacity)
+    var blast: [BlastParticle] = Array(repeating: BlastParticle(), count: BlastBuffer.count)
+    var sfxBoop: Bool = false
+    var sfxCollect: Bool = false
+    var sfxCrash: Bool = false
 
     var shieldActive: Bool { shieldTimer > 0 }
     var speedBoostActive: Bool { speedBoostTimer > 0 }
@@ -56,7 +64,13 @@ enum CombatSimulator {
         dt: CGFloat,
         command: SteerCommand
     ) {
-        guard !run.isOver else { return }
+        if run.isOver {
+            run.endingT += dt
+            run.worldAlpha = max(0, 1 - (run.endingT / 2.0) * 1.2)
+            FloatPopupBuffer.tick(&run.popups, dt: dt)
+            BlastBuffer.tick(&run.blast, dt: dt)
+            return
+        }
 
         if command == .flip {
             run.lastFlipAt = run.scoreKm
@@ -75,10 +89,17 @@ enum CombatSimulator {
         let prevY = world.ship.y
         var ship = ShipSimulator()
         if run.teleportT <= 0 {
-            if run.speedBoostActive {
-                stepBoostedShip(world: &world, dt: dt, command: command, factor: 1.82)
+            let dying: CGFloat
+            if run.fuelDying {
+                let dur = GameConfig.Fuel.dyingDurationMs / 1000
+                dying = max(0, 1 - min(1, run.fuelDyingT / dur))
             } else {
-                ship.step(world: &world, dt: dt, command: command)
+                dying = 1
+            }
+            let boost: CGFloat = run.speedBoostActive ? 1.82 : 1
+            ship.step(world: &world, dt: dt, command: command, speedScale: dying * boost)
+            if world.wallBoopSide != 0 {
+                emitBoop(world: world, run: &run)
             }
         }
 
@@ -121,39 +142,16 @@ enum CombatSimulator {
         detectSwoosh(world: world, run: &run)
         HazardCollision.tryTeleport(world: &world, run: &run)
         collide(world: &world, run: &run)
+        FloatPopupBuffer.tick(&run.popups, dt: dt)
     }
 
-    private static func stepBoostedShip(
-        world: inout WorldState,
-        dt: CGFloat,
-        command: SteerCommand,
-        factor: CGFloat
-    ) {
-        if command == .flip {
-            world.ship.zigzagSign *= -1
-        }
-        let rad = GameConfig.Spacecraft.zigzagAngleDeg * .pi / 180
-        let speed = GameConfig.Spacecraft.speed * world.height
-            * GameConfig.Spacecraft.zigzagSpeedScale * factor
-        let dist = speed * dt
-        var x = world.ship.x + sin(rad) * world.ship.zigzagSign * dist
-        var y = world.ship.y + cos(rad) * dist
+    private static func emitBoop(world: WorldState, run: inout RunState) {
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
-        let margin = radius * 1.2
-        if x < margin {
-            x = margin
-            world.ship.zigzagSign = 1
-        } else if x > world.width - margin {
-            x = world.width - margin
-            world.ship.zigzagSign = -1
-        }
-        let tangent = world.ship.zigzagSign * rad
-        world.ship.x = x
-        world.ship.y = y
-        world.ship.tangent = tangent
-        world.ship.distance += cos(rad) * dist
-        world.trail.push(x: x - sin(tangent) * radius * 0.6, y: y - cos(tangent) * radius * 0.6, tangent: tangent)
-        world.trail.age(by: dt)
+        let sign = world.wallBoopSide
+        let x = world.ship.x - sign * (radius * 0.25)
+        let y = world.ship.y - radius * 1.75
+        FloatPopupBuffer.spawn(&run.popups, kind: .boop, x: x, y: y, vy: -1.6)
+        run.sfxBoop = true
     }
 
     private static func spawnBelt(world: inout WorldState, run: inout RunState) {
@@ -677,6 +675,8 @@ enum CombatSimulator {
                 guard !run.fuelDying else { break }
                 run.fuel = min(GameConfig.Fuel.max, run.fuel + GameConfig.Fuel.refillPerCollectible)
                 run.sparklesCollected += 1
+                FloatPopupBuffer.spawn(&run.popups, kind: .fuel, x: p.x, y: p.y, vy: 2)
+                run.sfxCollect = true
             case .shield:
                 run.shieldTimer = 5
             case .wallBoost:
@@ -712,6 +712,13 @@ enum CombatSimulator {
         if left != nil, right != nil {
             run.points += GameConfig.Points.perSwoosh
             run.swooshCooldown = GameConfig.StyleSwoosh.cooldownMs / 1000
+            FloatPopupBuffer.spawn(
+                &run.popups,
+                kind: .swoosh,
+                x: world.ship.x,
+                y: world.ship.y + shipR * 1.2,
+                vy: 2.4
+            )
         }
     }
 
@@ -721,15 +728,13 @@ enum CombatSimulator {
             return
         }
         let shipR = world.baseUnit * GameConfig.Spacecraft.radiusUnits
-            * (run.shieldActive ? 1.5 : 1)
         for i in 0..<world.obstacles.count {
             guard world.obstacles[i].active, world.obstacles[i].lethal else { continue }
             if run.shieldActive {
-                switch HazardCollision.shieldSmash(
-                    o: world.obstacles[i],
-                    shipX: world.ship.x,
-                    shipY: world.ship.y,
-                    shipR: shipR
+                switch ShipHitbox.shieldSmash(
+                    world.obstacles[i],
+                    ship: world.ship,
+                    radius: shipR
                 ) {
                 case .none:
                     continue
@@ -738,20 +743,38 @@ enum CombatSimulator {
                     run.points += GameConfig.Points.perAsteroid
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
+                    FloatPopupBuffer.spawn(
+                        &run.popups,
+                        kind: .smash,
+                        x: world.obstacles[i].x,
+                        y: world.obstacles[i].y,
+                        vy: 2
+                    )
                 case .destroy:
+                    let ox = world.obstacles[i].x
+                    let oy = world.obstacles[i].y
                     world.obstacles[i].active = false
                     run.points += GameConfig.Points.perAsteroid
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
+                    FloatPopupBuffer.spawn(&run.popups, kind: .smash, x: ox, y: oy, vy: 2)
                 }
-            } else if HazardCollision.hits(
-                o: world.obstacles[i],
-                shipX: world.ship.x,
-                shipY: world.ship.y,
-                shipR: shipR
+            } else if ShipHitbox.hits(
+                world.obstacles[i],
+                ship: world.ship,
+                radius: shipR,
+                shield: false
             ), !run.fuelDying {
                 run.isOver = true
                 run.failReason = .crash
+                run.hullHidden = true
+                run.sfxCrash = true
+                BlastBuffer.explode(
+                    into: &run.blast,
+                    x: world.ship.x,
+                    y: world.ship.y,
+                    baseUnit: world.baseUnit
+                )
                 return
             }
         }

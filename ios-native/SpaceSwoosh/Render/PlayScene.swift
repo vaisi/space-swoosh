@@ -1,7 +1,8 @@
 // PlayScene.swift
-// Changes: C.5 — hide hull during wormhole hop so the fade matches JS transit.
+// Changes: Slice D — Flicker hull/jelly/trail, popups, blast, dying/crash present.
 
 import SpriteKit
+import QuartzCore
 
 final class PlayScene: SKScene {
     weak var pacingMonitor: FramePacingMonitor?
@@ -17,6 +18,8 @@ final class PlayScene: SKScene {
     private var shieldHalo: SKSpriteNode?
     private var trailNode: RibbonTrailNode?
     private var pooledField: PooledSpriteField?
+    private var popupField: PopupField?
+    private var blastField: BlastField?
     private var running = false
     private var lastFrameTime: TimeInterval?
 
@@ -27,6 +30,8 @@ final class PlayScene: SKScene {
         lastFrameTime = nil
         run = RunState()
         session?.reset()
+        SfxPlayer.shared.start()
+        HapticsService.prepare()
 
         let world = WorldState.initial(width: size.width, height: size.height)
         previousWorld = world
@@ -35,10 +40,11 @@ final class PlayScene: SKScene {
         let bake = BakePipeline.shared
         backgroundColor = BrandColors.UI.paper
 
+        let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let ribbon = RibbonTrailNode(
             texture: bake.trail,
             maxSegments: GameConfig.Spacecraft.trailMaxPoints - 1,
-            baseWidth: world.baseUnit * 0.55
+            maxWidth: radius * GameConfig.Flicker.trailWidthScale
         )
         ribbon.zPosition = 5
         addChild(ribbon)
@@ -49,6 +55,16 @@ final class PlayScene: SKScene {
         addChild(pool)
         pooledField = pool
 
+        let popups = PopupField()
+        popups.zPosition = 20
+        addChild(popups)
+        popupField = popups
+
+        let blast = BlastField(texture: bake.part(for: .circle))
+        blast.zPosition = 18
+        addChild(blast)
+        blastField = blast
+
         let halo = SKSpriteNode(texture: bake.glowSignal)
         halo.blendMode = .add
         halo.isHidden = true
@@ -57,7 +73,8 @@ final class PlayScene: SKScene {
         shieldHalo = halo
 
         let hull = SKSpriteNode(texture: bake.hull)
-        hull.size = CGSize(width: world.baseUnit * 2.2, height: world.baseUnit * 2.2)
+        let pad = radius * GameConfig.Flicker.hullDrawPad
+        hull.size = CGSize(width: pad, height: pad)
         hull.zPosition = 10
         addChild(hull)
         hullNode = hull
@@ -95,7 +112,7 @@ final class PlayScene: SKScene {
     }
 
     override func update(_ currentTime: TimeInterval) {
-        guard running, !run.isOver else { return }
+        guard running else { return }
         pacingMonitor?.recordFrame(at: currentTime)
 
         let frameDelta: CGFloat
@@ -119,6 +136,7 @@ final class PlayScene: SKScene {
             )
         }
         currentWorld = world
+        consumeSfx()
         session?.apply(run: run)
 
         let ship = WorldInterpolator.ship(previousWorld?.ship ?? world.ship, world.ship, alpha: result.alpha)
@@ -135,28 +153,81 @@ final class PlayScene: SKScene {
         )
     }
 
+    private func consumeSfx() {
+        if run.sfxBoop {
+            run.sfxBoop = false
+            SfxPlayer.shared.playBoop()
+            HapticsService.wallBoop()
+        }
+        if run.sfxCollect {
+            run.sfxCollect = false
+            SfxPlayer.shared.playCollect()
+        }
+        if run.sfxCrash {
+            run.sfxCrash = false
+        }
+    }
+
     private func present(ship: ShipState, world: WorldState) {
         let cameraY = ship.y
         let screenY = size.height * 0.22
-        hullNode?.position = CGPoint(x: ship.x, y: screenY)
-        hullNode?.zRotation = -ship.tangent
-        hullNode?.alpha = run.teleportT > 0 ? 0 : (run.fuelDying ? 0.45 : 1)
+        let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
+        let nowMs = CGFloat(CACurrentMediaTime() * 1000)
+        let breath = 0.9 + 0.06 * sin(nowMs * 0.0056) + 0.04 * sin(nowMs * 0.0088)
+        let scale = 0.97 + 0.03 * sin(nowMs * 0.0044)
+        let r = radius * 0.95 * scale
+        let turn = min(1, abs(ship.bank) / GameConfig.Spacecraft.maxBank)
+        let stretch = 1 + 0.2 * turn
+        let jelly = WallJelly.hullScale(elapsedMs: world.jellyElapsedMs, side: world.jellySide)
+        let pad = r * GameConfig.Flicker.hullDrawPad
 
-        if run.shieldActive {
+        hullNode?.position = CGPoint(x: ship.x, y: screenY)
+        hullNode?.zRotation = -ship.bank
+        hullNode?.xScale = jelly.sx
+        hullNode?.yScale = jelly.sy * stretch
+        hullNode?.size = CGSize(width: pad, height: pad)
+        if run.hullHidden || run.teleportT > 0 {
+            hullNode?.alpha = 0
+        } else if run.fuelDying {
+            let dur = GameConfig.Fuel.dyingDurationMs / 1000
+            let t = min(1, run.fuelDyingT / dur)
+            hullNode?.alpha = (1 - t * 0.15) * breath * run.worldAlpha
+        } else {
+            hullNode?.alpha = breath * run.worldAlpha
+        }
+
+        if run.shieldActive, !run.hullHidden {
             shieldHalo?.isHidden = false
             shieldHalo?.position = CGPoint(x: ship.x, y: screenY)
-            let r = world.baseUnit * 4.2
-            shieldHalo?.size = CGSize(width: r, height: r)
+            let hr = world.baseUnit * 4.2
+            shieldHalo?.size = CGSize(width: hr, height: hr)
+            shieldHalo?.alpha = run.worldAlpha
         } else {
             shieldHalo?.isHidden = true
         }
 
+        trailNode?.alpha = run.worldAlpha
         trailNode?.sync(
             trail: world.trail,
             cameraY: cameraY,
             sceneHeight: size.height,
-            maxAge: 1.15
+            jellyElapsedMs: world.jellyElapsedMs,
+            jellySide: world.jellySide,
+            shipRadius: radius
         )
+        pooledField?.alpha = run.worldAlpha
         pooledField?.sync(world: world, cameraY: cameraY, sceneHeight: size.height)
+        popupField?.alpha = run.worldAlpha
+        popupField?.sync(
+            popups: run.popups,
+            cameraY: cameraY,
+            sceneHeight: size.height,
+            baseUnit: world.baseUnit
+        )
+        blastField?.sync(
+            particles: run.blast,
+            cameraY: cameraY,
+            sceneHeight: size.height
+        )
     }
 }

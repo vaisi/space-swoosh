@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: C.5.1 — full-phone playfield (no 2:3 letterbox); HUD stays in the safe area.
+// Changes: Slice D — pause, CopyBank game-over, +FUEL HUD, sparkle stats.
 
 import SwiftUI
 import SpriteKit
@@ -11,6 +11,8 @@ struct PlayContainerView: View {
     @StateObject private var pacing = FramePacingMonitor()
     @StateObject private var session = GameSession()
     @State private var scene = PlayScene(size: CGSize(width: 390, height: 844))
+    @State private var paused = false
+    @State private var muted = false
 
     var body: some View {
         GeometryReader { geo in
@@ -23,14 +25,18 @@ struct PlayContainerView: View {
 
                 VStack {
                     HStack {
-                        Button(action: onExit) {
-                            Text("EXIT")
+                        Button {
+                            paused = true
+                            scene.isPaused = true
+                        } label: {
+                            Text("PAUSE")
                                 .font(.system(size: 12, weight: .bold, design: .monospaced))
                                 .foregroundStyle(BrandColors.ink)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
                                 .background(BrandColors.paperTint.opacity(0.92))
                         }
+                        .disabled(session.isOver)
                         Spacer()
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("\(session.scoreKm) KM")
@@ -43,8 +49,10 @@ struct PlayContainerView: View {
                     .padding(.horizontal, 12)
                     .padding(.top, 8)
 
-                    FuelBar(fuel: session.fuel)
-                        .padding(.horizontal, 12)
+                    if session.fuelLive {
+                        FuelBar(fuel: session.fuel, low: session.fuelLow)
+                            .padding(.horizontal, 12)
+                    }
 
                     Spacer()
 
@@ -55,31 +63,15 @@ struct PlayContainerView: View {
                 }
                 .padding(.top, geo.safeAreaInsets.top)
                 .padding(.bottom, geo.safeAreaInsets.bottom)
+                .opacity(session.isOver ? Double(session.worldAlpha) : 1)
+
+                if paused, !session.isOver {
+                    pauseOverlay
+                }
 
                 if session.isOver {
-                    VStack(spacing: 16) {
-                        Text(session.failTitle)
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
-                        Text("\(session.scoreKm) KM")
-                            .font(.system(size: 28, weight: .bold, design: .monospaced))
-                        Text(session.failDetail)
-                            .font(.system(size: 14))
-                        Button {
-                            scene.startRun()
-                        } label: {
-                            Text("PLAY AGAIN")
-                                .font(.system(size: 16, weight: .bold, design: .monospaced))
-                                .foregroundStyle(BrandColors.paper)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(BrandColors.signal)
-                        }
-                        .padding(.horizontal, 28)
-                    }
-                    .foregroundStyle(BrandColors.ink)
-                    .padding(28)
-                    .frame(maxWidth: 320)
-                    .background(BrandColors.paperTint.opacity(0.96))
+                    gameOverCard
+                        .opacity(Double(session.overlayAlpha))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -89,6 +81,7 @@ struct PlayContainerView: View {
                 scene.size = geo.size
                 scene.pacingMonitor = pacing
                 scene.session = session
+                SfxPlayer.shared.muted = muted
                 scene.startRun()
             }
             .onDisappear {
@@ -101,10 +94,100 @@ struct PlayContainerView: View {
         }
         .ignoresSafeArea()
     }
+
+    private var pauseOverlay: some View {
+        VStack(spacing: 16) {
+            Text("PAUSED")
+                .font(.system(size: 22, weight: .bold, design: .monospaced))
+            Button {
+                paused = false
+                scene.isPaused = false
+            } label: {
+                menuButton("RESUME")
+            }
+            Button {
+                muted.toggle()
+                SfxPlayer.shared.muted = muted
+            } label: {
+                menuButton(muted ? "SOUND OFF" : "SOUND ON")
+            }
+            Button(action: onExit) {
+                menuButton("EXIT")
+            }
+        }
+        .foregroundStyle(BrandColors.ink)
+        .padding(28)
+        .frame(maxWidth: 320)
+        .background(BrandColors.paperTint.opacity(0.96))
+    }
+
+    private var gameOverCard: some View {
+        VStack(spacing: 14) {
+            Text(session.failTitle)
+                .font(.system(size: 22, weight: .bold, design: .default))
+            Text(session.failDetail)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(BrandColors.ink55)
+                .multilineTextAlignment(.center)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(session.scoreKm)")
+                    .font(.system(size: 34, weight: .bold, design: .monospaced))
+                Text("KM")
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundStyle(BrandColors.ink55)
+            }
+            HStack(spacing: 28) {
+                statColumn(value: "\(session.destroyed)", label: "DESTROYED")
+                statColumn(value: "\(session.sparkles)", label: "SPARKLES")
+            }
+            Button {
+                paused = false
+                scene.isPaused = false
+                scene.startRun()
+            } label: {
+                Text("PLAY AGAIN")
+                    .font(.system(size: 16, weight: .bold, design: .monospaced))
+                    .foregroundStyle(BrandColors.paper)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(BrandColors.signal)
+            }
+            .padding(.horizontal, 8)
+            Button(action: onExit) {
+                Text("MENU")
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundStyle(BrandColors.ink)
+            }
+        }
+        .foregroundStyle(BrandColors.ink)
+        .padding(28)
+        .frame(maxWidth: 320)
+        .background(BrandColors.paperTint.opacity(0.96))
+    }
+
+    private func statColumn(value: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 20, weight: .bold, design: .monospaced))
+            Text(label)
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundStyle(BrandColors.ink55)
+        }
+    }
+
+    private func menuButton(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 16, weight: .bold, design: .monospaced))
+            .foregroundStyle(BrandColors.paper)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(BrandColors.signal)
+    }
 }
 
 struct FuelBar: View {
     var fuel: CGFloat
+    var low: Bool
 
     var body: some View {
         GeometryReader { geo in
@@ -112,11 +195,12 @@ struct FuelBar: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(BrandColors.paperDeep)
                 Capsule()
-                    .fill(frac <= 0.28 ? BrandColors.signal.opacity(0.55) : BrandColors.signal)
+                    .fill(BrandColors.signal.opacity(low ? 0.55 : 1))
                     .frame(width: geo.size.width * frac)
             }
         }
         .frame(height: 6)
+        .opacity(low ? 0.7 : 1)
     }
 }
 

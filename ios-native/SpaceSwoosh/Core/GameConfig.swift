@@ -1,5 +1,5 @@
 // GameConfig.swift
-// Changes: C.5.1 — full-phone playfield; KM still normalized to 800px Android CSS.
+// Changes: Slice D — Flicker trail/hit/jelly/boop numbers from game-constants.json.
 
 import Foundation
 import CoreGraphics
@@ -21,8 +21,19 @@ enum GameConfig {
         static let speed: CGFloat = 0.08
         static let zigzagAngleDeg: CGFloat = 52
         static let zigzagSpeedScale: CGFloat = 1.45
-        static let trailMaxPoints: Int = 160
-        static let trailFadePerSecond: CGFloat = 60.0 / 360.0
+        static let trailMaxPoints: Int = 80
+        static let trailFadePerTick: CGFloat = 1.0 / 180.0
+        static let trailSpacing: CGFloat = 10
+        static let maxBank: CGFloat = 0.96
+        static let tailOffset: CGFloat = 0.6
+    }
+
+    enum Flicker {
+        static let trailWidthScale: CGFloat = 0.6
+        static let wallJellyMs: CGFloat = 420
+        static let boopCooldownMs: CGFloat = 180
+        static let shieldHitboxScale: CGFloat = 1.5
+        static let hullDrawPad: CGFloat = 3.2
     }
 
     enum Playfield {
