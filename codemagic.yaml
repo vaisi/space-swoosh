@@ -1,12 +1,8 @@
 # codemagic.yaml
 # Changes:
-# - Drop ios_signing early gate (fails if no App Store profile was uploaded to
-#   Codemagic identities). Rely on ASC fetch-signing-files --create + use-profiles.
-# - iOS signing: verbose use-profiles; export_options.plist only if present.
-# - iOS workflow builds native SpriteKit app (ios-native/) only — Capacitor
-#   iOS is no longer built or published. Android stays Capacitor.
-# - Secrets live in Codemagic environment group "spaceswoosh" — see
-#   docs/CODEMAGIC.md.
+# - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files (fixes "without
+#   certificate private key"). Create App Store cert/profile via ASC API.
+# - Drop ios_signing early gate. Native ios-native/ → TestFlight; Android Cap.
 
 workflows:
   ios-native-testflight:
@@ -35,11 +31,26 @@ workflows:
     scripts:
       - name: Set up code signing
         script: |
-          set -e
+          set -euo pipefail
           keychain initialize
+
+          # Apple certs have no private key on the build machine unless we
+          # supply one. CERTIFICATE_PRIVATE_KEY (PEM) must live in group
+          # spaceswoosh — see docs/CODEMAGIC.md.
+          if [ -z "${CERTIFICATE_PRIVATE_KEY:-}" ]; then
+            echo "Missing CERTIFICATE_PRIVATE_KEY in Codemagic group 'spaceswoosh'."
+            echo "Generate once (Windows PowerShell or Git Bash):"
+            echo "  openssl genrsa 2048"
+            echo "Paste the full PEM (including BEGIN/END lines) as a Secret env var"
+            echo "named CERTIFICATE_PRIVATE_KEY, then re-run this workflow."
+            exit 1
+          fi
+
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY
+
           keychain add-certificates
           echo "=== Local provisioning profiles ==="
           ls -la "$HOME/Library/MobileDevice/Provisioning Profiles" || true

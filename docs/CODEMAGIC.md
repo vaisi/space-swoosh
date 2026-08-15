@@ -32,6 +32,7 @@ Mark secrets as Secret.
 | Variable | Notes |
 | --- | --- |
 | `APP_STORE_APPLE_ID` | Numeric App Store Connect app id (required for iOS) |
+| `CERTIFICATE_PRIVATE_KEY` | RSA PEM private key for iOS Distribution (Secret). Required — see §3b |
 | `VITE_SUPABASE_URL` | vaisi's Project URL (Android / web builds) |
 | `VITE_SUPABASE_ANON_KEY` | vaisi's Project anon / publishable key |
 | `VITE_REVENUECAT_IOS_KEY` | `appl_…` public key (later for native IAP) |
@@ -50,24 +51,41 @@ Mark secrets as Secret.
 4. Name the integration **SpaceSwoosh** (matches `codemagic.yaml`).
 5. Create the iOS app record with bundle id `com.orbi.spaceswoosh` if it does not exist yet, then put its numeric Apple ID into `APP_STORE_APPLE_ID`.
 
-## 3b. Code signing (how CI gets profiles)
+## 3b. Code signing — `CERTIFICATE_PRIVATE_KEY` (required)
 
-The iOS workflow uses the **SpaceSwoosh** App Store Connect API key to
-`fetch-signing-files --type IOS_APP_STORE --create` during the build. You do
-**not** need the Codemagic `ios_signing:` YAML block for this path.
+Apple Distribution certificates fetched from the Developer Portal do **not**
+include a private key. CI must own the key, or you get:
 
-Still useful in Codemagic → Code signing identities:
-1. **Generate** an **Apple Distribution** certificate (once).
-2. Optional: create an **App Store Connect** profile on developer.apple.com for
-   `com.orbi.spaceswoosh` (see below) so Apple already has one for `--create` to find.
+`Cannot save Signing Certificates without certificate private key`
 
-### Create App Store profile on developer.apple.com
+### One-time setup (no Mac needed)
 
-1. Certificates, Identifiers & Profiles → **Profiles** → **+**
-2. **Distribution → App Store Connect** (not Developer ID / Ad Hoc)
-3. App ID: **`com.orbi.spaceswoosh`**
-4. Select your **Apple Distribution** certificate
-5. Name it → Generate → Download (optional; CI can also create via API)
+1. On your PC (Git Bash / WSL / any openssl):
+
+```bash
+openssl genrsa -out ios_distribution_private_key.pem 2048
+```
+
+2. Open `ios_distribution_private_key.pem` and copy **everything** including
+   `-----BEGIN RSA PRIVATE KEY-----` / `END` lines.
+3. Codemagic → gear on the app → **Environment variables** → group **`spaceswoosh`**
+   → add **`CERTIFICATE_PRIVATE_KEY`** → paste PEM → mark **Secret**.
+4. Keep the `.pem` file in a password manager offline. Losing it means revoking
+   that Distribution cert and making a new key.
+5. Re-run **iOS Native → TestFlight**. CI will create/match an App Store cert +
+   profile for `com.orbi.spaceswoosh` with that key.
+
+### If create fails (max 3 Distribution certs)
+
+developer.apple.com → **Certificates** → revoke an **unused** Apple Distribution
+certificate you don’t have the key for → rebuild.
+
+### Optional: profile on Apple’s site
+
+1. **Profiles** → **+** → **Distribution → App Store Connect**
+2. App ID `com.orbi.spaceswoosh` → your Distribution cert → Generate  
+
+Not required when `--create` succeeds via API.
 
 ## 4. Android upload keystore (generate once, back up forever)
 
