@@ -1,5 +1,5 @@
 // VoicePlayer.swift
-// Changes: Slice E — NAV clips + first-boop / swoosh-voice if bundled.
+// Changes: Duck BGM while speaking; pause/resume with the overlay.
 
 import AVFoundation
 import Foundation
@@ -10,6 +10,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     var enabled = true
     private var player: AVAudioPlayer?
     private var ended: (() -> Void)?
+    private var frozen = false
     private(set) var playedFirstBoop = false
 
     var isSpeaking: Bool {
@@ -33,6 +34,8 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     func stop() {
         player?.stop()
         player = nil
+        frozen = false
+        MusicPlayer.shared.unduck()
         let done = ended
         ended = nil
         done?()
@@ -42,12 +45,30 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         player?.stop()
         player = nil
         ended = nil
+        frozen = false
+        MusicPlayer.shared.unduck()
+    }
+
+    func pause() {
+        guard let player, player.isPlaying else { return }
+        player.pause()
+        frozen = true
+    }
+
+    func resume() {
+        guard frozen, let player else { return }
+        frozen = false
+        guard enabled, !SettingsStore.shared.muted else { return }
+        MusicPlayer.shared.duck()
+        player.play()
     }
 
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
         let done = ended
         ended = nil
         self.player = nil
+        frozen = false
+        MusicPlayer.shared.unduck()
         done?()
     }
 
@@ -67,9 +88,11 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         do {
             let next = try AVAudioPlayer(contentsOf: url)
             next.delegate = self
+            next.volume = 0.85
             next.prepareToPlay()
             next.play()
             player = next
+            MusicPlayer.shared.duck()
         } catch {
             finishImmediately()
         }
@@ -79,9 +102,12 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         player?.stop()
         player = nil
         ended = nil
+        frozen = false
+        MusicPlayer.shared.unduck()
     }
 
     private func finishImmediately() {
+        MusicPlayer.shared.unduck()
         let done = ended
         ended = nil
         done?()

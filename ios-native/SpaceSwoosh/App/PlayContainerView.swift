@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Slice E polish — captions cover L40 ending; no concatenated note.
+// Changes: Pause/resume BGM and NAV voice with the overlay.
 
 import SwiftUI
 import SpriteKit
@@ -137,8 +137,19 @@ struct PlayContainerView: View {
                 scene.pacingMonitor = pacing
                 scene.session = session
                 SfxPlayer.shared.muted = settings.muted
+                MusicPlayer.shared.muted = settings.muted
                 VoicePlayer.shared.enabled = settings.voiceEnabled && !settings.muted
                 scene.startRun(currentLaunch)
+            }
+            .onChange(of: paused) { isPaused in
+                scene.isPaused = isPaused
+                if isPaused {
+                    MusicPlayer.shared.pause()
+                    VoicePlayer.shared.pause()
+                } else {
+                    MusicPlayer.shared.resume()
+                    VoicePlayer.shared.resume()
+                }
             }
             .onDisappear {
                 UIApplication.shared.isIdleTimerDisabled = false

@@ -1,5 +1,5 @@
 // CinemaSimulator.swift
-// Changes: Slice E polish — Android intro roll, streak fade, clear timings, L40 captions.
+// Changes: Clear start plays shield + swoosh; intro/flyout timings unchanged.
 
 import Foundation
 import CoreGraphics
@@ -61,6 +61,8 @@ enum CinemaSimulator {
         run.cinemaHeading = CinematicFlight.captureArcHeading(world.ship)
         run.cameraSpeed = max(abs(world.ship.verticalVel), GameConfig.Spacecraft.speed * world.height)
         run.logbookMarks.append(.interact("finishGate"))
+        run.sfxShield = true
+        run.sfxSwoosh = true
     }
 
     static func tick(

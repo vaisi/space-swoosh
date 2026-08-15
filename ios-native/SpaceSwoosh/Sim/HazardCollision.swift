@@ -1,5 +1,5 @@
 // HazardCollision.swift
-// Changes: Slice E — BH Y-pull follows the active run profile.
+// Changes: Portal entry/exit SFX flags on wormhole hop.
 
 import Foundation
 import CoreGraphics
@@ -139,6 +139,7 @@ enum HazardCollision {
             world.obstacles[p].paired = true
             run.teleportT = 0.3
             run.teleportPartner = p
+            run.sfxPortalIn = true
             return
         }
     }
@@ -151,6 +152,8 @@ enum HazardCollision {
         run.shieldTimer = 5
         run.teleportPartner = -1
         run.invulnT = 0.12
+        run.sfxPortalOut = true
+        run.sfxShield = true
     }
 
     static func displayOpen(_ o: ObstacleState) -> CGFloat {

@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Slice E polish — intro roll, streak shower, clear flyout, L40 captions.
+  Changes: BGM + file SFX in Voice/; portal/swoosh stay synthesized.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -18,8 +18,9 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - **Logbook** observe / interact / known
 - Options: flight, mute, **voice**, night paper
 - Persistence: `journeyProgress`, `logbookProgress` (same keys as Android)
+- Audio: looping `background.mp3` (ducks under NAV), file crash/shield/turn, baked boop/collect/portal/swoosh
 
-Voice clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`).
+Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`).
 
 Not yet: remaining 22 skins, IAP, Supabase board, Firebase.
 

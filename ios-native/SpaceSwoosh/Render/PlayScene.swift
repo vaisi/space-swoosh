@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Slice E polish — seat/camera cinema, streak shower, Open Space intro.
+// Changes: Start/stop BGM; play crash, shield, portal, swoosh file/synth cues.
 
 import SpriteKit
 import QuartzCore
@@ -37,6 +37,7 @@ final class PlayScene: SKScene {
         session?.reset()
         VoicePlayer.shared.reset()
         SfxPlayer.shared.start()
+        MusicPlayer.shared.start()
         HapticsService.prepare()
 
         var world = WorldState.initial(width: size.width, height: size.height)
@@ -114,6 +115,7 @@ final class PlayScene: SKScene {
         running = false
         isPaused = true
         VoicePlayer.shared.stop()
+        MusicPlayer.shared.stop()
     }
 
     override func didMove(to view: SKView) {
@@ -203,10 +205,32 @@ final class PlayScene: SKScene {
         }
         if run.sfxCrash {
             run.sfxCrash = false
+            SfxPlayer.shared.playCrash()
+            MusicPlayer.shared.stop()
         }
         if run.sfxTurn {
             run.sfxTurn = false
             SfxPlayer.shared.playTurn()
+        }
+        if run.sfxShield {
+            run.sfxShield = false
+            SfxPlayer.shared.playShield()
+        }
+        if run.sfxShieldCrash {
+            run.sfxShieldCrash = false
+            SfxPlayer.shared.playShieldCrash()
+        }
+        if run.sfxPortalIn {
+            run.sfxPortalIn = false
+            SfxPlayer.shared.playPortalEntry()
+        }
+        if run.sfxPortalOut {
+            run.sfxPortalOut = false
+            SfxPlayer.shared.playPortalExit()
+        }
+        if run.sfxSwoosh {
+            run.sfxSwoosh = false
+            SfxPlayer.shared.playSwoosh()
         }
         if run.sfxFirstBoop {
             run.sfxFirstBoop = false
@@ -216,6 +240,9 @@ final class PlayScene: SKScene {
         if run.sfxSwooshVoice {
             run.sfxSwooshVoice = false
             VoicePlayer.shared.playSwoosh()
+        }
+        if run.isOver, run.completed {
+            MusicPlayer.shared.stop()
         }
         if run.cinema == .introTitle, !run.introVoiceStarted {
             run.introVoiceStarted = true

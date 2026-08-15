@@ -8,10 +8,12 @@
 > **retired before launch**. Android remains Capacitor. Slice E is in
 > `ios-native/`: Open Space on **Flicker** plus **Journey** (40 levels / 113 stars),
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
-> lean-preserving clear flyout, L40 `ENDING_BEATS` captions (no lights show). Voice MP3s
-> play when bundled under `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`,
-> `first-boop.mp3`, `swoosh-voice.mp3`); captions still run if the files are
-> missing. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
+> lean-preserving clear flyout, L40 `ENDING_BEATS` captions (no lights show).
+> `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV)
+> plus `crash` / `crash_with_shield` / `shield` / `turn`. Boop, collect, portal
+> hop, and style-swoosh whoosh stay baked synths (Android has no MP3s for those).
+> Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`);
+> captions still run if the files are missing. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps

@@ -1,5 +1,5 @@
 // SettingsStore.swift
-// Changes: Slice E — Voice channel (soundVoiceEnabled) next to mute.
+// Changes: Mute also silences looping BGM.
 
 import Foundation
 import Combine
@@ -28,6 +28,7 @@ final class SettingsStore: ObservableObject {
             voiceEnabled = UserDefaults.standard.bool(forKey: "soundVoiceEnabled")
         }
         SfxPlayer.shared.muted = muted
+        MusicPlayer.shared.muted = muted
         VoicePlayer.shared.enabled = voiceEnabled && !muted
     }
 
@@ -44,13 +45,16 @@ final class SettingsStore: ObservableObject {
     func toggleMute() {
         muted.toggle()
         SfxPlayer.shared.muted = muted
+        MusicPlayer.shared.muted = muted
         VoicePlayer.shared.enabled = voiceEnabled && !muted
+        if muted { VoicePlayer.shared.stop() }
         UserDefaults.standard.set(muted, forKey: "soundMuted")
     }
 
     func toggleVoice() {
         voiceEnabled.toggle()
         VoicePlayer.shared.enabled = voiceEnabled && !muted
+        if !voiceEnabled { VoicePlayer.shared.stop() }
         UserDefaults.standard.set(voiceEnabled, forKey: "soundVoiceEnabled")
     }
 }

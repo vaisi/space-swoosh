@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: Slice E — pack named Voice clips only; skip ElevenLabs drafts.
+// Changes: Pack Voice clips plus BGM/SFX mp3s; skip ElevenLabs drafts.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -28,7 +28,7 @@ const swiftFiles = walk(appRoot).filter((f) => f.endsWith('.swift'));
 const voiceFiles = walk(appRoot).filter((f) => {
   const name = path.basename(f);
   if (name.includes('ElevenLabs')) return false;
-  return /^(level-\d+|first-boop|swoosh-voice)\.(mp3|m4a)$/.test(name);
+  return /^(level-\d+|first-boop|swoosh-voice|background|crash|crash_with_shield|shield|turn)\.(mp3|m4a)$/.test(name);
 });
 const infoPlist = path.join(appRoot, 'Info.plist');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');

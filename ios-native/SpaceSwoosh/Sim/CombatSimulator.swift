@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Slice E polish — cinema seat/lead fields on RunState.
+// Changes: SFX flags for shield, shield-crash, portal, swoosh.
 
 import Foundation
 import CoreGraphics
@@ -43,6 +43,11 @@ struct RunState {
     var sfxCollect: Bool = false
     var sfxCrash: Bool = false
     var sfxTurn: Bool = false
+    var sfxShield: Bool = false
+    var sfxShieldCrash: Bool = false
+    var sfxPortalIn: Bool = false
+    var sfxPortalOut: Bool = false
+    var sfxSwoosh: Bool = false
     var announcedMask: UInt16 = 1
     var milestoneMask: UInt16 = 0
     var taughtSteer: Bool = false
@@ -884,9 +889,11 @@ enum CombatSimulator {
                 run.sfxCollect = true
             case .shield:
                 run.shieldTimer = 5
+                run.sfxShield = true
             case .wallBoost:
                 run.shieldTimer = 5
                 run.speedBoostTimer = 5
+                run.sfxShield = true
             }
         }
     }
@@ -917,6 +924,7 @@ enum CombatSimulator {
         if left != nil, right != nil {
             run.points += GameConfig.Points.perSwoosh
             run.swooshCooldown = GameConfig.StyleSwoosh.cooldownMs / 1000
+            run.sfxSwoosh = true
             run.sfxSwooshVoice = true
             run.logbookMarks.append(.interact("styleSwoosh"))
             FloatPopupBuffer.spawn(
@@ -951,6 +959,7 @@ enum CombatSimulator {
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
                     markSmash(run: &run, obstacle: world.obstacles[i])
+                    run.sfxShieldCrash = true
                     FloatPopupBuffer.spawn(
                         &run.popups,
                         kind: .smash,
@@ -966,6 +975,7 @@ enum CombatSimulator {
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
                     markSmash(run: &run, obstacle: world.obstacles[i])
+                    run.sfxShieldCrash = true
                     FloatPopupBuffer.spawn(&run.popups, kind: .smash, x: ox, y: oy, vy: 2)
                 }
             } else if ShipHitbox.hits(
