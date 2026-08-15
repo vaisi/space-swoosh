@@ -1,8 +1,8 @@
 # codemagic.yaml
 # Changes:
-# - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files (fixes "without
-#   certificate private key"). Create App Store cert/profile via ASC API.
-# - Drop ios_signing early gate. Native ios-native/ → TestFlight; Android Cap.
+# - Unique CFBundleVersion: max(TestFlight, App Store, Codemagic BUILD_NUMBER)+guard
+#   so re-uploads don't hit ASC "attribute value already used".
+# - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
 workflows:
   ios-native-testflight:
@@ -61,9 +61,18 @@ workflows:
           cat /Users/builder/export_options.plist 2>/dev/null || true
       - name: Increment build number
         script: |
+          set -euo pipefail
           cd ios-native
-          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 0)
-          agvtool new-version -all $((LATEST + 1))
+          TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          AS=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          # Codemagic BUILD_NUMBER is monotonic per app; use as a floor.
+          CM="${BUILD_NUMBER:-0}"
+          NEXT=$TF
+          if [ "$AS" -gt "$NEXT" ]; then NEXT=$AS; fi
+          if [ "$CM" -gt "$NEXT" ]; then NEXT=$CM; fi
+          NEXT=$((NEXT + 1))
+          echo "Build numbers — TestFlight=$TF AppStore=$AS Codemagic=$CM → using $NEXT"
+          agvtool new-version -all "$NEXT"
       - name: Build native IPA
         script: |
           EXPORT_PLIST=/Users/builder/export_options.plist

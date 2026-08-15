@@ -42,6 +42,9 @@
 	<!-- Portrait-only game: required to skip iPad multitasking's all-orientations rule (ASC 90474). -->
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<!-- Skip App Encryption questionnaire on every upload (HTTPS / OS crypto only). -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIStatusBarHidden</key>
 	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
