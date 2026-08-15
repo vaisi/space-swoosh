@@ -1,11 +1,22 @@
 <!--
   docs/CODEMAGIC.md
-  Changes: VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
+  Changes:
+  - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
+  - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
 -->
 
 # Codemagic setup
 
 Config file: [`codemagic.yaml`](../codemagic.yaml) at the repo root.
+
+## Workflows
+
+| Workflow | What it builds |
+| --- | --- |
+| **iOS Native → TestFlight** | [`ios-native/`](../ios-native/) SpriteKit app → TestFlight |
+| **Android → Play internal** | Capacitor Android → Play internal track |
+
+Do **not** run any Capacitor iOS workflow — it was removed. iOS shipping target is native only.
 
 ## 1. Connect the repo
 
@@ -15,17 +26,17 @@ Config file: [`codemagic.yaml`](../codemagic.yaml) at the repo root.
 
 ## 2. Environment group `spaceswoosh`
 
-Team settings → Environment variables → group **spaceswoosh**. Mark secrets as Secret.
+Click the **gear** on the app → **Environment variables** → group **`spaceswoosh`**.
+Mark secrets as Secret.
 
 | Variable | Notes |
 | --- | --- |
-| `VITE_SUPABASE_URL` | vaisi's Project URL (same as local `.env`) |
+| `APP_STORE_APPLE_ID` | Numeric App Store Connect app id (required for iOS) |
+| `VITE_SUPABASE_URL` | vaisi's Project URL (Android / web builds) |
 | `VITE_SUPABASE_ANON_KEY` | vaisi's Project anon / publishable key |
-| `VITE_REVENUECAT_IOS_KEY` | `appl_…` public key |
+| `VITE_REVENUECAT_IOS_KEY` | `appl_…` public key (later for native IAP) |
 | `VITE_REVENUECAT_ANDROID_KEY` | `goog_…` public key |
-| `NOTIFY_EMAIL` | Where build emails go |
-| `APP_STORE_APPLE_ID` | Numeric App Store Connect app id (once the app record exists) |
-| `CM_KEYSTORE` | Base64 of the upload keystore (see below) |
+| `CM_KEYSTORE` | Base64 of the Android upload keystore |
 | `CM_KEYSTORE_PASSWORD` | Keystore password |
 | `CM_KEY_ALIAS` | Key alias |
 | `CM_KEY_PASSWORD` | Key password |
@@ -66,10 +77,10 @@ Paste into `CM_KEYSTORE`. Set the three password/alias variables to match.
 
 ## 6. First builds
 
-- Push to `main`, or run a workflow manually in Codemagic.
-- iOS IPA goes to TestFlight (processing can take 5–30 minutes).
+- Push to `main`, or start **iOS Native → TestFlight** manually in Codemagic.
+- Native IPA goes to TestFlight (processing can take 5–30 minutes).
 - Android AAB goes to Play **internal** track as a draft — promote in the console.
 
 ## iOS project note
 
-Capacitor 8 uses Swift Package Manager (`CapApp-SPM`). The workflow builds with `--project ios/App/App.xcodeproj` (there is no CocoaPods workspace).
+Native app: `ios-native/SpaceSwoosh.xcodeproj`, scheme **SpaceSwoosh**, bundle `com.orbi.spaceswoosh`.

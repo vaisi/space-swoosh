@@ -23,18 +23,19 @@ Sustained 5-minute run with p99 frame time ≤ **8.3 ms** at 120 Hz
 (or ≤ 16.6 ms on 60 Hz hardware). HUD must show `displayMax 120Hz` on ProMotion
 phones — if it shows 60, the plist key or view FPS preference is wrong.
 
-## Open on Mac
+## Build without a Mac (Codemagic)
+
+CI workflow: **iOS Native → TestFlight** in root [`codemagic.yaml`](../codemagic.yaml).
+It archives `ios-native/` only (not Capacitor). See [`docs/CODEMAGIC.md`](../docs/CODEMAGIC.md).
+
+## Open on Mac (optional)
 
 ```bash
 cd ios-native
-# Optional if you prefer XcodeGen over the checked-in project:
-# brew install xcodegen && xcodegen
 open SpaceSwoosh.xcodeproj
 ```
 
-Set your Development Team in Xcode, plug in a ProMotion iPhone, Run.
-
-Regenerate the Xcode project after adding Swift files (from Windows or Mac):
+Regenerate the Xcode project after adding Swift files:
 
 ```bash
 node scripts/generate-pbxproj.mjs
@@ -42,8 +43,8 @@ node scripts/generate-pbxproj.mjs
 
 ## Windows note
 
-Sources and the `.xcodeproj` can be edited here; **feel gates require a Mac +
-device**. Simulator is UI-only — never use it for pacing sign-off.
+Sources and the `.xcodeproj` can be edited here. Feel gates need a ProMotion
+device via TestFlight (or a Mac later). Simulator is never used for pacing sign-off.
 
 ## Layout
 
