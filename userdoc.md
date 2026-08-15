@@ -13,10 +13,12 @@
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
 > **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP, blue `+FUEL`,
 > NAV captions, a Space Log, and the same run-start roll / finish flyout as
-> Android. Music loops under the run and quiets while NAV talks. Voice lines
-> play if the build includes them; turn Voice off in Options if you want
-> captions only. Not the other ships, IAP, or the online board yet. Install
-> the **newest** TestFlight build. Android and web remain the complete game.
+> Android. Music loops under the run and quiets while NAV talks. After the
+> navigator line, KM and fuel ease in, then pause; smash and points wait for
+> the first hit. Voice lines play if the build includes them; turn Voice off
+> in Options if you want captions only. Not the other ships, IAP, or the
+> online board yet. Install the **newest** TestFlight build. Android and
+> web remain the complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap

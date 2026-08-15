@@ -12,6 +12,8 @@
 > `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV)
 > plus `crash` / `crash_with_shield` / `shield` / `turn`. Boop, collect, portal
 > hop, and style-swoosh whoosh stay baked synths (Android has no MP3s for those).
+> After NAV/title, HUD chips stagger like Android: KM + fuel at 2s, pause at 3s
+> (1s ease-out), smash/PTS only after the first smash or style points.
 > Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`);
 > captions still run if the files are missing. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
 > + generated `GeneratedJourneyData.swift`. See

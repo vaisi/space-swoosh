@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Slice E polish — L40 captions live in cinema; outcome has no ending blob.
+// Changes: Publish per-chip HUD alphas for the Android stagger.
 
 import Foundation
 import Combine
@@ -39,6 +39,10 @@ final class GameSession: ObservableObject {
     @Published var captionText: String = ""
     @Published var captionOpacity: CGFloat = 0
     @Published var hudLive: Bool = true
+    @Published var hudDistance: CGFloat = 0
+    @Published var hudPause: CGFloat = 0
+    @Published var hudSmash: CGFloat = 0
+    @Published var hudPoints: CGFloat = 0
     @Published var goalKm: Int = 0
     @Published var launch: PlayLaunch = .openSpace
     @Published var outcome: LevelOutcome?
@@ -49,7 +53,7 @@ final class GameSession: ObservableObject {
     func apply(run: RunState) {
         scoreKm = Int(run.scoreKm)
         fuel = run.fuel
-        fuelLive = run.sparklesLive && run.hudLive
+        fuelLive = run.sparklesLive && run.hudDistance > 0.02
         fuelLow = run.sparklesLive && run.fuel > 0 && run.fuel <= GameConfig.Fuel.lowThreshold
         shieldActive = run.shieldActive
         destroyed = run.obstaclesDestroyed
@@ -65,6 +69,10 @@ final class GameSession: ObservableObject {
         captionText = run.captionText
         captionOpacity = run.captionOpacity
         hudLive = run.hudLive
+        hudDistance = run.hudDistance
+        hudPause = run.hudPause
+        hudSmash = run.hudSmash
+        hudPoints = run.hudPoints
         goalKm = run.profile.isEndless ? 0 : Int(run.profile.goalKm)
         launch = playLaunch(from: run.profile)
 
@@ -118,6 +126,10 @@ final class GameSession: ObservableObject {
         captionText = ""
         captionOpacity = 0
         hudLive = true
+        hudDistance = 0
+        hudPause = 0
+        hudSmash = 0
+        hudPoints = 0
         goalKm = 0
         outcome = nil
         logbookToast = ""

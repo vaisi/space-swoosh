@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: SFX flags for shield, shield-crash, portal, swoosh.
+// Changes: HUD chip alphas — KM/pause stagger, smash/PTS unlock.
 
 import Foundation
 import CoreGraphics
@@ -83,6 +83,13 @@ struct RunState {
     var sfxFirstBoop: Bool = false
     var sfxSwooshVoice: Bool = false
     var hudLive: Bool = true
+    var hudRevealT: CGFloat = 0
+    var hudDistance: CGFloat = 0
+    var hudPause: CGFloat = 0
+    var hudSmash: CGFloat = 0
+    var hudPoints: CGFloat = 0
+    var hudSmashT: CGFloat = -1
+    var hudPointsT: CGFloat = -1
     var inputLocked: Bool = false
     var firstBoopDone: Bool = false
 

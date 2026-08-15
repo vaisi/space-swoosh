@@ -1,5 +1,5 @@
 // CinemaSimulator.swift
-// Changes: Clear start plays shield + swoosh; intro/flyout timings unchanged.
+// Changes: Post-intro HUD chip stagger (KM 2s, pause 3s, smash/PTS unlock).
 
 import Foundation
 import CoreGraphics
@@ -28,6 +28,13 @@ enum CinemaSimulator {
         run.worldAlpha = 0
         run.pauseSpawning = true
         run.hudLive = false
+        run.hudRevealT = 0
+        run.hudDistance = 0
+        run.hudPause = 0
+        run.hudSmash = 0
+        run.hudPoints = 0
+        run.hudSmashT = -1
+        run.hudPointsT = -1
         run.inputLocked = true
         run.introBeatIndex = 0
         run.introVoiceDone = run.profile.mode != .journey
@@ -77,6 +84,7 @@ enum CinemaSimulator {
             FloatPopupBuffer.tick(&run.popups, dt: dt)
             return true
         case .clearHold, .clearBoost, .clearFade:
+            tickHudReveal(run: &run, dt: dt)
             tickClear(world: &world, run: &run, dt: dt)
             return true
         case .endingCaptions:
@@ -86,6 +94,7 @@ enum CinemaSimulator {
             }
             return true
         case .play:
+            tickHudReveal(run: &run, dt: dt)
             tickCaption(run: &run, dt: dt)
             return false
         }
@@ -154,11 +163,36 @@ enum CinemaSimulator {
         run.cinemaT = 0
         run.pauseSpawning = false
         run.hudLive = true
+        run.hudRevealT = 0
         run.inputLocked = false
         run.worldAlpha = 1
         run.seatY = CinematicFlight.cruiseSeat
         run.streakAlpha = 0
         run.cinemaBoost = 1
+    }
+
+    /// Android hudRevealAlpha: KM at 2s, pause at 3s, smash/PTS after first event.
+    private static func tickHudReveal(run: inout RunState, dt: CGFloat) {
+        guard run.hudLive else { return }
+        run.hudRevealT += dt
+        run.hudDistance = chipEase(run.hudRevealT - 2)
+        run.hudPause = chipEase(run.hudRevealT - 3)
+        if run.obstaclesDestroyed > 0 {
+            if run.hudSmashT < 0 { run.hudSmashT = 0 }
+            run.hudSmashT += dt
+            run.hudSmash = chipEase(run.hudSmashT)
+        }
+        if run.points > 0 {
+            if run.hudPointsT < 0 { run.hudPointsT = 0 }
+            run.hudPointsT += dt
+            run.hudPoints = chipEase(run.hudPointsT)
+        }
+    }
+
+    private static func chipEase(_ t: CGFloat) -> CGFloat {
+        if t <= 0 { return 0 }
+        if t >= 1 { return 1 }
+        return 1 - (1 - t) * (1 - t)
     }
 
     private static func showerFade(_ elapsed: CGFloat) -> CGFloat {

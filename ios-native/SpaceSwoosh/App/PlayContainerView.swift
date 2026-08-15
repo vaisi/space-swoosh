@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Pause/resume BGM and NAV voice with the overlay.
+// Changes: Per-chip HUD opacity — KM/fuel at 2s, pause at 3s, smash/PTS unlock.
 
 import SwiftUI
 import SpriteKit
@@ -34,7 +34,7 @@ struct PlayContainerView: View {
                     .ignoresSafeArea()
 
                 VStack {
-                    if session.hudLive {
+                    if session.hudDistance > 0.02 || session.hudPause > 0.02 {
                         HStack {
                             Button {
                                 paused = true
@@ -47,7 +47,9 @@ struct PlayContainerView: View {
                                     .padding(.vertical, 8)
                                     .background(BrandColors.paperTint.opacity(0.92))
                             }
-                            .disabled(session.isOver)
+                            .opacity(Double(session.hudPause))
+                            .disabled(session.isOver || session.hudPause < 0.02)
+                            .allowsHitTesting(session.hudPause >= 0.02)
                             Spacer()
                             VStack(alignment: .trailing, spacing: 2) {
                                 if session.goalKm > 0 {
@@ -57,14 +59,19 @@ struct PlayContainerView: View {
                                     Text("\(session.scoreKm) KM")
                                         .font(.system(size: 16, weight: .bold, design: .monospaced))
                                 }
-                                if session.points > 0 {
+                                if session.hudPoints > 0.02 {
                                     Text("\(session.points) PTS")
                                         .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                        .opacity(Double(session.hudPoints))
                                 }
-                                Text(session.shieldActive ? "SHIELD" : (session.destroyed > 0 ? "\(session.destroyed) SMASH" : "FLICKER"))
-                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                if session.hudSmash > 0.02 {
+                                    Text(session.shieldActive ? "SHIELD" : "\(session.destroyed) SMASH")
+                                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                        .opacity(Double(session.hudSmash))
+                                }
                             }
                             .foregroundStyle(BrandColors.ink)
+                            .opacity(Double(session.hudDistance))
                         }
                         .padding(.horizontal, 12)
                         .padding(.top, 8)
@@ -73,6 +80,7 @@ struct PlayContainerView: View {
                     if session.fuelLive {
                         FuelBar(fuel: session.fuel, low: session.fuelLow)
                             .padding(.horizontal, 12)
+                            .opacity(Double(session.hudDistance))
                     }
 
                     if !session.captionText.isEmpty {
@@ -84,7 +92,7 @@ struct PlayContainerView: View {
                             .padding(.vertical, 12)
                             .background(BrandColors.paperTint.opacity(0.92))
                             .opacity(Double(session.captionOpacity))
-                            .padding(.top, session.hudLive ? 12 : 80)
+                            .padding(.top, session.hudDistance > 0.02 ? 12 : 80)
                     } else if !session.milestoneText.isEmpty {
                         Text(session.milestoneText)
                             .font(.system(size: 15, weight: .medium))
