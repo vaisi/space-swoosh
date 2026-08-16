@@ -13,7 +13,8 @@
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
 > 16 `skipHullCache` hulls (`Lantern`…`Chime`) share one `LiveHullPaint` for
-> play and hangar stills (t = 1400 ms). Dedicated wakes (filaments, soap rings,
+> play and hangar stills (t = 1400 ms). Native hangar tiles bake Android’s
+> short `previewWake` (12 pts, span 3.4r) under a banked hull. Dedicated wakes (filaments, soap rings,
 > aurora strata, peacock stamps, …) — not a generic particle dump. Hitboxes are JS circle
 > packs; jelly does not deform the hitbox. Plus **Journey** (40 levels / 113 stars),
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
@@ -849,7 +850,8 @@ along the path (dawn: indigo tip → persimmon hull) and `fletchPath` ogive arro
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
 `1/360`; Quill / Fletch / Shard / Seal / Hatch / Trace / Fold / Spine / Mote / Pulse /
 Echo / Dusk / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime: 200 pts, fade `1/420` so the tip leaves the viewport).
-Menu preview always uses the short sample wake so it never covers the title.
+Menu preview always uses the short sample wake so it never covers the title
+(native iOS hangar tiles bake the same `previewWake` via `PreviewWakePaint`).
 iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
@@ -1088,7 +1090,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `HullBake` on-demand by `HullKind`, `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (16), hangar stills from the same painter, dedicated whimsical wakes (`FilamentWake` / Bloom rings / horizon strata / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core / pooled particle wakes for remaining premiums, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `HullBake` on-demand by `HullKind`, `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (16), hangar stills from `PreviewWakePaint` (short Android `previewWake` + family trail) then banked hull, dedicated whimsical wakes (`FilamentWake` / Bloom rings / horizon strata / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core / pooled particle wakes for remaining premiums, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 

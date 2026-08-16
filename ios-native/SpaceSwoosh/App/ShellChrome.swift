@@ -1,5 +1,5 @@
 // ShellChrome.swift
-// Changes: Live-hull hangar tiles paint LiveHullPaint stills (t=1400 ms).
+// Changes: Hangar preview bakes short Android wake under the banked hull.
 
 import SwiftUI
 import UIKit
@@ -122,12 +122,36 @@ enum ShipArt {
     private static var cache: [String: UIImage] = [:]
 
     static func preview(_ id: SkinId) -> UIImage {
-        let key = "\(id.rawValue)-\(SettingsStore.shared.isDark)"
+        let key = "\(id.rawValue)-\(SettingsStore.shared.isDark)-wake"
         if let hit = cache[key] { return hit }
         let def = SkinCatalog.def(id)
-        let img = def.skipHullCache
-            ? LiveHullPaint.previewImage(id)
-            : HullBake.makeImage(kind: def.hullKind, logicalRadius: 22, scale: 2)
+        let scale: CGFloat = 2
+        let r = 22 * scale
+        let width = ceil(r * 5.4)
+        let height = ceil(r * 6.8)
+        let bounds = CGSize(width: width, height: height)
+        let renderer = UIGraphicsImageRenderer(size: bounds)
+        let img = renderer.image { ctx in
+            let cg = ctx.cgContext
+            cg.setFillColor(UIColor.clear.cgColor)
+            cg.fill(CGRect(origin: .zero, size: bounds))
+            let cx = width / 2
+            let cy = r * 1.55
+            PreviewWakePaint.draw(def, onto: cg, cx: cx, cy: cy, radius: r)
+            cg.saveGState()
+            cg.translateBy(x: cx, y: cy)
+            cg.rotate(by: PreviewWakePaint.bank)
+            if def.skipHullCache {
+                LiveHullPaint.draw(
+                    id, onto: CGLiveCanvas(cg), radius: r,
+                    turn: PreviewWakePaint.turn, nowMs: LiveHullPaint.previewTimeMs,
+                    jellyLive: false, shake: 0, alpha: 1
+                )
+            } else {
+                HullBake.draw(def.hullKind, onto: cg, cx: 0, cy: 0, r: r)
+            }
+            cg.restoreGState()
+        }
         cache[key] = img
         return img
     }
@@ -153,7 +177,6 @@ struct ShipPreview: View {
                     .resizable()
                     .interpolation(.high)
                     .scaledToFit()
-                    .frame(width: 88, height: 88)
                     .frame(width: 88, height: 150)
                 Button {
                     settings.setShipSkin(SkinCatalog.next(after: settings.shipSkinId))

@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: CFBundleVersion 10 — live-hull fidelity (paint + dedicated wakes).
+  Changes: Hangar tiles bake short Android previewWake under the hull.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -12,8 +12,9 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - **41 ships** in Android `SKIN_DEFS` order. Playtest flag `UNLOCK_ALL_SKINS = true` (flip false before store). No prices / locked tiles / RevenueCat in this build
 - Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for later IAP
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
-- Home: equipped hull + ◀ / ▶ cycle. Options → **Ship**: scrolling 2-column tiles (name + blurb + hull)
-- One equipped renderer at `startRun` (do not allocate a trail node per ship). Baked silhouettes for 25 ships; 16 live-draw (`skipHullCache`: Lantern…Chime) via `LiveHullPaint` (same still for hangar tiles at t=1400 ms)
+- Home: equipped hull + short wake + ◀ / ▶ cycle. Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
+- Hangar stills bake Android `previewWake` (12 pts, span 3.4r, never the long in-play wake) then the banked hull. Live hulls still use `LiveHullPaint` at t=1400 ms
+- One equipped renderer at `startRun` (do not allocate a trail node per ship). Baked silhouettes for 25 ships; 16 live-draw (`skipHullCache`: Lantern…Chime) via `LiveHullPaint`
 - Live-ship wakes are dedicated drawers (teal/gold filaments + plankton, soap rings, aurora strata, peacock stamps, …). Sprout/Spore/Luna reuse the lantern filament+cloud with Android palettes
 - Focus wake is **ripple** dots; Ember is **twin dotted traces**. Long wakes 200 pts / fade `1/420`; Saber/Nyan 160 / `1/360`. Live ships tuck the wake with per-skin `trailTailOffset`
 - Per-skin JS hitbox packs, `wallTrailMode`, jelly profiles. Hitbox is **not** deformed by jelly. Shield smash stays the scaled center circle

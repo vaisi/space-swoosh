@@ -49,6 +49,7 @@
 		CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628FF1116246728150EFF6C1 /* PlayScene.swift */; };
 		A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */; };
 		D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78C3E515B75F5AFACA0EA5F /* PopupField.swift */; };
+		C9F250C2F610CFB2C8BAB077 /* PreviewWakePaint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79154F051600D3126EA7B3B2 /* PreviewWakePaint.swift */; };
 		5B55374460EAAF96F24A25F1 /* RainbowRibbonNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D070E474B470DF4731D50D19 /* RainbowRibbonNode.swift */; };
 		5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */; };
 		F52302FDE0B33FD919AB762A /* SaberHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3AD9345F1A7506F51F10FA8 /* SaberHullTexture.swift */; };
@@ -168,6 +169,7 @@
 		628FF1116246728150EFF6C1 /* PlayScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayScene.swift; sourceTree = "<group>"; };
 		6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PooledSpriteField.swift; sourceTree = "<group>"; };
 		C78C3E515B75F5AFACA0EA5F /* PopupField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupField.swift; sourceTree = "<group>"; };
+		79154F051600D3126EA7B3B2 /* PreviewWakePaint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewWakePaint.swift; sourceTree = "<group>"; };
 		D070E474B470DF4731D50D19 /* RainbowRibbonNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RainbowRibbonNode.swift; sourceTree = "<group>"; };
 		E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RibbonTrailNode.swift; sourceTree = "<group>"; };
 		E3AD9345F1A7506F51F10FA8 /* SaberHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaberHullTexture.swift; sourceTree = "<group>"; };
@@ -370,6 +372,7 @@
 				628FF1116246728150EFF6C1,
 				6D9C2266E5757995489D1B37,
 				C78C3E515B75F5AFACA0EA5F,
+				79154F051600D3126EA7B3B2,
 				D070E474B470DF4731D50D19,
 				E3E76E4E12F12A36B4EF70AD,
 				E3AD9345F1A7506F51F10FA8,
@@ -612,6 +615,7 @@
 				CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */,
 				A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */,
 				D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */,
+				C9F250C2F610CFB2C8BAB077 /* PreviewWakePaint.swift in Sources */,
 				5B55374460EAAF96F24A25F1 /* RainbowRibbonNode.swift in Sources */,
 				5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */,
 				F52302FDE0B33FD919AB762A /* SaberHullTexture.swift in Sources */,

@@ -1,5 +1,5 @@
 // HullPaths.swift
-// Changes: Bloom ellipse uses Android bloomPath radius 0.82.
+// Changes: HullBake.draw for banked hangar stills (wake + hull).
 
 import CoreGraphics
 import SpriteKit
@@ -191,6 +191,26 @@ enum HullPaths {
 }
 
 enum HullBake {
+    static func draw(_ kind: HullKind, onto cg: CGContext, cx: CGFloat, cy: CGFloat, r: CGFloat) {
+        let path = CGMutablePath()
+        HullPaths.add(kind, to: path, cx: cx, cy: cy, r: r)
+        cg.addPath(path)
+        if kind == .nyan {
+            cg.setFillColor(UIColor(red: 196 / 255, green: 189 / 255, blue: 176 / 255, alpha: 1).cgColor)
+            cg.fillPath()
+            cg.setFillColor(UIColor(red: 1, green: 143 / 255, blue: 184 / 255, alpha: 1).cgColor)
+            cg.fillEllipse(in: CGRect(x: cx + r * 0.48 - r * 0.085, y: cy + r * 0.12 - r * 0.085, width: r * 0.17, height: r * 0.17))
+            cg.fillEllipse(in: CGRect(x: cx - r * 0.48 - r * 0.085, y: cy + r * 0.12 - r * 0.085, width: r * 0.17, height: r * 0.17))
+        } else if kind == .halo {
+            cg.setStrokeColor(BrandColors.UI.ink.cgColor)
+            cg.setLineWidth(max(2, r * 0.14))
+            cg.strokePath()
+        } else {
+            cg.setFillColor(BrandColors.UI.ink.cgColor)
+            cg.fillPath()
+        }
+    }
+
     static func makeImage(kind: HullKind, logicalRadius: CGFloat, scale: CGFloat = 2) -> UIImage {
         let r = max(logicalRadius * scale, 8)
         let pad = r * 1.85
@@ -201,25 +221,7 @@ enum HullBake {
             let cg = ctx.cgContext
             cg.setFillColor(UIColor.clear.cgColor)
             cg.fill(CGRect(origin: .zero, size: bounds))
-            let cx = size / 2
-            let cy = size / 2
-            let path = CGMutablePath()
-            HullPaths.add(kind, to: path, cx: cx, cy: cy, r: r)
-            cg.addPath(path)
-            if kind == .nyan {
-                cg.setFillColor(UIColor(red: 196 / 255, green: 189 / 255, blue: 176 / 255, alpha: 1).cgColor)
-                cg.fillPath()
-                cg.setFillColor(UIColor(red: 1, green: 143 / 255, blue: 184 / 255, alpha: 1).cgColor)
-                cg.fillEllipse(in: CGRect(x: cx + r * 0.48 - r * 0.085, y: cy + r * 0.12 - r * 0.085, width: r * 0.17, height: r * 0.17))
-                cg.fillEllipse(in: CGRect(x: cx - r * 0.48 - r * 0.085, y: cy + r * 0.12 - r * 0.085, width: r * 0.17, height: r * 0.17))
-            } else if kind == .halo {
-                cg.setStrokeColor(BrandColors.UI.ink.cgColor)
-                cg.setLineWidth(max(2, r * 0.14))
-                cg.strokePath()
-            } else {
-                cg.setFillColor(BrandColors.UI.ink.cgColor)
-                cg.fillPath()
-            }
+            draw(kind, onto: cg, cx: size / 2, cy: size / 2, r: r)
         }
     }
 

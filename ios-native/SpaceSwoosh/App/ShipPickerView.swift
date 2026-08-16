@@ -1,5 +1,5 @@
 // ShipPickerView.swift
-// Changes: Options grid uses LiveHullPaint stills for the 16 live ships.
+// Changes: Options tiles show the short hangar wake above the name.
 
 import SwiftUI
 import UIKit
@@ -47,7 +47,7 @@ struct ShipPickerView: View {
                     .resizable()
                     .interpolation(.high)
                     .scaledToFit()
-                    .frame(width: 72, height: 72)
+                    .frame(width: 72, height: 118)
                 Text(skin.name.uppercased())
                     .font(.system(size: 13, weight: .bold, design: .monospaced))
                 Text(skin.blurb)
@@ -58,7 +58,7 @@ struct ShipPickerView: View {
             }
             .foregroundStyle(BrandColors.ink)
             .padding(14)
-            .frame(maxWidth: .infinity, minHeight: 168)
+            .frame(maxWidth: .infinity, minHeight: 214)
             .background(selected ? BrandColors.paperDeep : BrandColors.paperTint)
             .overlay(
                 Rectangle()
