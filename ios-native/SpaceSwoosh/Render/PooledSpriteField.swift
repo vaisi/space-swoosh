@@ -1,5 +1,5 @@
 // PooledSpriteField.swift
-// Changes: Drift lanes — thin tileable dashes scrolled by phase and driftDir.
+// Changes: Sparkle + halo use Android radius (1.15× unit) as diameter 2r / 3.8r.
 
 import SpriteKit
 
@@ -158,11 +158,22 @@ final class PooledSpriteField: SKNode {
                 node.texture = bake.sparkle
                 node.color = .white
                 node.colorBlendFactor = 0
-                let side = world.baseUnit * 1.15 * pulse
-                node.size = CGSize(width: side, height: side)
+                // Android `Collectible.size` is a radius (`drawSparkle(r)`).
+                let r = world.baseUnit * 1.15 * pulse
+                node.size = CGSize(width: r * 2, height: r * 2)
                 node.zRotation = p.phase * 0.17
                 node.alpha = 1
-                for ring in rings { ring.isHidden = true }
+                if let halo = rings.first {
+                    let haloD = r * 1.9 * 2
+                    halo.isHidden = false
+                    halo.texture = bake.glowSignal
+                    halo.blendMode = .add
+                    halo.size = CGSize(width: haloD, height: haloD)
+                    halo.alpha = BrandColors.UI.signalSoftAlpha
+                    halo.position = .zero
+                    halo.zRotation = 0
+                }
+                for ring in rings.dropFirst() { ring.isHidden = true }
             case .shield:
                 let size = world.baseUnit * 2
                 node.texture = bake.plus
@@ -177,6 +188,7 @@ final class PooledSpriteField: SKNode {
                     let radius = size * (0.5 + tt * 0.8)
                     ring.isHidden = false
                     ring.texture = bake.ring
+                    ring.blendMode = .alpha
                     ring.size = CGSize(width: radius * 2, height: radius * 2)
                     ring.alpha = pow(1 - tt, 1.8) * 0.9
                     ring.position = .zero

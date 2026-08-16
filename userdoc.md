@@ -12,9 +12,10 @@
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
 > **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP (the word
-> fades after the bounce), a smooth ink ribbon that springs and fattens on the
-> wall, flowing wind dashes, a pulsing two-ring shield, the same four-point
-> sparkle as Android, blue `+FUEL`, NAV captions, a Space Log, and the same
+> fades after the bounce), a smooth ink ribbon that springs and wiggles on the
+> wall, flowing wind dashes, a pulsing two-ring shield (about four seconds),
+> the same four-point sparkle as Android with a soft blue halo, blue `+FUEL`,
+> NAV captions, a Space Log, and the same
 > run-start roll / finish
 > flyout as Android. Music loops under the run and quiets while NAV talks
 > when those clips are in the build. After the navigator line, the compact
@@ -266,7 +267,7 @@ Every ship flies the same — same speed, same turns. They only look different
 | Ship | Look |
 | --- | --- |
 | **Focus** | Solid circle with a dotted ink trail — clean and instrumental. Wall hits pack the dots denser. |
-| **Flicker** | Teardrop trailing one smooth, flowing ribbon that springs on a wall hit. |
+| **Flicker** | Teardrop trailing one smooth, flowing ribbon that springs and wiggles on a wall hit. |
 | **Ember** | Swept dart; streaks scatter like sparks off flint on a wall boop, then realign. |
 | **Saber** | Needle’s thin lance with a long, slim bright-purple blade wake that crackles; wall hits whip the tip and spray more sparks. |
 | **Wisp** | Teardrop again, with a thin thread that sheds drifting sparks — they flare on impact. |

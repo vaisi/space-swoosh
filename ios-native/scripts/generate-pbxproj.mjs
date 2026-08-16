@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: CFBundleVersion 5; pack Voice/SFX mp3s; include new Swift files.
+// Changes: CFBundleVersion 6; pack Voice/SFX mp3s; include new Swift files.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -296,7 +296,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -318,7 +318,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

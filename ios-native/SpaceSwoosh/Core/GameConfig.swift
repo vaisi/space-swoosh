@@ -1,5 +1,5 @@
 // GameConfig.swift
-// Changes: feelSpeed 0.90 — iOS cruise 10% under Android snappy tick.
+// Changes: Flicker.shieldSeconds 4 — iOS pickup/portal/flyout shield (Android stays 5).
 
 import Foundation
 import CoreGraphics
@@ -45,6 +45,8 @@ enum GameConfig {
         static let boopCooldownMs: CGFloat = 180
         static let shieldHitboxScale: CGFloat = 1.5
         static let hullDrawPad: CGFloat = 3.2
+        /// iOS feel — pickup / portal / clear flyout. Android remains 5s.
+        static let shieldSeconds: CGFloat = 4.0
     }
 
     enum Playfield {

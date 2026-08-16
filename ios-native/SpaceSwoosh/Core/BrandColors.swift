@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: Slice D — light cream / night-paper palettes from Android theme.js.
+// Changes: signalSoft alpha — paper 0.14 / night 0.32 (Android theme.js).
 
 import SwiftUI
 import UIKit
@@ -53,6 +53,8 @@ enum BrandColors {
         static var ink55: UIColor { BrandColors.uiColor(.ink).withAlphaComponent(0.55) }
         static var ink30: UIColor { BrandColors.uiColor(.ink).withAlphaComponent(0.30) }
         static var signal: UIColor { BrandColors.uiColor(.signal) }
+        /// Android `color.signalSoft` fill alpha (paper 0.14 / night 0.32).
+        static var signalSoftAlpha: CGFloat { BrandColors.dark ? 0.32 : 0.14 }
         static var trail: UIColor { BrandColors.uiColor(.ink) }
     }
 }

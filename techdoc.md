@@ -15,8 +15,11 @@
 > if a file is missing. Boop, collect, portal hop, and style-swoosh whoosh stay
 > baked synths. After NAV/title, mockup-C HUD staggers like Android: route/fuel
 > at 2s, pause at 3s, smash after the first smash. Shield is two Signal rings
-> with a last-1.5s warning pulse. Sparkles are the 8-vertex 4-point star.
-> Flicker ribbon swells on wall jelly. Drift lanes are thin scrolling dashes.
+> for **4s** (`Flicker.shieldSeconds`; Android stays 5s) with a last-1.5s
+> warning pulse. Sparkles are the 8-vertex 4-point star at Android radius
+> `1.15×` unit (sprite diameter `2r`) plus a `glowSignal` halo of diameter
+> `3.8r` (`signalSoft` alpha). Flicker ribbon keeps a flat width; wall
+> BOOP is a spring path wiggle only. Drift lanes are thin scrolling dashes.
 > Cruise uses `snappyHz * feelSpeed` (`feelSpeed` 0.90). Clear-flyout smash SFX
 > is throttled to 120 ms.
 > Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`).
@@ -25,7 +28,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
-> `CFBundleVersion` ≥ 5 on each TestFlight upload.
+> `CFBundleVersion` ≥ 6 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -1007,7 +1010,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
 | `SpaceSwoosh/Core/` | `GameConfig` (Flicker + fuel + stress caps), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (no bank lerp through 0 on flip), zigzag path instant + `bankSmoothing` 0.34, `ShipHitbox`, jelly, `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | Flicker hull bake, 4-point sparkle, dual shield rings, scrolling drift dashes, continuous ribbon (`RibbonTrailNode` two reused `SKShapeNode`s + jelly pressure), popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | Flicker hull bake, 4-point sparkle + Signal halo, dual shield rings, scrolling drift dashes, continuous ribbon (`RibbonTrailNode` two reused `SKShapeNode`s + spring path wiggle), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
@@ -1020,7 +1023,7 @@ Android `ribbonPath` / `traceSmooth`, with a hull-locked live tail. Sim at
 Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
 `0.028 * dt * 60` like `WallBoopManager`. Zigzag lean eases like Android
 `BANK_SMOOTHING`; hull stretch uses `|tangent|` so a tap does not shrink
-the tear. Wall jelly applies spring nudge plus ribbon pressure/smudge swell.
+the tear. Wall jelly applies spring path nudge only (flat ribbon width).
 Turn / crash / shield / shield-crash decode into `AVAudioPCMBuffer`s (no
 `AVAudioPlayer` seek hitch). Clear-flyout smash SFX is gated to 120 ms.
 Cruise travel is `snappyHz * feelSpeed` (0.90). Do not retune input or

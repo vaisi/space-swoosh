@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Shield-crash on engine pool; scrolling wind dashes; feelSpeed 0.90.
+  Changes: Shield 4s; sparkle Signal halo; BOOP path wiggle (no width swell).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -20,9 +20,9 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Persistence: `journeyProgress`, `logbookProgress` (same keys as Android)
 - Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash on the engine pool (synth fallback); baked boop/collect/portal/swoosh. Clear-flyout smash SFX throttled to 120 ms
 - HUD: Android mockup C (pause glyph + route / fuel / smash icon rows). Stagger: KM+fuel at 2s, pause at 3s, smash after first event
-- Shield: two Signal stroke rings; pulse, then faster warning in the last 1.5s
-- Sparkles: 8-vertex 4-point star (`innerRatio` 0.4)
-- Flicker wake: one continuous `SKShapeNode` ribbon; spring jelly + width/smudge kick on wall BOOP
+- Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
+- Sparkles: 8-vertex 4-point star (`innerRatio` 0.4) at Android radius `1.15×` unit (sprite diameter `2r`); `glowSignal` halo diameter `3.8r` (`signalSoft` alpha)
+- Flicker wake: one continuous `SKShapeNode` ribbon; spring path wiggle on wall BOOP (flat width, no swell)
 - Drift / wind: 7 thin ink30 dashes, `baseUnit`-scaled period, scrolled by phase × direction
 - Cruise: Android snappy tick × **0.90** (`GameConfig.feelSpeed`)
 - Menu / pause / outcome: framed ink buttons, paper wash, two-bar **MISSION PAUSED**, Flicker-only home preview (no ship picker)
@@ -39,7 +39,7 @@ Not yet: remaining 22 skins, IAP, Supabase board, Firebase.
 
 Play L1–5 teach, a mid-game level, L40 caption ending, Lab 12k, logbook unlocks,
 voice on/off, 120 Hz with the streak pool on. Confirm shield pulse + warning,
-sparkle star, wall-boop ribbon kick, mockup-C HUD, framed menus, and turn sample.
+sparkle star + blue halo, wall-boop path wiggle, mockup-C HUD, framed menus, and turn sample.
 
 ```bash
 npm run constants:export
@@ -50,7 +50,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
-(Apple already has **1.0.0 (1)**). CI stamps **5+**.
+(Apple already has **1.0.0 (1)**). CI stamps **6+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

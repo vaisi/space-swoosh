@@ -1,5 +1,5 @@
 // BakePipeline.swift
-// Changes: Tileable thin wind-lane dash (Android driftCurrent period).
+// Changes: Sparkle star fills the texture so sprite size == visual diameter.
 
 import SpriteKit
 import UIKit
@@ -118,13 +118,16 @@ final class BakePipeline {
     }
 
     /// Android `drawSparkle`: 8-vertex 4-point star, N/E/S/W, innerRatio 0.4.
+    /// Full-texture so sprite size == visual diameter (not the 0.38 `image` inset).
     private static func sparkleStar(
         color: UIColor,
         size: CGFloat,
         fill: Bool,
         innerRatio: CGFloat = 0.4
     ) -> SKTexture {
-        image(size: size) { cg, mid, r in
+        rectImage(width: size, height: size) { cg, w, h in
+            let mid = w / 2
+            let r = w * 0.48
             let path = CGMutablePath()
             for i in 0..<8 {
                 let angle = (CGFloat(i) * .pi / 4) - .pi / 2

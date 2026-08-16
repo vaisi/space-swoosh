@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: 120ms cinematic shield-crash SFX throttle; drift spawn phase.
+// Changes: grantShield defaults to GameConfig.Flicker.shieldSeconds (4s).
 
 import Foundation
 import CoreGraphics
@@ -99,7 +99,7 @@ struct RunState {
     var shieldActive: Bool { shieldTimer > 0 }
     var speedBoostActive: Bool { speedBoostTimer > 0 }
 
-    mutating func grantShield(seconds: CGFloat = 5) {
+    mutating func grantShield(seconds: CGFloat = GameConfig.Flicker.shieldSeconds) {
         shieldTimer = seconds
         shieldWarningStarted = false
     }
