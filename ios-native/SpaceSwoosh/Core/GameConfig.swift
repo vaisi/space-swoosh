@@ -1,5 +1,5 @@
 // GameConfig.swift
-// Changes: snappyHz 120 — Android cruise travel on the existing 60 Hz step.
+// Changes: feelSpeed 0.90 — iOS cruise 10% under Android snappy tick.
 
 import Foundation
 import CoreGraphics
@@ -9,7 +9,9 @@ enum GameConfig {
     /// JS `snappyHz`: ship travel uses `speed * (1/60) * (dt * 120)` so one
     /// 60 Hz step covers the same distance as Android's snappy pacing.
     static let snappyHz: CGFloat = 120
-    static func motionTickScale(dt: CGFloat) -> CGFloat { dt * snappyHz }
+    /// iOS feel knob — 10% under the Android snappy match.
+    static let feelSpeed: CGFloat = 0.90
+    static func motionTickScale(dt: CGFloat) -> CGFloat { dt * snappyHz * feelSpeed }
     /// JS: abs(Δcamera.y) * (100/60) in CSS pixels. Scale to this height so
     /// a tall iPhone and a short Android CSS canvas award KM at the same pace.
     static let kmPerPixel: CGFloat = 100.0 / 60.0

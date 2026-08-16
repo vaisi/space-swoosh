@@ -1,5 +1,5 @@
 // PooledSpriteField.swift
-// Changes: Pickup sparkle uses baked 4-point star (Android drawSparkle).
+// Changes: Drift lanes — thin tileable dashes scrolled by phase and driftDir.
 
 import SpriteKit
 
@@ -9,6 +9,7 @@ final class PooledSpriteField: SKNode {
     private let glowNodes: [SKSpriteNode]
     private let pickupNodes: [SKSpriteNode]
     private let bake: BakePipeline
+    private let windShader: SKShader
 
     init(bake: BakePipeline) {
         self.bake = bake
@@ -60,6 +61,17 @@ final class PooledSpriteField: SKNode {
             pickups.append(node)
         }
         pickupNodes = pickups
+        windShader = SKShader(source: """
+        void main() {
+            vec2 uv = v_tex_coord;
+            uv.x = fract(uv.x * a_repeats + a_scroll);
+            gl_FragColor = texture2D(u_texture, uv) * v_color_mix;
+        }
+        """)
+        windShader.attributes = [
+            SKAttribute(name: "a_repeats", type: .float),
+            SKAttribute(name: "a_scroll", type: .float)
+        ]
 
         super.init()
         for node in bodyNodes { addChild(node) }
@@ -126,6 +138,7 @@ final class PooledSpriteField: SKNode {
         }
         for i in extraUsed..<extraNodes.count {
             extraNodes[i].isHidden = true
+            extraNodes[i].shader = nil
         }
 
         for i in 0..<pickupNodes.count {
@@ -219,6 +232,7 @@ final class PooledSpriteField: SKNode {
                 let node = extraNodes[used]
                 used += 1
                 node.isHidden = false
+                node.shader = nil
                 node.texture = bake.part(for: .circle)
                 node.position = CGPoint(x: p.x, y: screenY + (p.y - o.y))
                 node.zRotation = 0
@@ -235,6 +249,7 @@ final class PooledSpriteField: SKNode {
                     let node = extraNodes[used]
                     used += 1
                     node.isHidden = false
+                    node.shader = nil
                     node.texture = bake.part(for: .square)
                     let c = cos(o.rotation)
                     let s = sin(o.rotation)
@@ -250,15 +265,26 @@ final class PooledSpriteField: SKNode {
             }
         case .drift:
             let lines = 7
+            let u = world.baseUnit
+            let dash = u * 0.55
+            let period = dash * 1.85
+            let lineH = max(1.1, u * 0.06)
+            let repeats = Float(max(1, world.width / max(period, 1)))
             for i in 0..<lines where used < extraNodes.count {
                 let node = extraNodes[used]
                 used += 1
                 let yy = screenY - o.halfH * 0.72 + (CGFloat(i) / CGFloat(lines - 1)) * o.halfH * 1.44
+                var offset = (o.phase + CGFloat(i) * u * 0.8).truncatingRemainder(dividingBy: dash * 2)
+                if offset < 0 { offset += dash * 2 }
+                let scroll = Float((offset * o.driftDir) / max(period, 1))
                 node.isHidden = false
-                node.texture = bake.part(for: .drift)
+                node.texture = bake.windLane
+                node.shader = windShader
+                node.setValue(SKAttributeValue(float: repeats), forAttribute: "a_repeats")
+                node.setValue(SKAttributeValue(float: scroll), forAttribute: "a_scroll")
                 node.position = CGPoint(x: world.width * 0.5, y: yy)
                 node.zRotation = 0
-                node.size = CGSize(width: world.width, height: max(2, world.baseUnit * 0.14))
+                node.size = CGSize(width: world.width, height: lineH)
                 node.alpha = 1
                 node.colorBlendFactor = 0
             }

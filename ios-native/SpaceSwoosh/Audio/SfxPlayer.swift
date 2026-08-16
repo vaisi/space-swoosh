@@ -1,5 +1,5 @@
 // SfxPlayer.swift
-// Changes: playTurn uses decoded turn.mp3 on the engine pool (0.3); synth fallback.
+// Changes: crash / shield / shield-crash play from decoded engine buffers (no FileCue hitch).
 
 import AVFoundation
 import Foundation
@@ -16,15 +16,14 @@ final class SfxPlayer {
     private var portalIn: AVAudioPCMBuffer?
     private var portalOut: AVAudioPCMBuffer?
     private var swoosh: AVAudioPCMBuffer?
+    private var crashFile: AVAudioPCMBuffer?
     private var crashSynth: AVAudioPCMBuffer?
+    private var shieldCrashFile: AVAudioPCMBuffer?
+    private var shieldFile: AVAudioPCMBuffer?
     private var shieldSynth: AVAudioPCMBuffer?
     private var next = 0
     private var started = false
     var muted = false
-
-    private let crashCue = FileCue(name: "crash", volume: 0.40)
-    private let shieldCrashCue = FileCue(name: "crash_with_shield", volume: 0.40)
-    private let shieldCue = FileCue(name: "shield", volume: 0.40)
 
     private init() {
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
@@ -37,7 +36,16 @@ final class SfxPlayer {
         portalIn = Self.makePortal(format: format, entering: true)
         portalOut = Self.makePortal(format: format, entering: false)
         swoosh = Self.makeSwoosh(format: format)
+        if let decoded = Self.decodeNamed("crash", into: format) {
+            crashFile = Self.scaled(decoded, volume: 0.40)
+        }
         crashSynth = Self.makeCrash(format: format)
+        if let decoded = Self.decodeNamed("crash_with_shield", into: format) {
+            shieldCrashFile = Self.scaled(decoded, volume: 0.40)
+        }
+        if let decoded = Self.decodeNamed("shield", into: format) {
+            shieldFile = Self.scaled(decoded, volume: 0.40)
+        }
         shieldSynth = Self.makeShield(format: format)
         for _ in 0..<6 {
             let node = AVAudioPlayerNode()
@@ -83,27 +91,15 @@ final class SfxPlayer {
     }
 
     func playCrash() {
-        if crashCue.available {
-            crashCue.play(muted: muted)
-        } else {
-            play(crashSynth)
-        }
+        play(crashFile ?? crashSynth)
     }
 
     func playShieldCrash() {
-        if shieldCrashCue.available {
-            shieldCrashCue.play(muted: muted)
-        } else {
-            play(crashSynth)
-        }
+        play(shieldCrashFile ?? crashSynth)
     }
 
     func playShield() {
-        if shieldCue.available {
-            shieldCue.play(muted: muted)
-        } else {
-            play(shieldSynth)
-        }
+        play(shieldFile ?? shieldSynth)
     }
 
     func playPortalEntry() {
@@ -353,30 +349,5 @@ final class SfxPlayer {
         if t >= dur { return 0 }
         let u = (t - attack) / max(0.0001, dur - attack)
         return peak * (1 - u) * (1 - u)
-    }
-}
-
-private final class FileCue {
-    private var player: AVAudioPlayer?
-    private let volume: Float
-
-    var available: Bool { player != nil }
-
-    init(name: String, volume: Float) {
-        self.volume = volume
-        guard let url = Bundle.main.url(forResource: name, withExtension: "mp3")
-                ?? Bundle.main.url(forResource: name, withExtension: "m4a")
-        else { return }
-        player = try? AVAudioPlayer(contentsOf: url)
-        player?.prepareToPlay()
-        player?.volume = volume
-    }
-
-    func play(muted: Bool) {
-        guard !muted, let player else { return }
-        GameAudioSession.activate()
-        player.volume = volume
-        player.currentTime = 0
-        player.play()
     }
 }

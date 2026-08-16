@@ -13,8 +13,9 @@
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
 > **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP (the word
 > fades after the bounce), a smooth ink ribbon that springs and fattens on the
-> wall, a pulsing two-ring shield, the same four-point sparkle as Android, blue
-> `+FUEL`, NAV captions, a Space Log, and the same run-start roll / finish
+> wall, flowing wind dashes, a pulsing two-ring shield, the same four-point
+> sparkle as Android, blue `+FUEL`, NAV captions, a Space Log, and the same
+> run-start roll / finish
 > flyout as Android. Music loops under the run and quiets while NAV talks
 > when those clips are in the build. After the navigator line, the compact
 > icon HUD eases in (route, then pause, then smash). Voice lines play if the

@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Shield pulse + last-1.5s warning clock (Android updateShield).
+// Changes: 120ms cinematic shield-crash SFX throttle; drift spawn phase.
 
 import Foundation
 import CoreGraphics
@@ -47,6 +47,7 @@ struct RunState {
     var sfxTurn: Bool = false
     var sfxShield: Bool = false
     var sfxShieldCrash: Bool = false
+    var lastShieldCrashAt: TimeInterval = -1
     var sfxPortalIn: Bool = false
     var sfxPortalOut: Bool = false
     var sfxSwoosh: Bool = false
@@ -123,6 +124,17 @@ struct RunState {
         if shieldTimer <= 0 {
             shieldWarningStarted = false
         }
+    }
+
+    /// Score/popup every smash; throttle crash SFX in clear flyout (Android 120ms).
+    mutating func requestShieldCrashSfx() {
+        let cinematic = cinema == .clearHold || cinema == .clearBoost || cinema == .clearFade
+        if cinematic {
+            let now = CFAbsoluteTimeGetCurrent()
+            if lastShieldCrashAt >= 0, now - lastShieldCrashAt < 0.12 { return }
+            lastShieldCrashAt = now
+        }
+        sfxShieldCrash = true
     }
 }
 
@@ -591,6 +603,7 @@ enum CombatSimulator {
             o.halfW = world.width * 0.5
             o.halfH = u * (4.2 + rand01(&run.rng) * 1.4) * 0.5
             o.driftDir = rand01(&run.rng) < 0.5 ? -1 : 1
+            o.phase = rand01(&run.rng) * 100
             o.lethal = false
             o.spin = 0
             world.obstacles[i] = o
@@ -995,7 +1008,7 @@ enum CombatSimulator {
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
                     markSmash(run: &run, obstacle: world.obstacles[i])
-                    run.sfxShieldCrash = true
+                    run.requestShieldCrashSfx()
                     FloatPopupBuffer.spawn(
                         &run.popups,
                         kind: .smash,
@@ -1011,7 +1024,7 @@ enum CombatSimulator {
                     run.obstaclesDestroyed += 1
                     run.scoreKm += 10
                     markSmash(run: &run, obstacle: world.obstacles[i])
-                    run.sfxShieldCrash = true
+                    run.requestShieldCrashSfx()
                     FloatPopupBuffer.spawn(&run.popups, kind: .smash, x: ox, y: oy, vy: 2)
                 }
             } else if ShipHitbox.hits(

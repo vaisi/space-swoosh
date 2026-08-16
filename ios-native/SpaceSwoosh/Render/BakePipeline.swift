@@ -1,5 +1,5 @@
 // BakePipeline.swift
-// Changes: Android 4-point sparkle star + two shield-ring stroke textures.
+// Changes: Tileable thin wind-lane dash (Android driftCurrent period).
 
 import SpriteKit
 import UIKit
@@ -13,6 +13,7 @@ final class BakePipeline {
     let shieldRingInner: SKTexture
     let shieldRingOuter: SKTexture
     let plus: SKTexture
+    let windLane: SKTexture
     private let parts: [ObstacleKind: SKTexture]
 
     private static var cache: [Bool: BakePipeline] = [:]
@@ -34,6 +35,7 @@ final class BakePipeline {
         shieldRingInner = Self.shieldRing(size: 128, strokeFrac: 0.067)
         shieldRingOuter = Self.shieldRing(size: 128, strokeFrac: 0.030)
         plus = Self.plus(size: 96)
+        windLane = Self.windLane(width: 128, height: 16)
         let circle = Self.filledCircle(size: 96)
         let square = Self.square(size: 96)
         let hole = Self.hole(size: 96)
@@ -216,6 +218,7 @@ final class BakePipeline {
         }
     }
 
+    /// Intro streaks — leftover static strip. Hazard lanes use `windLane`.
     private static func windDash(width: CGFloat, height: CGFloat) -> SKTexture {
         rectImage(width: width, height: height) { cg, w, h in
             cg.setStrokeColor(BrandColors.UI.ink30.cgColor)
@@ -225,6 +228,19 @@ final class BakePipeline {
             cg.move(to: CGPoint(x: 4, y: h / 2))
             cg.addLine(to: CGPoint(x: w - 4, y: h / 2))
             cg.strokePath()
+        }
+    }
+
+    /// One dash period: on 0.55 / off 0.4675 (Android `[u*0.55, u*0.55*0.85]`).
+    private static func windLane(width: CGFloat, height: CGFloat) -> SKTexture {
+        rectImage(width: width, height: height) { cg, w, h in
+            let on = w * (0.55 / 1.0175)
+            let stroke = max(1.2, h * 0.38)
+            cg.setFillColor(BrandColors.UI.ink30.cgColor)
+            let bar = CGRect(x: 0, y: (h - stroke) * 0.5, width: on, height: stroke)
+            let path = UIBezierPath(roundedRect: bar, cornerRadius: stroke * 0.5)
+            cg.addPath(path.cgPath)
+            cg.fillPath()
         }
     }
 
