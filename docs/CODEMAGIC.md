@@ -1,6 +1,7 @@
 <!--
   docs/CODEMAGIC.md
   Changes:
+  - Document iOS Native → App Preview (unsigned simulator .app + Quick launch).
   - iOS CI stamps CFBundleVersion ≥ 2 (ASC already has 1.0.0 (1)).
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
@@ -15,6 +16,7 @@ Config file: [`codemagic.yaml`](../codemagic.yaml) at the repo root.
 | Workflow | What it builds |
 | --- | --- |
 | **iOS Native → TestFlight** | [`ios-native/`](../ios-native/) SpriteKit app → TestFlight |
+| **iOS Native → App Preview** | Unsigned iPhone **simulator** `.app` for Codemagic’s in-browser simulator |
 | **Android → Play internal** | Capacitor Android → Play internal track |
 
 Do **not** run any Capacitor iOS workflow — it was removed. iOS shipping target is native only.
@@ -118,6 +120,25 @@ Paste into `CM_KEYSTORE`. Set the three password/alias variables to match.
 - Push to `main`, or start **iOS Native → TestFlight** manually in Codemagic.
 - Native IPA goes to TestFlight (processing can take 5–30 minutes).
 - Android AAB goes to Play **internal** track as a draft — promote in the console.
+
+## 6b. App Preview (browser iOS simulator)
+
+The TestFlight IPA is a **device** build. Codemagic App Preview needs an
+**unsigned `.app` built with the iPhone simulator SDK**. That is a different
+workflow: **iOS Native → App Preview**.
+
+1. In Codemagic, start **iOS Native → App Preview** (Start new build → pick that
+   workflow). It does **not** run on every `main` push and does **not** need
+   signing secrets or App Store Connect.
+2. Wait until the build is green.
+3. On the **build page** (not the App Preview sidebar), find the
+   `SpaceSwoosh.app` artifact and click **Quick launch**.
+4. The in-browser simulator session lasts up to 20 minutes (one at a time on
+   the default plan). Use the ⋮ menu to change device or stop the session.
+
+The App Preview sidebar stays empty until you have launched a session in the
+last 7 days. **Learn more** / the demo phone on that page are Codemagic’s
+sample apps — your game only appears after Quick launch on a simulator build.
 
 ## iOS project note
 

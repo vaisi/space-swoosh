@@ -1,5 +1,6 @@
 # codemagic.yaml
 # Changes:
+# - Add ios-native-simulator: unsigned iPhone simulator .app for App Preview.
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
 # - Floor build number at 3 for C.5 TestFlight.
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
@@ -110,6 +111,52 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+
+  # Browser simulator (Codemagic App Preview). Start this workflow manually —
+  # it does not sign, upload, or increment TestFlight. After it finishes, click
+  # Quick launch next to SpaceSwoosh.app on the build page.
+  ios-native-simulator:
+    name: iOS Native → App Preview
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      vars:
+        XCODE_PROJECT: ios-native/SpaceSwoosh.xcodeproj
+        XCODE_SCHEME: SpaceSwoosh
+      xcode: latest
+    scripts:
+      - name: Build unsigned iPhone simulator .app
+        script: |
+          set -euo pipefail
+          xcodebuild build \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Stage .app for App Preview
+        script: |
+          set -euo pipefail
+          APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" \
+            -name "SpaceSwoosh.app" \
+            -path "*/Build/Products/*-iphonesimulator/*" \
+            | head -1)
+          if [ -z "$APP" ]; then
+            echo "ERROR: SpaceSwoosh.app (iphonesimulator) not found"
+            find "$HOME/Library/Developer/Xcode/DerivedData" -name "*.app" || true
+            exit 1
+          fi
+          mkdir -p "$CM_BUILD_DIR/build/ios/simulator"
+          rm -rf "$CM_BUILD_DIR/build/ios/simulator/SpaceSwoosh.app"
+          cp -R "$APP" "$CM_BUILD_DIR/build/ios/simulator/SpaceSwoosh.app"
+          echo "Staged $APP"
+          ls -la "$CM_BUILD_DIR/build/ios/simulator"
+    artifacts:
+      - build/ios/simulator/*.app
+      - /tmp/xcodebuild_logs/*.log
 
   android-internal:
     name: Android → Play internal

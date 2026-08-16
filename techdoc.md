@@ -124,7 +124,11 @@ For a working leaderboard locally, copy `.env.example` → `.env` and set the
 vaisi's Project URL + anon key (Project Settings → API). Restart Vite after
 changing env vars.
 
-Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md). Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
+Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md).
+**iOS Native → TestFlight** ships a signed IPA. **iOS Native → App Preview**
+builds an unsigned iPhone-simulator `.app`; after that job finishes, click
+**Quick launch** on the build page to run the game in Codemagic’s browser
+simulator (no Mac or device). Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
 
 ### Supabase API keys (correct usage)
 

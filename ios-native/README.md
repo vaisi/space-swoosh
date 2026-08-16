@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: HUD chip stagger matches Android (KM 2s, pause 3s, smash/PTS unlock).
+  Changes: Point at iOS Native → App Preview for Codemagic browser simulator.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -40,3 +40,8 @@ node ios-native/scripts/generate-pbxproj.mjs
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
 (Apple already has **1.0.0 (1)**). CI stamps **3+**.
+
+To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
+click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That
+workflow builds an unsigned iPhone-simulator `.app` — a TestFlight IPA will not
+show Quick launch. See [`docs/CODEMAGIC.md`](../docs/CODEMAGIC.md) §6b.
