@@ -1,5 +1,6 @@
 // VoicePlayer.swift
-// Changes: Activate .playback before a clip so Silent switch does not swallow NAV.
+// Changes: first-boop / swoosh-voice play from pre-decoded engine buffers so
+// the first hit no longer freezes the frame or glitches the synth BOOP/swoosh.
 
 import AVFoundation
 import Foundation
@@ -11,10 +12,11 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     private var player: AVAudioPlayer?
     private var ended: (() -> Void)?
     private var frozen = false
+    private var engineCue = false
     private(set) var playedFirstBoop = false
 
     var isSpeaking: Bool {
-        player?.isPlaying == true
+        player?.isPlaying == true || SfxPlayer.shared.voicePlaying
     }
 
     func playLevel(_ level: Int, onEnded: (() -> Void)? = nil) {
@@ -24,16 +26,18 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     func playFirstBoop() {
         guard !playedFirstBoop else { return }
         playedFirstBoop = true
-        playNamed("first-boop", onEnded: nil)
+        playEngineCue { SfxPlayer.shared.playFirstBoopVoice(onEnded: $0) }
     }
 
     func playSwoosh() {
-        playNamed("swoosh-voice", onEnded: nil)
+        playEngineCue { SfxPlayer.shared.playSwooshVoice(onEnded: $0) }
     }
 
     func stop() {
+        SfxPlayer.shared.stopVoice()
         player?.stop()
         player = nil
+        engineCue = false
         frozen = false
         MusicPlayer.shared.unduck()
         let done = ended
@@ -42,25 +46,36 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     }
 
     func reset() {
+        SfxPlayer.shared.stopVoice()
         player?.stop()
         player = nil
         ended = nil
+        engineCue = false
         frozen = false
         MusicPlayer.shared.unduck()
     }
 
     func pause() {
+        if engineCue, SfxPlayer.shared.voicePlaying {
+            SfxPlayer.shared.pauseVoice()
+            frozen = true
+            return
+        }
         guard let player, player.isPlaying else { return }
         player.pause()
         frozen = true
     }
 
     func resume() {
-        guard frozen, let player else { return }
+        guard frozen else { return }
         frozen = false
         guard enabled, !SettingsStore.shared.muted else { return }
         MusicPlayer.shared.duck()
-        player.play()
+        if engineCue {
+            SfxPlayer.shared.resumeVoice()
+            return
+        }
+        player?.play()
     }
 
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
@@ -70,6 +85,21 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         frozen = false
         MusicPlayer.shared.unduck()
         done?()
+    }
+
+    private func playEngineCue(_ start: (@escaping () -> Void) -> Void) {
+        stopWithoutNotify()
+        ended = nil
+        guard enabled, !SettingsStore.shared.muted else { return }
+        GameAudioSession.activate()
+        engineCue = true
+        MusicPlayer.shared.duck()
+        start { [weak self] in
+            guard let self, self.engineCue else { return }
+            self.engineCue = false
+            self.frozen = false
+            MusicPlayer.shared.unduck()
+        }
     }
 
     private func playNamed(_ name: String, onEnded: (() -> Void)?) {
@@ -100,9 +130,11 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     }
 
     private func stopWithoutNotify() {
+        SfxPlayer.shared.stopVoice()
         player?.stop()
         player = nil
         ended = nil
+        engineCue = false
         frozen = false
         MusicPlayer.shared.unduck()
     }

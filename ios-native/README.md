@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Slice F — Focus / Flicker / Ember / Saber + picker; CFBundleVersion 8.
+  Changes: first-boop / swoosh-voice decode onto the SFX engine (no first-hit hitch).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -22,7 +22,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - **Logbook** observe / interact / known
 - Options: ship, flight, mute, **voice**, night paper
 - Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId` (same keys as Android)
-- Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash on the engine pool (synth fallback); baked boop/collect/portal/swoosh. Clear-flyout smash SFX throttled to 120 ms
+- Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash / **first-boop** / **swoosh-voice** on the engine pool (synth fallback for turn/crash/shield); baked boop/collect/portal/swoosh. First wall BOOP and first style swoosh no longer open a fresh `AVAudioPlayer` (that hitch glitched the synth SFX). Clear-flyout smash SFX throttled to 120 ms
 - HUD: Android mockup C (pause glyph + route / fuel / smash icon rows). Stagger: KM+fuel at 2s, pause at 3s, smash after first event
 - Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
 - Sparkles: 8-vertex 4-point star (`innerRatio` 0.4) at Android radius `1.15×` unit (sprite diameter `2r`); filled `signalDisc` halo diameter `3.8r` (`signalSoft` alpha, not additive glow)
@@ -34,7 +34,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick
 - Zigzag path flips instantly; hull lean eases (`bankSmoothing` 0.34). Stretch follows `|tangent|`
 
-Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`). Gameplay file cues decode once into engine buffers. If a clip is missing, turn/crash/shield fall back to synth. Boop / collect / portal / swoosh stay synthesized on both platforms.
+Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`). Gameplay file cues (including first-boop and swoosh-voice) decode once into engine buffers. If a clip is missing, turn/crash/shield fall back to synth. Boop / collect / portal / swoosh stay synthesized on both platforms. Journey `level-N` intros still use `AVAudioPlayer` (they play during the title beat, not mid-combat).
 
 The audio session is **`.playback`**, so TestFlight plays with the Silent switch on. Options → SOUND OFF still mutes. Codemagic **App Preview** may still forward no audio; that is the stream, not the IPA.
 

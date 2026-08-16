@@ -1,5 +1,6 @@
 // SfxPlayer.swift
-// Changes: crash / shield / shield-crash play from decoded engine buffers (no FileCue hitch).
+// Changes: first-boop / swoosh-voice decode once into engine buffers so the
+// first wall BOOP / style swoosh no longer hitch or glitch the synth SFX.
 
 import AVFoundation
 import Foundation
@@ -9,6 +10,7 @@ final class SfxPlayer {
 
     private let engine = AVAudioEngine()
     private var players: [AVAudioPlayerNode] = []
+    private let voiceNode = AVAudioPlayerNode()
     private var boop: AVAudioPCMBuffer?
     private var collect: AVAudioPCMBuffer?
     private var turnFile: AVAudioPCMBuffer?
@@ -21,8 +23,13 @@ final class SfxPlayer {
     private var shieldCrashFile: AVAudioPCMBuffer?
     private var shieldFile: AVAudioPCMBuffer?
     private var shieldSynth: AVAudioPCMBuffer?
+    private var firstBoopVoice: AVAudioPCMBuffer?
+    private var swooshVoice: AVAudioPCMBuffer?
     private var next = 0
     private var started = false
+    private var voiceGen: UInt = 0
+    private var voiceEnded: (() -> Void)?
+    private(set) var voicePlaying = false
     var muted = false
 
     private init() {
@@ -47,12 +54,20 @@ final class SfxPlayer {
             shieldFile = Self.scaled(decoded, volume: 0.40)
         }
         shieldSynth = Self.makeShield(format: format)
+        if let decoded = Self.decodeNamed("first-boop", into: format) {
+            firstBoopVoice = Self.scaled(decoded, volume: 0.85)
+        }
+        if let decoded = Self.decodeNamed("swoosh-voice", into: format) {
+            swooshVoice = Self.scaled(decoded, volume: 0.85)
+        }
         for _ in 0..<6 {
             let node = AVAudioPlayerNode()
             engine.attach(node)
             engine.connect(node, to: engine.mainMixerNode, format: format)
             players.append(node)
         }
+        engine.attach(voiceNode)
+        engine.connect(voiceNode, to: engine.mainMixerNode, format: format)
         engine.mainMixerNode.outputVolume = 1
     }
 
@@ -112,6 +127,61 @@ final class SfxPlayer {
 
     func playSwoosh() {
         play(swoosh)
+    }
+
+    func playFirstBoopVoice(onEnded: (() -> Void)? = nil) {
+        playVoice(firstBoopVoice, onEnded: onEnded)
+    }
+
+    func playSwooshVoice(onEnded: (() -> Void)? = nil) {
+        playVoice(swooshVoice, onEnded: onEnded)
+    }
+
+    func stopVoice() {
+        voiceGen += 1
+        voiceEnded = nil
+        voicePlaying = false
+        voiceNode.stop()
+    }
+
+    func pauseVoice() {
+        guard voicePlaying else { return }
+        voiceNode.pause()
+    }
+
+    func resumeVoice() {
+        guard voicePlaying, !muted else { return }
+        if !engine.isRunning { recover() }
+        guard engine.isRunning else { return }
+        voiceNode.play()
+    }
+
+    private func playVoice(_ buffer: AVAudioPCMBuffer?, onEnded: (() -> Void)?) {
+        stopVoice()
+        // Voice channel is gated by VoicePlayer; do not use SFX mute here.
+        guard let buffer else {
+            onEnded?()
+            return
+        }
+        if !engine.isRunning { recover() }
+        guard started, engine.isRunning else {
+            onEnded?()
+            return
+        }
+        voiceGen += 1
+        let gen = voiceGen
+        voiceEnded = onEnded
+        voicePlaying = true
+        voiceNode.scheduleBuffer(buffer, at: nil, options: []) { [weak self] in
+            DispatchQueue.main.async {
+                guard let self, self.voiceGen == gen else { return }
+                self.voicePlaying = false
+                let done = self.voiceEnded
+                self.voiceEnded = nil
+                done?()
+            }
+        }
+        if !voiceNode.isPlaying { voiceNode.play() }
     }
 
     private func play(_ buffer: AVAudioPCMBuffer?) {

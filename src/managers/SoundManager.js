@@ -3,6 +3,9 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // and wormhole portal hops.
 // Changes:
+// - first-boop / swoosh-voice decode at init into Web Audio buffers (same as
+//   turn.mp3) so the first wall BOOP / style swoosh does not hitch or glitch
+//   the synth SFX. Swoosh noise puff is reused, not allocated per hit.
 // - pauseLevelVoice / resumeLevelVoice: game pause freezes the navigator clip
 //   in place (does not reset); resume continues from the same spot.
 // - Per-channel Options toggles: Music / Sound FX / Voice (localStorage
@@ -95,13 +98,15 @@ export class SoundManager {
 
         this.turnVolume = TURN_VOLUME;
         this.moveVolume = MOVE_VOLUME;
-        this.sfxBuffers = { turn: null, move: null };
+        this.sfxBuffers = { turn: null, move: null, firstBoop: null, swooshVoice: null };
 
         this.initialized = false;
         this.bgmPlaying = false;
         this.bgmPaused = false;
         this.audioCtx = null;
         this.boopNoiseBuffer = null; // reused by playBoop (no per-hit GC)
+        this.swooshNoiseBuffer = null; // reused by playSwoosh (no per-hit GC)
+        this.cueVoiceSource = null;
         this.muted = loadMuted(); // master mute (pause menu)
         this.musicEnabled = loadChannelEnabled(MUSIC_ENABLED_KEY);
         this.sfxEnabled = loadChannelEnabled(SFX_ENABLED_KEY);
@@ -164,12 +169,16 @@ export class SoundManager {
     }
 
     async loadSfxBuffers() {
-        const [turn, move] = await Promise.all([
+        const [turn, move, firstBoop, swooshVoice] = await Promise.all([
             this.decodeSfxBuffer('/sounds/turn.mp3'),
             this.decodeSfxBuffer('/sounds/move.mp3'),
+            this.decodeSfxBuffer('/sounds/voice/first-boop.mp3'),
+            this.decodeSfxBuffer('/sounds/voice/swoosh-voice.mp3'),
         ]);
         this.sfxBuffers.turn = turn;
         this.sfxBuffers.move = move;
+        this.sfxBuffers.firstBoop = firstBoop;
+        this.sfxBuffers.swooshVoice = swooshVoice;
     }
 
     /** Fire-and-forget buffer source — no seek, safe to retrigger every tap. */
@@ -353,6 +362,12 @@ export class SoundManager {
         }
 
         try {
+            const buffer = this.cueVoiceBuffer(label);
+            if (buffer) {
+                this.playDecodedCue(buffer);
+                return;
+            }
+
             const voice = new Audio(url);
             voice.volume = VOICE_VOLUME;
             voice.muted = !this.canPlayVoice();
@@ -389,6 +404,61 @@ export class SoundManager {
         }
     }
 
+    cueVoiceBuffer(label) {
+        if (label === 'first-boop.mp3') return this.sfxBuffers.firstBoop;
+        if (label === 'swoosh-voice.mp3') return this.sfxBuffers.swooshVoice;
+        return null;
+    }
+
+    /** Pre-decoded first-boop / swoosh-voice — same Web Audio path as turn SFX. */
+    playDecodedCue(buffer) {
+        const ctx = this.ensureAudioContext();
+        if (!ctx || !buffer) {
+            this.notifyLevelVoiceEnded();
+            return;
+        }
+
+        this.stopCueSource();
+        const src = ctx.createBufferSource();
+        const gain = ctx.createGain();
+        src.buffer = buffer;
+        gain.gain.value = VOICE_VOLUME;
+        src.connect(gain);
+        gain.connect(ctx.destination);
+
+        this.cueVoiceSource = src;
+        this.levelVoicePlaying = true;
+        this.duckBgmForVoice();
+
+        const finish = () => {
+            if (this.cueVoiceSource !== src) return;
+            this.cueVoiceSource = null;
+            this.levelVoicePlaying = false;
+            this.restoreBgmAfterVoice();
+            this.notifyLevelVoiceEnded();
+        };
+
+        src.onended = finish;
+        try {
+            src.start(0);
+        } catch (error) {
+            console.error('Error playing decoded cue:', error);
+            finish();
+        }
+    }
+
+    stopCueSource() {
+        const src = this.cueVoiceSource;
+        this.cueVoiceSource = null;
+        if (!src) return;
+        try {
+            src.onended = null;
+            src.stop();
+        } catch {
+            /* already stopped */
+        }
+    }
+
     /** Alias — cue clips share the level-voice slot. */
     stopCueVoice(opts = {}) {
         this.stopLevelVoice(opts);
@@ -408,6 +478,7 @@ export class SoundManager {
         this.levelVoicePaused = false;
         this.onLevelVoiceEnded = null;
         this.restoreBgmAfterVoice();
+        this.stopCueSource();
         if (voice) {
             try {
                 voice.pause();
@@ -427,6 +498,12 @@ export class SoundManager {
 
     /** Freeze navigator / cue voice for game pause (keeps seek position). */
     pauseLevelVoice() {
+        if (this.cueVoiceSource) {
+            this.stopCueSource();
+            this.levelVoicePlaying = false;
+            this.restoreBgmAfterVoice();
+            return;
+        }
         const voice = this.levelVoice;
         if (!voice || this.levelVoicePaused) return;
         if (!this.levelVoicePlaying && voice.paused) return;
@@ -503,6 +580,15 @@ export class SoundManager {
                 data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
             }
             this.boopNoiseBuffer = buffer;
+        }
+        if (this.audioCtx && !this.swooshNoiseBuffer) {
+            const sampleCount = Math.floor(this.audioCtx.sampleRate * 0.22);
+            const buffer = this.audioCtx.createBuffer(1, sampleCount, this.audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < sampleCount; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
+            }
+            this.swooshNoiseBuffer = buffer;
         }
         return this.audioCtx;
     }
@@ -713,15 +799,8 @@ export class SoundManager {
             const duration = 0.22;
 
             // Band-passed noise burst — reads as air rushing past.
-            const sampleCount = Math.floor(ctx.sampleRate * duration);
-            const buffer = ctx.createBuffer(1, sampleCount, ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < sampleCount; i++) {
-                data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
-            }
-
             const src = ctx.createBufferSource();
-            src.buffer = buffer;
+            src.buffer = this.swooshNoiseBuffer;
 
             const filter = ctx.createBiquadFilter();
             filter.type = 'bandpass';
@@ -744,14 +823,16 @@ export class SoundManager {
             oscGain.gain.exponentialRampToValueAtTime(0.07, now + 0.015);
             oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
 
-            src.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
+            if (this.swooshNoiseBuffer) {
+                src.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                src.start(now);
+                src.stop(now + duration);
+            }
             osc.connect(oscGain);
             oscGain.connect(ctx.destination);
 
-            src.start(now);
-            src.stop(now + duration);
             osc.start(now);
             osc.stop(now + 0.15);
         } catch (error) {
