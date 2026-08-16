@@ -1,5 +1,5 @@
 // WallJelly.swift
-// Changes: Android wallTrailDeform — dense / spring / scatter / whip + needle hull.
+// Changes: Cast wall-side sign to CGFloat so Xcode 26 type-checks deform.
 
 import Foundation
 import CoreGraphics
@@ -73,7 +73,7 @@ enum WallJelly {
         seed: CGFloat
     ) -> TrailDeform {
         let a = max(0, min(1, along))
-        let s = side < 0 ? -1 : 1
+        let s: CGFloat = side < 0 ? -1 : 1
         let seedPhase = seed * .pi * 2
         switch mode {
         case .dense:
