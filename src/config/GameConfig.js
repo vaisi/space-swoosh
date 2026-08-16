@@ -3,8 +3,8 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
-// - Camera reseat knobs (Android native): after 5s spent below the ideal
-//   seat, a slow extra pull lifts the ship back through the deadzone.
+// - Camera reseat knobs (Android native): after 5s below the ideal seat,
+//   an 8s ease-in-out creeps the ship back (reseatDuration / reseatTrack).
 // - Soft sparkle magnet: radius 4.25× ship + magnetPull 0.15 so near-miss
 //   diamonds ease in more readily; collect still requires contact.
 // - Fuel drainPerKm 0.00025 ≈ 4000 KM full tank (playtest: 2700 still too
@@ -85,11 +85,12 @@ export const GameConfig = {
         // pure smooth scroll and the camera only re-addresses on real drift.
         deadzone: 0.16,
         // Android native only: if the ship sits below the ideal seat this long
-        // (seconds), apply a slow extra pull inside the deadzone so a wormhole
-        // or black-hole dip does not leave the craft permanently low.
+        // (seconds), ease the leftover gap closed over reseatDuration so a
+        // wormhole or black-hole dip does not leave the craft permanently low.
         reseatDelay: 5,
         reseatSlack: 0.03, // × height — ignore tiny dips
-        reseatInterpolation: 0.05, // slower than interpolation (0.18)
+        reseatDuration: 8, // seconds to ease the leftover gap closed
+        reseatTrack: 0.015, // how tightly we follow the easing target
     },
     obstacles: {
         minSize: 2.5,

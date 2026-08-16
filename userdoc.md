@@ -113,7 +113,7 @@ The endless run. No finish line: fly until you crash or run out of fuel, and see
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up — they do **not** flash a name banner when they first appear.
 On Android, if a wormhole or black hole leaves the ship sitting low in the
-view, the camera eases it back to the usual height after a few seconds.
+view, the camera slowly eases it back to the usual height over several seconds.
 **This is the mode with the leaderboard** — if your run lands in the
 top 10 for the flight style you were using (Zigzag or Arc), after Mission Failed
 settles a Submit Signal card lists your distance, asteroids destroyed, and rank —

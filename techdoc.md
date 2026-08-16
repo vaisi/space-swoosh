@@ -368,9 +368,9 @@ Two things worth knowing about the existing engine that this surfaced:
   **Android native only:** if the ship sits below the ideal seat for 5s
   (`camera.reseatDelay`, slack `0.03×height`) — typical after a wormhole hop or
   advanced black-hole Y-pull that lands inside the deadzone — `Camera.tickReseat`
-  applies a slow extra pull (`reseatInterpolation` 0.05) until the seat is
-  recovered. Gated by `Game.cameraReseatEnabled` / `isAndroidNative()`. iOS
-  native uses `CinematicFlight.cruiseSeat` and does not reseat this way.
+  eases the leftover gap closed over 8s (`reseatDuration`, `reseatTrack` 0.015),
+  not a catch-up snap. Gated by `Game.cameraReseatEnabled` / `isAndroidNative()`.
+  iOS native uses `CinematicFlight.cruiseSeat` and does not reseat this way.
   KM must never be computed as `|velocity| * wallClockDt * 100` — that desyncs
   HUD distance from world travel; use `abs(Δcamera.y) * (100/60)`.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
