@@ -1,7 +1,9 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
-// - Preview wake stretches for skins with `trailMaxPoints` (Nyan rainbow).
+// - Menu preview honours skin.trailTailOffset (Nyan centre-attach).
+// - Menu preview always uses the short wake so it never covers the title;
+//   in-game length still follows trailMaxPoints / trailFade.
 // - Preview fakeShip stamps `_wallTrailMode` so new crease/cloud/ladder/lag/
 //   script wakes still deform correctly in the Options picker.
 // - Slimmed to a registry; hull geometry moved to hulls.js, wake renderers to
@@ -85,8 +87,8 @@ function previewWake(cx, cy, radius, { longWake = false } = {}) {
 export function drawSkinPreview(ctx, skinId, cx, cy, radius, time = performance.now()) {
     const skin = getSkin(skinId);
     const bank = Math.min(MAX_BANK, Math.atan2(1.6 * 0.75, 4.2));
-    const longWake = (skin.trailMaxPoints ?? 80) > 100;
-
+    // Menu card stays short so the wake never covers the title / HOLD cue.
+    // In-game length is trailMaxPoints / trailFade on the skin.
     const fakeShip = {
         x: cx,
         y: cy,
@@ -95,13 +97,16 @@ export function drawSkinPreview(ctx, skinId, cx, cy, radius, time = performance.
         tangent: bank,
         speed: radius * 0.12,
         _wallTrailMode: skin.wallTrailMode ?? 'spring',
-        tailPoint: () => ({
-            x: cx - Math.sin(bank) * radius * 0.6,
-            y: cy + Math.cos(bank) * radius * 0.6,
-        }),
+        tailPoint: () => {
+            const offset = radius * (skin.trailTailOffset ?? 0.6);
+            return {
+                x: cx - Math.sin(bank) * offset,
+                y: cy + Math.cos(bank) * offset,
+            };
+        },
         game: { config: { spacecraft: { trailDotSize: 0.2 } } },
     };
 
-    skin.drawTrail(ctx, fakeShip, previewWake(cx, cy, radius, { longWake }), (y) => y);
+    skin.drawTrail(ctx, fakeShip, previewWake(cx, cy, radius), (y) => y);
     skin.drawHull(ctx, fakeShip, cy, time);
 }

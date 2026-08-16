@@ -11,8 +11,8 @@
 //   mid-arc verticalBoost 0.55.
 // - Phase 1: optional hull bitmap blit via HullCache when game.useHullCache.
 //   Render accepts { skipTrail, skipHull } for Phase 0 bisect (?kill=).
-// - Per-skin trail length: optional `trailMaxPoints` / `trailFade` on the
-//   active skin (Nyan ~2× wake). iOS draw LOD still scales max points ×0.6.
+// - Per-skin `trailTailOffset` (Nyan 0 = wake from hull centre; default 0.6
+//   radii behind). Other skins keep the aft attach.
 // - `skipHullCache` on a skin forces live `drawHull` (for animated hull paint).
 // - iOS draw LOD: shorter wake (48 pts vs 80) via game.iosDrawLod.
 // - Render stamps `ship._wallTrailMode` from the active skin so wakes can pile
@@ -417,12 +417,13 @@ export class Spacecraft {
         return this.hitCircles.some((circle) => target.checkCollision(circle));
     }
 
-    // The wake leaves from behind the hull, not its centre. This uses `bank`
+    // Default: wake leaves from behind the hull, not its centre. Uses `bank`
     // rather than `tangent` so the trail stays pinned to the back of the ship
-    // as it is actually drawn, even when the clamp holds the nose off the true
-    // direction of travel.
+    // as drawn. Skins may set `trailTailOffset` (× radius); Nyan uses 0 so the
+    // rainbow starts under the crescent with no gap.
     tailPoint() {
-        const offset = this.radius * TAIL_OFFSET;
+        const skin = getSkin(this.game.shipSkinId);
+        const offset = this.radius * (skin.trailTailOffset ?? TAIL_OFFSET);
         return {
             x: this.x - Math.sin(this.bank) * offset,
             y: this.y + Math.cos(this.bank) * offset,

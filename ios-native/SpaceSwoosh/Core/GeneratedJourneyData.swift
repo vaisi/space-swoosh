@@ -13,10 +13,10 @@ enum GeneratedJourneyData {
     static let lore = "A message came to us out of the dark, torn apart by the distance. Its pieces are still scattered along the way it travelled. NAV will guide you back to find who sent it."
     static let loreTitle = "The Call"
     static let loreEntryId = "signalCall"
-    static let labIntro = "Hazard Lab — blooms, sweeps, push nodes, wind, and portals. Practice only — nothing counts toward Journey."
+    static let labIntro = "Hazard Lab — blooms, sweeps, push nodes, wind, portals, and wells. Practice only — nothing counts toward Journey."
     static let labGoalKm: CGFloat = 12000
     static let labDifficulty: CGFloat = 0.45
-    static let labTypes = ["phase", "sweepGate", "repulsor", "driftCurrent", "wormhole"]
+    static let labTypes = ["phase", "sweepGate", "repulsor", "driftCurrent", "wormhole", "blackhole"]
     static let emptyLogbook = "The pages are blank. Explore space. Then explore the space log."
     static let endingPayload = "WE HEARD YOU."
 

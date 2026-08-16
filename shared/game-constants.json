@@ -1762,7 +1762,8 @@
       "sweepGate",
       "repulsor",
       "driftCurrent",
-      "wormhole"
+      "wormhole",
+      "blackhole"
     ],
     "focusType": null,
     "introduces": null,
@@ -1770,7 +1771,7 @@
     "smashTarget": 0,
     "starSlots": 0,
     "isHazardLab": true,
-    "intro": "Hazard Lab — blooms, sweeps, push nodes, wind, and portals. Practice only — nothing counts toward Journey."
+    "intro": "Hazard Lab — blooms, sweeps, push nodes, wind, portals, and wells. Practice only — nothing counts toward Journey."
   },
   "logbook": {
     "categories": [

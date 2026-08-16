@@ -2,6 +2,13 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Fletch `drawHorizonRibbonTrail`: Quill ribbon with length-wise dawn
+//   strata (not Nyan's side-by-side lanes). Solid fills, cheap-canvas safe.
+// - Dusk cloud: densityScale 2, scatter 'dust' (along-wake jitter, no polar
+//   rings), scatterWidth 1.4, milder rippleScale. Mote stays polar + full ripple.
+// - drawCloudTrail densityScale / rippleScale / scatter options.
+// - Mote/Dusk cloud: hull-to-tail rippleBoop (size + spread pulse, dies off).
+// - Focus/Ember `rippleBoop`: hull-to-tail cartoon pulse from hulls.rippleEnvelope.
 // - Saber `drawSaberTrail`: slim bright-purple lightsaber blade (bloom + body
 //   + hot core) with seed-stable crackle sparks; denser/hotter on wall jelly.
 // - Theme toggle: trail defaults read `color.inkRgb` at draw time (no snapshot).
@@ -25,12 +32,12 @@
 // - Mote cloud: organic radial micro-dot scatter again (messy Focus cousin);
 //   golden-ratio hashes keep L/R balance without mirrored pairs.
 // - Per-ship wall-boop extras: Halo bubbles, Echo desync, Shard fan, Ember
-//   sparks, Seal blot, Focus/Pulse dense, Wisp flare, Hatch stretch.
+//   twin-dot ripple, Seal blot, Focus ripple / Pulse dense, Wisp flare, Hatch stretch.
 // - Needle hairline whip + tip ripples. wallTrailDeform on discrete marks.
 // - wakePoints / ribbonPath reuse scratch arrays (iOS GC).
 
 import { color } from '../brand/tokens.js';
-import { withHeading, wallTrailDeform, WALL_JELLY_MS } from './hulls.js';
+import { withHeading, wallTrailDeform, WALL_JELLY_MS, TRAIL_WAVE_MS, rippleEnvelope } from './hulls.js';
 
 const wakeScratch = [];
 const ribbonLeft = [];
@@ -48,9 +55,18 @@ const NYAN_RGB = [
     '153, 51, 255',
 ];
 
+/** Fletch dawn strata — tip (oldest) → hull (newest). Length-wise, not Nyan lanes. */
+const FLETCH_RGB = [
+    '72, 48, 118',
+    '48, 142, 154',
+    '255, 214, 118',
+    '255, 142, 64',
+    '232, 72, 58',
+];
+
 const KNOWN_MODES = new Set([
     'pile', 'spring', 'whip', 'desync', 'scatter', 'shatter', 'blot',
-    'dense', 'flare', 'crease', 'cloud', 'ladder', 'lag', 'script',
+    'dense', 'ripple', 'flare', 'crease', 'cloud', 'ladder', 'lag', 'script',
     'flick', 'cinder',
 ]);
 
@@ -153,11 +169,14 @@ function edgePoint(bucket, i) {
     return p;
 }
 
-function ribbonPath(ctx, pts, widthAt) {
-    const n = pts.length;
-    for (let i = 0; i < n; i++) {
-        const prev = pts[Math.max(0, i - 1)];
-        const next = pts[Math.min(n - 1, i + 1)];
+function ribbonPath(ctx, pts, widthAt, i0 = 0, i1 = -1) {
+    const end = i1 < 0 ? pts.length - 1 : i1;
+    const n = end - i0 + 1;
+    if (n < 2) return;
+    for (let k = 0; k < n; k++) {
+        const i = i0 + k;
+        const prev = pts[Math.max(i0, i - 1)];
+        const next = pts[Math.min(end, i + 1)];
         const dx = next.x - prev.x;
         const dy = next.y - prev.y;
         const len = Math.hypot(dx, dy) || 1;
@@ -165,8 +184,8 @@ function ribbonPath(ctx, pts, widthAt) {
         const ny = dx / len;
         const w = widthAt(i);
 
-        const L = edgePoint(ribbonLeft, i);
-        const R = edgePoint(ribbonRight, i);
+        const L = edgePoint(ribbonLeft, k);
+        const R = edgePoint(ribbonRight, k);
         L.x = pts[i].x + nx * w;
         L.y = pts[i].y + ny * w;
         R.x = pts[i].x - nx * w;
@@ -190,14 +209,16 @@ function ribbonPath(ctx, pts, widthAt) {
 }
 
 export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { rgb = color.inkRgb, denseBoop = false } = opts;
+    const { rgb = color.inkRgb, denseBoop = false, rippleBoop = false } = opts;
     const now = performance.now();
     const mode = trailMode(ship);
     const n = trail.length;
     const denom = Math.max(1, n - 1);
     const dotScale = ship.game?.config?.spacecraft?.trailDotSize ?? 0.2;
     const baseSize = ship.radius * dotScale;
-    const energy = denseBoop ? jellyEnergy(ship, now) : 0;
+    const jelly = denseBoop ? jellyEnergy(ship, now) : 0;
+    const j = ship?.wallJelly;
+    const rippleElapsed = rippleBoop && j ? now - j.t0 : -1;
 
     for (let i = 0; i < n; i++) {
         const point = trail[i];
@@ -207,12 +228,19 @@ export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
             along,
             mode,
         });
-        // On boop, young dots pile denser / slightly larger near the hull.
-        const pileBoost = energy > 0
-            ? 1 + energy * 0.85 * along * along
-            : 1;
-        const rx = baseSize * d.sx * pileBoost;
-        const ry = baseSize * d.sy * pileBoost;
+        const env = rippleElapsed >= 0 ? rippleEnvelope(rippleElapsed, along) : 0;
+        let sizeBoost = 1;
+        let alphaBoost = 1;
+        if (env > 0) {
+            // Cartoon pop: ~2x at the wave peak, brighter while it hits.
+            sizeBoost = 1 + env * 1.15;
+            alphaBoost = 1 + env * 0.85;
+        } else if (jelly > 0) {
+            sizeBoost = 1 + jelly * 0.85 * along * along;
+            alphaBoost = 1 + jelly * 0.35 * along;
+        }
+        const rx = baseSize * d.sx * sizeBoost;
+        const ry = baseSize * d.sy * sizeBoost;
         ctx.beginPath();
         ctx.ellipse(
             point.x + d.dx,
@@ -223,8 +251,49 @@ export function drawDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
             0,
             Math.PI * 2
         );
-        const alphaBoost = energy > 0 ? 1 + energy * 0.35 * along : 1;
         ctx.fillStyle = `rgba(${rgb}, ${Math.min(1, point.opacity * alphaBoost)})`;
+        ctx.fill();
+    }
+}
+
+/** Two parallel dotted traces — Echo's twin layout, Focus marks, denser/smaller. Ember. */
+export function drawTwinDotTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        rgb = color.inkRgb,
+        sepScale = 0.5,
+        rippleBoop = false,
+        sizeScale = 0.62,
+        subdiv = 2,
+    } = opts;
+    const dotScale = ship.game?.config?.spacecraft?.trailDotSize ?? 0.2;
+    const baseSize = ship.radius * dotScale * sizeScale;
+    const sep = ship.radius * sepScale;
+    const j = ship?.wallJelly;
+    const rippleElapsed = rippleBoop && j ? performance.now() - j.t0 : -1;
+    const marks = denseTrailMarks(ship, trail, toScreenY, subdiv);
+
+    for (let i = 0; i < marks.length; i++) {
+        const p = marks[i];
+        const along = p.along ?? 0.5;
+        const env = rippleElapsed >= 0 ? rippleEnvelope(rippleElapsed, along) : 0;
+        const sizeBoost = env > 0 ? 1 + env * 1.15 : 1;
+        const alphaBoost = env > 0 ? 1 + env * 0.85 : 1;
+        const rx = baseSize * (p.sx ?? 1) * sizeBoost;
+        const ry = baseSize * (p.sy ?? 1) * sizeBoost;
+        const angle = p.angle ?? 0;
+        const nx = Math.cos(angle);
+        const ny = Math.sin(angle);
+        const fade = 0.4 + 0.6 * p.opacity;
+        const ox = nx * sep * fade;
+        const oy = ny * sep * fade;
+        const alpha = Math.min(1, p.opacity * alphaBoost);
+        ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
+
+        ctx.beginPath();
+        ctx.ellipse(p.x - ox, p.y - oy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(p.x + ox, p.y + oy, rx, ry, 0, 0, Math.PI * 2);
         ctx.fill();
     }
 }
@@ -400,8 +469,47 @@ export function drawRainbowRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.restore();
 }
 
+/**
+ * Quill-like single ribbon with colour bands stacked along the path
+ * (horizontal strata when flying up). Opposite of Nyan's side-by-side lanes.
+ */
+export function drawHorizonRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        widthScale = 0.58,
+        alpha = 0.9,
+        bands = FLETCH_RGB,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    if (pts.length < 3) return;
+
+    const bandCount = bands.length;
+    if (bandCount < 1) return;
+
+    const last = pts.length - 1;
+    const maxWidth = ship.radius * 0.6 * widthScale;
+    const widthAt = (i) => {
+        const t = i / last;
+        return maxWidth * Math.pow(t, 0.6) * (0.45 + 0.55 * pts[i].opacity);
+    };
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = baseAlpha;
+
+    for (let b = 0; b < bandCount; b++) {
+        const i0 = Math.max(0, Math.floor((b / bandCount) * last) - 1);
+        const i1 = Math.min(last, Math.ceil(((b + 1) / bandCount) * last) + 1);
+        if (i1 - i0 < 2) continue;
+        ribbonPath(ctx, pts, widthAt, i0, i1);
+        ctx.fillStyle = `rgba(${bands[b]}, ${alpha})`;
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
 export function drawStreakTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { step = 2, alpha = 0.75, sparkBoop = false } = opts;
+    const { step = 2, alpha = 0.75, sparkBoop = false, rippleBoop = false } = opts;
     const r = ship.radius;
     const now = performance.now();
     const mode = trailMode(ship);
@@ -410,12 +518,16 @@ export function drawStreakTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const stretch = Math.min(1.7, 0.65 + (ship.speed ?? 0) / (r * 0.75));
     const energy = sparkBoop ? jellyEnergy(ship, now) : 0;
     const side = ship.wallJelly?.side < 0 ? -1 : 1;
+    const j = ship?.wallJelly;
+    const rippleElapsed = rippleBoop && j ? now - j.t0 : -1;
+    const waveLive = rippleElapsed >= 0 && rippleElapsed < TRAIL_WAVE_MS;
+    const drawStep = waveLive ? 1 : step;
 
     ctx.save();
     ctx.fillStyle = color.ink;
     const baseAlpha = ctx.globalAlpha;
 
-    for (let i = n - 1; i >= 0; i -= step) {
+    for (let i = n - 1; i >= 0; i -= drawStep) {
         const p = trail[i];
         const along = n <= 1 ? 1 : i / denom;
         const d = wallTrailDeform(ship, now, {
@@ -424,20 +536,33 @@ export function drawStreakTrail(ctx, ship, trail, toScreenY, opts = {}) {
             mode,
         });
         const seed = p.seed ?? 0.5;
-        // Sparks off flint: extra sideways kick while jelly is live.
-        const spark = energy * (seed * 2 - 1) * r * 1.15 * (0.4 + 0.6 * (1 - along));
-        const length = r * (0.3 + 0.8 * p.opacity) * stretch * d.sy;
+        const env = rippleElapsed >= 0 ? rippleEnvelope(rippleElapsed, along) : 0;
+        let sparkX = 0;
+        let sparkY = 0;
+        let lenPulse = 1;
+        if (env > 0) {
+            const kick = env * r * 1.4;
+            sparkX = -side * kick;
+            sparkY = kick * 0.28 * (seed * 2 - 1);
+            lenPulse = 1 + env * 0.85;
+        } else if (energy > 0) {
+            const spark = energy * (seed * 2 - 1) * r * 1.15 * (0.4 + 0.6 * (1 - along));
+            sparkX = spark * side * 0.15;
+            sparkY = spark * 0.55;
+            lenPulse = 1 + energy * 0.25 * (1 - along);
+        }
+        const length = r * (0.3 + 0.8 * p.opacity) * stretch * d.sy * lenPulse;
         const width = r * (0.09 + 0.24 * p.opacity) * d.sx;
 
-        ctx.globalAlpha = baseAlpha * p.opacity * alpha;
+        ctx.globalAlpha = baseAlpha * p.opacity * alpha * (env > 0 ? 1 + env * 0.35 : 1);
         withHeading(
             ctx,
-            p.x + d.dx + spark * side * 0.15,
-            toScreenY(p.y + d.dy) + spark * 0.55,
-            (p.angle ?? 0) + spark * 0.04,
+            p.x + d.dx + sparkX,
+            toScreenY(p.y + d.dy) + sparkY,
+            (p.angle ?? 0) + sparkY * 0.04,
             (c) => {
                 c.beginPath();
-                c.ellipse(0, 0, width, length * (1 + energy * 0.25 * (1 - along)), 0, 0, Math.PI * 2);
+                c.ellipse(0, 0, width, length, 0, 0, Math.PI * 2);
                 c.fill();
             },
         );
@@ -495,15 +620,15 @@ export function drawWispTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.restore();
 }
 
-/** Build denser sample list: every trail point + midpoint between neighbors. */
-function denseTrailMarks(ship, trail, toScreenY) {
+/** Build denser sample list: every trail point + `subdiv` in-betweens. */
+function denseTrailMarks(ship, trail, toScreenY, subdiv = 1) {
     const now = performance.now();
     const mode = trailMode(ship);
     const marks = [];
     const len = trail.length;
     const denom = Math.max(1, len - 1);
-    // Midpoints roughly double mark count — skip on the iOS canvas budget.
-    const withMids = !iosBudget(ship);
+    // Extra marks roughly multiply count — skip on the iOS canvas budget.
+    const withMids = !iosBudget(ship) && subdiv > 0;
     for (let i = 0; i < len; i++) {
         const p = trail[i];
         const seed = p.seed ?? (i * 0.17) % 1;
@@ -522,23 +647,29 @@ function denseTrailMarks(ship, trail, toScreenY) {
         });
         if (withMids && i < len - 1) {
             const nxt = trail[i + 1];
-            const midSeed = ((p.seed ?? seed) + (nxt.seed ?? seed)) * 0.5;
-            const midAlong = (along + (i + 1) / denom) * 0.5;
-            const md = wallTrailDeform(ship, now, { seed: midSeed, along: midAlong, mode });
-            marks.push({
-                x: (p.x + nxt.x) * 0.5 + md.dx,
-                y: toScreenY((p.y + nxt.y) * 0.5 + md.dy),
-                opacity: (p.opacity + nxt.opacity) * 0.5,
-                angle: Math.atan2(
-                    Math.sin(p.angle ?? 0) + Math.sin(nxt.angle ?? 0),
-                    Math.cos(p.angle ?? 0) + Math.cos(nxt.angle ?? 0)
-                ),
-                scale: 0.82,
-                sx: md.sx,
-                sy: md.sy,
-                seed: midSeed,
-                along: midAlong,
-            });
+            const nxtAlong = (i + 1) / denom;
+            const nxtSeed = nxt.seed ?? seed;
+            for (let s = 1; s <= subdiv; s++) {
+                const t = s / (subdiv + 1);
+                const u = 1 - t;
+                const subSeed = (p.seed ?? seed) * u + nxtSeed * t;
+                const subAlong = along * u + nxtAlong * t;
+                const md = wallTrailDeform(ship, now, { seed: subSeed, along: subAlong, mode });
+                marks.push({
+                    x: p.x * u + nxt.x * t + md.dx,
+                    y: toScreenY(p.y * u + nxt.y * t + md.dy),
+                    opacity: p.opacity * u + nxt.opacity * t,
+                    angle: Math.atan2(
+                        Math.sin(p.angle ?? 0) * u + Math.sin(nxt.angle ?? 0) * t,
+                        Math.cos(p.angle ?? 0) * u + Math.cos(nxt.angle ?? 0) * t
+                    ),
+                    scale: 0.82,
+                    sx: md.sx,
+                    sy: md.sy,
+                    seed: subSeed,
+                    along: subAlong,
+                });
+            }
         }
     }
     return marks;
@@ -914,15 +1045,26 @@ export function drawCreaseTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.restore();
 }
 
-/** Soft cloud of micro-dots that drift and re-condense — Mote. */
+/** Soft cloud of micro-dots. Optional hull-to-tail ripple on boop (Mote / Dusk). */
 export function drawCloudTrail(ctx, ship, trail, toScreenY, opts = {}) {
-    const { alpha = 0.78, rgb = color.inkRgb } = opts;
+    const {
+        alpha = 0.78,
+        rgb = color.inkRgb,
+        rippleBoop = false,
+        densityScale = 1,
+        rippleScale = 1,
+        scatter = 'cloud',
+        scatterWidth = 1,
+    } = opts;
     const r = ship.radius;
     const now = performance.now();
     const mode = trailMode(ship);
     const n = trail.length;
     const denom = Math.max(1, n - 1);
-    const energy = jellyEnergy(ship, now);
+    const jelly = rippleBoop ? 0 : jellyEnergy(ship, now);
+    const j = ship?.wallJelly;
+    const rippleElapsed = rippleBoop && j ? now - j.t0 : -1;
+    const deformK = rippleBoop ? rippleScale : 1;
 
     ctx.save();
     const baseAlpha = ctx.globalAlpha;
@@ -933,33 +1075,62 @@ export function drawCloudTrail(ctx, ship, trail, toScreenY, opts = {}) {
         const along = n <= 1 ? 1 : i / denom;
         const seed = p.seed ?? 0.5;
         const d = wallTrailDeform(ship, now, { seed, along, mode });
+        const dx = d.dx * deformK;
+        const dy = d.dy * deformK;
+        const sx = 1 + (d.sx - 1) * deformK;
         const age = 1 - p.opacity;
-        const condense = energy > 0 ? (1 - energy * along * 0.65) : 1;
+        const env = rippleElapsed >= 0 ? rippleEnvelope(rippleElapsed, along) * rippleScale : 0;
+        const condense = jelly > 0 ? (1 - jelly * along * 0.65) : 1;
         // Messy Focus cousin: several independent dots in a soft radial cloud.
         // Hashes are zero-mean in angle (not mirrored pairs) so it stays organic
-        // without always leaning one screen side. iOS: 1–2 dots (was 3–5).
-        const count = iosBudget(ship)
-            ? 1 + ((fract(seed * 17.13) * 2) | 0)
-            : 3 + ((fract(seed * 17.13) * 3) | 0);
-        const screenY = toScreenY(p.y + d.dy);
+        // without always leaning one screen side. iOS: 2–3 dots (was 1–2).
+        const count = Math.max(1, Math.round((iosBudget(ship)
+            ? 2 + ((fract(seed * 17.13) * 2) | 0)
+            : 6 + ((fract(seed * 17.13) * 3) | 0)) * densityScale));
+        const screenY = toScreenY(p.y + dy);
+        const sizeBoost = env > 0 ? 1 + env * 1.2 : 1;
+        const spreadBoost = 1 + env * 0.85 + jelly * 0.95;
+        const prev = i > 0 ? trail[i - 1] : p;
+        const next = i < n - 1 ? trail[i + 1] : p;
         for (let k = 0; k < count; k++) {
-            const u = fract(seed * 12.9898 + k * 0.6180339887);
-            const v = fract(seed * 78.233 + k * 0.3819660113);
-            const w = fract(seed * 4.1414 + k * 0.7548776662);
-            // Full-circle scatter in world space (bank doesn't shove the cloud).
-            const ang = u * Math.PI * 2;
-            const radial = Math.sqrt(v); // denser near center, soft fringe
-            const spread = r * (0.28 + age * 1.15 + energy * 0.95) * (0.35 + 0.9 * radial);
-            const size = r * (0.055 + 0.11 * p.opacity) * (0.5 + w * 0.75) * d.sx;
-            ctx.globalAlpha = baseAlpha * p.opacity * alpha * (0.4 + 0.6 * (1 - radial * 0.55));
+            let specX;
+            let specY;
+            let radial;
+            let size;
+            if (scatter === 'dust') {
+                // Along-wake + sideways jitter. Polar disks stack into rings
+                // once density goes up; this fills the segment instead.
+                const h = seed * 41.17 + k * 19.19 + i * 0.031;
+                const tx = next.x - prev.x;
+                const ty = next.y - prev.y;
+                const len = Math.hypot(tx, ty) || 1;
+                const ux = tx / len;
+                const uy = ty / len;
+                const alongN = (hash11(h + 0.11) * 2 - 1) * (len * 0.48);
+                const sideU = hash11(h + 2.27) * 2 - 1;
+                const side = sideU * sideU * sideU;
+                const spread = r * (0.14 + age * 0.7) * spreadBoost * scatterWidth;
+                const w = hash11(h + 5.91);
+                specX = p.x + dx + ux * alongN - uy * side * spread * condense;
+                specY = toScreenY(p.y + dy + uy * alongN + ux * side * spread * condense);
+                radial = Math.min(1, Math.abs(side) * 0.85 + Math.abs(alongN) / (len + r) * 0.35);
+                size = r * (0.03 + 0.08 * p.opacity) * (0.35 + w * 0.8) * sx * sizeBoost;
+            } else {
+                const u = fract(seed * 12.9898 + k * 0.6180339887);
+                const v = fract(seed * 78.233 + k * 0.3819660113);
+                const w = fract(seed * 4.1414 + k * 0.7548776662);
+                const ang = u * Math.PI * 2;
+                radial = Math.sqrt(v);
+                const spread = r * (0.28 + age * 1.15) * spreadBoost * (0.35 + 0.9 * radial);
+                size = r * (0.04 + 0.07 * p.opacity) * (0.55 + w * 0.45) * sx * sizeBoost;
+                specX = p.x + dx + Math.cos(ang) * spread * condense;
+                specY = screenY + Math.sin(ang) * spread * condense;
+            }
+            ctx.globalAlpha = baseAlpha * p.opacity * alpha
+                * (0.4 + 0.6 * (1 - radial * 0.55))
+                * (env > 0 ? 1 + env * 0.7 : 1);
             ctx.beginPath();
-            ctx.arc(
-                p.x + d.dx + Math.cos(ang) * spread * condense,
-                screenY + Math.sin(ang) * spread * condense,
-                size,
-                0,
-                Math.PI * 2
-            );
+            ctx.arc(specX, specY, size, 0, Math.PI * 2);
             ctx.fill();
         }
     }
@@ -969,6 +1140,10 @@ export function drawCloudTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
 function fract(x) {
     return x - Math.floor(x);
+}
+
+function hash11(n) {
+    return fract(Math.sin(n) * 43758.5453123);
 }
 
 /** Ladder of rungs along the path — Spine. */

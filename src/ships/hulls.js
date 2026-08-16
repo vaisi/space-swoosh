@@ -1,6 +1,9 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Ripple pulse dies off down the wake (along^1.2) so hull pops hard, tip barely.
+// - Focus/Ember `ripple` trail wave: hull-to-tail Gaussian (~560 ms), separate
+//   from hull jelly (420 ms). Envelope + deform shared with trails.js.
 // - Ink `script` boop: bigger calligraphic reverse/whip on mid+tip (still
 //   locked at along≈1); envelope peaks where the ribbon is still visible.
 // - Flux hex + Cinder petal paths; jelly profiles + flick/cinder trail modes.
@@ -13,9 +16,10 @@
 // - Orbit hull: solid planetoid body (orbitPath) + ring/sat drawn in skinDefs.
 // - New hull paths: foldPath, spinePath, orbitPath helper.
 // - wallTrailDeform modes: pile/spring/whip + desync, scatter, shatter, blot,
-//   dense, flare, crease, cloud, ladder, lag, script.
+//   dense, ripple, flare, crease, cloud, ladder, lag, script.
 // - Needle wall jelly: whip/flex (length pulse + tip shear + quiver).
 // - beginHullFrame: shared wall-jelly plant / shake / squash for every hull.
+// - fletchPath: smooth ogive arrowhead with a tiny nock (Fletch).
 // - Added squarePath, shardPath, needlePath, crescentPath, dartPath, tearPath.
 
 import { color } from '../brand/tokens.js';
@@ -64,6 +68,26 @@ export function dartPath(ctx, cx, cy, r, stretch = 1) {
     ctx.lineTo(cx + r * 0.72, cy + ry * 0.6);
     ctx.lineTo(cx, cy + ry * 0.15);
     ctx.lineTo(cx - r * 0.72, cy + ry * 0.6);
+    ctx.closePath();
+}
+
+// Smooth ogive arrow: sharp-but-soft nose, rounded shoulders, tiny nock (Fletch).
+export function fletchPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.18);
+    ctx.bezierCurveTo(
+        cx + r * 0.1, cy - ry * 0.78,
+        cx + r * 0.7, cy - ry * 0.12,
+        cx + r * 0.58, cy + ry * 0.36,
+    );
+    ctx.quadraticCurveTo(cx + r * 0.2, cy + ry * 0.18, cx, cy + ry * 0.5);
+    ctx.quadraticCurveTo(cx - r * 0.2, cy + ry * 0.18, cx - r * 0.58, cy + ry * 0.36);
+    ctx.bezierCurveTo(
+        cx - r * 0.7, cy - ry * 0.12,
+        cx - r * 0.1, cy - ry * 0.78,
+        cx, cy - ry * 1.18,
+    );
     ctx.closePath();
 }
 
@@ -170,6 +194,41 @@ export function squarePath(ctx, cx, cy, r, stretch = 1) {
 
 /** How long the wall-bounce jelly lasts (ms). */
 export const WALL_JELLY_MS = 420;
+
+/** Focus/Ember trail pulse — longer than hull jelly so the wave can finish. */
+export const TRAIL_WAVE_MS = 560;
+
+/**
+ * Hull-to-tail Gaussian pulse. `along` 1 = hull, 0 = oldest wake.
+ * Peak starts at the hull and travels to the tip over `travel` of the window.
+ * @returns {number} 0..1
+ */
+export function rippleEnvelope(elapsedMs, along, {
+    durationMs = TRAIL_WAVE_MS,
+    width = 0.12,
+    travel = 0.72,
+} = {}) {
+    if (!(elapsedMs >= 0) || elapsedMs >= durationMs) return 0;
+    const t = elapsedMs / durationMs;
+    const a = Math.max(0, Math.min(1, along));
+    const peakAlong = 1 - Math.min(1, t / travel);
+    const d = a - peakAlong;
+    const pulse = Math.exp(-(d * d) / (2 * width * width));
+    // Hull keeps the full pop; each older mark is smaller so the wave dies at the tip.
+    return pulse * Math.pow(a, 1.2);
+}
+
+function rippleDeform(elapsedMs, a, side, r, seedPhase) {
+    const env = rippleEnvelope(elapsedMs, a);
+    if (env < 0.02) return { dx: 0, dy: 0, sx: 1, sy: 1 };
+    const jitter = 0.82 + 0.18 * Math.sin(seedPhase);
+    // Kick into the corridor (away from the wall) as the wave hits.
+    const dx = -side * r * 1.2 * env * jitter;
+    const dy = -r * 0.4 * env;
+    const sx = 1 + 0.2 * env;
+    const sy = 1 + 0.15 * env;
+    return { dx, dy, sx, sy };
+}
 
 /**
  * Squash/stretch for a live wall jelly along world X.
@@ -395,13 +454,20 @@ export function wallTrailDeform(ship, time = performance.now(), {
     const j = ship?.wallJelly;
     if (!j) return ZERO_TRAIL_DEFORM;
     const elapsed = time - j.t0;
-    if (elapsed < 0 || elapsed >= WALL_JELLY_MS) return ZERO_TRAIL_DEFORM;
+    if (elapsed < 0) return ZERO_TRAIL_DEFORM;
 
-    const t = elapsed / WALL_JELLY_MS;
     const a = Math.max(0, Math.min(1, along));
     const side = j.side < 0 ? -1 : 1;
     const r = ship.radius ?? 10;
     const seedPhase = seed * Math.PI * 2;
+
+    if (mode === 'ripple') {
+        if (elapsed >= TRAIL_WAVE_MS) return ZERO_TRAIL_DEFORM;
+        return rippleDeform(elapsed, a, side, r, seedPhase);
+    }
+
+    if (elapsed >= WALL_JELLY_MS) return ZERO_TRAIL_DEFORM;
+    const t = elapsed / WALL_JELLY_MS;
 
     if (mode === 'pile') return pileDeform(t, a, side, r, seedPhase, 1);
     if (mode === 'dense') return pileDeform(t, a, side, r, seedPhase, 1.35);

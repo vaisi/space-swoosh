@@ -4,8 +4,8 @@
 // Changes:
 // - Menu stamp reads BUILD_NUMBER from core/buildStamp.js (Vite +1 per
 //   production build) so a device install can be verified vs an old APK.
-// - cameraReseatEnabled is Android native only — Camera slowly lifts a ship
-//   that sits below the ideal seat for 5s (wormhole / black-hole leftover).
+// - cameraReseatEnabled: Android native (all modes) + Hazard Lab everywhere,
+//   so web lab can practice the 5s-below-seat ease after wormhole / black hole.
 // - Pause freezes navigator voice with BGM (pauseLevelVoice / resumeLevelVoice).
 // - In-run HUD mockup C: three equal-height icon+meter rows (route/ink bar,
 //   sparkle/Signal fuel bar, target/dots or Open Space count) — no captions.
@@ -2461,6 +2461,7 @@ export class Game {
         this.pendingHighScore = null;
         this.removeNameInput();
 
+        this.cameraReseatEnabled = isAndroidNative() || this.isHazardLab();
         this.camera = new Camera(this);
         this.spacecraft = new Spacecraft(this);
         this.obstacleManager = new ObstacleManager(this);

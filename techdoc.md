@@ -53,8 +53,9 @@
 >
 > **Hazard Lab (sandbox):** Always-unlocked Journey-map tile → `PLAY_MODE.hazardLab`
 > / `HazardLabProfile`. Practice for **Phase**, **Sweep**, **Repulsor**, **Drift
-> Current**, and **Wormhole**. Finish/crash skips `recordLevelResult`.
-> Logbook observes during lab via `isHazardLab()`.
+> Current**, **Wormhole**, and **Black hole** (advanced Y-pull). Camera reseat
+> after 5s below seat is on in-lab on every platform. Finish/crash skips
+> `recordLevelResult`. Logbook observes during lab via `isHazardLab()`.
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
 > (random L/R, ~22s) only after `wallBoostsFromScore` (12000 KM). Collect →
@@ -71,7 +72,8 @@
 > (`@capacitor-firebase/analytics`). Premium ships IAP + menu browse/buy.
 > **Pro lives:** free pool (10 start, +6/6h, cap 10); spend on death/fuel;
 > weekly/yearly Pro = unlimited lives; yearly also one-time pick any 3 ships.
-> `UNLOCK_ALL_SKINS` / `UNLOCK_PRO` = false for store — Focus/Flicker/Ember/Saber free; all
+> `UNLOCK_ALL_SKINS` = **true (playtest hangar — flip false before store)** /
+> `UNLOCK_PRO` = false for store — Focus/Flicker/Ember/Saber free; all
 > other ships gated via RevenueCat. Advertising ID: collection disabled
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
@@ -210,12 +212,12 @@ game build env. Journey progress and Open Space personal best stay in
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Params sanitized to string/number (booleans → 0/1) so Android does not drop custom events. Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. Android: AD ID collection off + `AD_ID` permission stripped in `AndroidManifest.xml` for Play declaration **No**. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). `UNLOCK_ALL_SKINS` / `UNLOCK_PRO` are **`false` for store**. |
+| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is true for playtest** (home picker + Play equip the full roster, no IAP). Flip **false** before a store build. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). Spend on crash/fuel; Pro bypasses. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | Ship roster (Focus…Saber…Nyan…Cinder) composed from hulls + trails + boop signatures. |
-| `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes, `beginHullFrame`, `MAX_BANK`. |
+| `ships/skinDefs.js` | Ship roster (Focus…Saber…Fletch…Nyan…Cinder) composed from hulls + trails + boop signatures. |
+| `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
@@ -372,12 +374,14 @@ Two things worth knowing about the existing engine that this surfaced:
   ideal seat (`height * 0.75`) so it accelerates back until the ship sits lower
   on screen. A `0.16×height` deadzone skips re-seating on small drift. Ship
   updates before camera each frame.
-  **Android native only:** if the ship sits below the ideal seat for 5s
-  (`camera.reseatDelay`, slack `0.03×height`) — typical after a wormhole hop or
-  advanced black-hole Y-pull that lands inside the deadzone — `Camera.tickReseat`
-  eases the leftover gap closed over 8s (`reseatDuration`, `reseatTrack` 0.015),
-  not a catch-up snap. Gated by `Game.cameraReseatEnabled` / `isAndroidNative()`.
-  iOS native uses `CinematicFlight.cruiseSeat` and does not reseat this way.
+  **Android native (all modes) and Hazard Lab (every platform, including web):**
+  if the ship sits below the ideal seat for 5s (`camera.reseatDelay`, slack
+  `0.03×height`) — typical after a wormhole hop or advanced black-hole Y-pull
+  that lands inside the deadzone — `Camera.tickReseat` eases the leftover gap
+  closed over 8s (`reseatDuration`, `reseatTrack` 0.015), not a catch-up snap.
+  Gated by `Game.cameraReseatEnabled` (`isAndroidNative()` or `isHazardLab()`).
+  iOS native Open Space / Journey uses `CinematicFlight.cruiseSeat` and does not
+  reseat this way.
   KM must never be computed as `|velocity| * wallClockDt * 100` — that desyncs
   HUD distance from world travel; use `abs(Δcamera.y) * (100/60)`.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
@@ -484,8 +488,8 @@ always-unlocked **HAZARD LAB** tile → `Game.beginHazardLab()`.
 
 | Piece | Role |
 | --- | --- |
-| `config/HazardLabConfig.js` | `HAZARD_LAB` descriptor: phase / sweepGate / repulsor / driftCurrent / wormhole, goal 12000 KM, `starSlots: 0`. |
-| `modes/HazardLabProfile.js` | Mid difficulty, `simpleChance` 0.1, even focus mix (incl. wormhole), wall boosts off. |
+| `config/HazardLabConfig.js` | `HAZARD_LAB` descriptor: phase / sweepGate / repulsor / driftCurrent / wormhole / blackhole, goal 12000 KM, `starSlots: 0`. |
+| `modes/HazardLabProfile.js` | Mid difficulty, `simpleChance` 0.1, even focus mix (incl. wormhole + advanced black hole), wall boosts off. Camera reseat is on in-lab on every platform. |
 | `Game.isLevelRun()` | Journey **or** Hazard Lab (finish gate, flyout, outcome UI). |
 | `finishJourneyLevel` | Lab branch builds outcome only — no `recordLevelResult`. |
 
@@ -722,7 +726,7 @@ Obstacle probes are meant to hug the drawn ink:
 | Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render). Shield smash destroys only the part hit: a moon clip leaves the core; a core hit clears the whole cluster. Render cull uses full cluster radius so moons are never collidable while undrawn. |
 | Shooting star | 8-point star polygon + projectile circles (projectiles still drawn when the star body is culled). Shield smash clips only the shots you hit; body hit clears the star. |
 | Black hole | Core radius only (glow/pulse are VFX) |
-| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera keeps scrolling during the hop so emerge catch-up is the spacetime wobble (original behavior); `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge. Android: reseat dwell does not count during the hop; if the ship stays low after emerge, the 5s reseat pull can lift it back. |
+| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera keeps scrolling during the hop so emerge catch-up is the spacetime wobble (original behavior); `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge. Reseat dwell does not count during the hop; if the ship stays low after emerge, the 5s reseat pull can lift it back (Android native all modes, Hazard Lab on every platform). |
 
 `ObstacleManager.update()` advances every obstacle (orbits, movers, shots)
 **before** running shield/fatal collision, so hit tests match the ink painted
@@ -738,12 +742,13 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 
 | Id | Hull | Wake | Boop signature |
 | --- | --- | --- | --- |
-| `focus` (default) | Solid ink circle | Hard ink dots | Dense pile — dots pack harder near hull |
+| `focus` (default) | Solid ink circle | Hard ink dots | Hull-to-tail `ripple` — pop dies off toward the old wake |
 | `flicker` | Banking ink tear + soft halo | Tapered comet ribbon | Spring whip down the ribbon |
-| `ember` | Swept dart with a notched tail | Elongated tangent streaks | Sparks scatter sideways, then realign |
+| `ember` | Swept dart with a notched tail | Twin dotted traces, denser and smaller than Focus | Same dying `ripple` on both lanes |
 | `wisp` | Same tear as Flicker | Thin ribbon + drifting sparks | Sparks flare outward |
 | `pulse` | Focus circle | Signal-Blue dots | Same dense pile as Focus (blue) |
 | `quill` | Flicker tear | Thin Signal-Blue ribbon | Spring whip (blue) |
+| `fletch` | Smooth ogive arrow (`fletchPath`) | Quill ribbon with dawn strata along the path | Spring whip; nock attach |
 | `shard` | Faceted diamond (`shardPath`) | Chevron / paper-cut V marks | Crystal fan shatter → restack; crack jelly |
 | `halo` | Core disc + orbit ring with ticks | Expanding hollow rings | Soap-bubble inflate/stack/pop; orbital wobble |
 | `needle` | Thin lance (`needlePath`) | Single hairline stroke | Whip flex + tip ripples |
@@ -753,7 +758,8 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `trace` | Square | Hairline stroke | Spring along the line |
 | `ring` | Square | Expanding rings | Ring squash only (no Halo bubble pop) |
 | `fold` | Solid origami kite (`foldPath` + crease) | Long dashed crease (hull-locked zig) | Crease amplifies; fold jelly |
-| `mote` | Soft ink disc | Organic radial micro-dot cloud | Cloud drifts then re-condenses |
+| `mote` | Soft ink disc | Denser micro-dot cloud, long wake | Hull-to-tail `ripple` through the cloud |
+| `dusk` | Echo crescent | Mote cloud in saber purple, 2× specks, along-wake dust scatter | Milder dying `ripple` (`rippleScale` 0.4) |
 | `spine` | Vertical bar (`spinePath`) | Ladder rungs + thin spine | Rungs compress toward the wall |
 | `orbit` | Planetoid oval + tilted ring + satellite | Continuous lagging orbital ribbon + dense ellipse ticks | Soft lag shove; oval wobble |
 | `ink` | Flicker tear | Fine dark ribbon | Tip/mid reverse on boop; hull end stays attached |
@@ -772,23 +778,24 @@ local scale / shear); the hitbox does not deform.
 Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 `hulls.js` shoves the wake at render time. Discrete marks also squash via
 `sx`/`sy`. Trail renderers may add opts extras (`tipRipple`, `bubbleBoop`,
-`desyncBoop`, `shatterBoop`, `sparkBoop`, `blotBoop`, `denseBoop`, `flareBoop`,
+`desyncBoop`, `shatterBoop`, `sparkBoop`, `blotBoop`, `denseBoop`, `rippleBoop`, `flareBoop`,
 `wallStretch`, `reverseBoop`). `Spacecraft.render` stamps
 `ship._wallTrailMode` from the active skin so `trails.js` never imports the roster.
 
 | Mode | Ships |
 | --- | --- |
 | `pile` | Halo, Hatch / Ring |
-| `dense` | Focus, Pulse |
+| `dense` | Pulse |
+| `ripple` | Focus, Ember, Mote, Dusk — hull-to-tail Gaussian (~560 ms); pop shrinks down the wake |
 | `blot` | Seal |
-| `scatter` | Ember |
+| `scatter` | (unused; Ember moved to `ripple`) |
 | `shatter` | Shard |
 | `desync` | Echo |
 | `flare` | Wisp |
 | `spring` | Flicker, Quill, Nyan, Trace |
 | `whip` | Needle, Saber |
 | `crease` | Fold |
-| `cloud` | Mote |
+| `cloud` | (unused; Mote moved to `ripple`) |
 | `ladder` | Spine |
 | `lag` | Orbit |
 | `script` | Ink — calligraphic reverse/whip on mid+tip (hull locked); `reverseBoop` adds pressure pulse + tip flecks |
@@ -801,12 +808,19 @@ bright purple Saber (`color.saberRgb` / `saberCoreRgb`) on the free **Saber**
 wake (`drawSaberTrail` — slim bloom + hot core + crackle sparks, denser on
 whip jelly); **Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe
 bands, not HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in
-dark gray with two clipped pink spots (`CRESCENT_HITBOX`). Optional skin fields
+dark gray with two clipped pink spots (`CRESCENT_HITBOX`); `trailTailOffset: 0`
+so the rainbow starts at the hull centre (other skins default 0.6 radii aft).
+**Fletch** uses `drawHorizonRibbonTrail` — same Quill taper, colour bands stacked
+along the path (dawn: indigo tip → persimmon hull) and `fletchPath` ogive arrow
+(`trailTailOffset` 0.32 into the nock). Optional skin fields
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
-`1/360`); iOS draw LOD still multiplies max points by 0.6.
+`1/360`; Quill / Fletch / Shard / Seal / Hatch / Trace / Fold / Spine / Mote / Pulse /
+Echo / Dusk / Ink / Cinder: 200 pts, fade `1/420` so the tip leaves the viewport).
+Menu preview always uses the short sample wake so it never covers the title.
+iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
-Fold, Needle, Halo, Square, Mote, Spine, and Orbit have dedicated drawers.
+Fold, Needle, Halo, Square, Mote, Spine, Orbit, Nyan, and Fletch have dedicated drawers.
 **Orbit** hitbox is the solid oval body only (ring/satellite decorative).
 **Spine** is stacked circles down the bar only.
 

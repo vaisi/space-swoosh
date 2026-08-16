@@ -1,5 +1,5 @@
 // RunProfile.swift
-// Changes: Qualify static lerp/lerpInt for Xcode 26.
+// Changes: Hazard Lab uses advanced black-hole Y-pull (matches JS sandbox).
 
 import Foundation
 import CoreGraphics
@@ -212,7 +212,7 @@ struct RunProfile {
         switch mode {
         case .openSpace: return scoreKm > 1000
         case .journey: return difficulty >= 0.7
-        case .hazardLab: return false
+        case .hazardLab: return true
         }
     }
 

@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: first-boop / swoosh-voice decode onto the SFX engine (no first-hit hitch).
+  Changes: Hazard Lab roster includes black holes with advanced Y-pull.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -15,7 +15,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Per-skin JS hitbox packs, baked hulls, wakes, and wall-jelly (`dense` / `spring` / `scatter` / `whip`). Saber needle squash `halfScale` 0.55; trail 160 pts / fade `1/360`
 - Play / Journey / Lab all read the saved id. Speed and arcs stay shared
 - **Journey:** lore once → map → 40 levels / 113 stars / 7 chapters, teach L1–5
-- **Hazard Lab:** 12k KM sandbox (phase / sweep / repulsor / drift / wormhole)
+- **Hazard Lab:** 12k KM sandbox (phase / sweep / repulsor / drift / wormhole / blackhole)
 - Intro: 720/280 ms roll from below, 18 baked streaks, then NAV beats (Open Space waits 200 ms)
 - Clear: Android hold / ramp / min / cap / fade; lean preserved; hull leaves the top
 - L40 clear: sequenced `ENDING_BEATS` captions, then `JOURNEY COMPLETE` (no lights show)

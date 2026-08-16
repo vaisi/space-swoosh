@@ -2,13 +2,19 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Fletch: smooth ogive arrow + Quill ribbon with length-wise dawn strata
+//   (not Nyan's side-by-side rainbow). Premium IAP; long wake; nock attach.
+// - Dusk: Echo crescent + Mote cloud in saber purple at 2× density, wider
+//   dust scatter (no polar rings), milder ripple than Mote.
+// - Long in-game wakes (Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote,
+//   Pulse, Echo, Dusk, Ink, Cinder). Menu preview stays short so it never covers title.
 // - Free Saber: Needle hull + slim purple lightsaber wake (long trail, whip).
 // - Free forever: Focus / Flicker / Ember / Saber. Every other skin has productId +
 //   entitlementId (com.orbi.spaceswoosh.skin.<id> / skin_<id>) for IAP.
 // - Renamed square* → Stamp/Tick/Trace/Ring, then Stamp→Seal, Tick→Hatch.
 // - Night paper: Nyan hull gray lifted so the crescent still reads on charcoal.
-// - Nyan: Echo's crescent (sparrow wings), gray + two pink spots, longer
-//   rainbow ribbon. Hitbox matches crescent; spots are paint only.
+// - Nyan: Echo's crescent (sparrow wings), gray + two pink spots, no ink
+//   halo disc; rainbow attaches at hull centre (trailTailOffset 0).
 // - Ink wake: slightly wider ribbon + smudge so script boop flourish/flecks
 //   read clearly (still hull-attached via script mode).
 // - Flux hex shortened/compact; ink/signal dash wake. Cinder petal + flame-smoke.
@@ -27,6 +33,7 @@ function iap(id) {
         entitlementId: `skin_${id}`,
     };
 }
+
 import {
     MAX_BANK,
     tearPath,
@@ -34,6 +41,7 @@ import {
     shardPath,
     needlePath,
     crescentPath,
+    fletchPath,
     foldPath,
     spinePath,
     hexPath,
@@ -44,8 +52,8 @@ import {
 } from './hulls.js';
 import {
     drawDotTrail,
+    drawTwinDotTrail,
     drawRibbonTrail,
-    drawStreakTrail,
     drawWispTrail,
     drawChevronTrail,
     drawRingTrail,
@@ -60,8 +68,15 @@ import {
     drawDashTrail,
     drawCinderTrail,
     drawRainbowRibbonTrail,
+    drawHorizonRibbonTrail,
     drawSaberTrail,
 } from './trails.js';
+
+/** Extra-long wake: tip should leave the camera, not fade in-view. */
+const LONG_WAKE = {
+    trailMaxPoints: 200,
+    trailFade: 1 / 420,
+};
 
 // Hitboxes are in local hull space (x right, y toward the tail, nose negative),
 // in units of ship.radius. Each circle is inscribed in the drawn silhouette at
@@ -118,6 +133,16 @@ const CRESCENT_HITBOX = [
     { x: 0.42, y: -0.05, r: 0.2 },
     { x: -0.55, y: 0.35, r: 0.16 },
     { x: 0.55, y: 0.35, r: 0.16 },
+];
+
+// Smooth arrow — spine + shoulder roots; skip the thin nock tips.
+const FLETCH_HITBOX = [
+    { x: 0, y: -0.78, r: 0.1 },
+    { x: 0, y: -0.38, r: 0.22 },
+    { x: 0, y: 0.02, r: 0.3 },
+    { x: -0.26, y: 0.16, r: 0.14 },
+    { x: 0.26, y: 0.16, r: 0.14 },
+    { x: 0, y: 0.32, r: 0.14 },
 ];
 
 const HALO_HITBOX = [{ x: 0, y: 0, r: 0.72 }];
@@ -207,6 +232,36 @@ function makeHullRenderer(pathFn, profile = 'default') {
 
 const drawTearHull = makeHullRenderer(tearPath);
 
+/** Smooth arrow — no gray halo; a thin spine so the nock reads as a fletching seat. */
+function drawFletchHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.9 + 0.06 * Math.sin(time * 0.0056) + 0.04 * Math.sin(time * 0.0088);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.2 * turn;
+    const ry = r * stretch;
+
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.85, 'default');
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    fletchPath(ctx, 0, 0, r, stretch);
+    ctx.fillStyle = color.ink;
+    ctx.fill();
+
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.35 : breath * 0.42);
+    ctx.strokeStyle = color.ink55;
+    ctx.lineWidth = Math.max(1, r * 0.07);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -ry * 0.92);
+    ctx.lineTo(0, ry * 0.28);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
 // Nyan body colours — ship-local (not brand UI tokens). Lifted for night paper.
 const NYAN_GRAY = '#C4BDB0';
 const NYAN_GRAY_SOFT = 'rgba(196, 189, 176, 0.45)';
@@ -232,11 +287,6 @@ function drawNyanHull(ctx, ship, screenY, time = performance.now()) {
     const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.85, 'default');
     const baseAlpha = ctx.globalAlpha;
     ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
-
-    ctx.beginPath();
-    ctx.arc(0, r * 0.12, r * 1.35, 0, Math.PI * 2);
-    ctx.fillStyle = color.ink12;
-    ctx.fill();
 
     crescentPath(ctx, 0, 0, r, stretch);
     ctx.fillStyle = NYAN_GRAY;
@@ -569,14 +619,14 @@ const focus = {
     name: 'Focus',
     blurb: 'Precise. Instrumental.',
     hitbox: CIRCLE_HITBOX,
-    wallTrailMode: 'dense',
+    wallTrailMode: 'ripple',
 
     drawHull(ctx, ship, screenY, time) {
         drawCircleHull(ctx, ship, screenY, time);
     },
 
     drawTrail(ctx, ship, trail, toScreenY) {
-        drawDotTrail(ctx, ship, trail, toScreenY, { denseBoop: true });
+        drawDotTrail(ctx, ship, trail, toScreenY, { rippleBoop: true });
     },
 };
 
@@ -597,14 +647,14 @@ const flicker = {
 const ember = {
     id: 'ember',
     name: 'Ember',
-    blurb: 'Restless. A wake of streaks.',
+    blurb: 'Paired. Twin dotted traces.',
     hitbox: DART_HITBOX,
-    wallTrailMode: 'scatter',
+    wallTrailMode: 'ripple',
 
     drawHull: drawDartHull,
 
     drawTrail(ctx, ship, trail, toScreenY) {
-        drawStreakTrail(ctx, ship, trail, toScreenY, { sparkBoop: true });
+        drawTwinDotTrail(ctx, ship, trail, toScreenY, { rippleBoop: true });
     },
 };
 
@@ -630,6 +680,7 @@ const pulse = {
     hitbox: CIRCLE_HITBOX,
     wallTrailMode: 'dense',
     ...iap('pulse'),
+    ...LONG_WAKE,
 
     drawHull(ctx, ship, screenY, time) {
         drawCircleHull(ctx, ship, screenY, time);
@@ -650,6 +701,7 @@ const quill = {
     hitbox: TEAR_HITBOX,
     wallTrailMode: 'spring',
     ...iap('quill'),
+    ...LONG_WAKE,
 
     drawHull: drawTearHull,
 
@@ -659,6 +711,28 @@ const quill = {
             alpha: 0.85,
             smudge: false,
             rgb: color.signalRgb,
+        });
+    },
+};
+
+// Smooth ogive arrow + Quill ribbon with dawn stacked along the wake.
+const fletch = {
+    id: 'fletch',
+    name: 'Fletch',
+    blurb: 'A smooth arrow. Dawn on the wake.',
+    hitbox: FLETCH_HITBOX,
+    wallTrailMode: 'spring',
+    ...iap('fletch'),
+    ...LONG_WAKE,
+    // Nest the ribbon in the nock so hull and wake read as one piece.
+    trailTailOffset: 0.32,
+
+    drawHull: drawFletchHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawHorizonRibbonTrail(ctx, ship, trail, toScreenY, {
+            widthScale: 0.58,
+            alpha: 0.9,
         });
     },
 };
@@ -676,6 +750,8 @@ const nyan = {
     trailFade: 1 / 360,
 
     drawHull: drawNyanHull,
+    // Rainbow starts at the crescent centre (under the hull), not behind it.
+    trailTailOffset: 0,
 
     drawTrail(ctx, ship, trail, toScreenY) {
         drawRainbowRibbonTrail(ctx, ship, trail, toScreenY, {
@@ -692,6 +768,7 @@ const shard = {
     hitbox: SHARD_HITBOX,
     wallTrailMode: 'shatter',
     ...iap('shard'),
+    ...LONG_WAKE,
 
     drawHull: drawShardHull,
 
@@ -737,11 +814,33 @@ const echo = {
     hitbox: CRESCENT_HITBOX,
     wallTrailMode: 'desync',
     ...iap('echo'),
+    ...LONG_WAKE,
 
     drawHull: drawCrescentHull,
 
     drawTrail(ctx, ship, trail, toScreenY) {
         drawTwinTrail(ctx, ship, trail, toScreenY, { desyncBoop: true });
+    },
+};
+
+const dusk = {
+    id: 'dusk',
+    name: 'Dusk',
+    blurb: 'Crescent. A violet cloud.',
+    hitbox: CRESCENT_HITBOX,
+    wallTrailMode: 'ripple',
+    ...iap('dusk'),
+    ...LONG_WAKE,
+    drawHull: drawCrescentHull,
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawCloudTrail(ctx, ship, trail, toScreenY, {
+            rgb: color.saberRgb,
+            rippleBoop: true,
+            densityScale: 2,
+            rippleScale: 0.4,
+            scatter: 'dust',
+            scatterWidth: 1.4,
+        });
     },
 };
 
@@ -752,6 +851,7 @@ const seal = {
     hitbox: SQUARE_HITBOX,
     wallTrailMode: 'blot',
     ...iap('seal'),
+    ...LONG_WAKE,
     drawHull: drawStampHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawStampTrail(ctx, ship, trail, toScreenY, { blotBoop: true });
@@ -765,6 +865,7 @@ const hatch = {
     hitbox: SQUARE_HITBOX,
     wallTrailMode: 'pile',
     ...iap('hatch'),
+    ...LONG_WAKE,
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawTickTrail(ctx, ship, trail, toScreenY, { wallStretch: true });
@@ -778,6 +879,7 @@ const trace = {
     hitbox: SQUARE_HITBOX,
     wallTrailMode: 'spring',
     ...iap('trace'),
+    ...LONG_WAKE,
     drawHull: drawSquareHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawHairlineTrail(ctx, ship, trail, toScreenY);
@@ -805,6 +907,7 @@ const fold = {
     hitbox: FOLD_HITBOX,
     wallTrailMode: 'crease',
     ...iap('fold'),
+    ...LONG_WAKE,
     drawHull: drawFoldHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawCreaseTrail(ctx, ship, trail, toScreenY);
@@ -816,11 +919,12 @@ const mote = {
     name: 'Mote',
     blurb: 'Soft ink. A drifting cloud.',
     hitbox: MOTE_HITBOX,
-    wallTrailMode: 'cloud',
+    wallTrailMode: 'ripple',
     ...iap('mote'),
+    ...LONG_WAKE,
     drawHull: drawMoteHull,
     drawTrail(ctx, ship, trail, toScreenY) {
-        drawCloudTrail(ctx, ship, trail, toScreenY);
+        drawCloudTrail(ctx, ship, trail, toScreenY, { rippleBoop: true });
     },
 };
 
@@ -831,6 +935,7 @@ const spine = {
     hitbox: SPINE_HITBOX,
     wallTrailMode: 'ladder',
     ...iap('spine'),
+    ...LONG_WAKE,
     drawHull: drawSpineHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawLadderTrail(ctx, ship, trail, toScreenY);
@@ -858,6 +963,7 @@ const ink = {
     hitbox: TEAR_HITBOX,
     wallTrailMode: 'script',
     ...iap('ink'),
+    ...LONG_WAKE,
     drawHull: drawTearHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawRibbonTrail(ctx, ship, trail, toScreenY, {
@@ -890,6 +996,7 @@ const cinder = {
     hitbox: PETAL_HITBOX,
     wallTrailMode: 'cinder',
     ...iap('cinder'),
+    ...LONG_WAKE,
     drawHull: drawCinderHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawCinderTrail(ctx, ship, trail, toScreenY);
@@ -915,8 +1022,8 @@ const saber = {
 };
 
 export const SKIN_DEFS = [
-    focus, flicker, ember, saber, wisp, pulse, quill, nyan,
-    shard, halo, needle, echo,
+    focus, flicker, ember, saber, wisp, pulse, quill, fletch, nyan,
+    shard, halo, needle, echo, dusk,
     seal, hatch, trace, ring,
     fold, mote, spine, orbit, ink,
     flux, cinder,

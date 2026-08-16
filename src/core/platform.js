@@ -1,8 +1,8 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
-// - isAndroidNative(): Capacitor Android only — gates camera reseat after
-//   wormhole / black-hole dips that the deadzone would otherwise keep.
+// - isAndroidNative(): Capacitor Android only — production camera reseat after
+//   wormhole / black-hole dips. Hazard Lab enables the same reseat on web too.
 // - iOS DPR cap raised 1.5 → 2.0: 1.5 sits below the retina threshold (visibly
 //   soft); 2.0 reads sharp while still ~56% fewer pixels than native DPR 3.
 //   Safe on heat because cheap Canvas + draw LOD + opaque context + hitch clamp

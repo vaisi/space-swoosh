@@ -38,9 +38,10 @@
 > moving rocks, blue lights, then the shield.
 >
 > **Hazard Lab:** At the top of the Journey map, an always-unlocked **LAB** tile
-> lets you practice square blooms, sweeps, push nodes, wind currents, and
-> portals (also in the main Journey). It does **not** change your Journey level
-> unlocks or stars.
+> lets you practice square blooms, sweeps, push nodes, wind currents, portals,
+> and black holes (also in the main Journey). After a hop or well leaves the
+> ship low, the camera eases it back to the usual height after a few seconds.
+> It does **not** change your Journey level unlocks or stars.
 >
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
 > sometimes lights up on the left or right edge. Bank into it for a fresh shield
@@ -212,8 +213,10 @@ Choosing Journey opens the level map: chapter by chapter, a numbered tile per
 level with its three stars underneath. It opens roughly where you left off.
 
 - **Hazard Lab** sits at the top — always unlocked. Tap **LAB** to practice the
-  newer hazards (square blooms, sweeps, push nodes, wind currents, portals)
-  without touching Journey progress. Lab runs are longer (~12,000 KM).
+  newer hazards (square blooms, sweeps, push nodes, wind currents, portals,
+  black holes) without touching Journey progress. Lab runs are longer (~12,000 KM).
+  If a portal or well leaves the ship sitting low, the camera eases it back
+  after about five seconds — same rule as Android Open Space.
 - **Scroll** with the mouse wheel, or drag up and down on touch.
 - The tile outlined in **blue** is the next level you haven't cleared.
 - **Faded** tiles are still locked — you can see what's coming, but not play it yet.
@@ -271,29 +274,35 @@ Every ship flies the same — same speed, same turns. They only look different
 
 | Ship | Look |
 | --- | --- |
-| **Focus** | Solid circle with a dotted ink trail — clean and instrumental. Wall hits pack the dots denser. |
+| **Focus** | Solid circle with a dotted ink trail — clean and instrumental. Wall hits send a pulse down the dots; each older dot pops a bit smaller, so the wave dies at the far end. |
 | **Flicker** | Teardrop trailing one smooth, flowing ribbon that reads as one piece with the hull and springs and wiggles on a wall hit. |
-| **Ember** | Swept dart; streaks scatter like sparks off flint on a wall boop, then realign. |
+| **Ember** | Swept dart with two parallel dotted traces (like Echo’s twins, but smaller, denser dots). Same dying pulse as Focus on a wall boop. |
 | **Saber** | Needle’s thin lance with a long, slim bright-purple blade wake that crackles; wall hits whip the tip and spray more sparks. |
 | **Wisp** | Teardrop again, with a thin thread that sheds drifting sparks — they flare on impact. |
 | **Pulse** | Focus's hull with a Signal-Blue dotted wake (same dense pile on boop). |
 | **Quill** | Flicker's tear with a fine Signal-Blue ribbon. |
-| **Nyan** | Echo’s sparrow-wing crescent in dark gray with two pink spots, plus a longer stacked rainbow wake. |
+| **Fletch** | A smooth ink arrow with a tiny nock. The wake is a Quill-like ribbon, but the colour is stacked along the path — persimmon at the hull, cooling through gold and celadon to indigo at the tip. |
+| **Nyan** | Echo’s sparrow-wing crescent in dark gray with two pink spots, plus a longer stacked rainbow wake that starts under the hull. |
 | **Shard** | Faceted crystal diamond; chevrons shatter into a fan against the wall, then restack. |
 | **Halo** | Small orbital core with crawling ring-ticks; young rings inflate like soap bubbles on a wall hit, then pop — the core wobbles in a tiny orbit. |
 | **Needle** | Ultra-thin lance with a single hairline thread. Wall hits flex the tip and ripple the old end of the wake. |
 | **Echo** | Open crescent; twin lines desync briefly on a boop (one sticks, one springs late), then snap back in phase. |
+| **Dusk** | Echo’s crescent with a denser, more scattered violet cloud (not ringed puffs). Wall hits send a milder dying ripple through the specks. |
 | **Seal** | Square hull; stamps little tiles — denser blot at the wall, then peels like a rubber seal. |
 | **Hatch** | Square hull; short lateral hatch marks that stretch toward the wall on impact. |
 | **Trace** | Square hull; one thin hairline that springs on a bounce. |
 | **Ring** | Square hull; blooming rings (squash only — not Halo’s bubble pop). |
 | **Fold** | Solid origami kite; a long dashed crease that leaves from the hull and zigzags harder when you bank. |
-| **Mote** | Soft ink disc; a messy organic cloud of micro-dots that drift and re-condense on a wall hit. |
+| **Mote** | Soft ink disc; a messy organic cloud of micro-dots. Wall hits send a pulse down the cloud — each older cluster pops a bit smaller. |
 | **Spine** | Tall thin bar; ladder rungs compress toward the wall on a boop. |
 | **Orbit** | Small planetoid with a tilted ring and one satellite; a continuous orbital path lags behind with dense ellipse ticks. |
 | **Ink** | Quill’s dark twin — a fine ink ribbon that flourishes hard on a wall boop (tip reverses, mid swells, a few flecks spray) while staying attached to the hull. |
 | **Flux** | Hex crystal; wake is alternating ink and Signal-Blue dashes that stretch on a wall hit. |
 | **Cinder** | Soft petal; a calm warm ember ribbon that cools into soft ash dots (blue glints mainly on a wall hit). |
+
+Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Ink, and
+Cinder leave a longer wake in play so the far end runs off the screen. The
+home-screen ship picture stays short so it does not cover the title.
 
 Seal, Hatch, Trace, and Ring collide as the box you see. **Orbit** collides on its solid
 planetoid body (the ring and satellite are looks only). On a side-wall bounce,

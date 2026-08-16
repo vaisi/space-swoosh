@@ -1,15 +1,17 @@
 <!--
   docs/IAP.md
   Changes:
-  - Expanded to all premium ships (everything except Focus / Flicker / Ember).
+  - Added Fletch (smooth arrow + length-wise dawn ribbon).
+  - Added Dusk (Echo crescent + purple Mote cloud).
+  - Expanded to all premium ships (everything except Focus / Flicker / Ember / Saber).
   - Created: store / RevenueCat setup checklist for premium ship skins.
   - App / product IDs renamed gg.orbi.spaceswoosh → com.orbi.spaceswoosh.
 -->
 
 # In-app purchases — Space Swoosh
 
-Cosmetic ship skins only. No gameplay paywall. The three free ships
-(**Focus / Flicker / Ember**) stay free forever. Every other ship is a
+Cosmetic ship skins only. No gameplay paywall. The four free ships
+(**Focus / Flicker / Ember / Saber**) stay free forever. Every other ship is a
 separate non-consumable IAP.
 
 ## Products
@@ -21,11 +23,13 @@ Type: **non-consumable** on both App Store Connect and Google Play Console.
 | Wisp | `com.orbi.spaceswoosh.skin.wisp` | `skin_wisp` |
 | Pulse | `com.orbi.spaceswoosh.skin.pulse` | `skin_pulse` |
 | Quill | `com.orbi.spaceswoosh.skin.quill` | `skin_quill` |
+| Fletch | `com.orbi.spaceswoosh.skin.fletch` | `skin_fletch` |
 | Nyan | `com.orbi.spaceswoosh.skin.nyan` | `skin_nyan` |
 | Shard | `com.orbi.spaceswoosh.skin.shard` | `skin_shard` |
 | Halo | `com.orbi.spaceswoosh.skin.halo` | `skin_halo` |
 | Needle | `com.orbi.spaceswoosh.skin.needle` | `skin_needle` |
 | Echo | `com.orbi.spaceswoosh.skin.echo` | `skin_echo` |
+| Dusk | `com.orbi.spaceswoosh.skin.dusk` | `skin_dusk` |
 | Seal | `com.orbi.spaceswoosh.skin.seal` | `skin_seal` |
 | Hatch | `com.orbi.spaceswoosh.skin.hatch` | `skin_hatch` |
 | Trace | `com.orbi.spaceswoosh.skin.trace` | `skin_trace` |

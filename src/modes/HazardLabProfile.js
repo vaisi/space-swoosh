@@ -1,7 +1,9 @@
 // HazardLabProfile.js
-// Finite sandbox run: Phase / Sweep / Repulsor / Drift / Wormhole (almost no
-// simple rocks), shields/sparkles from KM 0, no Journey progress side effects.
+// Finite sandbox run: Phase / Sweep / Repulsor / Drift / Wormhole / Black hole
+// (almost no simple rocks), shields/sparkles from KM 0, no Journey progress.
 // Changes:
+// - Black hole in the mix with advanced Y-pull so the 5s camera reseat can
+//   be practiced in-lab (web included).
 // - Wormhole in LAB_FOCUS so portal emerge framing can be practiced in-lab.
 // - Balanced focus across lab types (even mix after Journey rollout).
 // - allowAdjacentSetPieces so practice rows can stack set pieces.
@@ -13,8 +15,8 @@ import { PLAY_MODE, RunProfile } from './RunProfile.js';
 
 const JOURNEY_ACTION_FROM_KM = 0;
 
-/** Even practice mix — includes wormholes for portal exit framing. */
-const LAB_FOCUS = ['phase', 'sweepGate', 'repulsor', 'driftCurrent', 'wormhole'];
+/** Even practice mix — portals + wells for exit framing / camera reseat. */
+const LAB_FOCUS = ['phase', 'sweepGate', 'repulsor', 'driftCurrent', 'wormhole', 'blackhole'];
 
 export class HazardLabProfile extends RunProfile {
     constructor(game) {
@@ -109,7 +111,7 @@ export class HazardLabProfile extends RunProfile {
     }
 
     get advancedBlackHoles() {
-        return false;
+        return true;
     }
 
     gapRange(canvasHeight) {
