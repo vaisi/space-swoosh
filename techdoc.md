@@ -828,9 +828,11 @@ night-paper lifts in `theme.js`) on **Lantern** (`drawLanternTrail` — filament
 (theme lifts in `theme.js`); **Lyra** / **Boreal** share ship-local aurora bands;
 **Plume** uses ember+gold flame strata; **Koi** vermillion scale stamps;
 **Darner** uses ship-local teal/gold/violet mosaic diamonds (`drawDarnerTrail`);
-**Puff** reuses lantern gold/teal for parachute umbrellas (`drawPuffTrail`);
-**Argus** stamps teal-rim / gold-pupil eyespots (`drawArgusTrail`, ship-local rim);
-**Chime** draws expanding gold/ink sound arcs + note motes (`drawChimeTrail`);
+**Puff** draws an ink ribbon plus denser gold/teal parachute umbrellas with
+ink outlines (`drawPuffTrail`);
+**Argus** stamps theme-aware peacock-rim / gold-pupil eyespots (`drawArgusTrail`,
+`color.argusTealRgb` lifts on night paper);
+**Chime** draws dense gold/ink sound arcs + paired note motes (`drawChimeTrail`);
 **Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe
 bands, not HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in
 dark gray with two clipped pink spots (`CRESCENT_HITBOX`); `trailTailOffset: 0`

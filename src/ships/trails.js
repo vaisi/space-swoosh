@@ -2,6 +2,9 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Puff / Argus / Chime wake visibility: ink ribbon + denser umbrellas
+//   (Puff), theme-aware peacock rims (Argus), denser gold/ink arcs+notes
+//   (Chime). All three read on cream and night paper.
 // - Darner mosaic ribbons, Puff parachute umbrellas, Argus eyespot stamps,
 //   Chime sound arcs. Each thins on iOS LOD.
 // - Luna moth-dust wake + Wish constellation comet. Greatest-of-greats pair.
@@ -128,9 +131,6 @@ const DARNER_RGB = [
     '232, 184, 74',
     '140, 88, 210',
 ];
-
-/** Argus eyespot rim — teal (gold pupil uses lantern gold). */
-const ARGUS_TEAL_RGB = '42, 168, 158';
 
 const filamentScratch = [];
 
@@ -2290,7 +2290,7 @@ export function drawDarnerTrail(ctx, ship, trail, toScreenY, opts = {}) {
 }
 
 /**
- * Puff wake — parachute umbrellas (tiny inverted-V + disc) drifting off the path.
+ * Puff wake — ink path + parachute umbrellas (inverted-V + disc) off the path.
  * Cloud boop puffs the seeds like Lantern plankton.
  */
 export function drawPuffTrail(ctx, ship, trail, toScreenY, opts = {}) {
@@ -2298,6 +2298,7 @@ export function drawPuffTrail(ctx, ship, trail, toScreenY, opts = {}) {
         alpha = 0.9,
         goldRgb = color.lanternGoldRgb,
         tealRgb = color.lanternTealRgb,
+        inkRgb = color.inkRgb,
     } = opts;
     const pts = wakePoints(ship, trail, toScreenY);
     const n = pts.length;
@@ -2317,19 +2318,16 @@ export function drawPuffTrail(ctx, ship, trail, toScreenY, opts = {}) {
         return r * (0.03 + 0.08 * t) * pts[i].opacity * (1 + energy * 0.25 * t);
     };
     ribbonPath(ctx, pts, widthAt);
-    ctx.globalAlpha = baseAlpha * alpha * (0.22 + energy * 0.14);
-    ctx.fillStyle = `rgba(${goldRgb}, 1)`;
+    ctx.globalAlpha = baseAlpha * alpha * (0.42 + energy * 0.2);
+    ctx.fillStyle = `rgba(${inkRgb}, 1)`;
     ctx.fill();
 
     const step = lod ? 3 : 1;
-    const chance = energy > 0.08 ? 0.92 : 0.58;
+    const chance = energy > 0.08 ? 0.92 : 0.88;
+    const seedsPer = 2;
     for (let i = 0; i < n; i += step) {
         const p = pts[i];
         if (p.opacity < 0.14) continue;
-        const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.29);
-        if (u > chance) continue;
-        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.17);
-        const w = fract((p.seed ?? 0.5) * 4.14 + i * 0.13);
         const leave = 1 - i / denom;
         const prev = pts[Math.max(0, i - 1)];
         const next = pts[Math.min(n - 1, i + 1)];
@@ -2338,39 +2336,47 @@ export function drawPuffTrail(ctx, ship, trail, toScreenY, opts = {}) {
         const len = Math.hypot(dx, dy) || 1;
         const nx = -dy / len;
         const ny = dx / len;
-        const drift = (u * 2 - 1) * r * (0.22 + 1.05 * leave) * (1 + energy * 1.15);
-        const along = (v * 2 - 1) * r * 0.22 * leave;
-        const sx = p.x + nx * drift + ny * along;
-        const sy = p.y + ny * drift - nx * along;
-        const size = r * (0.045 + 0.07 * leave) * (0.55 + w * 0.55) * (1 + energy * 0.5);
-        const rgb = w > 0.5 ? goldRgb : tealRgb;
-        ctx.strokeStyle = `rgba(${rgb}, 1)`;
-        ctx.fillStyle = `rgba(${rgb}, 1)`;
-        ctx.globalAlpha = baseAlpha * alpha * p.opacity
-            * (0.32 + 0.4 * leave + energy * 0.35);
-        ctx.lineWidth = Math.max(0.6, r * 0.03);
-        ctx.beginPath();
-        ctx.moveTo(sx - size, sy + size * 0.15);
-        ctx.lineTo(sx, sy - size * 0.55);
-        ctx.lineTo(sx + size, sy + size * 0.15);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(sx, sy + size * 0.22, size * 0.32, 0, Math.PI * 2);
-        ctx.fill();
+        for (let k = 0; k < seedsPer; k++) {
+            const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.29 + k * 0.618);
+            if (u > chance) continue;
+            const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.17 + k * 0.37);
+            const w = fract((p.seed ?? 0.5) * 4.14 + i * 0.13 + k * 0.11);
+            const drift = (u * 2 - 1) * r * (0.22 + 1.05 * leave) * (1 + energy * 1.15);
+            const along = (v * 2 - 1) * r * 0.22 * leave;
+            const sx = p.x + nx * drift + ny * along;
+            const sy = p.y + ny * drift - nx * along;
+            const size = r * (0.06 + 0.10 * leave) * (0.55 + w * 0.55) * (1 + energy * 0.5);
+            const rgb = w > 0.5 ? goldRgb : tealRgb;
+            ctx.fillStyle = `rgba(${rgb}, 1)`;
+            ctx.strokeStyle = `rgba(${inkRgb}, 1)`;
+            ctx.globalAlpha = baseAlpha * alpha * p.opacity
+                * (0.55 + 0.35 * leave + energy * 0.35);
+            ctx.lineWidth = Math.max(0.7, r * 0.032);
+            ctx.beginPath();
+            ctx.moveTo(sx - size, sy + size * 0.15);
+            ctx.lineTo(sx, sy - size * 0.55);
+            ctx.lineTo(sx + size, sy + size * 0.15);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(sx, sy + size * 0.22, size * 0.32, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
     }
 
     ctx.restore();
 }
 
 /**
- * Argus wake — eyespot rings (teal rim, gold pupil) stamped along the path.
+ * Argus wake — eyespot rings (peacock rim, gold pupil) stamped along the path.
  * Pile boop flares the fan.
  */
 export function drawArgusTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const {
         alpha = 0.9,
-        rimRgb = ARGUS_TEAL_RGB,
+        rimRgb = color.argusTealRgb,
         pupilRgb = color.lanternGoldRgb,
+        inkRgb = color.inkRgb,
     } = opts;
     const marks = denseTrailMarks(ship, trail, toScreenY);
     const m = marks.length;
@@ -2390,12 +2396,16 @@ export function drawArgusTrail(ctx, ship, trail, toScreenY, opts = {}) {
         const leave = 1 - (p.along ?? 0.5);
         const ringR = r * (0.1 + 0.22 * leave) * (p.scale ?? 1)
             * (p.sx ?? 1) * (1 + energy * 0.35);
-        const fade = baseAlpha * alpha * p.opacity * (0.38 + 0.5 * leave + energy * 0.28);
+        const fade = baseAlpha * alpha * p.opacity * (0.62 + 0.32 * leave + energy * 0.28);
+        const ry = ringR * 0.78 * (p.sy ?? 1);
+        ctx.fillStyle = `rgba(${rimRgb}, 1)`;
+        ctx.globalAlpha = fade * 0.22;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, ringR, ry, p.angle ?? 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.strokeStyle = `rgba(${rimRgb}, 1)`;
         ctx.globalAlpha = fade;
-        ctx.lineWidth = Math.max(0.8, r * (0.04 + 0.03 * p.opacity));
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y, ringR, ringR * 0.78 * (p.sy ?? 1), p.angle ?? 0, 0, Math.PI * 2);
+        ctx.lineWidth = Math.max(1.1, r * (0.06 + 0.04 * p.opacity));
         ctx.stroke();
 
         ctx.fillStyle = `rgba(${pupilRgb}, 1)`;
@@ -2413,7 +2423,7 @@ export function drawArgusTrail(ctx, ship, trail, toScreenY, opts = {}) {
         ctx.fill();
 
         if (!lod && leave > 0.2) {
-            ctx.fillStyle = 'rgba(18, 22, 28, 1)';
+            ctx.fillStyle = `rgba(${inkRgb}, 1)`;
             ctx.globalAlpha = fade * 0.55;
             ctx.beginPath();
             ctx.ellipse(
@@ -2442,14 +2452,13 @@ export function drawChimeTrail(ctx, ship, trail, toScreenY, opts = {}) {
         goldRgb = color.lanternGoldRgb,
         inkRgb = color.inkRgb,
     } = opts;
-    const pts = wakePoints(ship, trail, toScreenY);
-    const n = pts.length;
-    if (n < 3) return;
+    const marks = denseTrailMarks(ship, trail, toScreenY, 1);
+    const m = marks.length;
+    if (m < 2) return;
     const r = ship.radius;
     const now = performance.now();
     const energy = jellyEnergy(ship, now);
     const lod = iosBudget(ship);
-    const denom = Math.max(1, n - 1);
     const t = ship.wallJelly
         ? Math.max(0, Math.min(1, (now - ship.wallJelly.t0) / WALL_JELLY_MS))
         : 1;
@@ -2459,18 +2468,18 @@ export function drawChimeTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.lineCap = 'round';
 
     const arcStep = lod ? 3 : 1;
-    for (let i = 0; i < n; i += arcStep) {
-        const p = pts[i];
+    for (let i = 0; i < m; i += arcStep) {
+        const p = marks[i];
         if (p.opacity < 0.16) continue;
-        const leave = 1 - i / denom;
+        const leave = 1 - (p.along ?? 0.5);
         const age = 1 - p.opacity;
         const pulse = energy > 0 ? 1 + energy * 0.7 * Math.sin(Math.PI * t) * p.opacity : 1;
         const arcR = r * (0.16 + age * 0.95) * pulse * (p.sx ?? 1);
         const rgb = i % 2 === 0 ? goldRgb : inkRgb;
         ctx.strokeStyle = `rgba(${rgb}, 1)`;
         ctx.globalAlpha = baseAlpha * alpha * p.opacity
-            * (0.28 + 0.42 * leave + energy * 0.28);
-        ctx.lineWidth = Math.max(0.7, r * (0.035 + 0.02 * leave));
+            * (0.5 + 0.4 * leave + energy * 0.28);
+        ctx.lineWidth = Math.max(0.9, r * (0.05 + 0.03 * leave));
         ctx.beginPath();
         ctx.ellipse(
             p.x,
@@ -2485,38 +2494,47 @@ export function drawChimeTrail(ctx, ship, trail, toScreenY, opts = {}) {
     }
 
     const noteStep = lod ? 3 : 1;
-    const noteChance = energy > 0.08 ? 0.86 : 0.5;
-    for (let i = 0; i < n; i += noteStep) {
-        const p = pts[i];
+    const noteChance = energy > 0.08 ? 0.94 : 0.88;
+    for (let i = 0; i < m; i += noteStep) {
+        const p = marks[i];
         if (p.opacity < 0.14) continue;
         const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.33);
         if (u > noteChance) continue;
-        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.21);
-        const leave = 1 - i / denom;
-        const prev = pts[Math.max(0, i - 1)];
-        const next = pts[Math.min(n - 1, i + 1)];
+        const leave = 1 - (p.along ?? 0.5);
+        const prev = marks[Math.max(0, i - 1)];
+        const next = marks[Math.min(m - 1, i + 1)];
         const dx = next.x - prev.x;
         const dy = next.y - prev.y;
         const len = Math.hypot(dx, dy) || 1;
         const nx = -dy / len;
         const ny = dx / len;
-        const side = (u * 2 - 1) * r * (0.16 + 0.8 * leave) * (1 + energy * 0.95);
-        const sx = p.x + nx * side;
-        const sy = p.y + ny * side;
-        const size = r * (0.032 + 0.05 * leave) * (0.55 + v * 0.5) * (1 + energy * 0.45);
-        const rgb = v > 0.45 ? goldRgb : inkRgb;
-        ctx.fillStyle = `rgba(${rgb}, 1)`;
-        ctx.strokeStyle = `rgba(${rgb}, 1)`;
-        ctx.globalAlpha = baseAlpha * alpha * p.opacity
-            * (0.36 + 0.4 * leave + energy * 0.35);
-        ctx.beginPath();
-        ctx.arc(sx, sy + size * 0.35, size * 0.55, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.lineWidth = Math.max(0.6, r * 0.028);
-        ctx.beginPath();
-        ctx.moveTo(sx + size * 0.4, sy + size * 0.35);
-        ctx.lineTo(sx + size * 0.4, sy - size * 1.35);
-        ctx.stroke();
+        for (let k = 0; k < 2; k++) {
+            const hk = fract((p.seed ?? 0.5) * (12.99 + k * 17.3) + i * 0.33);
+            const vk = fract((p.seed ?? 0.5) * (78.23 + k * 11.1) + i * 0.21);
+            const side = (k === 0 ? 1 : -1) * Math.abs(hk * 2 - 1)
+                * r * (0.16 + 0.8 * leave) * (1 + energy * 0.95);
+            const sx = p.x + nx * side;
+            const sy = p.y + ny * side;
+            const size = r * (0.032 + 0.05 * leave) * (0.55 + vk * 0.5) * (1 + energy * 0.45);
+            const rgb = vk > 0.45 ? goldRgb : inkRgb;
+            const goldNote = rgb === goldRgb;
+            ctx.fillStyle = `rgba(${rgb}, 1)`;
+            ctx.globalAlpha = baseAlpha * alpha * p.opacity
+                * (0.55 + 0.35 * leave + energy * 0.35);
+            ctx.beginPath();
+            ctx.arc(sx, sy + size * 0.35, size * 0.55, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = Math.max(0.6, r * 0.028);
+            if (goldNote) {
+                ctx.strokeStyle = `rgba(${inkRgb}, 1)`;
+                ctx.stroke();
+            }
+            ctx.strokeStyle = goldNote ? `rgba(${inkRgb}, 1)` : `rgba(${rgb}, 1)`;
+            ctx.beginPath();
+            ctx.moveTo(sx + size * 0.4, sy + size * 0.35);
+            ctx.lineTo(sx + size * 0.4, sy - size * 1.35);
+            ctx.stroke();
+        }
     }
 
     ctx.restore();

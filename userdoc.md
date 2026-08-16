@@ -310,9 +310,9 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Luna** | A lunar moth with a moon heart and waving antennae. The wake is glittering wing-dust that puffs on a wall hit. Antennae and dust motes are looks only. |
 | **Wish** | A crystal comet with a gold wish-heart and three orbiting stars. The wake is a gold blade that sheds 4-point stars; a wall hit bursts the constellation. Orbiting stars are looks only. |
 | **Darner** | A slim dragonfly with iridescent wings and a gold thorax. Twin mosaic ribbons and diamond specks (teal, gold, violet); wings flash on a wall hit. Wings are looks only. |
-| **Puff** | A dandelion clock with a short stem and breathing seed ticks. Tiny parachute umbrellas drift off the path and puff on a wall hit. Stem and ticks are looks only. |
-| **Argus** | A peacock teardrop with a rear fan of pulsing eyespots. Teal-rim, gold-pupil rings stamp the path; the fan flares on a wall hit. Thin feather tips are looks only. |
-| **Chime** | A temple bell with two smaller side bells and swaying clappers. Expanding sound arcs and gold/ink notes ring down the wake. Side bells are looks only. |
+| **Puff** | A dandelion clock with a short stem and breathing seed ticks. An ink path sheds gold and teal parachute umbrellas that puff on a wall hit. Stem and ticks are looks only. |
+| **Argus** | A peacock teardrop with a rear fan of pulsing eyespots. Peacock-rim, gold-pupil rings stamp the path; the fan flares on a wall hit. Thin feather tips are looks only. |
+| **Chime** | A temple bell with two smaller side bells and swaying clappers. Dense sound arcs and gold/ink notes ring down the wake. Side bells are looks only. |
 
 Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Ink,
 Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, and Chime leave a longer wake in play so the far end runs off the screen. The

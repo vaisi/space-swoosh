@@ -3,6 +3,7 @@
 // SPACE SWOOSH — Light / dark (night paper) theme switching.
 //
 // Changes:
+// - Argus peacock rim lifts on night paper (deep teal → electric mint).
 // - Luna mothLavender lifts on night paper.
 // - Spore amber/violet + Sprout green lift on night paper (same as Lantern).
 // - Lantern teal/gold trail tokens lift on night paper (same as Ember).
@@ -57,6 +58,8 @@ const DARK = {
     sproutGreenRgb: '110, 220, 138',
     mothLavender:    '#C9A6F0',
     mothLavenderRgb: '201, 166, 240',
+    argusTeal:       '#40E4C4',
+    argusTealRgb:    '64, 228, 196',
 };
 
 /** Classic cream paper — warm ground, near-black ink, Signal Blue. */
@@ -92,6 +95,8 @@ const LIGHT = {
     sproutGreenRgb: '62, 139, 90',
     mothLavender:    '#8B6BB0',
     mothLavenderRgb: '139, 107, 176',
+    argusTeal:       '#105C58',
+    argusTealRgb:    '16, 92, 88',
 };
 
 const PALETTES = {

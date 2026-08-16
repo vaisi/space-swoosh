@@ -3,6 +3,8 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Added `argusTeal` / `argusTealRgb` — theme-aware peacock rim for the
+//   Argus wake (deep on cream, electric on night paper). Never HUD.
 // - Motif `repulsor` (push node) and `drift` (lateral current band).
 // - Motif `phase` (square bloom) and `sweep` (slim rotating line).
 // - Added `saber` / `saberRgb` / `saberCoreRgb` — bright purple lightsaber
@@ -86,6 +88,10 @@ export const color = {
     // Luna — moth-wing dust (trail / hull motes only; never HUD).
     mothLavender:    '#8B6BB0',
     mothLavenderRgb: '139, 107, 176',
+
+    // Argus — peacock eyespot rim for the wake only (never HUD).
+    argusTeal:       '#105C58',
+    argusTealRgb:    '16, 92, 88',
 
     // Saber — bright purple lightsaber wake (Saber ship only; never HUD).
     saber:        '#A855FF',
