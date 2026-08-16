@@ -1,5 +1,5 @@
 // PopupField.swift
-// Changes: Slice D — baked +FUEL / BOOP / +1 / SWOOSH+15 sprites, pooled.
+// Changes: override init() for Xcode 26 SKNode.
 
 import SpriteKit
 import UIKit
@@ -11,7 +11,7 @@ final class PopupField: SKNode {
     private let smashTex: SKTexture
     private let swooshTex: SKTexture
 
-    init() {
+    override init() {
         fuelTex = Self.labelTexture("+FUEL", color: BrandColors.UI.signal, size: 28)
         boopTex = Self.labelTexture("BOOP", color: BrandColors.UI.ink, size: 22)
         smashTex = Self.labelTexture("+1", color: BrandColors.UI.ink, size: 26)

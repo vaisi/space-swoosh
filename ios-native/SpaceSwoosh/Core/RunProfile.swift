@@ -1,5 +1,5 @@
 // RunProfile.swift
-// Changes: Slice E — Open Space / Journey / Hazard Lab knobs the sim reads.
+// Changes: Qualify static lerp/lerpInt for Xcode 26.
 
 import Foundation
 import CoreGraphics
@@ -190,7 +190,7 @@ struct RunProfile {
             let progress = min(scoreKm / (s.rampUpDistance * 1.2), 1)
             return s.startDensity + (s.maxDensity - s.startDensity) * pow(progress, 1.2)
         }
-        return lerp(density0, density1, difficulty)
+        return Self.lerp(density0, density1, difficulty)
     }
 
     func gapRange(height: CGFloat) -> (min: CGFloat, max: CGFloat) {
@@ -204,7 +204,7 @@ struct RunProfile {
             let extra = Int(roll * dens)
             return min(maxCluster, max(1, base + extra))
         }
-        let base = lerpInt(baseCluster0, baseCluster1, difficulty)
+        let base = Self.lerpInt(baseCluster0, baseCluster1, difficulty)
         return min(maxCluster, max(1, base))
     }
 
