@@ -363,7 +363,14 @@ Two things worth knowing about the existing engine that this surfaced:
 - **Catch-up camera.** Ship and camera are separate: camera matches ship travel
   (with `camera.speed` as a floor), then corrects when the ship is above its
   ideal seat (`height * 0.75`) so it accelerates back until the ship sits lower
-  on screen. Ship updates before camera each frame.
+  on screen. A `0.16×height` deadzone skips re-seating on small drift. Ship
+  updates before camera each frame.
+  **Android native only:** if the ship sits below the ideal seat for 5s
+  (`camera.reseatDelay`, slack `0.03×height`) — typical after a wormhole hop or
+  advanced black-hole Y-pull that lands inside the deadzone — `Camera.tickReseat`
+  applies a slow extra pull (`reseatInterpolation` 0.05) until the seat is
+  recovered. Gated by `Game.cameraReseatEnabled` / `isAndroidNative()`. iOS
+  native uses `CinematicFlight.cruiseSeat` and does not reseat this way.
   KM must never be computed as `|velocity| * wallClockDt * 100` — that desyncs
   HUD distance from world travel; use `abs(Δcamera.y) * (100/60)`.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
@@ -443,6 +450,11 @@ select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
 frontier level advances `unlocked`. Journey never writes to Supabase.
 
 ### Open Space unlock ladder (`OPEN_WORLD_UNLOCKS`)
+
+Types still unlock at these KM marks. `message` is `null` on every row — Open
+Space no longer flashes hazard-name banners. Tutorial steer / atmosphere lines
+and Journey intros stay. iOS `CombatSimulator` matches: unlock `showMilestone`
+is skipped; distance lines at 2000 / 5000 KM (asteroid warnings) are silent.
 
 | KM | Type |
 | --- | --- |
@@ -703,7 +715,7 @@ Obstacle probes are meant to hug the drawn ink:
 | Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render). Shield smash destroys only the part hit: a moon clip leaves the core; a core hit clears the whole cluster. Render cull uses full cluster radius so moons are never collidable while undrawn. |
 | Shooting star | 8-point star polygon + projectile circles (projectiles still drawn when the star body is culled). Shield smash clips only the shots you hit; body hit clears the star. |
 | Black hole | Core radius only (glow/pulse are VFX) |
-| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera keeps scrolling during the hop so emerge catch-up is the spacetime wobble (original behavior); `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge |
+| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera keeps scrolling during the hop so emerge catch-up is the spacetime wobble (original behavior); `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge. Android: reseat dwell does not count during the hop; if the ship stays low after emerge, the 5s reseat pull can lift it back. |
 
 `ObstacleManager.update()` advances every obstacle (orbits, movers, shots)
 **before** running shield/fatal collision, so hit tests match the ink painted

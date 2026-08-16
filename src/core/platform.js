@@ -1,6 +1,8 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
+// - isAndroidNative(): Capacitor Android only — gates camera reseat after
+//   wormhole / black-hole dips that the deadzone would otherwise keep.
 // - iOS DPR cap raised 1.5 → 2.0: 1.5 sits below the retina threshold (visibly
 //   soft); 2.0 reads sharp while still ~56% fewer pixels than native DPR 3.
 //   Safe on heat because cheap Canvas + draw LOD + opaque context + hitch clamp
@@ -51,4 +53,9 @@ export function canvasMaxDpr() {
 /** Prefer an opaque 2D buffer when we always paint paper first. */
 export function preferOpaqueCanvas() {
     return Capacitor.isNativePlatform() || isIosDevice();
+}
+
+/** True only on the Capacitor Android app — not Android Chrome / desktop. */
+export function isAndroidNative() {
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
 }

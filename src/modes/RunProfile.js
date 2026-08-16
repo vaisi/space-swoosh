@@ -5,6 +5,8 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - OPEN_WORLD_UNLOCKS messages are null — types still unlock by KM, but
+//   Open Space no longer flashes hazard-name banners.
 // - OPEN_WORLD_UNLOCKS: driftCurrent@3500, phase@4500, repulsor@5500,
 //   sweepGate@7000 (between/after existing shooting→BH ladder).
 // - `focusChance` (default 0.5): how often `focusType` wins a set-piece slot.
@@ -31,22 +33,21 @@ export const PLAY_MODE = {
 export const PLAY_MODE_STORAGE_KEY = 'playMode';
 
 // Every obstacle type in spawn order, with the Open World distance that unlocks
-// it and the science-officer line announcing it. ObstacleManager used to keep
-// its own copy of this table, which had already drifted from the one in
-// GameConfig; this is the only copy now.
+// it. `message` stays null so ObstacleManager unlocks silently — no hazard
+// banners mid-run. ObstacleManager used to keep its own copy of this table.
 export const OPEN_WORLD_UNLOCKS = [
-    { type: 'simple', score: 0, message: 'Watch out for asteroids!' },
-    { type: 'sideBarrier', score: 1000, message: 'Warning: Side barriers detected!' },
-    { type: 'complex', score: 1000, message: 'Warning: Asteroids with orbiting debris detected!' },
-    { type: 'moving', score: 2000, message: 'Caution: Moving asteroids detected!' },
-    { type: 'shooting', score: 3000, message: 'Warning: Hostile asteroids detected!' },
-    { type: 'driftCurrent', score: 3500, message: 'Crosswinds detected — lateral currents ahead!' },
-    { type: 'pulsating', score: 4000, message: 'Warning: Unstable asteroids ahead!' },
-    { type: 'phase', score: 4500, message: 'Square blooms detected — they spring open and shove!' },
-    { type: 'wormhole', score: 5000, message: 'Spatial anomalies detected!' },
-    { type: 'repulsor', score: 5500, message: 'Repulsor fields detected — they push, not pull!' },
-    { type: 'blackhole', score: 6000, message: 'Gravitational anomalies detected!' },
-    { type: 'sweepGate', score: 7000, message: 'Sweep lines ahead — timed corridors!' },
+    { type: 'simple', score: 0, message: null },
+    { type: 'sideBarrier', score: 1000, message: null },
+    { type: 'complex', score: 1000, message: null },
+    { type: 'moving', score: 2000, message: null },
+    { type: 'shooting', score: 3000, message: null },
+    { type: 'driftCurrent', score: 3500, message: null },
+    { type: 'pulsating', score: 4000, message: null },
+    { type: 'phase', score: 4500, message: null },
+    { type: 'wormhole', score: 5000, message: null },
+    { type: 'repulsor', score: 5500, message: null },
+    { type: 'blackhole', score: 6000, message: null },
+    { type: 'sweepGate', score: 7000, message: null },
 ];
 
 export const ALL_OBSTACLE_TYPES = OPEN_WORLD_UNLOCKS.map((entry) => entry.type);

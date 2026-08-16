@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Fatal hits use the equipped skin's JS circle pack.
+// Changes: Open Space unlocks and asteroid-warning milestones stay silent.
 
 import Foundation
 import CoreGraphics
@@ -468,16 +468,15 @@ enum CombatSimulator {
             let bit = UInt16(1 << i)
             if run.scoreKm >= entry.score, run.announcedMask & bit == 0 {
                 run.announcedMask |= bit
-                if i > 0 {
-                    showMilestone(run: &run, entry.message)
-                }
             }
         }
         for (i, entry) in GameConfig.Milestones.table.enumerated() {
             let bit = UInt16(1 << i)
             if run.scoreKm >= entry.score, run.milestoneMask & bit == 0 {
                 run.milestoneMask |= bit
-                showMilestone(run: &run, entry.message)
+                if !Self.isAsteroidWarning(entry.score) {
+                    showMilestone(run: &run, entry.message)
+                }
             }
         }
         guard !run.milestoneText.isEmpty else {
@@ -504,6 +503,11 @@ enum CombatSimulator {
         run.milestoneText = text
         run.milestoneT = 0
         run.milestoneOpacity = 0
+    }
+
+    /// Distance lines that name rocks — silent in Open Space like JS unlocks.
+    private static func isAsteroidWarning(_ score: CGFloat) -> Bool {
+        score == 2000 || score == 5000
     }
 
     private static func placeSimple(

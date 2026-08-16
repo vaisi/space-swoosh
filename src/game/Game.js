@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - cameraReseatEnabled is Android native only — Camera slowly lifts a ship
+//   that sits below the ideal seat for 5s (wormhole / black-hole leftover).
 // - Pause freezes navigator voice with BGM (pauseLevelVoice / resumeLevelVoice).
 // - In-run HUD mockup C: three equal-height icon+meter rows (route/ink bar,
 //   sparkle/Signal fuel bar, target/dots or Open Space count) — no captions.
@@ -254,6 +256,7 @@ import {
 } from '../config/flightStyle.js';
 import {
     canvasMaxDpr,
+    isAndroidNative,
     needsIosCanvasBudget,
     preferOpaqueCanvas,
 } from '../core/platform.js';
@@ -277,6 +280,7 @@ export class Game {
         this.fuelDying = false;
         this.fuelDyingStart = null;
         this.fuelPauseTeleportUntil = 0; // hop + camera catch-up: no fuel drain
+        this.cameraReseatEnabled = isAndroidNative();
         this.failReason = null; // 'crash' | 'fuel' | null
         this.sparklesCollected = 0;
         this.isGameOver = false;

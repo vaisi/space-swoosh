@@ -1,6 +1,8 @@
 // Camera.js
 // Scroll position + world→screen mapping.
 // Changes:
+// - Android native: after 5s spent below the ideal seat (wormhole / black-hole
+//   dips inside the deadzone), a slow extra pull reseats the ship vertically.
 // - Catch-up camera: ship leads; camera cruises and accelerates when the ship
 //   rides too high. Stronger lag response so turns don't feel mushy.
 // - Advances with `game.tickScale` so web and native share one pace.
@@ -18,6 +20,9 @@ export class Camera {
         this.idealOffset = game.height * 0.75;
         this.velocity = 0;
         this.shake = { x: 0, y: 0 };
+        this.reseatEnabled = game.cameraReseatEnabled === true;
+        this.belowSeatSec = 0;
+        this.reseatActive = false;
     }
 
     update(speedFactor = 1) {
@@ -48,7 +53,8 @@ export class Camera {
         // it re-seats crisply rather than crawling back.
         const lagBoost = 1 + Math.max(0, excessLag) / Math.max(1, this.game.height * 0.22);
         const correction = -excessLag * this.interpolation * lagBoost;
-        const targetVelocity = (matchShip + correction) * speedFactor;
+        const reseat = this.tickReseat(ship, shipScreenY, tickScale);
+        const targetVelocity = (matchShip + correction + reseat) * speedFactor;
 
         // Ease velocity — reads as "camera accelerates to catch up", not a snap.
         const keep = Math.pow(this.game.config.camera.smoothingFactor, tickScale);
@@ -56,6 +62,36 @@ export class Camera {
 
         this.y += this.velocity * tickScale;
         this.totalDistance = Math.abs(this.y);
+    }
+
+    /**
+     * Android only. After a long dwell below the ideal seat, add a gentle
+     * downward-lag correction inside the deadzone so the ship climbs back.
+     */
+    tickReseat(ship, shipScreenY, tickScale) {
+        if (!this.reseatEnabled) return 0;
+        if (ship?.wormholeTransit) return 0;
+
+        const cfg = this.game.config.camera ?? {};
+        const slack = this.game.height * (cfg.reseatSlack ?? 0.03);
+        const delay = cfg.reseatDelay ?? 5;
+        const interp = cfg.reseatInterpolation ?? 0.05;
+        const dt = tickScale / 60;
+        const below = shipScreenY - this.idealOffset;
+
+        if (below > slack) {
+            this.belowSeatSec += dt;
+        } else {
+            this.belowSeatSec = 0;
+            this.reseatActive = false;
+            return 0;
+        }
+
+        if (this.belowSeatSec >= delay) this.reseatActive = true;
+        if (!this.reseatActive) return 0;
+
+        // Ship too low → positive add → camera scrolls slower → ship rises.
+        return below * interp;
     }
 
     getRelativeY(absoluteY) {
