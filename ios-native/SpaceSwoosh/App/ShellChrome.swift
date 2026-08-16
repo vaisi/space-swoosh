@@ -1,5 +1,5 @@
 // ShellChrome.swift
-// Changes: Home ship cycle (Focus / Flicker / Ember / Saber) replaces Flicker-only preview.
+// Changes: Home ◀/▶ cycles the full 41-ship roster; HullBake previews.
 
 import SwiftUI
 import UIKit
@@ -119,13 +119,14 @@ enum ShellChrome {
 }
 
 enum ShipArt {
+    private static var cache: [String: UIImage] = [:]
+
     static func preview(_ id: SkinId) -> UIImage {
-        switch id {
-        case .focus: return FocusHullTexture.makeImage(logicalRadius: 22, scale: 2)
-        case .flicker: return FlickerHullTexture.makeImage(logicalRadius: 22, scale: 2)
-        case .ember: return EmberHullTexture.makeImage(logicalRadius: 22, scale: 2)
-        case .saber: return SaberHullTexture.makeImage(logicalRadius: 22, scale: 2)
-        }
+        let key = "\(id.rawValue)-\(SettingsStore.shared.isDark)"
+        if let hit = cache[key] { return hit }
+        let img = HullBake.makeImage(kind: SkinCatalog.def(id).hullKind, logicalRadius: 22, scale: 2)
+        cache[key] = img
+        return img
     }
 }
 

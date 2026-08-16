@@ -1,5 +1,5 @@
 // GameConfig.swift
-// Changes: Flicker.shieldSeconds 4 — iOS pickup/portal/flyout shield (Android stays 5).
+// Changes: trailDotSize 0.2 (Android spacecraft.trailDotSize).
 
 import Foundation
 import CoreGraphics
@@ -32,6 +32,7 @@ enum GameConfig {
         static let arcVerticalBoost: CGFloat = 0.55
         static let trailMaxPoints: Int = 80
         static let trailFadePerTick: CGFloat = 1.0 / 180.0
+        static let trailDotSize: CGFloat = 0.2
         static let trailSpacing: CGFloat = 10
         static let maxBank: CGFloat = 0.96
         static let tailOffset: CGFloat = 0.6

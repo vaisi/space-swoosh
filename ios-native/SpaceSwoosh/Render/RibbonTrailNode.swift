@@ -1,17 +1,20 @@
 // RibbonTrailNode.swift
-// Changes: Trail smudge uses ink12 so the outer glow matches the hull halo.
+// Changes: Parameterized Flicker/Quill/Ink ribbon; springNudge vs wallTrailDeform.
 
 import SpriteKit
 
 /// Android `drawRibbonTrail` / `ribbonPath` / `traceSmooth` as two filled paths.
 /// Nodes are created once; only `path` is replaced each frame.
-final class RibbonTrailNode: SKNode {
+final class RibbonTrailNode: SKNode, SkinTrail {
+    var node: SKNode { self }
+
     private let smudge: SKShapeNode
     private let body: SKShapeNode
     private var left: [CGPoint]
     private var right: [CGPoint]
     private var wake: [WakePoint]
     private let maxPoints: Int
+    private let skin: SkinDef
 
     private struct WakePoint {
         var x: CGFloat
@@ -20,8 +23,9 @@ final class RibbonTrailNode: SKNode {
         var seed: CGFloat
     }
 
-    init(maxPoints: Int = GameConfig.Spacecraft.trailMaxPoints + 2) {
+    init(maxPoints: Int = GameConfig.Spacecraft.trailMaxPoints + 2, skin: SkinDef = SkinCatalog.def(.flicker)) {
         self.maxPoints = max(maxPoints, 3)
+        self.skin = skin
         left = Array(repeating: .zero, count: self.maxPoints)
         right = Array(repeating: .zero, count: self.maxPoints)
         wake = Array(
@@ -40,6 +44,18 @@ final class RibbonTrailNode: SKNode {
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) not used")
+    }
+
+    func sync(_ ctx: TrailSyncContext) {
+        sync(
+            trail: ctx.trail,
+            ship: ctx.ship,
+            cameraY: ctx.cameraY,
+            sceneHeight: ctx.sceneHeight,
+            jellyElapsedMs: ctx.jellyElapsedMs,
+            jellySide: ctx.jellySide,
+            shipRadius: ctx.shipRadius
+        )
     }
 
     func sync(
@@ -68,7 +84,7 @@ final class RibbonTrailNode: SKNode {
             return
         }
 
-        let maxWidth = shipRadius * GameConfig.Flicker.trailWidthScale
+        let maxWidth = shipRadius * GameConfig.Flicker.trailWidthScale * skin.trailWidthScale
         let last = CGFloat(n - 1)
         let widthAt: (Int) -> CGFloat = { i in
             let t = CGFloat(i) / last
@@ -84,12 +100,12 @@ final class RibbonTrailNode: SKNode {
         smudge.path = makeRibbonPath(count: n)
         smudge.fillColor = BrandColors.UI.ink12
         smudge.alpha = 1
-        smudge.isHidden = false
+        smudge.isHidden = !skin.trailSmudge
 
         fillEdges(count: n, widthAt: widthAt)
         body.path = makeRibbonPath(count: n)
-        body.fillColor = BrandColors.UI.trail
-        body.alpha = 0.80
+        body.fillColor = skin.trailSignal ? BrandColors.UI.signal : BrandColors.UI.trail
+        body.alpha = skin.trailAlpha
         body.isHidden = false
     }
 
@@ -116,7 +132,7 @@ final class RibbonTrailNode: SKNode {
         let screenY: (CGFloat) -> CGFloat = { worldY in
             sceneHeight * 0.22 + (worldY - cameraY)
         }
-        let jellyLive = jellyElapsedMs >= 0 && jellyElapsedMs < GameConfig.Flicker.wallJellyMs
+        let jellyLive = WallJelly.isLive(elapsedMs: jellyElapsedMs, mode: skin.wallTrailMode)
         let jellyT = jellyLive ? jellyElapsedMs / GameConfig.Flicker.wallJellyMs : 0
         let recorded = min(trail.count, maxPoints - 2)
         let denom = CGFloat(max(recorded - 1, 1))
@@ -127,15 +143,28 @@ final class RibbonTrailNode: SKNode {
             var x = src.x
             var y = src.y
             if jellyLive {
-                let n = WallJelly.springNudge(
-                    t: jellyT,
-                    along: along,
-                    side: jellySide,
-                    radius: shipRadius,
-                    seed: src.seed
-                )
-                x += n.dx
-                y += n.dy
+                if skin.wallTrailMode == .spring {
+                    let n = WallJelly.springNudge(
+                        t: jellyT,
+                        along: along,
+                        side: jellySide,
+                        radius: shipRadius,
+                        seed: src.seed
+                    )
+                    x += n.dx
+                    y += n.dy
+                } else {
+                    let d = WallJelly.deform(
+                        mode: skin.wallTrailMode,
+                        elapsedMs: jellyElapsedMs,
+                        along: along,
+                        side: jellySide,
+                        radius: shipRadius,
+                        seed: src.seed
+                    )
+                    x += d.dx
+                    y += d.dy
+                }
             }
             wake[i] = WakePoint(x: x, y: screenY(y), opacity: src.opacity, seed: src.seed)
         }
@@ -145,15 +174,28 @@ final class RibbonTrailNode: SKNode {
         var tx = ship.x - sin(ship.bank) * tail
         var ty = ship.y - cos(ship.bank) * tail
         if jellyLive {
-            let n = WallJelly.springNudge(
-                t: jellyT,
-                along: 1,
-                side: jellySide,
-                radius: shipRadius,
-                seed: 0.5
-            )
-            tx += n.dx
-            ty += n.dy
+            if skin.wallTrailMode == .spring {
+                let n = WallJelly.springNudge(
+                    t: jellyT,
+                    along: 1,
+                    side: jellySide,
+                    radius: shipRadius,
+                    seed: 0.5
+                )
+                tx += n.dx
+                ty += n.dy
+            } else {
+                let d = WallJelly.deform(
+                    mode: skin.wallTrailMode,
+                    elapsedMs: jellyElapsedMs,
+                    along: 1,
+                    side: jellySide,
+                    radius: shipRadius,
+                    seed: 0.5
+                )
+                tx += d.dx
+                ty += d.dy
+            }
         }
         let sx = tx
         let sy = screenY(ty)

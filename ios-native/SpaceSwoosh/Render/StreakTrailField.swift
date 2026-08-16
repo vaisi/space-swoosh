@@ -34,8 +34,7 @@ final class StreakTrailField: SKNode {
         shipSpeed: CGFloat
     ) {
         let screenY: (CGFloat) -> CGFloat = { sceneHeight * CinematicFlight.cruiseSeat + ($0 - cameraY) }
-        let jellyLive = jellyElapsedMs >= 0 && jellyElapsedMs < GameConfig.Flicker.wallJellyMs
-        let jellyT = jellyLive ? jellyElapsedMs / GameConfig.Flicker.wallJellyMs : 0
+        let jellyLive = WallJelly.isLive(elapsedMs: jellyElapsedMs, mode: .scatter)
         let energy = WallJelly.energy(elapsedMs: jellyElapsedMs)
         let n = trail.count
         let denom = CGFloat(max(n - 1, 1))
@@ -50,7 +49,7 @@ final class StreakTrailField: SKNode {
             if jellyLive {
                 d = WallJelly.deform(
                     mode: .scatter,
-                    t: jellyT,
+                    elapsedMs: jellyElapsedMs,
                     along: along,
                     side: jellySide,
                     radius: shipRadius,

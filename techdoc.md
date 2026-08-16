@@ -5,11 +5,15 @@
 >
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
-> **retired before launch**. Android remains Capacitor. Slice F is in
-> `ios-native/`: Open Space / Journey / Lab on the four free ships (**Focus**,
-> **Flicker**, **Ember**, **Saber**) with Android hitboxes, hulls, wakes, and
-> wall-jelly. Home ◀/▶ + Options → Ship picker; `shipSkinId` persists (default
-> Flicker). Plus **Journey** (40 levels / 113 stars),
+> **retired before launch**. Android remains Capacitor. Native Play / Journey /
+> Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Playtest flag
+> `UNLOCK_ALL_SKINS = true` (flip false before store). Free forever (no
+> `productId`): Focus, Flicker, Ember, Saber. Home ◀/▶ + Options → Ship
+> scrolling 2-col grid; `shipSkinId` persists (unknown id stays **Flicker**).
+> One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
+> one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
+> 16 `skipHullCache` hulls live-draw (Lantern…Chime). Hitboxes are JS circle
+> packs; jelly does not deform the hitbox. Plus **Journey** (40 levels / 113 stars),
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
 > lean-preserving clear flyout, L40 `ENDING_BEATS` captions (no lights show).
 > `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV)
@@ -32,7 +36,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
-> `CFBundleVersion` ≥ 8 on each TestFlight upload.
+> `CFBundleVersion` ≥ 9 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -1080,9 +1084,9 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/App/` | SwiftUI menu + pause + CopyBank game-over + `SpriteView` host |
 | `SpaceSwoosh/Brand/` | `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
-| `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (four free skins + JS circle packs), fixed-step clock, pacing HUD |
-| `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` dense/spring/scatter/whip + needle squash, `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | Per-skin hull bake (circle / tear / dart / needle), 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, Focus dots / Flicker ribbon / Ember streaks / Saber bloom+core (pooled; no per-frame shape alloc), popups, blast, `PlayScene` |
+| `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
+| `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
+| `SpaceSwoosh/Render/` | `HullBake` on-demand by `HullKind`, `SkinRenderer` (one equipped hull + wake), live hulls (16), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core / pooled particle wakes, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
@@ -1095,16 +1099,17 @@ plus a spark pool. Focus / Ember use pooled discs. Sim at
 Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
 `0.028 * dt * 60` like `WallBoopManager`. Zigzag lean eases like Android
 `BANK_SMOOTHING`; hull stretch uses `|tangent|` so a tap does not shrink
-the tear. Wall jelly applies spring path nudge only (flat ribbon width).
+the tear. Wall jelly applies the skin’s `wallTrailDeform` mode (ripple / spring /
+pile / whip / …); Flicker still uses `springNudge` with seed 0…1.
 Turn / crash / shield / shield-crash decode into `AVAudioPCMBuffer`s (no
 `AVAudioPlayer` seek hitch). Clear-flyout smash SFX is gated to 120 ms.
 Cruise travel is `snappyHz * feelSpeed` (0.90). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
-Phase B stress scene held 120 Hz. Slice F: Focus / Flicker / Ember / Saber
-with JS circle packs (`CIRCLE` / `TEAR` / `DART` / `NEEDLE`), matching hull
-bakes, and Android trail + `wallTrailDeform` modes. Hull jelly does not
-deform the hitbox. Shield smash stays a scaled circle. Paid skins / IAP
-later. Slice D feel remains: Arc/zigzag, overlap spawn, cluster
+Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,
+matching hull bakes / live painters, and Android trail + `wallTrailDeform`
+modes (incl. Focus ripple + Ember twin-dots). Hull jelly does not
+deform the hitbox. Shield smash stays a scaled circle. IAP / RevenueCat /
+locked tiles later (`productId` is data only until the flag flips false). Slice D feel remains: Arc/zigzag, overlap spawn, cluster
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,
 milestones, local PB, night paper. C.5 combat remains:
 `CombatSimulator` fills pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see

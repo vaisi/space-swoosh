@@ -1,5 +1,5 @@
 // SettingsStore.swift
-// Changes: Persist shipSkinId (Android key) for the four free ships.
+// Changes: Persist shipSkinId; setShipSkin respects isOwned (UNLOCK_ALL_SKINS).
 
 import Foundation
 import Combine
@@ -40,6 +40,7 @@ final class SettingsStore: ObservableObject {
     }
 
     func setShipSkin(_ id: SkinId) {
+        guard SkinCatalog.isOwned(id) else { return }
         shipSkinId = id
         UserDefaults.standard.set(id.rawValue, forKey: "shipSkinId")
     }

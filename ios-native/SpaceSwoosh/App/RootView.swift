@@ -1,5 +1,5 @@
 // RootView.swift
-// Changes: Home ship cycle + Options → Ship picker for the four free hulls.
+// Changes: Home ship tag uses equipped roster name (full 41 hangar).
 
 import SwiftUI
 
@@ -132,12 +132,8 @@ struct RootView: View {
     }
 
     private var shipTag: String {
-        switch settings.shipSkinId {
-        case .focus: return "FOC"
-        case .flicker: return "FLK"
-        case .ember: return "EMB"
-        case .saber: return "SAB"
-        }
+        let name = SkinCatalog.def(settings.shipSkinId).name
+        return String(name.prefix(3)).uppercased()
     }
 
     private var pbLine: String {

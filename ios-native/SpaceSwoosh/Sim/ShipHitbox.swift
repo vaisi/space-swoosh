@@ -1,5 +1,5 @@
 // ShipHitbox.swift
-// Changes: Per-skin JS circle packs (Focus / Flicker / Ember / Saber).
+// Changes: Per-skin JS circle packs for the full roster; Y-down → SpriteKit flip.
 
 import Foundation
 import CoreGraphics

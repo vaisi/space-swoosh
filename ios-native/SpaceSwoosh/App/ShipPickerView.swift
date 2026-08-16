@@ -1,5 +1,5 @@
 // ShipPickerView.swift
-// Changes: Options → Ship — 2-column free roster (Focus / Flicker / Ember / Saber).
+// Changes: Options → Ship — scrolling 2-col grid of the full playtest roster.
 
 import SwiftUI
 import UIKit
@@ -22,7 +22,7 @@ struct ShipPickerView: View {
                 .frame(maxWidth: .infinity)
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(SkinCatalog.free, id: \.self) { id in
+                    ForEach(SkinCatalog.roster, id: \.self) { id in
                         tile(SkinCatalog.def(id))
                     }
                 }

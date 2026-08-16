@@ -1,18 +1,21 @@
 <!--
   ios-native/README.md
-  Changes: Hazard Lab roster includes black holes with advanced Y-pull.
+  Changes: CFBundleVersion 9 — full 41-ship playtest hangar.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
 
 True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoosh`.
 
-## Slice F (current)
+## Hangar (current)
 
-- **Four free ships** (Android roster, no IAP): **Focus**, **Flicker**, **Ember**, **Saber**
-- Equipped id persists as `shipSkinId` (same key as Android). Default if unset: **Flicker**
-- Home: equipped hull + ◀ / ▶ cycle. Options → **Ship**: 2-column tiles (name + blurb + hull). All four unlocked
-- Per-skin JS hitbox packs, baked hulls, wakes, and wall-jelly (`dense` / `spring` / `scatter` / `whip`). Saber needle squash `halfScale` 0.55; trail 160 pts / fade `1/360`
+- **41 ships** in Android `SKIN_DEFS` order. Playtest flag `UNLOCK_ALL_SKINS = true` (flip false before store). No prices / locked tiles / RevenueCat in this build
+- Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for later IAP
+- Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
+- Home: equipped hull + ◀ / ▶ cycle. Options → **Ship**: scrolling 2-column tiles (name + blurb + hull)
+- One equipped renderer at `startRun` (do not allocate a trail node per ship). Baked silhouettes for 25 ships; 16 live-draw (`skipHullCache`: Lantern…Chime)
+- Focus wake is **ripple** dots; Ember is **twin dotted traces**. Long wakes 200 pts / fade `1/420`; Saber/Nyan 160 / `1/360`
+- Per-skin JS hitbox packs, `wallTrailMode`, jelly profiles. Hitbox is **not** deformed by jelly. Shield smash stays the scaled center circle
 - Play / Journey / Lab all read the saved id. Speed and arcs stay shared
 - **Journey:** lore once → map → 40 levels / 113 stars / 7 chapters, teach L1–5
 - **Hazard Lab:** 12k KM sandbox (phase / sweep / repulsor / drift / wormhole / blackhole)
@@ -27,7 +30,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
 - Sparkles: 8-vertex 4-point star (`innerRatio` 0.4) at Android radius `1.15×` unit (sprite diameter `2r`); filled `signalDisc` halo diameter `3.8r` (`signalSoft` alpha, not additive glow)
 - Flicker wake: one continuous `SKShapeNode` ribbon tucked under the hull center; smudge tapers at the join; spring path wiggle on wall BOOP
-- Focus dots / Ember streaks / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs)
+- Focus ripple dots / Ember twin-dots / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs). Other wakes: `ParticleWakeField` / ribbons / hairline
 - Drift / wind: 7 thin ink30 dashes, `baseUnit`-scaled period, scrolled by phase × direction
 - Cruise: Android snappy tick × **0.90** (`GameConfig.feelSpeed`)
 - Menu / pause / outcome: framed ink buttons, paper wash, two-bar **MISSION PAUSED**
@@ -38,13 +41,13 @@ Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `fir
 
 The audio session is **`.playback`**, so TestFlight plays with the Silent switch on. Options → SOUND OFF still mutes. Codemagic **App Preview** may still forward no audio; that is the stream, not the IPA.
 
-Not yet: remaining paid skins, IAP / Lives / Pro, Supabase board, Firebase.
+Not yet: IAP / Lives / Pro / RevenueCat restore, Supabase board, Firebase.
 
 ### Gate
 
-Side-by-side with Android: each hull’s ink covers its circles (no ghost hits);
-Focus pile / Ember scatter / Flicker spring / Saber whip read the same on BOOP;
-120 Hz holds; Flicker join still looks like one piece. Play L1–5, Lab 12k,
+Side-by-side with Android hangar (flag on): each hull’s ink covers its circles;
+each wake + BOOP mode reads as the same family; 120 Hz holds on a long-wake
+live hull (Lantern or Wish); Flicker join still one piece. Play L1–5, Lab 12k,
 picker equip, voice on/off.
 
 ```bash
@@ -56,7 +59,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
-(Apple already has **1.0.0 (1)**). CI stamps **8+**.
+(Apple already has **1.0.0 (1)**). CI stamps **9+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

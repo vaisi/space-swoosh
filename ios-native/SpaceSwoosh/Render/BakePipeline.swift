@@ -1,14 +1,10 @@
 // BakePipeline.swift
-// Changes: Per-skin hull textures (Focus circle, Ember dart, Saber needle).
+// Changes: On-demand HullBake cache keyed by HullKind (full 41-ship roster).
 
 import SpriteKit
 import UIKit
 
 final class BakePipeline {
-    let hull: SKTexture
-    let focusHull: SKTexture
-    let emberHull: SKTexture
-    let saberHull: SKTexture
     let glowSignal: SKTexture
     let glowInk: SKTexture
     let sparkle: SKTexture
@@ -19,6 +15,7 @@ final class BakePipeline {
     let plus: SKTexture
     let windLane: SKTexture
     private let parts: [ObstacleKind: SKTexture]
+    private var hullByKind: [HullKind: SKTexture] = [:]
 
     private static var cache: [Bool: BakePipeline] = [:]
 
@@ -31,10 +28,6 @@ final class BakePipeline {
     }
 
     private init() {
-        hull = FlickerHullTexture.make(logicalRadius: 28, scale: 3)
-        focusHull = FocusHullTexture.make(logicalRadius: 28, scale: 3)
-        emberHull = EmberHullTexture.make(logicalRadius: 28, scale: 3)
-        saberHull = SaberHullTexture.make(logicalRadius: 28, scale: 3)
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)
         sparkle = Self.sparkleStar(color: BrandColors.UI.signal, size: 64, fill: true)
@@ -67,12 +60,11 @@ final class BakePipeline {
     }
 
     func hull(for id: SkinId) -> SKTexture {
-        switch id {
-        case .focus: return focusHull
-        case .flicker: return hull
-        case .ember: return emberHull
-        case .saber: return saberHull
-        }
+        let kind = SkinCatalog.def(id).hullKind
+        if let hit = hullByKind[kind] { return hit }
+        let tex = HullBake.make(kind: kind)
+        hullByKind[kind] = tex
+        return tex
     }
 
     func part(for kind: ObstacleKind) -> SKTexture {

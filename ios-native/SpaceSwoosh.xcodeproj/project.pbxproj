@@ -39,14 +39,22 @@
 		3644335780904EE6C2565370 /* EmberHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11C8938F3E181C834518A1E /* EmberHullTexture.swift */; };
 		94049FACB6E460C54D82E02D /* FlickerHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5C5C5EB5E34A7E9CC87E59 /* FlickerHullTexture.swift */; };
 		6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */; };
+		CFC0FBE38A875674E06B94D3 /* HairlineTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE63D3C30F03D30BDE964423 /* HairlineTrailNode.swift */; };
+		C66BA21269DA41FEC8E8C279 /* HullPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D76F3DFEFEEEA56723C1AC2 /* HullPaths.swift */; };
+		6167CD750B9F2D600CFE199E /* LiveHullNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AE86AA443D77F5496AC1B0 /* LiveHullNode.swift */; };
+		A54FABDAB8590F267AB57AAA /* ParticleWakeField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1A28A938DFEA8932A3FFDD /* ParticleWakeField.swift */; };
 		CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628FF1116246728150EFF6C1 /* PlayScene.swift */; };
 		A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */; };
 		D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78C3E515B75F5AFACA0EA5F /* PopupField.swift */; };
+		5B55374460EAAF96F24A25F1 /* RainbowRibbonNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D070E474B470DF4731D50D19 /* RainbowRibbonNode.swift */; };
 		5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */; };
 		F52302FDE0B33FD919AB762A /* SaberHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3AD9345F1A7506F51F10FA8 /* SaberHullTexture.swift */; };
 		90B594154F188E79ED1DC7D3 /* SaberTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A08F1AACEAD1F7302665377C /* SaberTrailNode.swift */; };
+		82658C7EA71442A9ED181262 /* SkinRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E62F68A8A80B0CA06540743 /* SkinRenderer.swift */; };
+		20773CE070F51E806CC34006 /* SkinTrail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C86E4D305ADA4093E92B15C /* SkinTrail.swift */; };
 		DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DB2DBDE0437D9FB98867 /* StreakField.swift */; };
 		78CC8D4D444F7D23344968F3 /* StreakTrailField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF3EE09BC0A83E1CCD6B9EB /* StreakTrailField.swift */; };
+		E656B9BE30013B640C35B1E9 /* TwinDotTrailField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9CD26352D9E9BF57EF5F93F /* TwinDotTrailField.swift */; };
 		87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */; };
 		5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECBDDDE316344C763EADABE /* CinematicFlight.swift */; };
 		EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B4487A50892B18E56E9252 /* CombatParity.swift */; };
@@ -145,14 +153,22 @@
 		D11C8938F3E181C834518A1E /* EmberHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberHullTexture.swift; sourceTree = "<group>"; };
 		5B5C5C5EB5E34A7E9CC87E59 /* FlickerHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlickerHullTexture.swift; sourceTree = "<group>"; };
 		8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHullTexture.swift; sourceTree = "<group>"; };
+		DE63D3C30F03D30BDE964423 /* HairlineTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HairlineTrailNode.swift; sourceTree = "<group>"; };
+		2D76F3DFEFEEEA56723C1AC2 /* HullPaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HullPaths.swift; sourceTree = "<group>"; };
+		B1AE86AA443D77F5496AC1B0 /* LiveHullNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveHullNode.swift; sourceTree = "<group>"; };
+		4C1A28A938DFEA8932A3FFDD /* ParticleWakeField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleWakeField.swift; sourceTree = "<group>"; };
 		628FF1116246728150EFF6C1 /* PlayScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayScene.swift; sourceTree = "<group>"; };
 		6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PooledSpriteField.swift; sourceTree = "<group>"; };
 		C78C3E515B75F5AFACA0EA5F /* PopupField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupField.swift; sourceTree = "<group>"; };
+		D070E474B470DF4731D50D19 /* RainbowRibbonNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RainbowRibbonNode.swift; sourceTree = "<group>"; };
 		E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RibbonTrailNode.swift; sourceTree = "<group>"; };
 		E3AD9345F1A7506F51F10FA8 /* SaberHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaberHullTexture.swift; sourceTree = "<group>"; };
 		A08F1AACEAD1F7302665377C /* SaberTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaberTrailNode.swift; sourceTree = "<group>"; };
+		3E62F68A8A80B0CA06540743 /* SkinRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinRenderer.swift; sourceTree = "<group>"; };
+		4C86E4D305ADA4093E92B15C /* SkinTrail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinTrail.swift; sourceTree = "<group>"; };
 		3086DB2DBDE0437D9FB98867 /* StreakField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakField.swift; sourceTree = "<group>"; };
 		0BF3EE09BC0A83E1CCD6B9EB /* StreakTrailField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakTrailField.swift; sourceTree = "<group>"; };
+		C9CD26352D9E9BF57EF5F93F /* TwinDotTrailField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwinDotTrailField.swift; sourceTree = "<group>"; };
 		5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinemaSimulator.swift; sourceTree = "<group>"; };
 		DECBDDDE316344C763EADABE /* CinematicFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicFlight.swift; sourceTree = "<group>"; };
 		A5B4487A50892B18E56E9252 /* CombatParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatParity.swift; sourceTree = "<group>"; };
@@ -334,14 +350,22 @@
 				D11C8938F3E181C834518A1E,
 				5B5C5C5EB5E34A7E9CC87E59,
 				8B1F87CDBF2878FCB1110BBF,
+				DE63D3C30F03D30BDE964423,
+				2D76F3DFEFEEEA56723C1AC2,
+				B1AE86AA443D77F5496AC1B0,
+				4C1A28A938DFEA8932A3FFDD,
 				628FF1116246728150EFF6C1,
 				6D9C2266E5757995489D1B37,
 				C78C3E515B75F5AFACA0EA5F,
+				D070E474B470DF4731D50D19,
 				E3E76E4E12F12A36B4EF70AD,
 				E3AD9345F1A7506F51F10FA8,
 				A08F1AACEAD1F7302665377C,
+				3E62F68A8A80B0CA06540743,
+				4C86E4D305ADA4093E92B15C,
 				3086DB2DBDE0437D9FB98867,
 				0BF3EE09BC0A83E1CCD6B9EB,
+				C9CD26352D9E9BF57EF5F93F,
 			);
 			path = Render;
 			sourceTree = "<group>";
@@ -563,14 +587,22 @@
 				3644335780904EE6C2565370 /* EmberHullTexture.swift in Sources */,
 				94049FACB6E460C54D82E02D /* FlickerHullTexture.swift in Sources */,
 				6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */,
+				CFC0FBE38A875674E06B94D3 /* HairlineTrailNode.swift in Sources */,
+				C66BA21269DA41FEC8E8C279 /* HullPaths.swift in Sources */,
+				6167CD750B9F2D600CFE199E /* LiveHullNode.swift in Sources */,
+				A54FABDAB8590F267AB57AAA /* ParticleWakeField.swift in Sources */,
 				CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */,
 				A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */,
 				D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */,
+				5B55374460EAAF96F24A25F1 /* RainbowRibbonNode.swift in Sources */,
 				5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */,
 				F52302FDE0B33FD919AB762A /* SaberHullTexture.swift in Sources */,
 				90B594154F188E79ED1DC7D3 /* SaberTrailNode.swift in Sources */,
+				82658C7EA71442A9ED181262 /* SkinRenderer.swift in Sources */,
+				20773CE070F51E806CC34006 /* SkinTrail.swift in Sources */,
 				DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */,
 				78CC8D4D444F7D23344968F3 /* StreakTrailField.swift in Sources */,
+				E656B9BE30013B640C35B1E9 /* TwinDotTrailField.swift in Sources */,
 				87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */,
 				5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */,
 				EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */,
@@ -625,7 +657,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -647,7 +679,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

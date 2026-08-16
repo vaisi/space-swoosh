@@ -3,7 +3,8 @@
 
 import SpriteKit
 
-final class SaberTrailNode: SKNode {
+final class SaberTrailNode: SKNode, SkinTrail {
+    var node: SKNode { self }
     private let bloom: SKShapeNode
     private let body: SKShapeNode
     private let core: SKShapeNode
@@ -53,6 +54,18 @@ final class SaberTrailNode: SKNode {
 
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) not used") }
+
+    func sync(_ ctx: TrailSyncContext) {
+        sync(
+            trail: ctx.trail,
+            ship: ctx.ship,
+            cameraY: ctx.cameraY,
+            sceneHeight: ctx.sceneHeight,
+            jellyElapsedMs: ctx.jellyElapsedMs,
+            jellySide: ctx.jellySide,
+            shipRadius: ctx.shipRadius
+        )
+    }
 
     func sync(
         trail: TrailRingBuffer,
@@ -183,8 +196,7 @@ final class SaberTrailNode: SKNode {
         shipRadius: CGFloat
     ) -> Int {
         let screenY: (CGFloat) -> CGFloat = { sceneHeight * CinematicFlight.cruiseSeat + ($0 - cameraY) }
-        let jellyLive = jellyElapsedMs >= 0 && jellyElapsedMs < GameConfig.Flicker.wallJellyMs
-        let jellyT = jellyLive ? jellyElapsedMs / GameConfig.Flicker.wallJellyMs : 0
+        let jellyLive = WallJelly.isLive(elapsedMs: jellyElapsedMs, mode: .whip)
         let recorded = min(trail.count, maxPoints - 1)
         let denom = CGFloat(max(recorded - 1, 1))
         for i in 0..<recorded {
@@ -195,7 +207,7 @@ final class SaberTrailNode: SKNode {
             if jellyLive {
                 let d = WallJelly.deform(
                     mode: .whip,
-                    t: jellyT,
+                    elapsedMs: jellyElapsedMs,
                     along: along,
                     side: jellySide,
                     radius: shipRadius,
@@ -213,7 +225,7 @@ final class SaberTrailNode: SKNode {
         if jellyLive {
             let d = WallJelly.deform(
                 mode: .whip,
-                t: jellyT,
+                elapsedMs: jellyElapsedMs,
                 along: 1,
                 side: jellySide,
                 radius: shipRadius,
