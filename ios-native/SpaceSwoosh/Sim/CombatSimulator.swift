@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: grantShield defaults to GameConfig.Flicker.shieldSeconds (4s).
+// Changes: Fatal hits use the equipped skin's JS circle pack.
 
 import Foundation
 import CoreGraphics
@@ -1031,7 +1031,8 @@ enum CombatSimulator {
                 world.obstacles[i],
                 ship: world.ship,
                 radius: shipR,
-                shield: false
+                shield: false,
+                skinId: world.skinId
                 ), !run.fuelDying {
                 markInteract(run: &run, obstacle: world.obstacles[i])
                 if run.cinema == .clearHold || run.cinema == .clearBoost || run.cinema == .clearFade {

@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Dual Signal shield rings + Android pulse / last-1.5s warning.
+// Changes: Slice F — equipped skin hull + Focus/Ember/Saber wakes.
 
 import SpriteKit
 import QuartzCore
@@ -18,6 +18,9 @@ final class PlayScene: SKScene {
     private var shieldRingInner: SKSpriteNode?
     private var shieldRingOuter: SKSpriteNode?
     private var trailNode: RibbonTrailNode?
+    private var dotTrail: DotTrailField?
+    private var emberTrail: StreakTrailField?
+    private var saberTrail: SaberTrailNode?
     private var pooledField: PooledSpriteField?
     private var popupField: PopupField?
     private var blastField: BlastField?
@@ -27,6 +30,8 @@ final class PlayScene: SKScene {
     private var rightGate: SKSpriteNode?
     private var streakField: StreakField?
     private var launch: PlayLaunch = .openSpace
+    private var lastPresentX: CGFloat?
+    private var lastPresentY: CGFloat?
 
     func startRun(_ launch: PlayLaunch = .openSpace) {
         self.launch = launch
@@ -34,6 +39,8 @@ final class PlayScene: SKScene {
         clock.reset()
         input.reset()
         lastFrameTime = nil
+        lastPresentX = nil
+        lastPresentY = nil
         run = RunState()
         session?.reset()
         VoicePlayer.shared.reset()
@@ -41,7 +48,8 @@ final class PlayScene: SKScene {
         MusicPlayer.shared.start()
         HapticsService.prepare()
 
-        var world = WorldState.initial(width: size.width, height: size.height)
+        let skinId = SettingsStore.shared.shipSkinId
+        var world = WorldState.initial(width: size.width, height: size.height, skinId: skinId)
         run.flightStyle = SettingsStore.shared.flightStyle
         run.profile = launch.profile
         CinemaSimulator.beginLevelRun(world: &world, run: &run)
@@ -51,10 +59,27 @@ final class PlayScene: SKScene {
         backgroundColor = BrandColors.UI.paper
 
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
+        let skin = SkinCatalog.def(world.skinId)
         let ribbon = RibbonTrailNode()
         ribbon.zPosition = 5
+        ribbon.isHidden = skin.wallTrailMode != .spring
         addChild(ribbon)
         trailNode = ribbon
+        let dots = DotTrailField(texture: bake.part(for: .circle))
+        dots.zPosition = 5
+        dots.isHidden = skin.wallTrailMode != .dense
+        addChild(dots)
+        dotTrail = dots
+        let ember = StreakTrailField(texture: bake.part(for: .circle))
+        ember.zPosition = 5
+        ember.isHidden = skin.wallTrailMode != .scatter
+        addChild(ember)
+        emberTrail = ember
+        let saber = SaberTrailNode(sparkTexture: bake.part(for: .circle))
+        saber.zPosition = 5
+        saber.isHidden = skin.wallTrailMode != .whip
+        addChild(saber)
+        saberTrail = saber
 
         let pool = PooledSpriteField(bake: bake)
         pool.zPosition = 4
@@ -82,8 +107,8 @@ final class PlayScene: SKScene {
         addChild(outer)
         shieldRingOuter = outer
 
-        let hull = SKSpriteNode(texture: bake.hull)
-        let pad = radius * GameConfig.Flicker.hullDrawPad
+        let hull = SKSpriteNode(texture: bake.hull(for: world.skinId))
+        let pad = radius * skin.hullDrawPad
         hull.size = CGSize(width: pad, height: pad)
         hull.zPosition = 10
         addChild(hull)
@@ -190,7 +215,7 @@ final class PlayScene: SKScene {
         pacingMonitor?.setLoadLine(
             obstacles: obs,
             sparkles: pk,
-            trail: GameConfig.Spacecraft.trailMaxPoints
+            trail: SkinCatalog.def(world.skinId).trailMaxPoints
         )
     }
 
@@ -266,14 +291,18 @@ final class PlayScene: SKScene {
         )
         let screenY = size.height * CinematicFlight.cruiseSeat + (ship.y - cameraY)
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
+        let skin = SkinCatalog.def(world.skinId)
         let nowMs = CGFloat(CACurrentMediaTime() * 1000)
         let breath = 0.9 + 0.06 * sin(nowMs * 0.0056) + 0.04 * sin(nowMs * 0.0088)
         let scale = 0.97 + 0.03 * sin(nowMs * 0.0044)
-        let r = radius * 0.95 * scale
         let turn = min(1, abs(ship.tangent) / GameConfig.Spacecraft.maxBank)
         let stretch = 1 + 0.2 * turn
-        let jelly = WallJelly.hullScale(elapsedMs: world.jellyElapsedMs, side: world.jellySide)
-        let pad = r * GameConfig.Flicker.hullDrawPad
+        let jelly = WallJelly.hullScale(
+            elapsedMs: world.jellyElapsedMs,
+            side: world.jellySide,
+            profile: skin.jellyProfile
+        )
+        let pad = radius * scale * skin.hullDrawPad
 
         hullNode?.position = CGPoint(x: ship.x, y: screenY)
         hullNode?.zRotation = -ship.bank
@@ -311,16 +340,65 @@ final class PlayScene: SKScene {
             shieldRingOuter?.isHidden = true
         }
 
-        trailNode?.alpha = run.worldAlpha
-        trailNode?.sync(
-            trail: world.trail,
-            ship: ship,
-            cameraY: cameraY,
-            sceneHeight: size.height,
-            jellyElapsedMs: world.jellyElapsedMs,
-            jellySide: world.jellySide,
-            shipRadius: radius
-        )
+        let trailAlpha = run.worldAlpha
+        trailNode?.isHidden = skin.wallTrailMode != .spring
+        trailNode?.alpha = trailAlpha
+        if skin.wallTrailMode == .spring {
+            trailNode?.sync(
+                trail: world.trail,
+                ship: ship,
+                cameraY: cameraY,
+                sceneHeight: size.height,
+                jellyElapsedMs: world.jellyElapsedMs,
+                jellySide: world.jellySide,
+                shipRadius: radius
+            )
+        }
+        dotTrail?.isHidden = skin.wallTrailMode != .dense
+        dotTrail?.alpha = trailAlpha
+        if skin.wallTrailMode == .dense {
+            dotTrail?.sync(
+                trail: world.trail,
+                cameraY: cameraY,
+                sceneHeight: size.height,
+                jellyElapsedMs: world.jellyElapsedMs,
+                jellySide: world.jellySide,
+                shipRadius: radius
+            )
+        }
+        emberTrail?.isHidden = skin.wallTrailMode != .scatter
+        emberTrail?.alpha = trailAlpha
+        if skin.wallTrailMode == .scatter {
+            let shipSpeed: CGFloat
+            if let lx = lastPresentX, let ly = lastPresentY {
+                shipSpeed = hypot(ship.x - lx, ship.y - ly)
+            } else {
+                shipSpeed = abs(ship.verticalVel) * GameConfig.simDt
+            }
+            emberTrail?.sync(
+                trail: world.trail,
+                ship: ship,
+                cameraY: cameraY,
+                sceneHeight: size.height,
+                jellyElapsedMs: world.jellyElapsedMs,
+                jellySide: world.jellySide,
+                shipRadius: radius,
+                shipSpeed: shipSpeed
+            )
+        }
+        saberTrail?.isHidden = skin.wallTrailMode != .whip
+        saberTrail?.alpha = trailAlpha
+        if skin.wallTrailMode == .whip {
+            saberTrail?.sync(
+                trail: world.trail,
+                ship: ship,
+                cameraY: cameraY,
+                sceneHeight: size.height,
+                jellyElapsedMs: world.jellyElapsedMs,
+                jellySide: world.jellySide,
+                shipRadius: radius
+            )
+        }
         pooledField?.alpha = run.worldAlpha
         pooledField?.sync(world: world, cameraY: cameraY, sceneHeight: size.height)
         popupField?.alpha = run.worldAlpha
@@ -335,6 +413,8 @@ final class PlayScene: SKScene {
             cameraY: cameraY,
             sceneHeight: size.height
         )
+        lastPresentX = ship.x
+        lastPresentY = ship.y
         presentGate(shipY: ship.y, cameraY: cameraY, screenY: screenY, world: world)
         let showerSpeed = 0.45 + run.streakAlpha * 0.55
         streakField?.alpha = run.worldAlpha

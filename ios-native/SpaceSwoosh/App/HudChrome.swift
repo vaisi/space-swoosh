@@ -1,5 +1,5 @@
 // HudChrome.swift
-// Changes: Android mockup C — pause + three icon/meter rows, stagger alphas.
+// Changes: Pause top-right; distance / fuel / smash left-aligned in one column.
 
 import SwiftUI
 import Foundation
@@ -14,89 +14,96 @@ struct MockupCHUD: View {
             let rowH = unit * 1.15
             let meterH = max(4, unit * 0.42)
             let iconSlot = unit * 1.15
-            let iconGap = unit * 0.45
             let rowGap = unit * 0.55
             let meterW = unit * 6.5
             let inset = unit * 2
             let pauseH: CGFloat = 48
+            let valueW = meterW
+            let numSize = max(11, unit * 1.15)
 
-            HStack(alignment: .top, spacing: iconGap) {
-                Button(action: onPause) {
-                    PauseBars()
-                        .frame(width: 22, height: 20)
-                        .frame(width: 48, height: pauseH)
-                        .contentShape(Rectangle())
-                }
-                .opacity(Double(session.hudPause))
-                .disabled(session.isOver || session.hudPause < 0.02)
-                .allowsHitTesting(session.hudPause >= 0.02)
+            ZStack(alignment: .top) {
+                HStack(alignment: .top, spacing: 0) {
+                    VStack(alignment: .leading, spacing: rowGap) {
+                        if session.hudDistance > 0.02 {
+                            HudRow(iconSlot: iconSlot, rowH: rowH, valueW: valueW) {
+                                RouteIcon()
+                                    .stroke(BrandColors.ink.opacity(0.55), style: StrokeStyle(lineWidth: max(1.2, unit * 0.11), lineCap: .round, lineJoin: .round))
+                                    .background(RouteIconDots().fill(BrandColors.ink.opacity(0.55)))
+                            } meter: {
+                                if session.isJourney {
+                                    MeterBar(
+                                        frac: session.journeyProgress,
+                                        fill: BrandColors.ink,
+                                        height: meterH,
+                                        pulse: false
+                                    )
+                                    .frame(width: valueW, height: meterH)
+                                } else {
+                                    Text("\(session.scoreKm)")
+                                        .font(.system(size: numSize, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(BrandColors.ink)
+                                        .frame(width: valueW, alignment: .leading)
+                                }
+                            }
+                            .opacity(Double(session.hudDistance))
+                        }
 
-                VStack(alignment: .leading, spacing: rowGap) {
-                    if session.hudDistance > 0.02 {
-                        HudRow(iconSlot: iconSlot, rowH: rowH) {
-                            RouteIcon()
-                                .stroke(BrandColors.ink.opacity(0.55), style: StrokeStyle(lineWidth: max(1.2, unit * 0.11), lineCap: .round, lineJoin: .round))
-                                .background(RouteIconDots().fill(BrandColors.ink.opacity(0.55)))
-                        } meter: {
-                            if session.isJourney {
+                        if session.fuelLive {
+                            HudRow(iconSlot: iconSlot, rowH: rowH, valueW: valueW) {
+                                SparkleIcon()
+                                    .stroke(BrandColors.ink.opacity(0.55), style: StrokeStyle(lineWidth: max(1.2, unit * 0.12), lineJoin: .miter))
+                            } meter: {
                                 MeterBar(
-                                    frac: session.journeyProgress,
-                                    fill: BrandColors.ink,
+                                    frac: max(0, min(1, session.fuel)),
+                                    fill: BrandColors.signal,
                                     height: meterH,
-                                    pulse: false
+                                    pulse: session.fuelLow
                                 )
-                                .frame(width: meterW, height: meterH)
-                            } else {
-                                Text("\(session.scoreKm)")
-                                    .font(.system(size: max(11, unit * 1.15), weight: .bold, design: .monospaced))
-                                    .foregroundStyle(BrandColors.ink)
+                                .frame(width: valueW, height: meterH)
                             }
+                            .opacity(Double(session.hudDistance))
                         }
-                        .opacity(Double(session.hudDistance))
-                    }
 
-                    if session.fuelLive {
-                        HudRow(iconSlot: iconSlot, rowH: rowH) {
-                            SparkleIcon()
-                                .stroke(BrandColors.ink.opacity(0.55), style: StrokeStyle(lineWidth: max(1.2, unit * 0.12), lineJoin: .miter))
-                        } meter: {
-                            MeterBar(
-                                frac: max(0, min(1, session.fuel)),
-                                fill: BrandColors.signal,
-                                height: meterH,
-                                pulse: session.fuelLow
-                            )
-                            .frame(width: meterW, height: meterH)
-                        }
-                        .opacity(Double(session.hudDistance))
-                    }
-
-                    if session.hudSmash > 0.02, session.isJourney ? session.smashTarget > 0 : true {
-                        HudRow(iconSlot: iconSlot, rowH: rowH) {
-                            TargetIcon()
-                                .stroke(BrandColors.ink.opacity(0.55), lineWidth: max(1.15, unit * 0.1))
-                                .background(Circle().fill(BrandColors.ink.opacity(0.55)).scaleEffect(0.18))
-                        } meter: {
-                            if session.isJourney, session.smashTarget > 0 {
-                                SmashDots(
-                                    filled: session.destroyed,
-                                    total: session.smashTarget,
-                                    diameter: meterH
-                                )
-                            } else {
-                                Text("\(session.destroyed)")
-                                    .font(.system(size: max(11, unit * 1.15), weight: .bold, design: .monospaced))
-                                    .foregroundStyle(BrandColors.ink)
+                        if session.hudSmash > 0.02, session.isJourney ? session.smashTarget > 0 : true {
+                            HudRow(iconSlot: iconSlot, rowH: rowH, valueW: valueW) {
+                                TargetIcon()
+                                    .stroke(BrandColors.ink.opacity(0.55), lineWidth: max(1.15, unit * 0.1))
+                                    .background(Circle().fill(BrandColors.ink.opacity(0.55)).scaleEffect(0.18))
+                            } meter: {
+                                if session.isJourney, session.smashTarget > 0 {
+                                    SmashDots(
+                                        filled: session.destroyed,
+                                        total: session.smashTarget,
+                                        diameter: meterH
+                                    )
+                                    .frame(width: valueW, alignment: .leading)
+                                } else {
+                                    Text("\(session.destroyed)")
+                                        .font(.system(size: numSize, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(BrandColors.ink)
+                                        .frame(width: valueW, alignment: .leading)
+                                }
                             }
+                            .opacity(Double(session.hudSmash))
                         }
-                        .opacity(Double(session.hudSmash))
                     }
+                    Spacer(minLength: 0)
                 }
-                .padding(.top, (pauseH - rowH) * 0.5)
 
-                Spacer(minLength: 0)
+                HStack {
+                    Spacer(minLength: 0)
+                    Button(action: onPause) {
+                        PauseBars()
+                            .frame(width: 22, height: 20)
+                            .frame(width: 48, height: pauseH)
+                            .contentShape(Rectangle())
+                    }
+                    .opacity(Double(session.hudPause))
+                    .disabled(session.isOver || session.hudPause < 0.02)
+                    .allowsHitTesting(session.hudPause >= 0.02)
+                }
             }
-            .padding(.leading, inset)
+            .padding(.horizontal, inset)
             .padding(.top, 16)
         }
         .frame(height: 120)
@@ -107,17 +114,18 @@ struct MockupCHUD: View {
 private struct HudRow<Icon: View, Meter: View>: View {
     var iconSlot: CGFloat
     var rowH: CGFloat
+    var valueW: CGFloat
     @ViewBuilder var icon: () -> Icon
     @ViewBuilder var meter: () -> Meter
 
     var body: some View {
         HStack(spacing: iconSlot * 0.4) {
             icon()
-                .frame(width: iconSlot, height: iconSlot)
+                .frame(width: iconSlot, height: iconSlot, alignment: .center)
             meter()
-            Spacer(minLength: 0)
+                .frame(width: valueW, alignment: .leading)
         }
-        .frame(height: rowH)
+        .frame(height: rowH, alignment: .leading)
     }
 }
 

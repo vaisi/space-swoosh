@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: signalSoft alpha — paper 0.14 / night 0.32 (Android theme.js).
+// Changes: Saber wake colors (#A855FF / #F3E8FF) plus signalSoft alphas.
 
 import SwiftUI
 import UIKit
@@ -56,6 +56,8 @@ enum BrandColors {
         /// Android `color.signalSoft` fill alpha (paper 0.14 / night 0.32).
         static var signalSoftAlpha: CGFloat { BrandColors.dark ? 0.32 : 0.14 }
         static var trail: UIColor { BrandColors.uiColor(.ink) }
+        static var saber: UIColor { UIColor(red: 168 / 255, green: 85 / 255, blue: 1, alpha: 1) }
+        static var saberCore: UIColor { UIColor(red: 243 / 255, green: 232 / 255, blue: 1, alpha: 1) }
     }
 }
 

@@ -1,5 +1,5 @@
 // ShipSimulator.swift
-// Changes: Zigzag/arc travel uses Android snappy tickScale (dt * 120).
+// Changes: Trail fade uses the equipped skin's trailFade.
 
 import Foundation
 import CoreGraphics
@@ -181,7 +181,7 @@ struct ShipSimulator {
             tangent: world.ship.bank,
             minSpacing: GameConfig.Spacecraft.trailSpacing
         )
-        world.trail.fade(by: GameConfig.Spacecraft.trailFadePerTick)
+        world.trail.fade(by: SkinCatalog.def(world.skinId).trailFade)
     }
 
     private func noteBoop(world: inout WorldState, side: CGFloat) {

@@ -1,24 +1,16 @@
 // ShipHitbox.swift
-// Changes: Slice D — Flicker TEAR_HITBOX in world space (JS Y-down → SpriteKit Y-up).
+// Changes: Per-skin JS circle packs (Focus / Flicker / Ember / Saber).
 
 import Foundation
 import CoreGraphics
 
 enum ShipHitbox {
-    /// JS `TEAR_HITBOX` local fractions × ship.radius. Y is canvas-down.
-    static let tear: [(x: CGFloat, y: CGFloat, r: CGFloat)] = [
-        (0, -0.61, 0.10),
-        (0, -0.35, 0.23),
-        (0, 0.16, 0.53),
-        (-0.33, 0.28, 0.33),
-        (0.32, 0.28, 0.34),
-    ]
-
     static func hits(
         _ o: ObstacleState,
         ship: ShipState,
         radius: CGFloat,
-        shield: Bool
+        shield: Bool,
+        skinId: SkinId
     ) -> Bool {
         if shield {
             return HazardCollision.hits(
@@ -30,7 +22,7 @@ enum ShipHitbox {
         }
         let c = cos(ship.bank)
         let s = sin(ship.bank)
-        for p in tear {
+        for p in SkinCatalog.def(skinId).hitbox {
             let lx = p.x * radius
             let ly = p.y * radius
             let jx = lx * c - ly * s

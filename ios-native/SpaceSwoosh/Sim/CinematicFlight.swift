@@ -1,5 +1,5 @@
 // CinematicFlight.swift
-// Changes: Intro/clear stream travel uses Android snappy tickScale (dt * 120).
+// Changes: Trail fade uses the equipped skin's trailFade.
 
 import Foundation
 import CoreGraphics
@@ -140,6 +140,6 @@ enum CinematicFlight {
             tangent: world.ship.bank,
             minSpacing: GameConfig.Spacecraft.trailSpacing
         )
-        world.trail.fade(by: GameConfig.Spacecraft.trailFadePerTick)
+        world.trail.fade(by: SkinCatalog.def(world.skinId).trailFade)
     }
 }

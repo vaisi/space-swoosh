@@ -1,5 +1,5 @@
 // SettingsStore.swift
-// Changes: Unmute recovers the playback session / engine.
+// Changes: Persist shipSkinId (Android key) for the four free ships.
 
 import Foundation
 import Combine
@@ -16,10 +16,12 @@ final class SettingsStore: ObservableObject {
     @Published var isDark: Bool
     @Published var muted: Bool
     @Published var voiceEnabled: Bool
+    @Published var shipSkinId: SkinId
 
     private init() {
         let style = UserDefaults.standard.string(forKey: "spaceswoosh.flightStyle")
         flightStyle = style == FlightStyle.arc.rawValue ? .arc : .zigzag
+        shipSkinId = SkinCatalog.resolve(UserDefaults.standard.string(forKey: "shipSkinId"))
         isDark = UserDefaults.standard.string(forKey: "ssTheme") == "dark"
         muted = UserDefaults.standard.bool(forKey: "soundMuted")
         if UserDefaults.standard.object(forKey: "soundVoiceEnabled") == nil {
@@ -35,6 +37,11 @@ final class SettingsStore: ObservableObject {
     func setFlightStyle(_ style: FlightStyle) {
         flightStyle = style
         UserDefaults.standard.set(style.rawValue, forKey: "spaceswoosh.flightStyle")
+    }
+
+    func setShipSkin(_ id: SkinId) {
+        shipSkinId = id
+        UserDefaults.standard.set(id.rawValue, forKey: "shipSkinId")
     }
 
     func toggleTheme() {

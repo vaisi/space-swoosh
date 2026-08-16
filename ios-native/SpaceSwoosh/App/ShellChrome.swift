@@ -1,7 +1,8 @@
 // ShellChrome.swift
-// Changes: Android framed buttons, header+divider, pause glyph, paper wash.
+// Changes: Home ship cycle (Focus / Flicker / Ember / Saber) replaces Flicker-only preview.
 
 import SwiftUI
+import UIKit
 
 enum ShellChrome {
     static func header(_ title: String, back: @escaping () -> Void) -> some View {
@@ -117,24 +118,50 @@ enum ShellChrome {
     }
 }
 
-struct FlickerPreview: View {
+enum ShipArt {
+    static func preview(_ id: SkinId) -> UIImage {
+        switch id {
+        case .focus: return FocusHullTexture.makeImage(logicalRadius: 22, scale: 2)
+        case .flicker: return FlickerHullTexture.makeImage(logicalRadius: 22, scale: 2)
+        case .ember: return EmberHullTexture.makeImage(logicalRadius: 22, scale: 2)
+        case .saber: return SaberHullTexture.makeImage(logicalRadius: 22, scale: 2)
+        }
+    }
+}
+
+struct ShipPreview: View {
+    @ObservedObject private var settings = SettingsStore.shared
+
     var body: some View {
+        let skin = SkinCatalog.def(settings.shipSkinId)
         VStack(spacing: 6) {
-            ZStack {
-                ForEach(0..<5, id: \.self) { i in
-                    Capsule()
-                        .fill(BrandColors.ink.opacity(0.18 - Double(i) * 0.03))
-                        .frame(width: 10 + CGFloat(i) * 3, height: 18 + CGFloat(i) * 8)
-                        .offset(y: 28 + CGFloat(i) * 14)
+            HStack(spacing: 18) {
+                Button {
+                    settings.setShipSkin(SkinCatalog.prev(before: settings.shipSkinId))
+                } label: {
+                    Text("◀")
+                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .foregroundStyle(BrandColors.ink)
+                        .frame(width: 36, height: 44)
                 }
-                Image(uiImage: FlickerHullTexture.makeImage(logicalRadius: 22, scale: 2))
+                .buttonStyle(.plain)
+                Image(uiImage: ShipArt.preview(settings.shipSkinId))
                     .resizable()
                     .interpolation(.high)
                     .scaledToFit()
                     .frame(width: 88, height: 88)
+                    .frame(width: 88, height: 150)
+                Button {
+                    settings.setShipSkin(SkinCatalog.next(after: settings.shipSkinId))
+                } label: {
+                    Text("▶")
+                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .foregroundStyle(BrandColors.ink)
+                        .frame(width: 36, height: 44)
+                }
+                .buttonStyle(.plain)
             }
-            .frame(height: 150)
-            Text("FLICKER")
+            Text(skin.name.uppercased())
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .foregroundStyle(BrandColors.ink80)
         }

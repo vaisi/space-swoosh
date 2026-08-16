@@ -1,11 +1,14 @@
 // BakePipeline.swift
-// Changes: Full-bleed signalDisc for the sparkle Signal-soft halo.
+// Changes: Per-skin hull textures (Focus circle, Ember dart, Saber needle).
 
 import SpriteKit
 import UIKit
 
 final class BakePipeline {
     let hull: SKTexture
+    let focusHull: SKTexture
+    let emberHull: SKTexture
+    let saberHull: SKTexture
     let glowSignal: SKTexture
     let glowInk: SKTexture
     let sparkle: SKTexture
@@ -29,6 +32,9 @@ final class BakePipeline {
 
     private init() {
         hull = FlickerHullTexture.make(logicalRadius: 28, scale: 3)
+        focusHull = FocusHullTexture.make(logicalRadius: 28, scale: 3)
+        emberHull = EmberHullTexture.make(logicalRadius: 28, scale: 3)
+        saberHull = SaberHullTexture.make(logicalRadius: 28, scale: 3)
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)
         sparkle = Self.sparkleStar(color: BrandColors.UI.signal, size: 64, fill: true)
@@ -58,6 +64,15 @@ final class BakePipeline {
             .blackhole: hole,
             .projectile: circle
         ]
+    }
+
+    func hull(for id: SkinId) -> SKTexture {
+        switch id {
+        case .focus: return focusHull
+        case .flicker: return hull
+        case .ember: return emberHull
+        case .saber: return saberHull
+        }
     }
 
     func part(for kind: ObstacleKind) -> SKTexture {

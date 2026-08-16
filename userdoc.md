@@ -11,9 +11,11 @@
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
-> **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP (the word
-> fades after the bounce), a smooth ink ribbon that springs and wiggles on the
-> wall, flowing wind dashes, a pulsing two-ring shield (about four seconds),
+> **Hazard Lab** on the four free ships — **Focus**, **Flicker**, **Ember**,
+> and **Saber**. Cycle them on the home screen (◀ / ▶) or pick one under
+> Options → Ship; your choice is saved. Zigzag or Arc (Options), wall BOOP (the word
+> fades after the bounce), each ship’s own wake (dots / ribbon / streaks / violet blade),
+> flowing wind dashes, a pulsing two-ring shield (about four seconds),
 > the same four-point sparkle as Android with a soft blue disc behind it, blue `+FUEL`,
 > NAV captions, a Space Log, and the same
 > run-start roll / finish
@@ -26,8 +28,8 @@
 > mutes). The turn cue is the same clip as Android when `turn.mp3` is in the
 > build. Music and spoken NAV lines play only when those clips are in the
 > build. The **browser App Preview** is a video of the simulator — it often
-> has **no sound** and extra tap delay. Not the other
-> ships, IAP, or the online board yet. Android and web remain the complete game.
+> has **no sound** and extra tap delay. Paid ships, IAP, and the online board
+> are not in this iOS build yet. Android and web remain the complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap

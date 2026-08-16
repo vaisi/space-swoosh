@@ -1,10 +1,10 @@
-// FocusHullTexture.swift
-// Changes: Android Focus — filled ink circle (drawCircleHull), not a reticle.
+// EmberHullTexture.swift
+// Changes: Android dartPath — swept dart, nose at local −Y.
 
 import SpriteKit
 import UIKit
 
-enum FocusHullTexture {
+enum EmberHullTexture {
     static func make(logicalRadius: CGFloat, scale: CGFloat = 3) -> SKTexture {
         let texture = SKTexture(image: makeImage(logicalRadius: logicalRadius, scale: scale))
         texture.filteringMode = .linear
@@ -13,7 +13,7 @@ enum FocusHullTexture {
 
     static func makeImage(logicalRadius: CGFloat, scale: CGFloat = 3) -> UIImage {
         let r = max(logicalRadius * scale, 8)
-        let pad = r * 1.2
+        let pad = r * 1.65
         let size = ceil(pad * 2)
         let bounds = CGSize(width: size, height: size)
         let renderer = UIGraphicsImageRenderer(size: bounds)
@@ -21,9 +21,18 @@ enum FocusHullTexture {
             let cg = ctx.cgContext
             cg.setFillColor(UIColor.clear.cgColor)
             cg.fill(CGRect(origin: .zero, size: bounds))
-            let mid = size / 2
+            let cx = size / 2
+            let cy = size / 2
+            let ry = r
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: cx, y: cy - ry * 1.05))
+            path.addLine(to: CGPoint(x: cx + r * 0.72, y: cy + ry * 0.6))
+            path.addLine(to: CGPoint(x: cx, y: cy + ry * 0.15))
+            path.addLine(to: CGPoint(x: cx - r * 0.72, y: cy + ry * 0.6))
+            path.closeSubpath()
             cg.setFillColor(BrandColors.UI.ink.cgColor)
-            cg.fillEllipse(in: CGRect(x: mid - r, y: mid - r, width: r * 2, height: r * 2))
+            cg.addPath(path)
+            cg.fillPath()
         }
     }
 }

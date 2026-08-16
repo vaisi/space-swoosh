@@ -1,5 +1,5 @@
 // RootView.swift
-// Changes: Android brand chrome — framed buttons, Flicker preview, mode tiles.
+// Changes: Home ship cycle + Options → Ship picker for the four free hulls.
 
 import SwiftUI
 
@@ -7,6 +7,7 @@ enum ShellScreen {
     case menu
     case modeSelect
     case options
+    case shipPicker
     case lore
     case journeyMap
     case logbook
@@ -33,6 +34,8 @@ struct RootView: View {
                 modeSelect
             case .options:
                 options
+            case .shipPicker:
+                ShipPickerView(onBack: { screen = .options })
             case .lore:
                 LoreView(
                     onBack: { screen = .modeSelect },
@@ -77,7 +80,7 @@ struct RootView: View {
                 .foregroundStyle(BrandColors.ink55)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 36)
-            FlickerPreview()
+            ShipPreview()
                 .padding(.top, 8)
             Spacer()
             VStack(spacing: 12) {
@@ -128,6 +131,15 @@ struct RootView: View {
         .padding(.top, 20)
     }
 
+    private var shipTag: String {
+        switch settings.shipSkinId {
+        case .focus: return "FOC"
+        case .flicker: return "FLK"
+        case .ember: return "EMB"
+        case .saber: return "SAB"
+        }
+    }
+
     private var pbLine: String {
         let zig = OpenWorldProgress.best(for: .zigzag)
         let arc = OpenWorldProgress.best(for: .arc)
@@ -150,6 +162,9 @@ struct RootView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(BrandColors.ink55)
                 .frame(maxWidth: .infinity)
+            ShellChrome.brandButton("Ship", tag: shipTag) {
+                screen = .shipPicker
+            }
             ShellChrome.brandButton(
                 "Flight",
                 tag: settings.flightStyle == .zigzag ? "ZIG" : "ARC"

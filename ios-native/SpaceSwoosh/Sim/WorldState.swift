@@ -1,5 +1,5 @@
 // WorldState.swift
-// Changes: Do not lerp bank/tangent through 0 on a zigzag flip frame.
+// Changes: World carries equipped SkinId; trail buffer sized from the skin.
 
 import Foundation
 import CoreGraphics
@@ -31,10 +31,12 @@ struct WorldState {
     var jellySide: CGFloat
     var wallBoopSide: CGFloat
     var boopCooldown: CGFloat
+    var skinId: SkinId
 
-    static func initial(width: CGFloat, height: CGFloat) -> WorldState {
+    static func initial(width: CGFloat, height: CGFloat, skinId: SkinId = .flicker) -> WorldState {
         let base = width / 40
-        let trail = TrailRingBuffer(capacity: GameConfig.Spacecraft.trailMaxPoints)
+        let skin = SkinCatalog.def(skinId)
+        let trail = TrailRingBuffer(capacity: skin.trailMaxPoints)
         let ship = ShipState(
             x: width * 0.5,
             y: height * 0.22,
@@ -68,7 +70,8 @@ struct WorldState {
             jellyElapsedMs: -1,
             jellySide: 1,
             wallBoopSide: 0,
-            boopCooldown: 0
+            boopCooldown: 0,
+            skinId: skinId
         )
     }
 }

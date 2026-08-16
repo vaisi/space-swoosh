@@ -18,6 +18,7 @@
 		76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */; };
 		1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */; };
 		57DEF2C27678FDDC5BF3B49B /* ShellChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EF4487AD20665DDAEBF98F /* ShellChrome.swift */; };
+		A8650AF697A4A1EA13560A97 /* ShipPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D5D3E7364B3AEE86362AF9D /* ShipPickerView.swift */; };
 		C9464BE156D2949BC72778EA /* GameAudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B552E4E28B52F7F536B45C50 /* GameAudioSession.swift */; };
 		AA6253922C82E114A08F96A6 /* HapticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A387EF898151927984771A73 /* HapticsService.swift */; };
 		972FC16FEAAE1DC4F9438E96 /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BA70A150419A4AB36C6777 /* MusicPlayer.swift */; };
@@ -31,15 +32,21 @@
 		844A9BD8467FB92A8B2D5F9E /* GeneratedJourneyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92BD8675A04394000750555 /* GeneratedJourneyData.swift */; };
 		F333921A6C6E71D5DEB96D94 /* JourneyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959FF83B7DE02EDE3EC8F455 /* JourneyConfig.swift */; };
 		EF88BA81CDF6E85BFB66F42A /* RunProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E0F735C720F0F3A9011E17 /* RunProfile.swift */; };
+		D573C8A863FDFE1BF358F8FE /* SkinCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC76A2BA5E819E3790D06EC6 /* SkinCatalog.swift */; };
 		74A8A627E67F859E9B14028C /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90419B24548F3DDF98C2E7E /* InputService.swift */; };
 		C05DAB3B91F8482E9BC52541 /* BakePipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC91D803627C8826BAD1FB84 /* BakePipeline.swift */; };
+		1951A766F47C28770063B167 /* DotTrailField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC6A7CB1F9AB22DDD03BA3C /* DotTrailField.swift */; };
+		3644335780904EE6C2565370 /* EmberHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11C8938F3E181C834518A1E /* EmberHullTexture.swift */; };
 		94049FACB6E460C54D82E02D /* FlickerHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5C5C5EB5E34A7E9CC87E59 /* FlickerHullTexture.swift */; };
 		6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */; };
 		CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628FF1116246728150EFF6C1 /* PlayScene.swift */; };
 		A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */; };
 		D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78C3E515B75F5AFACA0EA5F /* PopupField.swift */; };
 		5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */; };
+		F52302FDE0B33FD919AB762A /* SaberHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3AD9345F1A7506F51F10FA8 /* SaberHullTexture.swift */; };
+		90B594154F188E79ED1DC7D3 /* SaberTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A08F1AACEAD1F7302665377C /* SaberTrailNode.swift */; };
 		DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DB2DBDE0437D9FB98867 /* StreakField.swift */; };
+		78CC8D4D444F7D23344968F3 /* StreakTrailField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF3EE09BC0A83E1CCD6B9EB /* StreakTrailField.swift */; };
 		87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */; };
 		5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECBDDDE316344C763EADABE /* CinematicFlight.swift */; };
 		EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B4487A50892B18E56E9252 /* CombatParity.swift */; };
@@ -117,6 +124,7 @@
 		1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		91EF4487AD20665DDAEBF98F /* ShellChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellChrome.swift; sourceTree = "<group>"; };
+		2D5D3E7364B3AEE86362AF9D /* ShipPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipPickerView.swift; sourceTree = "<group>"; };
 		B552E4E28B52F7F536B45C50 /* GameAudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAudioSession.swift; sourceTree = "<group>"; };
 		A387EF898151927984771A73 /* HapticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsService.swift; sourceTree = "<group>"; };
 		E9BA70A150419A4AB36C6777 /* MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
@@ -130,15 +138,21 @@
 		C92BD8675A04394000750555 /* GeneratedJourneyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedJourneyData.swift; sourceTree = "<group>"; };
 		959FF83B7DE02EDE3EC8F455 /* JourneyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyConfig.swift; sourceTree = "<group>"; };
 		C8E0F735C720F0F3A9011E17 /* RunProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunProfile.swift; sourceTree = "<group>"; };
+		EC76A2BA5E819E3790D06EC6 /* SkinCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinCatalog.swift; sourceTree = "<group>"; };
 		F90419B24548F3DDF98C2E7E /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
 		AC91D803627C8826BAD1FB84 /* BakePipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BakePipeline.swift; sourceTree = "<group>"; };
+		4BC6A7CB1F9AB22DDD03BA3C /* DotTrailField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotTrailField.swift; sourceTree = "<group>"; };
+		D11C8938F3E181C834518A1E /* EmberHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberHullTexture.swift; sourceTree = "<group>"; };
 		5B5C5C5EB5E34A7E9CC87E59 /* FlickerHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlickerHullTexture.swift; sourceTree = "<group>"; };
 		8B1F87CDBF2878FCB1110BBF /* FocusHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHullTexture.swift; sourceTree = "<group>"; };
 		628FF1116246728150EFF6C1 /* PlayScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayScene.swift; sourceTree = "<group>"; };
 		6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PooledSpriteField.swift; sourceTree = "<group>"; };
 		C78C3E515B75F5AFACA0EA5F /* PopupField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupField.swift; sourceTree = "<group>"; };
 		E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RibbonTrailNode.swift; sourceTree = "<group>"; };
+		E3AD9345F1A7506F51F10FA8 /* SaberHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaberHullTexture.swift; sourceTree = "<group>"; };
+		A08F1AACEAD1F7302665377C /* SaberTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaberTrailNode.swift; sourceTree = "<group>"; };
 		3086DB2DBDE0437D9FB98867 /* StreakField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakField.swift; sourceTree = "<group>"; };
+		0BF3EE09BC0A83E1CCD6B9EB /* StreakTrailField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakTrailField.swift; sourceTree = "<group>"; };
 		5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinemaSimulator.swift; sourceTree = "<group>"; };
 		DECBDDDE316344C763EADABE /* CinematicFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicFlight.swift; sourceTree = "<group>"; };
 		A5B4487A50892B18E56E9252 /* CombatParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatParity.swift; sourceTree = "<group>"; };
@@ -264,6 +278,7 @@
 				1F2C40BA6C5A4E305B4E6B12,
 				81B78C3CBC76324FAFD2BE4C,
 				91EF4487AD20665DDAEBF98F,
+				2D5D3E7364B3AEE86362AF9D,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -298,6 +313,7 @@
 				C92BD8675A04394000750555,
 				959FF83B7DE02EDE3EC8F455,
 				C8E0F735C720F0F3A9011E17,
+				EC76A2BA5E819E3790D06EC6,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -314,13 +330,18 @@
 			isa = PBXGroup;
 			children = (
 				AC91D803627C8826BAD1FB84,
+				4BC6A7CB1F9AB22DDD03BA3C,
+				D11C8938F3E181C834518A1E,
 				5B5C5C5EB5E34A7E9CC87E59,
 				8B1F87CDBF2878FCB1110BBF,
 				628FF1116246728150EFF6C1,
 				6D9C2266E5757995489D1B37,
 				C78C3E515B75F5AFACA0EA5F,
 				E3E76E4E12F12A36B4EF70AD,
+				E3AD9345F1A7506F51F10FA8,
+				A08F1AACEAD1F7302665377C,
 				3086DB2DBDE0437D9FB98867,
+				0BF3EE09BC0A83E1CCD6B9EB,
 			);
 			path = Render;
 			sourceTree = "<group>";
@@ -521,6 +542,7 @@
 				76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */,
 				1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */,
 				57DEF2C27678FDDC5BF3B49B /* ShellChrome.swift in Sources */,
+				A8650AF697A4A1EA13560A97 /* ShipPickerView.swift in Sources */,
 				C9464BE156D2949BC72778EA /* GameAudioSession.swift in Sources */,
 				AA6253922C82E114A08F96A6 /* HapticsService.swift in Sources */,
 				972FC16FEAAE1DC4F9438E96 /* MusicPlayer.swift in Sources */,
@@ -534,15 +556,21 @@
 				844A9BD8467FB92A8B2D5F9E /* GeneratedJourneyData.swift in Sources */,
 				F333921A6C6E71D5DEB96D94 /* JourneyConfig.swift in Sources */,
 				EF88BA81CDF6E85BFB66F42A /* RunProfile.swift in Sources */,
+				D573C8A863FDFE1BF358F8FE /* SkinCatalog.swift in Sources */,
 				74A8A627E67F859E9B14028C /* InputService.swift in Sources */,
 				C05DAB3B91F8482E9BC52541 /* BakePipeline.swift in Sources */,
+				1951A766F47C28770063B167 /* DotTrailField.swift in Sources */,
+				3644335780904EE6C2565370 /* EmberHullTexture.swift in Sources */,
 				94049FACB6E460C54D82E02D /* FlickerHullTexture.swift in Sources */,
 				6CC58E4F323B613FC4059927 /* FocusHullTexture.swift in Sources */,
 				CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */,
 				A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */,
 				D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */,
 				5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */,
+				F52302FDE0B33FD919AB762A /* SaberHullTexture.swift in Sources */,
+				90B594154F188E79ED1DC7D3 /* SaberTrailNode.swift in Sources */,
 				DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */,
+				78CC8D4D444F7D23344968F3 /* StreakTrailField.swift in Sources */,
 				87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */,
 				5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */,
 				EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */,
@@ -597,7 +625,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -619,7 +647,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
