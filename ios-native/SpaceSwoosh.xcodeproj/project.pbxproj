@@ -17,6 +17,7 @@
 		76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */; };
 		1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */; };
 		57DEF2C27678FDDC5BF3B49B /* ShellChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EF4487AD20665DDAEBF98F /* ShellChrome.swift */; };
+		C9464BE156D2949BC72778EA /* GameAudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B552E4E28B52F7F536B45C50 /* GameAudioSession.swift */; };
 		AA6253922C82E114A08F96A6 /* HapticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A387EF898151927984771A73 /* HapticsService.swift */; };
 		972FC16FEAAE1DC4F9438E96 /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BA70A150419A4AB36C6777 /* MusicPlayer.swift */; };
 		EFE745DA4075261482F299F9 /* SfxPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EEFD56E50FD27D345126C2E /* SfxPlayer.swift */; };
@@ -38,7 +39,6 @@
 		D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78C3E515B75F5AFACA0EA5F /* PopupField.swift */; };
 		5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */; };
 		DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DB2DBDE0437D9FB98867 /* StreakField.swift */; };
-		99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */; };
 		87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */; };
 		5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECBDDDE316344C763EADABE /* CinematicFlight.swift */; };
 		EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B4487A50892B18E56E9252 /* CombatParity.swift */; };
@@ -115,6 +115,7 @@
 		1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		91EF4487AD20665DDAEBF98F /* ShellChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellChrome.swift; sourceTree = "<group>"; };
+		B552E4E28B52F7F536B45C50 /* GameAudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAudioSession.swift; sourceTree = "<group>"; };
 		A387EF898151927984771A73 /* HapticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsService.swift; sourceTree = "<group>"; };
 		E9BA70A150419A4AB36C6777 /* MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
 		9EEFD56E50FD27D345126C2E /* SfxPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SfxPlayer.swift; sourceTree = "<group>"; };
@@ -136,7 +137,6 @@
 		C78C3E515B75F5AFACA0EA5F /* PopupField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupField.swift; sourceTree = "<group>"; };
 		E3E76E4E12F12A36B4EF70AD /* RibbonTrailNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RibbonTrailNode.swift; sourceTree = "<group>"; };
 		3086DB2DBDE0437D9FB98867 /* StreakField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakField.swift; sourceTree = "<group>"; };
-		BBB1844B0C8B74B44F3F727B /* TrailRibbonTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRibbonTexture.swift; sourceTree = "<group>"; };
 		5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinemaSimulator.swift; sourceTree = "<group>"; };
 		DECBDDDE316344C763EADABE /* CinematicFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicFlight.swift; sourceTree = "<group>"; };
 		A5B4487A50892B18E56E9252 /* CombatParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatParity.swift; sourceTree = "<group>"; };
@@ -268,6 +268,7 @@
 		420455E087BAFCC49D994517 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				B552E4E28B52F7F536B45C50,
 				A387EF898151927984771A73,
 				E9BA70A150419A4AB36C6777,
 				9EEFD56E50FD27D345126C2E,
@@ -317,7 +318,6 @@
 				C78C3E515B75F5AFACA0EA5F,
 				E3E76E4E12F12A36B4EF70AD,
 				3086DB2DBDE0437D9FB98867,
-				BBB1844B0C8B74B44F3F727B,
 			);
 			path = Render;
 			sourceTree = "<group>";
@@ -517,6 +517,7 @@
 				76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */,
 				1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */,
 				57DEF2C27678FDDC5BF3B49B /* ShellChrome.swift in Sources */,
+				C9464BE156D2949BC72778EA /* GameAudioSession.swift in Sources */,
 				AA6253922C82E114A08F96A6 /* HapticsService.swift in Sources */,
 				972FC16FEAAE1DC4F9438E96 /* MusicPlayer.swift in Sources */,
 				EFE745DA4075261482F299F9 /* SfxPlayer.swift in Sources */,
@@ -538,7 +539,6 @@
 				D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */,
 				5056154C4223CC2B0BBAC40D /* RibbonTrailNode.swift in Sources */,
 				DD6570AA5878F2930B4B32E8 /* StreakField.swift in Sources */,
-				99FBA94C6D64FF608707F6BB /* TrailRibbonTexture.swift in Sources */,
 				87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */,
 				5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */,
 				EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */,

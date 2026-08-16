@@ -1,5 +1,5 @@
 // SpaceSwooshApp.swift
-// Changes: Slice D — follow SettingsStore light/night paper.
+// Changes: Activate playback audio session at launch so TestFlight is not silent.
 
 import SwiftUI
 
@@ -12,6 +12,10 @@ struct SpaceSwooshApp: App {
             RootView()
                 .statusBarHidden(true)
                 .preferredColorScheme(settings.isDark ? .dark : .light)
+                .onAppear {
+                    GameAudioSession.activate()
+                    SfxPlayer.shared.start()
+                }
         }
     }
 }

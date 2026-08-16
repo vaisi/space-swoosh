@@ -1,5 +1,5 @@
 // FixedStepSimulator.swift
-// Changes: Phase A — accumulator fixed-step clock with alpha for render interpolation.
+// Changes: 60 Hz sim / 5-step cap — do not retune from App Preview stream lag.
 
 import Foundation
 import CoreGraphics

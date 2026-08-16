@@ -1,12 +1,11 @@
 // BakePipeline.swift
-// Changes: Slice D — Flicker tear hull instead of Focus diamond.
+// Changes: Drop segment trail bake — Flicker wake is a live SKShapeNode path.
 
 import SpriteKit
 import UIKit
 
 final class BakePipeline {
     let hull: SKTexture
-    let trail: SKTexture
     let glowSignal: SKTexture
     let glowInk: SKTexture
     let sparkle: SKTexture
@@ -26,7 +25,6 @@ final class BakePipeline {
 
     private init() {
         hull = FlickerHullTexture.make(logicalRadius: 28, scale: 3)
-        trail = TrailRibbonTexture.make()
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)
         sparkle = Self.diamond(color: BrandColors.UI.signal, size: 48)

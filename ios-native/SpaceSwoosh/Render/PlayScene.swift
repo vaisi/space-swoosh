@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Start/stop BGM; play crash, shield, portal, swoosh file/synth cues.
+// Changes: Continuous Flicker ribbon — pass interpolated ship for hull-locked tail.
 
 import SpriteKit
 import QuartzCore
@@ -50,11 +50,7 @@ final class PlayScene: SKScene {
         backgroundColor = BrandColors.UI.paper
 
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
-        let ribbon = RibbonTrailNode(
-            texture: bake.trail,
-            maxSegments: GameConfig.Spacecraft.trailMaxPoints - 1,
-            maxWidth: radius * GameConfig.Flicker.trailWidthScale
-        )
+        let ribbon = RibbonTrailNode()
         ribbon.zPosition = 5
         addChild(ribbon)
         trailNode = ribbon
@@ -302,6 +298,7 @@ final class PlayScene: SKScene {
         trailNode?.alpha = run.worldAlpha
         trailNode?.sync(
             trail: world.trail,
+            ship: ship,
             cameraY: cameraY,
             sceneHeight: size.height,
             jellyElapsedMs: world.jellyElapsedMs,

@@ -1,7 +1,7 @@
 <!--
   docs/CODEMAGIC.md
   Changes:
-  - Document iOS Native → App Preview (unsigned simulator .app + Quick launch).
+  - TestFlight uses .playback so Silent switch no longer mutes SFX.
   - iOS CI stamps CFBundleVersion ≥ 2 (ASC already has 1.0.0 (1)).
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
@@ -139,6 +139,22 @@ workflow: **iOS Native → App Preview**.
 The App Preview sidebar stays empty until you have launched a session in the
 last 7 days. **Learn more** / the demo phone on that page are Codemagic’s
 sample apps — your game only appears after Quick launch on a simulator build.
+
+**What the browser stream cannot prove**
+
+App Preview is a **video encode** of the simulator, not a local device. Touch
+goes browser → Codemagic → sim, so steering can feel laggy even when the DEBUG
+HUD is locked at **16.7 ms / 60 Hz**. Audio (`AVAudioEngine` synth +
+`AVAudioPlayer` files) often does not reach the browser at all.
+
+- Judge **BOOP fade** and the **Flicker ribbon** in App Preview (those are
+  pixels).
+- Judge **sound** on a **new** TestFlight IPA after the `.playback` session
+  change. The Silent switch no longer mutes gameplay SFX. BGM / NAV voice
+  still need MP3s in `ios-native/SpaceSwoosh/Voice/` (repo has `.gitkeep`
+  only). Synth boop / turn / collect / crash / shield / portal / swoosh
+  play without those files.
+- Judge **movement feel** on TestFlight, not App Preview.
 
 ## iOS project note
 

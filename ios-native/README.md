@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Point at iOS Native → App Preview for Codemagic browser simulator.
+  Changes: TestFlight audio uses .playback (Silent switch no longer mutes SFX).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -20,8 +20,12 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Persistence: `journeyProgress`, `logbookProgress` (same keys as Android)
 - Audio: looping `background.mp3` (ducks under NAV), file crash/shield/turn, baked boop/collect/portal/swoosh
 - HUD: after intro, KM + fuel fade at 2s, pause at 3s; smash/PTS after first event
+- Flicker wake: one continuous `SKShapeNode` ribbon (Android `ribbonPath`), spring jelly, hull-locked live tail
+- Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick
 
-Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`).
+Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`). That folder is **empty in git** (`.gitkeep` only) — BGM and NAV voice stay silent until those MP3s are added. Gameplay SFX (boop, turn, collect, portal, swoosh, crash, shield) are synthesized and do **not** need files.
+
+The audio session is **`.playback`**, so TestFlight plays with the Silent switch on (the old `.ambient` session is why a device build sounded fully mute). Options → SOUND OFF still mutes. Codemagic **App Preview** may still forward no audio; that is the stream, not the IPA.
 
 Not yet: remaining 22 skins, IAP, Supabase board, Firebase.
 

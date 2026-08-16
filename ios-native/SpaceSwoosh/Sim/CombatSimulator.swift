@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: HUD chip alphas — KM/pause stagger, smash/PTS unlock.
+// Changes: One-shot wall BOOP — clear wallBoopSide after emit so the label fades.
 
 import Foundation
 import CoreGraphics
@@ -163,7 +163,7 @@ enum CombatSimulator {
                 style: run.flightStyle
             )
             if world.wallBoopSide != 0 {
-                emitBoop(world: world, run: &run)
+                emitBoop(world: &world, run: &run)
             }
         }
 
@@ -214,13 +214,15 @@ enum CombatSimulator {
         FloatPopupBuffer.tick(&run.popups, dt: dt)
     }
 
-    private static func emitBoop(world: WorldState, run: inout RunState) {
+    private static func emitBoop(world: inout WorldState, run: inout RunState) {
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let sign = world.wallBoopSide
         let x = world.ship.x - sign * (radius * 0.25)
         let y = world.ship.y - radius * 1.75
+        // SpriteKit Y-up: -1.6 drifts away from the hull (JS Y-down uses +1.6).
         FloatPopupBuffer.spawn(&run.popups, kind: .boop, x: x, y: y, vy: -1.6)
         run.sfxBoop = true
+        world.wallBoopSide = 0
         if !run.firstBoopDone {
             run.firstBoopDone = true
             run.sfxFirstBoop = true

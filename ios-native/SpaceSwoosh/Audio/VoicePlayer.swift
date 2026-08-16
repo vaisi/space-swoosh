@@ -1,5 +1,5 @@
 // VoicePlayer.swift
-// Changes: Duck BGM while speaking; pause/resume with the overlay.
+// Changes: Activate .playback before a clip so Silent switch does not swallow NAV.
 
 import AVFoundation
 import Foundation
@@ -85,6 +85,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
             finishImmediately()
             return
         }
+        GameAudioSession.activate()
         do {
             let next = try AVAudioPlayer(contentsOf: url)
             next.delegate = self

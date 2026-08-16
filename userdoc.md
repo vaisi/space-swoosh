@@ -11,14 +11,19 @@
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
-> **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP, blue `+FUEL`,
-> NAV captions, a Space Log, and the same run-start roll / finish flyout as
-> Android. Music loops under the run and quiets while NAV talks. After the
-> navigator line, KM and fuel ease in, then pause; smash and points wait for
-> the first hit. Voice lines play if the build includes them; turn Voice off
-> in Options if you want captions only. Not the other ships, IAP, or the
-> online board yet. Install the **newest** TestFlight build. Android and
-> web remain the complete game.
+> **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP (the word
+> fades after the bounce), a smooth ink ribbon that springs on the wall, blue
+> `+FUEL`, NAV captions, a Space Log, and the same run-start roll / finish
+> flyout as Android. Music loops under the run and quiets while NAV talks
+> when those clips are in the build. After the navigator line, KM and fuel
+> ease in, then pause; smash and points wait for the first hit. Voice lines
+> play if the build includes them; turn Voice off in Options if you want
+> captions only. Wall hits, turns, pickups, and crashes should make sound on
+> the **newest** TestFlight even if the Silent switch is on (Options →
+> SOUND OFF still mutes). Music and spoken NAV lines play only when those
+> clips are in the build. The **browser App Preview** is a video of the
+> simulator — it often has **no sound** and extra tap delay. Not the other
+> ships, IAP, or the online board yet. Android and web remain the complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap
@@ -293,8 +298,9 @@ signature per vessel — pile, spring, whip, scatter, shatter, bubble, blot, and
 more.
 
 Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
-to the wall, not on it), a soft space-boop sound, and a light phone buzz on
-devices that support haptics. The first wall touch of a session (after any level
+to the wall, not on it). The word fades away after the bounce. You also get a
+soft space-boop sound and a light phone buzz on devices that support haptics
+(not in the browser App Preview). The first wall touch of a session (after any level
 opening voice finishes) also plays a short navigator line on screen (“The walls
 forgive…”). Threading a tight gap for a Style Swoosh plays a short voice cue with
 no extra caption (you still see the usual style points).

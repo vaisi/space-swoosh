@@ -15,7 +15,9 @@
 > After NAV/title, HUD chips stagger like Android: KM + fuel at 2s, pause at 3s
 > (1s ease-out), smash/PTS only after the first smash or style points.
 > Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`);
-> captions still run if the files are missing. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
+> `ios-native/SpaceSwoosh/Voice/` is `.gitkeep` only in git, so native BGM/voice/file
+> cues are silent until those files are added. Captions still run if the files
+> are missing. Synth boop/collect/portal/swoosh do not need MP3s. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
@@ -128,7 +130,13 @@ Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs
 **iOS Native → TestFlight** ships a signed IPA. **iOS Native → App Preview**
 builds an unsigned iPhone-simulator `.app`; after that job finishes, click
 **Quick launch** on the build page to run the game in Codemagic’s browser
-simulator (no Mac or device). Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
+simulator (no Mac or device). The browser session is a **video stream**: a
+locked 60 Hz DEBUG HUD can still feel laggy, and `AVAudioEngine` often has
+**no audio** in the tab. Judge BOOP/trail pixels there. TestFlight uses
+`.playback` so the Silent switch no longer mutes gameplay SFX (the old
+`.ambient` session is why friends heard nothing on device). `Voice/` is
+empty in git — BGM / NAV voice need those MP3s; synth boop / turn / collect
+/ crash / shield / portal / swoosh do not. See [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md) §6b. Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
 
 ### Supabase API keys (correct usage)
 
@@ -992,17 +1000,22 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | --- | --- |
 | `SpaceSwoosh/App/` | SwiftUI menu + pause + CopyBank game-over + `SpriteView` host |
 | `SpaceSwoosh/Brand/` | `CopyBank` (menu / crash / fuelOut pools) |
-| `SpaceSwoosh/Audio/` | Baked boop/collect PCM + Light haptic |
+| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; synth boop/turn/collect/crash/shield/portal/swoosh; file BGM/voice if `Voice/` has MP3s; engine recover after interruptions |
 | `SpaceSwoosh/Core/` | `GameConfig` (Flicker + fuel + stress caps), fixed-step clock, pacing HUD |
-| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, `ShipHitbox`, jelly, `CombatSimulator`, `HazardCollision` |
-| `SpaceSwoosh/Render/` | Flicker hull bake, ribbon + smudge, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, `ShipHitbox`, jelly, `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
+| `SpaceSwoosh/Render/` | Flicker hull bake, continuous ribbon (`RibbonTrailNode` two reused `SKShapeNode`s), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
-**Butter contract (non-negotiable):** no per-frame `SKShapeNode` path mutation;
-hot draws are textures / pooled sprites; sim at 1/60 with interpolated
-presentation; `preferredFramesPerSecond = 120` +
+**Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
+textures / pooled sprites, except the Flicker wake — two **reused**
+`SKShapeNode`s (smudge + body) whose `path` is rebuilt each frame to match
+Android `ribbonPath` / `traceSmooth`, with a hull-locked live tail. Sim at
+1/60 with interpolated presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
+Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
+`0.028 * dt * 60` like `WallBoopManager`. Do not retune input or
+`maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Slice D: Flicker tear + `TEAR_HITBOX`, Arc/zigzag, overlap spawn, cluster
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,
 milestones, local PB, night paper. C.5 combat remains:

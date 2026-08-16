@@ -1,5 +1,5 @@
 // FramePacingMonitor.swift
-// Changes: Phase B — load-line (obstacles / sparkles / trail) on the debug HUD.
+// Changes: HUD is device/sim truth — App Preview stream lag is not a pacing bug.
 
 import Foundation
 import Combine

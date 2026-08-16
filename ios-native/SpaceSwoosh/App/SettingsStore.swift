@@ -1,5 +1,5 @@
 // SettingsStore.swift
-// Changes: Mute also silences looping BGM.
+// Changes: Unmute recovers the playback session / engine.
 
 import Foundation
 import Combine
@@ -47,7 +47,11 @@ final class SettingsStore: ObservableObject {
         SfxPlayer.shared.muted = muted
         MusicPlayer.shared.muted = muted
         VoicePlayer.shared.enabled = voiceEnabled && !muted
-        if muted { VoicePlayer.shared.stop() }
+        if muted {
+            VoicePlayer.shared.stop()
+        } else {
+            SfxPlayer.shared.recover()
+        }
         UserDefaults.standard.set(muted, forKey: "soundMuted")
     }
 

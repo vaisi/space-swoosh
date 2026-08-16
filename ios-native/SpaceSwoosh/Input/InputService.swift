@@ -1,5 +1,5 @@
 // InputService.swift
-// Changes: Slice D — zigzag tap-flip; Arc left/right half + horizontal swipe.
+// Changes: One pending steer per consume — no App Preview latency rewrite.
 
 import Foundation
 import CoreGraphics

@@ -1,5 +1,5 @@
 // FloatPopup.swift
-// Changes: Slice D — pooled +FUEL / BOOP / smash / swoosh floaters (no hot alloc).
+// Changes: BOOP fade 0.028/tick to match Android WallBoopManager.
 
 import Foundation
 import CoreGraphics
@@ -37,7 +37,7 @@ enum FloatPopupBuffer {
         let tickScale = dt * 60
         for i in 0..<list.count where list[i].active {
             list[i].y += list[i].vy * dt
-            list[i].opacity -= 0.02 * tickScale
+            list[i].opacity -= 0.028 * tickScale
             if list[i].opacity <= 0 {
                 list[i].active = false
             }

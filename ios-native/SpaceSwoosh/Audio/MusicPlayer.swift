@@ -1,5 +1,5 @@
 // MusicPlayer.swift
-// Changes: Loop background.mp3 at 0.40; duck to 0.14 under NAV voice.
+// Changes: Activate .playback session; log when background.mp3 is missing from the bundle.
 
 import AVFoundation
 import Foundation
@@ -22,10 +22,14 @@ final class MusicPlayer {
         shouldPlay = true
         userPaused = false
         ducked = false
+        GameAudioSession.activate()
         if player == nil {
             guard let url = Bundle.main.url(forResource: "background", withExtension: "mp3")
                     ?? Bundle.main.url(forResource: "background", withExtension: "m4a")
-            else { return }
+            else {
+                print("MusicPlayer: background.mp3 / .m4a not in bundle — BGM silent until Voice/ is packed.")
+                return
+            }
             do {
                 let next = try AVAudioPlayer(contentsOf: url)
                 next.numberOfLoops = -1

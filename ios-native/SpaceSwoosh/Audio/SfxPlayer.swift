@@ -1,5 +1,5 @@
 // SfxPlayer.swift
-// Changes: File crash/shield/turn; baked portal in/out + swoosh; keep boop/collect.
+// Changes: .playback session; restart a dead engine; synth crash/shield if MP3s missing.
 
 import AVFoundation
 import Foundation
@@ -15,6 +15,8 @@ final class SfxPlayer {
     private var portalIn: AVAudioPCMBuffer?
     private var portalOut: AVAudioPCMBuffer?
     private var swoosh: AVAudioPCMBuffer?
+    private var crashSynth: AVAudioPCMBuffer?
+    private var shieldSynth: AVAudioPCMBuffer?
     private var next = 0
     private var started = false
     var muted = false
@@ -32,6 +34,8 @@ final class SfxPlayer {
         portalIn = Self.makePortal(format: format, entering: true)
         portalOut = Self.makePortal(format: format, entering: false)
         swoosh = Self.makeSwoosh(format: format)
+        crashSynth = Self.makeCrash(format: format)
+        shieldSynth = Self.makeShield(format: format)
         for _ in 0..<6 {
             let node = AVAudioPlayerNode()
             engine.attach(node)
@@ -42,14 +46,24 @@ final class SfxPlayer {
     }
 
     func start() {
-        guard !started else { return }
+        recover()
+    }
+
+    /// Session + engine must come back after Silent-route changes and interruptions.
+    /// `started` alone is not enough — a stopped engine schedules into silence.
+    func recover() {
+        GameAudioSession.activate()
+        if engine.isRunning {
+            started = true
+            return
+        }
         do {
-            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
+            engine.prepare()
             try engine.start()
             started = true
         } catch {
             started = false
+            print("SfxPlayer.start failed: \(error.localizedDescription)")
         }
     }
 
@@ -70,15 +84,27 @@ final class SfxPlayer {
     }
 
     func playCrash() {
-        crashCue.play(muted: muted)
+        if crashCue.available {
+            crashCue.play(muted: muted)
+        } else {
+            play(crashSynth)
+        }
     }
 
     func playShieldCrash() {
-        shieldCrashCue.play(muted: muted)
+        if shieldCrashCue.available {
+            shieldCrashCue.play(muted: muted)
+        } else {
+            play(crashSynth)
+        }
     }
 
     func playShield() {
-        shieldCue.play(muted: muted)
+        if shieldCue.available {
+            shieldCue.play(muted: muted)
+        } else {
+            play(shieldSynth)
+        }
     }
 
     func playPortalEntry() {
@@ -94,7 +120,9 @@ final class SfxPlayer {
     }
 
     private func play(_ buffer: AVAudioPCMBuffer?) {
-        guard !muted, started, let buffer else { return }
+        guard !muted, let buffer else { return }
+        if !engine.isRunning { recover() }
+        guard started, engine.isRunning else { return }
         let node = players[next % players.count]
         next += 1
         if !node.isPlaying { node.play() }
@@ -228,6 +256,39 @@ final class SfxPlayer {
         return buf
     }
 
+    /// Soft thud when crash.mp3 is not in the bundle.
+    private static func makeCrash(format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        let rate = format.sampleRate
+        let n = Int(rate * 0.28)
+        guard let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(n)) else { return nil }
+        buf.frameLength = AVAudioFrameCount(n)
+        guard let data = buf.floatChannelData?[0] else { return nil }
+        for i in 0..<n {
+            let t = Double(i) / rate
+            let body = sin(2 * .pi * lerpExp(140, 48, min(1, t / 0.18)) * t)
+                * envelope(t, attack: 0.008, peak: 0.28, dur: 0.26)
+            let noise = Double.random(in: -1...1) * envelope(t, attack: 0.004, peak: 0.16, dur: 0.12)
+            data[i] = Float(max(-1, min(1, body + noise)))
+        }
+        return buf
+    }
+
+    /// Short lift when shield.mp3 is not in the bundle.
+    private static func makeShield(format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        let rate = format.sampleRate
+        let n = Int(rate * 0.22)
+        guard let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(n)) else { return nil }
+        buf.frameLength = AVAudioFrameCount(n)
+        guard let data = buf.floatChannelData?[0] else { return nil }
+        for i in 0..<n {
+            let t = Double(i) / rate
+            let s = sin(2 * .pi * lerpExp(420, 880, min(1, t / 0.16)) * t)
+                * envelope(t, attack: 0.012, peak: 0.16, dur: 0.2)
+            data[i] = Float(max(-1, min(1, s)))
+        }
+        return buf
+    }
+
     private static func lerpExp(_ a: Double, _ b: Double, _ t: Double) -> Double {
         let u = max(0, min(1, t))
         return a * pow(b / a, u)
@@ -260,6 +321,7 @@ private final class FileCue {
 
     func play(muted: Bool) {
         guard !muted, let player else { return }
+        GameAudioSession.activate()
         player.volume = volume
         player.currentTime = 0
         player.play()

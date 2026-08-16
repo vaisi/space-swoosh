@@ -1,5 +1,5 @@
 // WorldState.swift
-// Changes: Slice D — bank, wall jelly clock, boop side for Flicker feel.
+// Changes: wallBoopSide is a one-shot latch; CombatSimulator clears it after emit.
 
 import Foundation
 import CoreGraphics
