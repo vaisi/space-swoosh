@@ -1,5 +1,5 @@
 // ShipSimulator.swift
-// Changes: Zigzag path snaps; bank eases with Android BANK_SMOOTHING (no tap hop).
+// Changes: Zigzag/arc travel uses Android snappy tickScale (dt * 120).
 
 import Foundation
 import CoreGraphics
@@ -45,7 +45,7 @@ struct ShipSimulator {
             * world.height
             * GameConfig.Spacecraft.zigzagSpeedScale
             * speedScale
-        let dist = speed * dt
+        let dist = speed * GameConfig.simDt * GameConfig.motionTickScale(dt: dt)
         var x = world.ship.x + sin(rad) * world.ship.zigzagSign * dist
         let y = world.ship.y + cos(rad) * dist
         clampWall(world: &world, x: &x)
@@ -93,7 +93,7 @@ struct ShipSimulator {
 
         let keep: CGFloat = world.ship.arcActive ? 0.86 : 0.95
         world.ship.verticalVel = world.ship.verticalVel * keep + desired * (1 - keep)
-        let y = world.ship.y + world.ship.verticalVel * dt
+        let y = world.ship.y + world.ship.verticalVel * GameConfig.simDt * GameConfig.motionTickScale(dt: dt)
 
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let minX = radius * wallMarginFactor

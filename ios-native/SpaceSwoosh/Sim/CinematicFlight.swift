@@ -1,5 +1,5 @@
 // CinematicFlight.swift
-// Changes: Slice E polish — seedIntroLean, captureArcHeading, silent stream.
+// Changes: Intro/clear stream travel uses Android snappy tickScale (dt * 120).
 
 import Foundation
 import CoreGraphics
@@ -46,7 +46,7 @@ enum CinematicFlight {
         let speed = GameConfig.Spacecraft.speed * world.height * boost
         let keep = pow(0.95 as CGFloat, dt * 60)
         world.ship.verticalVel = world.ship.verticalVel * keep + speed * (1 - keep)
-        world.ship.y += world.ship.verticalVel * dt
+        world.ship.y += world.ship.verticalVel * GameConfig.simDt * GameConfig.motionTickScale(dt: dt)
         world.ship.bank = 0
         world.ship.tangent = 0
         pushTrail(world: &world)
@@ -65,14 +65,14 @@ enum CinematicFlight {
         if style == .zigzag {
             let rad = GameConfig.Spacecraft.zigzagAngleDeg * .pi / 180
             let speed = base * GameConfig.Spacecraft.zigzagSpeedScale
-            let dist = speed * dt
+            let dist = speed * GameConfig.simDt * GameConfig.motionTickScale(dt: dt)
             world.ship.x += sin(rad) * world.ship.zigzagSign * dist
             world.ship.y += cos(rad) * dist
             world.ship.verticalVel = speed * cos(rad)
             world.ship.tangent = world.ship.zigzagSign * rad
             world.ship.bank = world.ship.tangent
         } else {
-            let dist = base * dt
+            let dist = base * GameConfig.simDt * GameConfig.motionTickScale(dt: dt)
             world.ship.x += sin(heading) * dist
             world.ship.y += cos(heading) * dist
             world.ship.verticalVel = max(base * cos(heading), base * 0.35)

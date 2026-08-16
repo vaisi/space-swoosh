@@ -1,5 +1,5 @@
 // CombatParity.swift
-// Changes: C.5.1 — one screen of travel always awards the same KM (ref height 800).
+// Changes: firstStepDeltaX includes Android snappy tickScale (dt * 120).
 
 import Foundation
 import CoreGraphics
@@ -18,11 +18,11 @@ enum CombatParity {
         return xs
     }
 
-    /// First-step X must move right (sign +1) by sin(52°) * speed * height * scale * dt.
+    /// First-step X must move right (sign +1) by sin(52°) * speed * height * scale * (1/60) * tickScale.
     static func firstStepDeltaX(height: CGFloat) -> CGFloat {
         let rad = GameConfig.Spacecraft.zigzagAngleDeg * .pi / 180
         let speed = GameConfig.Spacecraft.speed * height * GameConfig.Spacecraft.zigzagSpeedScale
-        return sin(rad) * speed * GameConfig.simDt
+        return sin(rad) * speed * GameConfig.simDt * GameConfig.motionTickScale(dt: GameConfig.simDt)
     }
 
     /// Drift and wormhole must never register a solid hit (JS returns false).

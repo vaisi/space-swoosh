@@ -1,11 +1,15 @@
 // GameConfig.swift
-// Changes: bankSmoothing 0.34 — Android hull lean ease (path stays instant).
+// Changes: snappyHz 120 — Android cruise travel on the existing 60 Hz step.
 
 import Foundation
 import CoreGraphics
 
 enum GameConfig {
     static let simDt: CGFloat = 1.0 / 60.0
+    /// JS `snappyHz`: ship travel uses `speed * (1/60) * (dt * 120)` so one
+    /// 60 Hz step covers the same distance as Android's snappy pacing.
+    static let snappyHz: CGFloat = 120
+    static func motionTickScale(dt: CGFloat) -> CGFloat { dt * snappyHz }
     /// JS: abs(Δcamera.y) * (100/60) in CSS pixels. Scale to this height so
     /// a tall iPhone and a short Android CSS canvas award KM at the same pace.
     static let kmPerPixel: CGFloat = 100.0 / 60.0
