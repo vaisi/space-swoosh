@@ -1,5 +1,5 @@
 // CinematicFlight.swift
-// Changes: Trail fade uses the equipped skin's trailFade.
+// Changes: Trail samples use the equipped skin's trailTailOffset + trailFade.
 
 import Foundation
 import CoreGraphics
@@ -131,7 +131,7 @@ enum CinematicFlight {
 
     private static func pushTrail(world: inout WorldState) {
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
-        let tail = radius * GameConfig.Spacecraft.tailOffset
+        let tail = radius * SkinCatalog.def(world.skinId).trailTailOffset
         let tx = world.ship.x - sin(world.ship.bank) * tail
         let ty = world.ship.y - cos(world.ship.bank) * tail
         world.trail.pushIfMoved(

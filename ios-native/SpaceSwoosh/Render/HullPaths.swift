@@ -1,5 +1,5 @@
 // HullPaths.swift
-// Changes: Android hulls.js path set; on-demand HullBake textures for all SkinIds.
+// Changes: Bloom ellipse uses Android bloomPath radius 0.82.
 
 import CoreGraphics
 import SpriteKit
@@ -10,7 +10,7 @@ enum HullPaths {
         let ry = r * stretch
         switch kind {
         case .circle, .mote, .bloom, .halo:
-            let rr = kind == .halo ? r * 0.82 : (kind == .mote ? r * 0.92 : r)
+            let rr = kind == .halo || kind == .bloom ? r * 0.82 : (kind == .mote ? r * 0.92 : r)
             path.addEllipse(in: CGRect(x: cx - rr, y: cy - rr * stretch, width: rr * 2, height: rr * 2 * stretch))
         case .tear:
             path.move(to: CGPoint(x: cx, y: cy - ry))

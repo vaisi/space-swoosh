@@ -1,5 +1,5 @@
 // ShipPickerView.swift
-// Changes: Options → Ship — scrolling 2-col grid of the full playtest roster.
+// Changes: Options grid uses LiveHullPaint stills for the 16 live ships.
 
 import SwiftUI
 import UIKit

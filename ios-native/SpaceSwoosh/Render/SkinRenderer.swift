@@ -1,5 +1,5 @@
 // SkinRenderer.swift
-// Changes: Factory-build only the equipped hull + wake at startRun.
+// Changes: Live hulls paint their own stretch; jelly squash + shake on the node.
 
 import SpriteKit
 import QuartzCore
@@ -13,21 +13,14 @@ final class SkinRenderer {
 
     init(skin: SkinDef, bake: BakePipeline) {
         self.skin = skin
-        let bodyTex = bake.hull(for: skin.id)
         if skin.skipHullCache {
-            let live = LiveHullNode(
-                kind: skin.hullKind,
-                bodyTexture: bodyTex,
-                disc: bake.part(for: .circle),
-                ring: bake.ring,
-                glow: bake.glowInk
-            )
+            let live = LiveHullNode(id: skin.id, disc: bake.part(for: .circle))
             live.zPosition = 10
             node.addChild(live)
             liveHull = live
             hullSprite = nil
         } else {
-            let hull = SKSpriteNode(texture: bodyTex)
+            let hull = SKSpriteNode(texture: bake.hull(for: skin.id))
             hull.zPosition = 10
             node.addChild(hull)
             hullSprite = hull
@@ -59,15 +52,26 @@ final class SkinRenderer {
             side: world.jellySide,
             profile: skin.jellyProfile
         )
+        let jellyLive = world.jellyElapsedMs >= 0 && world.jellyElapsedMs < GameConfig.Flicker.wallJellyMs
         let scale = 0.97 + 0.03 * sin(nowMs * 0.0044)
         let pad = radius * scale * skin.hullDrawPad
-        let pos = CGPoint(x: ship.x, y: screenY)
+        let shakeScale: CGFloat
+        switch skin.jellyProfile {
+        case .bloom, .lyra, .boreal, .wish, .puff, .chime, .halo, .orbit:
+            shakeScale = 0.7
+        case .needle:
+            shakeScale = 0.55
+        default:
+            shakeScale = 0.35
+        }
+        let shakeX = jellyLive ? jelly.shake * radius * jelly.side * shakeScale : 0
+        let pos = CGPoint(x: ship.x + shakeX, y: screenY)
 
         if let live = liveHull {
             live.position = pos
             live.zRotation = -ship.bank
             live.alpha = hullAlpha
-            live.present(radius: radius, pad: pad, stretch: stretch, jelly: jelly, alpha: hullAlpha, nowMs: nowMs)
+            live.present(radius: radius, turn: turn, jelly: jelly, jellyLive: jellyLive, alpha: hullAlpha, nowMs: nowMs)
         } else if let hull = hullSprite {
             hull.position = pos
             hull.zRotation = -ship.bank

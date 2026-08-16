@@ -1,5 +1,5 @@
 // SkinTrail.swift
-// Changes: Equipped-wake protocol + factory — one trail node per run, not per ship.
+// Changes: 16 live ships use dedicated wakes (filaments / rings / aurora / …).
 
 import SpriteKit
 
@@ -41,6 +41,36 @@ enum SkinTrailFactory {
             return HairlineTrailNode(maxPoints: slots + 2, skin: skin)
         case .twin:
             return TwinDotTrailField(texture: disc, slots: slots * 2, skin: skin, sepScale: 0.72, sizeScale: 0.5)
+        case .lantern:
+            let palette: FilamentWake.Palette
+            switch skin.id {
+            case .sprout: palette = .sprout()
+            case .spore: palette = .spore()
+            default: palette = .lantern()
+            }
+            return FilamentWake(disc: disc, slots: slots, palette: palette)
+        case .bloom:
+            return BloomWake(ring: bake.ring, disc: disc, slots: slots)
+        case .lyra:
+            return LyraWake(disc: disc, slots: slots)
+        case .plume:
+            return PlumeWake(disc: disc, slots: slots)
+        case .koi:
+            return KoiWake(slots: slots)
+        case .boreal:
+            return BorealWake(disc: disc, slots: slots)
+        case .luna:
+            return FilamentWake(disc: disc, slots: slots, palette: .luna())
+        case .wish:
+            return WishWake(disc: disc, slots: slots)
+        case .darner:
+            return DarnerWake(slots: slots)
+        case .puff:
+            return PuffWake(disc: disc, slots: slots)
+        case .argus:
+            return ArgusWake(ring: bake.ring, disc: disc, slots: slots)
+        case .chime:
+            return ChimeWake(disc: disc, slots: slots)
         default:
             return ParticleWakeField(texture: disc, ring: bake.ring, sparkle: bake.sparkle, slots: min(400, slots * 3), skin: skin)
         }

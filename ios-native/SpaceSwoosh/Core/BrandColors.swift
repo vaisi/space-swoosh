@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: Saber / lantern / Nyan / Fletch wake colors from Android tokens.
+// Changes: Theme-aware live-ship accents + bloom/aurora/plume/koi/wish/darner palettes.
 
 import SwiftUI
 import UIKit
@@ -58,8 +58,67 @@ enum BrandColors {
         static var trail: UIColor { BrandColors.uiColor(.ink) }
         static var saber: UIColor { UIColor(red: 168 / 255, green: 85 / 255, blue: 1, alpha: 1) }
         static var saberCore: UIColor { UIColor(red: 243 / 255, green: 232 / 255, blue: 1, alpha: 1) }
-        static var lanternTeal: UIColor { UIColor(red: 46 / 255, green: 139 / 255, blue: 138 / 255, alpha: 1) }
-        static var lanternGold: UIColor { UIColor(red: 232 / 255, green: 184 / 255, blue: 74 / 255, alpha: 1) }
+        static var lanternTeal: UIColor {
+            BrandColors.dark
+                ? rgb(94, 224, 212)
+                : rgb(46, 139, 138)
+        }
+        static var lanternGold: UIColor {
+            BrandColors.dark
+                ? rgb(245, 208, 106)
+                : rgb(232, 184, 74)
+        }
+        static var ember: UIColor {
+            BrandColors.dark ? rgb(196, 120, 85) : rgb(166, 93, 63)
+        }
+        static var sproutGreen: UIColor {
+            BrandColors.dark ? rgb(110, 220, 138) : rgb(62, 139, 90)
+        }
+        static var sporeAmber: UIColor {
+            BrandColors.dark ? rgb(232, 160, 90) : rgb(196, 122, 58)
+        }
+        static var sporeViolet: UIColor {
+            BrandColors.dark ? rgb(181, 122, 224) : rgb(122, 78, 158)
+        }
+        static var sporeMint: UIColor { rgb(120, 200, 160) }
+        static var lunaSilver: UIColor { rgb(198, 192, 210) }
+        static var mothLavender: UIColor {
+            BrandColors.dark ? rgb(201, 166, 240) : rgb(139, 107, 176)
+        }
+        static var argusTeal: UIColor {
+            BrandColors.dark ? rgb(64, 228, 196) : rgb(16, 92, 88)
+        }
+        static var lanternCyan: UIColor { rgb(90, 210, 200) }
+        static var koiVermillion: UIColor { rgb(210, 72, 58) }
+        static var wishCore: UIColor { rgb(255, 248, 230) }
+        static let bloomBands: [UIColor] = [
+            rgb(255, 140, 180), rgb(120, 220, 190), rgb(180, 150, 255), rgb(120, 190, 255)
+        ]
+        static let auroraBands: [UIColor] = [
+            rgb(48, 186, 132), rgb(72, 198, 220), rgb(232, 92, 168), rgb(140, 110, 230)
+        ]
+        static let auroraHull: [UIColor] = [
+            rgb(48, 186, 132), rgb(72, 198, 220), rgb(232, 92, 168)
+        ]
+        static let plumeBands: [UIColor] = [
+            rgb(72, 42, 48), rgb(196, 82, 48), rgb(232, 150, 64), rgb(255, 220, 140)
+        ]
+        static let koiBands: [UIColor] = [
+            rgb(210, 72, 58), rgb(236, 214, 168), rgb(46, 110, 118)
+        ]
+        static let wishBands: [UIColor] = [
+            rgb(232, 184, 74), rgb(255, 248, 230), rgb(255, 140, 180), rgb(120, 220, 190)
+        ]
+        static let darnerBands: [UIColor] = [
+            rgb(48, 186, 168), rgb(232, 184, 74), rgb(140, 88, 210)
+        ]
+        static let lunaDust: [UIColor] = [
+            rgb(139, 107, 176), rgb(198, 192, 210), rgb(232, 196, 118)
+        ]
+
+        static func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> UIColor {
+            UIColor(red: r / 255, green: g / 255, blue: b / 255, alpha: 1)
+        }
         static var nyanPink: UIColor { UIColor(red: 1, green: 143 / 255, blue: 184 / 255, alpha: 1) }
         static let nyanBands: [UIColor] = [
             UIColor(red: 1, green: 0, blue: 102 / 255, alpha: 1),

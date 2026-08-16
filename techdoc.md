@@ -12,7 +12,9 @@
 > scrolling 2-col grid; `shipSkinId` persists (unknown id stays **Flicker**).
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
-> 16 `skipHullCache` hulls live-draw (Lantern…Chime). Hitboxes are JS circle
+> 16 `skipHullCache` hulls (`Lantern`…`Chime`) share one `LiveHullPaint` for
+> play and hangar stills (t = 1400 ms). Dedicated wakes (filaments, soap rings,
+> aurora strata, peacock stamps, …) — not a generic particle dump. Hitboxes are JS circle
 > packs; jelly does not deform the hitbox. Plus **Journey** (40 levels / 113 stars),
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
 > lean-preserving clear flyout, L40 `ENDING_BEATS` captions (no lights show).
@@ -36,7 +38,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
-> `CFBundleVersion` ≥ 9 on each TestFlight upload.
+> `CFBundleVersion` ≥ 10 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -1086,14 +1088,16 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `HullBake` on-demand by `HullKind`, `SkinRenderer` (one equipped hull + wake), live hulls (16), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core / pooled particle wakes, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `HullBake` on-demand by `HullKind`, `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (16), hangar stills from the same painter, dedicated whimsical wakes (`FilamentWake` / Bloom rings / horizon strata / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core / pooled particle wakes for remaining premiums, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
 (smudge + body). Saber wake: three **reused** ribbons (bloom / body / core)
-plus a spark pool. Focus / Ember use pooled discs. Sim at
+plus a spark pool. Focus / Ember use pooled discs. The 16 live ships reuse a
+fixed fill/stroke/disc pool and rewrite `path` / position each frame; lantern-family
+wakes reuse 3 filament `SKShapeNode`s plus a plankton sprite pool (cap ~600). Sim at
 1/60 with interpolated presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
 Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
@@ -1106,8 +1110,9 @@ Turn / crash / shield / shield-crash decode into `AVAudioPCMBuffer`s (no
 Cruise travel is `snappyHz * feelSpeed` (0.90). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,
-matching hull bakes / live painters, and Android trail + `wallTrailDeform`
-modes (incl. Focus ripple + Ember twin-dots). Hull jelly does not
+matching hull bakes / `LiveHullPaint` (play + picker), and Android trail + `wallTrailDeform`
+modes (incl. Focus ripple + Ember twin-dots). The 16 live ships use dedicated wake
+drawers and `trailTailOffset`. Hull jelly does not
 deform the hitbox. Shield smash stays a scaled circle. IAP / RevenueCat /
 locked tiles later (`productId` is data only until the flag flips false). Slice D feel remains: Arc/zigzag, overlap spawn, cluster
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,

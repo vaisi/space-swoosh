@@ -13,6 +13,8 @@
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
 > **Hazard Lab** with the **full hangar** (41 ships). Cycle them on the home
 > screen (◀ / ▶) or pick one under Options → Ship; your choice is saved. The
+> whimsical ships (Lantern through Chime) show their colors on the hangar tile,
+> not a plain ink blob. The
 > four free ships are **Focus**, **Flicker**, **Ember**, and **Saber** — the
 > rest are unlocked for this playtest build. Zigzag or Arc (Options), wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,

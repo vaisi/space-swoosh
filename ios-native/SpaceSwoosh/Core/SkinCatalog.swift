@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: Full Android roster (41) + UNLOCK_ALL_SKINS playtest flag.
+// Changes: trailTailOffset for the 16 live ships (Android attach).
 
 import Foundation
 import CoreGraphics
@@ -69,6 +69,7 @@ struct SkinDef {
     let trailSignal: Bool
     let trailRipple: Bool
     let trailReverse: Bool
+    let trailTailOffset: CGFloat
 }
 
 enum SkinCatalog {
@@ -176,33 +177,33 @@ enum SkinCatalog {
         s(.cinder, "Cinder", "Warm petal. Ember ribbon, cool ash.", H.petal, .cinder, .petal, .cinder,
           pad: 3.2, half: 0.85, jelly: .cinder, iap: true, pts: longPts, fade: longFade),
         s(.lantern, "Lantern", "A living bell. Gold heart. Plankton in the dark.", H.lantern, .cloud, .bell, .lantern,
-          pad: 3.4, half: 0.85, jelly: .lantern, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.4, half: 0.85, jelly: .lantern, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.42),
         s(.bloom, "Bloom", "Soap-film spheres. Prism motes. They pop on the wall.", H.bloom, .pile, .bloom, .bloom,
-          pad: 2.8, half: 0.9, jelly: .bloom, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 2.8, half: 0.9, jelly: .bloom, iap: true, pts: longPts, fade: longFade, live: true, tail: 0),
         s(.lyra, "Lyra", "A star-forged craft. Aurora in its wake.", H.lyra, .flare, .star, .lyra,
-          pad: 3.2, half: 0.85, jelly: .lyra, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.2, half: 0.85, jelly: .lyra, iap: true, pts: longPts, fade: longFade, live: true, tail: 0),
         s(.sprout, "Sprout", "A living seed. Pollen on the wind.", H.sprout, .cloud, .seed, .lantern,
-          pad: 3.2, half: 0.85, jelly: .sprout, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.2, half: 0.85, jelly: .sprout, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.45),
         s(.plume, "Plume", "A firebird. Embers rise, then cool.", H.plume, .cinder, .wing, .plume,
-          pad: 3.4, half: 0.75, jelly: .plume, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.4, half: 0.75, jelly: .plume, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.28),
         s(.koi, "Koi", "A river spirit. Scales in the current.", H.koi, .whip, .koi, .koi,
-          pad: 3.2, half: 0.8, jelly: .koi, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.2, half: 0.8, jelly: .koi, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.5),
         s(.spore, "Spore", "A living cap. Amber heart. Spores in the dark.", H.spore, .cloud, .cap, .lantern,
-          pad: 3.4, half: 0.85, jelly: .spore, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.4, half: 0.85, jelly: .spore, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.38),
         s(.boreal, "Boreal", "A ribbon of northern light. It waves on the wall.", H.boreal, .spring, .curtain, .boreal,
-          pad: 3.6, half: 0.55, jelly: .boreal, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.6, half: 0.55, jelly: .boreal, iap: true, pts: longPts, fade: longFade, live: true, tail: 0),
         s(.luna, "Luna", "A lunar moth. Moon heart. Dust on the wind.", H.luna, .cloud, .moth, .luna,
-          pad: 3.4, half: 0.7, jelly: .luna, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.4, half: 0.7, jelly: .luna, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
         s(.wish, "Wish", "A bottled comet. Stars fall from its wake.", H.wish, .flare, .wish, .wish,
-          pad: 3.6, half: 0.55, jelly: .wish, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.6, half: 0.55, jelly: .wish, iap: true, pts: longPts, fade: longFade, live: true, tail: 0),
         s(.darner, "Darner", "A needle of light. Mosaic scales in its wake.", H.darner, .flare, .darner, .darner,
-          pad: 3.6, half: 0.55, jelly: .darner, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.6, half: 0.55, jelly: .darner, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.28),
         s(.puff, "Puff", "A dandelion clock. Seeds drift from its wake.", H.puff, .cloud, .puff, .puff,
-          pad: 2.8, half: 0.9, jelly: .puff, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 2.8, half: 0.9, jelly: .puff, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.42),
         s(.argus, "Argus", "A peacock fan. Eyespots stamp the path.", H.argus, .pile, .argus, .argus,
-          pad: 3.4, half: 0.75, jelly: .argus, iap: true, pts: longPts, fade: longFade, live: true),
+          pad: 3.4, half: 0.75, jelly: .argus, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
         s(.chime, "Chime", "Temple bells. Sound rings down the wake.", H.chime, .ripple, .chime, .chime,
-          pad: 3.2, half: 0.85, jelly: .chime, iap: true, pts: longPts, fade: longFade, live: true, ripple: true),
+          pad: 3.2, half: 0.85, jelly: .chime, iap: true, pts: longPts, fade: longFade, live: true, ripple: true, tail: 0.38),
     ]
 
     private static func s(
@@ -225,7 +226,8 @@ enum SkinCatalog {
         smudge: Bool = true,
         signal: Bool = false,
         ripple: Bool = false,
-        reverse: Bool = false
+        reverse: Bool = false,
+        tail: CGFloat = 0.6
     ) -> SkinDef {
         SkinDef(
             id: id,
@@ -248,7 +250,8 @@ enum SkinCatalog {
             trailSmudge: smudge,
             trailSignal: signal,
             trailRipple: ripple,
-            trailReverse: reverse
+            trailReverse: reverse,
+            trailTailOffset: tail
         )
     }
 }

@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: CFBundleVersion 9 — full 41-ship playtest hangar.
+  Changes: CFBundleVersion 10 — live-hull fidelity (paint + dedicated wakes).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -13,8 +13,9 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for later IAP
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
 - Home: equipped hull + ◀ / ▶ cycle. Options → **Ship**: scrolling 2-column tiles (name + blurb + hull)
-- One equipped renderer at `startRun` (do not allocate a trail node per ship). Baked silhouettes for 25 ships; 16 live-draw (`skipHullCache`: Lantern…Chime)
-- Focus wake is **ripple** dots; Ember is **twin dotted traces**. Long wakes 200 pts / fade `1/420`; Saber/Nyan 160 / `1/360`
+- One equipped renderer at `startRun` (do not allocate a trail node per ship). Baked silhouettes for 25 ships; 16 live-draw (`skipHullCache`: Lantern…Chime) via `LiveHullPaint` (same still for hangar tiles at t=1400 ms)
+- Live-ship wakes are dedicated drawers (teal/gold filaments + plankton, soap rings, aurora strata, peacock stamps, …). Sprout/Spore/Luna reuse the lantern filament+cloud with Android palettes
+- Focus wake is **ripple** dots; Ember is **twin dotted traces**. Long wakes 200 pts / fade `1/420`; Saber/Nyan 160 / `1/360`. Live ships tuck the wake with per-skin `trailTailOffset`
 - Per-skin JS hitbox packs, `wallTrailMode`, jelly profiles. Hitbox is **not** deformed by jelly. Shield smash stays the scaled center circle
 - Play / Journey / Lab all read the saved id. Speed and arcs stay shared
 - **Journey:** lore once → map → 40 levels / 113 stars / 7 chapters, teach L1–5
@@ -30,7 +31,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
 - Sparkles: 8-vertex 4-point star (`innerRatio` 0.4) at Android radius `1.15×` unit (sprite diameter `2r`); filled `signalDisc` halo diameter `3.8r` (`signalSoft` alpha, not additive glow)
 - Flicker wake: one continuous `SKShapeNode` ribbon tucked under the hull center; smudge tapers at the join; spring path wiggle on wall BOOP
-- Focus ripple dots / Ember twin-dots / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs). Other wakes: `ParticleWakeField` / ribbons / hairline
+- Focus ripple dots / Ember twin-dots / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs). Live ships: pooled hull graph + dedicated wakes. Other premiums: `ParticleWakeField` / ribbons / hairline
 - Drift / wind: 7 thin ink30 dashes, `baseUnit`-scaled period, scrolled by phase × direction
 - Cruise: Android snappy tick × **0.90** (`GameConfig.feelSpeed`)
 - Menu / pause / outcome: framed ink buttons, paper wash, two-bar **MISSION PAUSED**
@@ -59,7 +60,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
-(Apple already has **1.0.0 (1)**). CI stamps **9+**.
+(Apple already has **1.0.0 (1)**). CI stamps **10+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

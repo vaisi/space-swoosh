@@ -1,5 +1,5 @@
 // ShellChrome.swift
-// Changes: Home ◀/▶ cycles the full 41-ship roster; HullBake previews.
+// Changes: Live-hull hangar tiles paint LiveHullPaint stills (t=1400 ms).
 
 import SwiftUI
 import UIKit
@@ -124,7 +124,10 @@ enum ShipArt {
     static func preview(_ id: SkinId) -> UIImage {
         let key = "\(id.rawValue)-\(SettingsStore.shared.isDark)"
         if let hit = cache[key] { return hit }
-        let img = HullBake.makeImage(kind: SkinCatalog.def(id).hullKind, logicalRadius: 22, scale: 2)
+        let def = SkinCatalog.def(id)
+        let img = def.skipHullCache
+            ? LiveHullPaint.previewImage(id)
+            : HullBake.makeImage(kind: def.hullKind, logicalRadius: 22, scale: 2)
         cache[key] = img
         return img
     }
