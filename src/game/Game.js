@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Menu stamp reads BUILD_NUMBER from core/buildStamp.js (Vite +1 per
+//   production build) so a device install can be verified vs an old APK.
 // - cameraReseatEnabled is Android native only — Camera slowly lifts a ship
 //   that sits below the ideal seat for 5s (wormhole / black-hole leftover).
 // - Pause freezes navigator voice with BGM (pauseLevelVoice / resumeLevelVoice).
@@ -83,7 +85,7 @@
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on Android/desktop web / 1.5 on iOS / 2 on other Cap native) and scales
 //   the context so all game math stays in CSS pixels via this.width /
-//   this.height. Menu stamp is BUILD 28.
+//   this.height. Menu stamp is BUILD N from core/buildStamp.js.
 // - Options → Ship: after picking a vessel, a "Play now" button jumps straight
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
@@ -155,6 +157,7 @@
 //   shows in the HUD (with a sparkle glyph) and on the game-over screen.
 
 import { Capacitor } from '@capacitor/core';
+import { BUILD_NUMBER } from '../core/buildStamp.js';
 import { Spacecraft } from '../entities/Spacecraft.js';
 import { ObstacleManager } from '../managers/ObstacleManager.js';
 import { Camera } from '../core/Camera.js';
@@ -1745,8 +1748,8 @@ export class Game {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const buildLabel = Capacitor.isNativePlatform()
-            ? 'BUILD 28 · NATIVE'
-            : 'BUILD 28 · WEB';
+            ? `BUILD ${BUILD_NUMBER} · NATIVE`
+            : `BUILD ${BUILD_NUMBER} · WEB`;
         const buildPx = Math.max(11, unit * 1.05);
         ctx.font = `700 ${buildPx}px ${font.mono}`;
         const buildW = ctx.measureText(buildLabel).width + unit * 1.6;

@@ -75,8 +75,8 @@
 > other ships gated via RevenueCat. Advertising ID: collection disabled
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
-> so Play Console declaration can stay **No**. Menu stamp `BUILD 28 · NATIVE` /
-> `WEB`. versionCode **28** / versionName **1.0.28**.
+> so Play Console declaration can stay **No**. Play store snapshot: versionCode
+> **28** / versionName **1.0.28**. Menu stamp is no longer frozen at 28 — see §2.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
@@ -131,6 +131,13 @@ npm run build:native  # vite build + cap sync (copies dist into android/ + ios/)
 npm run open:android  # open the Android Studio project
 npm run open:ios      # open the Xcode project (macOS / Codemagic)
 ```
+
+**Homescreen BUILD stamp:** `src/core/buildStamp.js` (`BUILD_NUMBER`). Vite
+increments it on every production build (`vite build` / `build:native`, not
+`npm run dev`). The Capacitor/web menu draws `BUILD N · NATIVE` / `WEB` from
+that value. If a phone still shows the previous N, Android Studio ran an old
+web bundle — rebuild, then Run; uninstall the app if WebView cached the old
+assets. Play `versionCode` 28 is a store snapshot and is not auto-bumped.
 
 Credentials live in `.env` (`VITE_SUPABASE_*`, `VITE_REVENUECAT_*`). See `.env.example`.
 For a working leaderboard locally, copy `.env.example` → `.env` and set the
@@ -866,7 +873,8 @@ with a linear gradient along the wake's chord for the length-wise fade.
   playfield edges read on desktop (centered, max-width 500px, 2:3). Mobile fills
   the safe area with the charcoal stage; bone ink shows in notch / home-indicator
   insets. `theme-color` matches the bone surround. Native status bar uses
-  `Style.Dark` + charcoal background. Menu stamp: `BUILD 28 · NATIVE` / `WEB`.
+  `Style.Dark` + charcoal background. Menu stamp: `BUILD N · NATIVE` / `WEB`
+  from `core/buildStamp.js` (auto-incremented on each `vite build`).
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset; saved preferences are respected. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
