@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Hull stretch from |tangent| so a tap lean does not shrink the tear.
+// Changes: Dual Signal shield rings + Android pulse / last-1.5s warning.
 
 import SpriteKit
 import QuartzCore
@@ -15,7 +15,8 @@ final class PlayScene: SKScene {
     private var run = RunState()
 
     private var hullNode: SKSpriteNode?
-    private var shieldHalo: SKSpriteNode?
+    private var shieldRingInner: SKSpriteNode?
+    private var shieldRingOuter: SKSpriteNode?
     private var trailNode: RibbonTrailNode?
     private var pooledField: PooledSpriteField?
     private var popupField: PopupField?
@@ -70,12 +71,16 @@ final class PlayScene: SKScene {
         addChild(blast)
         blastField = blast
 
-        let halo = SKSpriteNode(texture: bake.glowSignal)
-        halo.blendMode = .add
-        halo.isHidden = true
-        halo.zPosition = 9
-        addChild(halo)
-        shieldHalo = halo
+        let inner = SKSpriteNode(texture: bake.shieldRingInner)
+        inner.isHidden = true
+        inner.zPosition = 9
+        addChild(inner)
+        shieldRingInner = inner
+        let outer = SKSpriteNode(texture: bake.shieldRingOuter)
+        outer.isHidden = true
+        outer.zPosition = 8.9
+        addChild(outer)
+        shieldRingOuter = outer
 
         let hull = SKSpriteNode(texture: bake.hull)
         let pad = radius * GameConfig.Flicker.hullDrawPad
@@ -286,13 +291,24 @@ final class PlayScene: SKScene {
         }
 
         if run.shieldActive, !run.hullHidden {
-            shieldHalo?.isHidden = false
-            shieldHalo?.position = CGPoint(x: ship.x, y: screenY)
-            let hr = world.baseUnit * 4.2
-            shieldHalo?.size = CGSize(width: hr, height: hr)
-            shieldHalo?.alpha = run.worldAlpha
+            let warning = run.shieldWarningStarted
+            let wave = warning ? sin(run.shieldPulse * 2) : sin(run.shieldPulse)
+            let pulseScale = 1 + wave * (warning ? 0.3 : 0.2)
+            let opacity = (warning ? 0.7 : 0.5) + wave * (warning ? 0.3 : 0.2)
+            let innerR = radius * 1.5 * pulseScale
+            let outerR = innerR * 1.1
+            let pos = CGPoint(x: ship.x, y: screenY)
+            shieldRingInner?.isHidden = false
+            shieldRingOuter?.isHidden = false
+            shieldRingInner?.position = pos
+            shieldRingOuter?.position = pos
+            shieldRingInner?.size = CGSize(width: innerR * 2, height: innerR * 2)
+            shieldRingOuter?.size = CGSize(width: outerR * 2, height: outerR * 2)
+            shieldRingInner?.alpha = opacity * run.worldAlpha
+            shieldRingOuter?.alpha = opacity * 0.5 * run.worldAlpha
         } else {
-            shieldHalo?.isHidden = true
+            shieldRingInner?.isHidden = true
+            shieldRingOuter?.isHidden = true
         }
 
         trailNode?.alpha = run.worldAlpha

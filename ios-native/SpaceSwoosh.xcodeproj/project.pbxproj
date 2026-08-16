@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4D8F969D08F5398B379BC3 /* GameSession.swift */; };
+		D87F6D6A44939F7275C24F23 /* HudChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA139AC5EAE9BEE9E03B44C /* HudChrome.swift */; };
 		B86EA14028FBC90DFDBAB0D8 /* JourneyMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A837B3027E02E529D54B2E9 /* JourneyMapView.swift */; };
 		0698F1EC3408FAF7B8206394 /* JourneyProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE284E9C2D2EA4ED6CC2F8AD /* JourneyProgress.swift */; };
 		387E4C9D3C2773B32778E1D6 /* LogbookProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03725D373B92D3A81A621CB7 /* LogbookProgress.swift */; };
@@ -106,6 +107,7 @@
 /* Begin PBXFileReference section */
 		71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpaceSwoosh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B4D8F969D08F5398B379BC3 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
+		8FA139AC5EAE9BEE9E03B44C /* HudChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HudChrome.swift; sourceTree = "<group>"; };
 		1A837B3027E02E529D54B2E9 /* JourneyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyMapView.swift; sourceTree = "<group>"; };
 		AE284E9C2D2EA4ED6CC2F8AD /* JourneyProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyProgress.swift; sourceTree = "<group>"; };
 		03725D373B92D3A81A621CB7 /* LogbookProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookProgress.swift; sourceTree = "<group>"; };
@@ -252,6 +254,7 @@
 			isa = PBXGroup;
 			children = (
 				8B4D8F969D08F5398B379BC3,
+				8FA139AC5EAE9BEE9E03B44C,
 				1A837B3027E02E529D54B2E9,
 				AE284E9C2D2EA4ED6CC2F8AD,
 				03725D373B92D3A81A621CB7,
@@ -508,6 +511,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */,
+				D87F6D6A44939F7275C24F23 /* HudChrome.swift in Sources */,
 				B86EA14028FBC90DFDBAB0D8 /* JourneyMapView.swift in Sources */,
 				0698F1EC3408FAF7B8206394 /* JourneyProgress.swift in Sources */,
 				387E4C9D3C2773B32778E1D6 /* LogbookProgress.swift in Sources */,
@@ -593,7 +597,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -615,7 +619,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

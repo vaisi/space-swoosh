@@ -1,5 +1,5 @@
 // JourneyMapView.swift
-// Changes: Slice E — chapter tiles, star pips, always-unlocked Hazard Lab.
+// Changes: Lab tile uses framed brand chrome.
 
 import SwiftUI
 
@@ -57,23 +57,23 @@ struct JourneyMapView: View {
         Button {
             onPlay(.hazardLab)
         } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("HAZARD LAB")
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
-                    Text("Practice only — nothing counts.")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(BrandColors.ink55)
+            ShellChrome.framedTile {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("HAZARD LAB")
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        Text("Practice only — nothing counts.")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(BrandColors.ink55)
+                    }
+                    Spacer()
+                    Text("LAB")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
                 }
-                Spacer()
-                Text("LAB")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundStyle(BrandColors.ink)
             }
-            .foregroundStyle(BrandColors.ink)
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(BrandColors.paperTint)
         }
+        .buttonStyle(.plain)
     }
 
     private func levelTile(_ level: Int) -> some View {

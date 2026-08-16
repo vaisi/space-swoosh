@@ -1,5 +1,5 @@
 // SfxPlayer.swift
-// Changes: playTurn always uses the synth buffer — no AVAudioPlayer hitch on tap.
+// Changes: playTurn uses decoded turn.mp3 on the engine pool (0.3); synth fallback.
 
 import AVFoundation
 import Foundation
@@ -11,6 +11,7 @@ final class SfxPlayer {
     private var players: [AVAudioPlayerNode] = []
     private var boop: AVAudioPCMBuffer?
     private var collect: AVAudioPCMBuffer?
+    private var turnFile: AVAudioPCMBuffer?
     private var turnSynth: AVAudioPCMBuffer?
     private var portalIn: AVAudioPCMBuffer?
     private var portalOut: AVAudioPCMBuffer?
@@ -29,6 +30,9 @@ final class SfxPlayer {
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
         boop = Self.makeBoop(format: format)
         collect = Self.makeCollect(format: format)
+        if let decoded = Self.decodeNamed("turn", into: format) {
+            turnFile = Self.scaled(decoded, volume: 0.3)
+        }
         turnSynth = Self.makeTurn(format: format)
         portalIn = Self.makePortal(format: format, entering: true)
         portalOut = Self.makePortal(format: format, entering: false)
@@ -75,7 +79,7 @@ final class SfxPlayer {
     }
 
     func playTurn() {
-        play(turnSynth)
+        play(turnFile ?? turnSynth)
     }
 
     func playCrash() {
@@ -131,6 +135,9 @@ final class SfxPlayer {
         guard let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(n)) else { return nil }
         buf.frameLength = AVAudioFrameCount(n)
         guard let data = buf.floatChannelData?[0] else { return nil }
+        let rc = 1.0 / (2.0 * .pi * 520)
+        let a = (1.0 / rate) / (rc + 1.0 / rate)
+        var lp = 0.0
         for i in 0..<n {
             let t = Double(i) / rate
             let env = envelope(t, attack: 0.01, peak: 0.34, dur: 0.15)
@@ -142,8 +149,9 @@ final class SfxPlayer {
             }
             if t < 0.08 {
                 let noiseEnv = envelope(t, attack: 0.008, peak: 0.1, dur: 0.08)
-                let noise = (Double.random(in: -1...1)) * noiseEnv * 0.35
-                s += noise
+                let raw = Double.random(in: -1...1) * noiseEnv * 0.35
+                lp += a * (raw - lp)
+                s += lp
             }
             data[i] = Float(max(-1, min(1, s)))
         }
@@ -282,6 +290,56 @@ final class SfxPlayer {
             data[i] = Float(max(-1, min(1, s)))
         }
         return buf
+    }
+
+    private static func decodeNamed(_ name: String, into format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "mp3")
+            ?? Bundle.main.url(forResource: name, withExtension: "m4a")
+        else { return nil }
+        guard let file = try? AVAudioFile(forReading: url) else { return nil }
+        let srcFormat = file.processingFormat
+        let frameCount = AVAudioFrameCount(file.length)
+        guard frameCount > 0,
+              let src = AVAudioPCMBuffer(pcmFormat: srcFormat, frameCapacity: frameCount)
+        else { return nil }
+        do {
+            try file.read(into: src)
+        } catch {
+            return nil
+        }
+        if srcFormat.sampleRate == format.sampleRate, srcFormat.channelCount == format.channelCount {
+            return src
+        }
+        guard let converter = AVAudioConverter(from: srcFormat, to: format) else { return nil }
+        let ratio = format.sampleRate / srcFormat.sampleRate
+        let outFrames = AVAudioFrameCount(Double(src.frameLength) * ratio) + 32
+        guard let dst = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: outFrames) else { return nil }
+        var error: NSError?
+        var consumed = false
+        converter.convert(to: dst, error: &error) { _, status in
+            if consumed {
+                status.pointee = .endOfStream
+                return nil
+            }
+            consumed = true
+            status.pointee = .haveData
+            return src
+        }
+        if error != nil { return nil }
+        return dst
+    }
+
+    @discardableResult
+    private static func scaled(_ buffer: AVAudioPCMBuffer, volume: Float) -> AVAudioPCMBuffer {
+        guard let channels = buffer.floatChannelData else { return buffer }
+        let n = Int(buffer.frameLength)
+        let ch = Int(buffer.format.channelCount)
+        for c in 0..<ch {
+            for i in 0..<n {
+                channels[c][i] *= volume
+            }
+        }
+        return buffer
     }
 
     private static func lerpExp(_ a: Double, _ b: Double, _ t: Double) -> Double {

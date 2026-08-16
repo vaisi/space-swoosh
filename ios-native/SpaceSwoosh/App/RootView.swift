@@ -1,5 +1,5 @@
 // RootView.swift
-// Changes: Slice E — unlock Journey/Lab, lore, map, logbook, voice option.
+// Changes: Android brand chrome — framed buttons, Flicker preview, mode tiles.
 
 import SwiftUI
 
@@ -66,28 +66,30 @@ struct RootView: View {
     }
 
     private var menu: some View {
-        VStack(spacing: 22) {
+        VStack(spacing: 18) {
             Spacer()
             Text("SPACE SWOOSH")
-                .font(.system(size: 34, weight: .bold))
+                .font(.system(size: 38, weight: .bold))
                 .foregroundStyle(BrandColors.ink)
-                .tracking(2)
+                .tracking(2.4)
             Text(menuFlavor)
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(BrandColors.ink55)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 36)
-            Text("Flicker · Slice E")
-                .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .foregroundStyle(BrandColors.ink80)
+            FlickerPreview()
+                .padding(.top, 8)
             Spacer()
-            ShellChrome.inkButton("PLAY") {
-                journeyBlurb = CopyBank.pick(.modeJourney)
-                openBlurb = CopyBank.pick(.modeOpenWorld)
-                screen = .modeSelect
+            VStack(spacing: 12) {
+                ShellChrome.brandButton("Play", tag: "▶", primary: true) {
+                    journeyBlurb = CopyBank.pick(.modeJourney)
+                    openBlurb = CopyBank.pick(.modeOpenWorld)
+                    screen = .modeSelect
+                }
+                ShellChrome.brandButton("Options", tag: "⚙") { screen = .options }
             }
-            ShellChrome.ghostButton("OPTIONS") { screen = .options }
-                .padding(.bottom, 36)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 36)
         }
     }
 
@@ -147,16 +149,20 @@ struct RootView: View {
             Text("Vessel. Controls. Signal.")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(BrandColors.ink55)
-            ShellChrome.inkButton(settings.flightStyle == .zigzag ? "FLIGHT  ZIGZAG" : "FLIGHT  ARC") {
+                .frame(maxWidth: .infinity)
+            ShellChrome.brandButton(
+                "Flight",
+                tag: settings.flightStyle == .zigzag ? "ZIG" : "ARC"
+            ) {
                 settings.setFlightStyle(settings.flightStyle == .zigzag ? .arc : .zigzag)
             }
-            ShellChrome.inkButton(settings.muted ? "SOUND  OFF" : "SOUND  ON") {
+            ShellChrome.brandButton("Sound", tag: settings.muted ? "OFF" : "ON") {
                 settings.toggleMute()
             }
-            ShellChrome.inkButton(settings.voiceEnabled ? "VOICE  ON" : "VOICE  OFF") {
+            ShellChrome.brandButton("Voice", tag: settings.voiceEnabled ? "ON" : "OFF") {
                 settings.toggleVoice()
             }
-            ShellChrome.inkButton(settings.isDark ? "THEME  NIGHT" : "THEME  PAPER") {
+            ShellChrome.brandButton("Theme", tag: settings.isDark ? "NIGHT" : "PAPER") {
                 settings.toggleTheme()
             }
             Spacer()
@@ -173,30 +179,30 @@ struct RootView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(title)
-                        .font(.system(size: 16, weight: .bold, design: .monospaced))
-                    Spacer()
-                    if locked {
-                        Text("LOCKED")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+            ShellChrome.framedTile {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(title)
+                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        Spacer()
+                        if locked {
+                            Text("LOCKED")
+                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        }
                     }
+                    Text(blurb)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(BrandColors.ink55)
+                        .multilineTextAlignment(.leading)
+                    Text(footer)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(BrandColors.ink80)
                 }
-                Text(blurb)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(BrandColors.ink55)
-                    .multilineTextAlignment(.leading)
-                Text(footer)
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(BrandColors.ink80)
+                .foregroundStyle(BrandColors.ink)
             }
-            .foregroundStyle(BrandColors.ink)
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(BrandColors.paperTint)
             .opacity(locked ? 0.55 : 1)
         }
+        .buttonStyle(.plain)
         .disabled(locked)
     }
 }

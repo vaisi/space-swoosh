@@ -1,5 +1,5 @@
 // LoreView.swift
-// Changes: Slice E — one-time Signal Story brief before the Journey map.
+// Changes: Continue uses framed brand button.
 
 import SwiftUI
 
@@ -16,7 +16,7 @@ struct LoreView: View {
                 .foregroundStyle(BrandColors.ink)
                 .lineSpacing(6)
             Spacer()
-            ShellChrome.inkButton("CONTINUE") {
+            ShellChrome.brandButton("Continue", tag: "▶", primary: true) {
                 JourneyStore.shared.markLoreSeen()
                 LogbookStore.shared.revealInstant(GeneratedJourneyData.loreEntryId)
                 onContinue()

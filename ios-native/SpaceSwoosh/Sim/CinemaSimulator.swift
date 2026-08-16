@@ -1,5 +1,5 @@
 // CinemaSimulator.swift
-// Changes: Post-intro HUD chip stagger (KM 2s, pause 3s, smash/PTS unlock).
+// Changes: Clear flyout grants shield via RunState.grantShield / extendShield.
 
 import Foundation
 import CoreGraphics
@@ -60,7 +60,7 @@ enum CinemaSimulator {
         run.cinemaT = 0
         run.pauseSpawning = true
         run.inputLocked = true
-        run.shieldTimer = 5
+        run.grantShield()
         run.finishLineY = world.ship.y
         run.cameraLead = 0
         run.seatY = CinematicFlight.cruiseSeat
@@ -205,7 +205,7 @@ enum CinemaSimulator {
 
     private static func tickClear(world: inout WorldState, run: inout RunState, dt: CGFloat) {
         run.cinemaT += dt
-        run.shieldTimer = max(run.shieldTimer, 2)
+        run.extendShield(minimum: 2)
         run.seatY = CinematicFlight.cruiseSeat
         let prevY = world.ship.y
         var boost: CGFloat = 1

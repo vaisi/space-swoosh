@@ -1,5 +1,5 @@
 // BakePipeline.swift
-// Changes: Drop segment trail bake — Flicker wake is a live SKShapeNode path.
+// Changes: Android 4-point sparkle star + two shield-ring stroke textures.
 
 import SpriteKit
 import UIKit
@@ -10,6 +10,8 @@ final class BakePipeline {
     let glowInk: SKTexture
     let sparkle: SKTexture
     let ring: SKTexture
+    let shieldRingInner: SKTexture
+    let shieldRingOuter: SKTexture
     let plus: SKTexture
     private let parts: [ObstacleKind: SKTexture]
 
@@ -27,8 +29,10 @@ final class BakePipeline {
         hull = FlickerHullTexture.make(logicalRadius: 28, scale: 3)
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)
-        sparkle = Self.diamond(color: BrandColors.UI.signal, size: 48)
+        sparkle = Self.sparkleStar(color: BrandColors.UI.signal, size: 64, fill: true)
         ring = Self.ring(size: 96)
+        shieldRingInner = Self.shieldRing(size: 128, strokeFrac: 0.067)
+        shieldRingOuter = Self.shieldRing(size: 128, strokeFrac: 0.030)
         plus = Self.plus(size: 96)
         let circle = Self.filledCircle(size: 96)
         let square = Self.square(size: 96)
@@ -111,17 +115,49 @@ final class BakePipeline {
         }
     }
 
-    private static func diamond(color: UIColor, size: CGFloat) -> SKTexture {
+    /// Android `drawSparkle`: 8-vertex 4-point star, N/E/S/W, innerRatio 0.4.
+    private static func sparkleStar(
+        color: UIColor,
+        size: CGFloat,
+        fill: Bool,
+        innerRatio: CGFloat = 0.4
+    ) -> SKTexture {
         image(size: size) { cg, mid, r in
             let path = CGMutablePath()
-            path.move(to: CGPoint(x: mid, y: mid - r))
-            path.addLine(to: CGPoint(x: mid + r * 0.72, y: mid))
-            path.addLine(to: CGPoint(x: mid, y: mid + r))
-            path.addLine(to: CGPoint(x: mid - r * 0.72, y: mid))
+            for i in 0..<8 {
+                let angle = (CGFloat(i) * .pi / 4) - .pi / 2
+                let rad = i % 2 == 0 ? r : r * innerRatio
+                let p = CGPoint(x: mid + cos(angle) * rad, y: mid + sin(angle) * rad)
+                if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
+            }
             path.closeSubpath()
-            cg.setFillColor(color.cgColor)
-            cg.addPath(path)
-            cg.fillPath()
+            if fill {
+                cg.setFillColor(color.cgColor)
+                cg.addPath(path)
+                cg.fillPath()
+            } else {
+                cg.setStrokeColor(color.cgColor)
+                cg.setLineWidth(max(1.2, r * 0.28))
+                cg.setLineJoin(.miter)
+                cg.addPath(path)
+                cg.strokePath()
+            }
+        }
+    }
+
+    /// Full-texture stroke ring so sprite size == visual diameter.
+    private static func shieldRing(size: CGFloat, strokeFrac: CGFloat) -> SKTexture {
+        rectImage(width: size, height: size) { cg, w, h in
+            let stroke = max(2, w * strokeFrac)
+            let inset = stroke * 0.5
+            cg.setStrokeColor(BrandColors.UI.signal.cgColor)
+            cg.setLineWidth(stroke)
+            cg.strokeEllipse(in: CGRect(
+                x: inset,
+                y: inset,
+                width: w - stroke,
+                height: h - stroke
+            ))
         }
     }
 

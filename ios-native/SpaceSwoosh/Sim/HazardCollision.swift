@@ -1,5 +1,5 @@
 // HazardCollision.swift
-// Changes: Portal entry/exit SFX flags on wormhole hop.
+// Changes: Portal hop grants shield via RunState.grantShield.
 
 import Foundation
 import CoreGraphics
@@ -149,7 +149,7 @@ enum HazardCollision {
         guard p >= 0, p < world.obstacles.count else { return }
         world.ship.x = world.obstacles[p].x
         world.ship.y = world.obstacles[p].y
-        run.shieldTimer = 5
+        run.grantShield()
         run.teleportPartner = -1
         run.invulnT = 0.12
         run.sfxPortalOut = true

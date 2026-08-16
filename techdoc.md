@@ -10,18 +10,21 @@
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
 > lean-preserving clear flyout, L40 `ENDING_BEATS` captions (no lights show).
 > `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV)
-> plus `crash` / `crash_with_shield` / `shield` / `turn`. Boop, collect, portal
-> hop, and style-swoosh whoosh stay baked synths (Android has no MP3s for those).
-> After NAV/title, HUD chips stagger like Android: KM + fuel at 2s, pause at 3s
-> (1s ease-out), smash/PTS only after the first smash or style points.
-> Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`);
-> `ios-native/SpaceSwoosh/Voice/` is `.gitkeep` only in git, so native BGM/voice/file
-> cues are silent until those files are added. Captions still run if the files
-> are missing. Synth boop/collect/portal/swoosh do not need MP3s. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
+> plus `crash` / `crash_with_shield` / `shield` / `turn`. Turn plays as a
+> pre-decoded engine buffer at 0.3 (Android `playBuffer`); synth fallback if
+> the file is missing. Boop, collect, portal hop, and style-swoosh whoosh stay
+> baked synths (Android has no MP3s for those). After NAV/title, mockup-C HUD
+> staggers like Android: route/fuel at 2s, pause at 3s (1s ease-out), smash
+> after the first smash. Shield is two Signal rings with a last-1.5s warning
+> pulse. Sparkles are the 8-vertex 4-point star. Flicker ribbon swells on wall
+> jelly.
+> Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`).
+> `turn.mp3` is pre-decoded into the SFX engine. Captions still run if a voice
+> file is missing. Synth boop/collect/portal/swoosh do not need MP3s. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
-> `CFBundleVersion` ≥ 3 on each TestFlight upload.
+> `CFBundleVersion` ≥ 4 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -1000,10 +1003,10 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | --- | --- |
 | `SpaceSwoosh/App/` | SwiftUI menu + pause + CopyBank game-over + `SpriteView` host |
 | `SpaceSwoosh/Brand/` | `CopyBank` (menu / crash / fuelOut pools) |
-| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; synth boop/turn/collect/crash/shield/portal/swoosh; file BGM/voice if `Voice/` has MP3s; engine recover after interruptions |
+| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded `turn.mp3` on the engine pool (0.3) with synth fallback; synth boop/collect/crash/shield/portal/swoosh; file BGM/voice/crash/shield if `Voice/` has MP3s |
 | `SpaceSwoosh/Core/` | `GameConfig` (Flicker + fuel + stress caps), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (no bank lerp through 0 on flip), zigzag path instant + `bankSmoothing` 0.34, `ShipHitbox`, jelly, `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | Flicker hull bake, continuous ribbon (`RibbonTrailNode` two reused `SKShapeNode`s), popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | Flicker hull bake, 4-point sparkle, dual shield rings, continuous ribbon (`RibbonTrailNode` two reused `SKShapeNode`s + jelly pressure), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
@@ -1016,7 +1019,9 @@ Android `ribbonPath` / `traceSmooth`, with a hull-locked live tail. Sim at
 Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
 `0.028 * dt * 60` like `WallBoopManager`. Zigzag lean eases like Android
 `BANK_SMOOTHING`; hull stretch uses `|tangent|` so a tap does not shrink
-the tear. `playTurn` is synth-only. Do not retune input or
+the tear. Wall jelly applies spring nudge plus ribbon pressure/smudge swell.
+`playTurn` decodes `turn.mp3` into an `AVAudioPCMBuffer` (no `AVAudioPlayer`
+seek hitch). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Slice D: Flicker tear + `TEAR_HITBOX`, Arc/zigzag, overlap spawn, cluster
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,

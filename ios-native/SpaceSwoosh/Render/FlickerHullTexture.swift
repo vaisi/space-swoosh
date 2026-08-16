@@ -1,5 +1,5 @@
 // FlickerHullTexture.swift
-// Changes: Slice D — bake Android tearPath (halo + ink body + highlight) once.
+// Changes: Expose makeImage for the Flicker-only home preview.
 
 import SpriteKit
 import UIKit
@@ -7,12 +7,18 @@ import UIKit
 enum FlickerHullTexture {
     /// Logical radius is the JS `r` after 0.95×scale. Sprite covers ~3.2r.
     static func make(logicalRadius: CGFloat, scale: CGFloat = 3) -> SKTexture {
+        let texture = SKTexture(image: makeImage(logicalRadius: logicalRadius, scale: scale))
+        texture.filteringMode = .linear
+        return texture
+    }
+
+    static func makeImage(logicalRadius: CGFloat, scale: CGFloat = 3) -> UIImage {
         let r = max(logicalRadius * scale, 8)
         let pad = r * 1.65
         let size = ceil(pad * 2)
         let bounds = CGSize(width: size, height: size)
         let renderer = UIGraphicsImageRenderer(size: bounds)
-        let image = renderer.image { ctx in
+        return renderer.image { ctx in
             let cg = ctx.cgContext
             cg.setFillColor(UIColor.clear.cgColor)
             cg.fill(CGRect(origin: .zero, size: bounds))
@@ -39,9 +45,6 @@ enum FlickerHullTexture {
             cg.setFillColor(BrandColors.UI.ink55.cgColor)
             cg.fillPath()
         }
-        let texture = SKTexture(image: image)
-        texture.filteringMode = .linear
-        return texture
     }
 
     /// JS `tearPath`: nose at local −Y (top of this bitmap → SpriteKit +Y).

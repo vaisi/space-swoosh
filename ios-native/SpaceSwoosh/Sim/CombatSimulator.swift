@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: One-shot wall BOOP — clear wallBoopSide after emit so the label fades.
+// Changes: Shield pulse + last-1.5s warning clock (Android updateShield).
 
 import Foundation
 import CoreGraphics
@@ -15,6 +15,8 @@ struct RunState {
     var fuelDying: Bool = false
     var fuelDyingT: CGFloat = 0
     var shieldTimer: CGFloat = 0
+    var shieldPulse: CGFloat = 0
+    var shieldWarningStarted: Bool = false
     var speedBoostTimer: CGFloat = 0
     var sparklesCollected: Int = 0
     var obstaclesDestroyed: Int = 0
@@ -95,6 +97,33 @@ struct RunState {
 
     var shieldActive: Bool { shieldTimer > 0 }
     var speedBoostActive: Bool { speedBoostTimer > 0 }
+
+    mutating func grantShield(seconds: CGFloat = 5) {
+        shieldTimer = seconds
+        shieldWarningStarted = false
+    }
+
+    mutating func extendShield(minimum seconds: CGFloat) {
+        shieldTimer = max(shieldTimer, seconds)
+        if shieldTimer >= 1.5 { shieldWarningStarted = false }
+    }
+
+    mutating func tickShield(dt: CGFloat) {
+        guard shieldActive else {
+            shieldWarningStarted = false
+            return
+        }
+        shieldTimer = max(0, shieldTimer - dt)
+        let pulseRate: CGFloat = speedBoostActive ? 0.14 : 0.1
+        shieldPulse += pulseRate * (dt * 60)
+        if shieldTimer < 1.5, !shieldWarningStarted {
+            shieldWarningStarted = true
+            shieldPulse = 0
+        }
+        if shieldTimer <= 0 {
+            shieldWarningStarted = false
+        }
+    }
 }
 
 enum CombatSimulator {
@@ -181,9 +210,7 @@ enum CombatSimulator {
             }
         }
 
-        if run.shieldActive {
-            run.shieldTimer = max(0, run.shieldTimer - dt)
-        }
+        run.tickShield(dt: dt)
         if run.swooshCooldown > 0 {
             run.swooshCooldown = max(0, run.swooshCooldown - dt)
         }
@@ -897,10 +924,10 @@ enum CombatSimulator {
                 FloatPopupBuffer.spawn(&run.popups, kind: .fuel, x: p.x, y: p.y, vy: 2)
                 run.sfxCollect = true
             case .shield:
-                run.shieldTimer = 5
+                run.grantShield()
                 run.sfxShield = true
             case .wallBoost:
-                run.shieldTimer = 5
+                run.grantShield()
                 run.speedBoostTimer = 5
                 run.sfxShield = true
             }

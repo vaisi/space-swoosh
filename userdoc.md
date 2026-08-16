@@ -12,17 +12,19 @@
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight now includes **Open Space**, the **40-level Journey**, and
 > **Hazard Lab** on Flicker — zigzag or Arc (Options), wall BOOP (the word
-> fades after the bounce), a smooth ink ribbon that springs on the wall, blue
+> fades after the bounce), a smooth ink ribbon that springs and fattens on the
+> wall, a pulsing two-ring shield, the same four-point sparkle as Android, blue
 > `+FUEL`, NAV captions, a Space Log, and the same run-start roll / finish
 > flyout as Android. Music loops under the run and quiets while NAV talks
-> when those clips are in the build. After the navigator line, KM and fuel
-> ease in, then pause; smash and points wait for the first hit. Voice lines
-> play if the build includes them; turn Voice off in Options if you want
-> captions only. Wall hits, turns, pickups, and crashes should make sound on
-> the **newest** TestFlight even if the Silent switch is on (Options →
-> SOUND OFF still mutes). Music and spoken NAV lines play only when those
-> clips are in the build. The **browser App Preview** is a video of the
-> simulator — it often has **no sound** and extra tap delay. Not the other
+> when those clips are in the build. After the navigator line, the compact
+> icon HUD eases in (route, then pause, then smash). Voice lines play if the
+> build includes them; turn Voice off in Options if you want captions only.
+> Wall hits, turns, pickups, and crashes should make sound on the **newest**
+> TestFlight even if the Silent switch is on (Options → SOUND OFF still
+> mutes). The turn cue is the same clip as Android when `turn.mp3` is in the
+> build. Music and spoken NAV lines play only when those clips are in the
+> build. The **browser App Preview** is a video of the simulator — it often
+> has **no sound** and extra tap delay. Not the other
 > ships, IAP, or the online board yet. Android and web remain the complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief

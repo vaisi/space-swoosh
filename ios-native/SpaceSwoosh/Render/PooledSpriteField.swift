@@ -1,5 +1,5 @@
 // PooledSpriteField.swift
-// Changes: C.5.1 — Android pickup look: sparkle 1.15×, ink plus + rings, tall wall slab.
+// Changes: Pickup sparkle uses baked 4-point star (Android drawSparkle).
 
 import SpriteKit
 

@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Publish per-chip HUD alphas for the Android stagger.
+// Changes: Publish mockup-C HUD fields (journey bar, smash target).
 
 import Foundation
 import Combine
@@ -44,6 +44,9 @@ final class GameSession: ObservableObject {
     @Published var hudSmash: CGFloat = 0
     @Published var hudPoints: CGFloat = 0
     @Published var goalKm: Int = 0
+    @Published var smashTarget: Int = 0
+    @Published var journeyProgress: CGFloat = 0
+    @Published var isJourney: Bool = false
     @Published var launch: PlayLaunch = .openSpace
     @Published var outcome: LevelOutcome?
     @Published var logbookToast: String = ""
@@ -74,6 +77,13 @@ final class GameSession: ObservableObject {
         hudSmash = run.hudSmash
         hudPoints = run.hudPoints
         goalKm = run.profile.isEndless ? 0 : Int(run.profile.goalKm)
+        smashTarget = run.profile.smashTarget
+        isJourney = !run.profile.isEndless
+        if run.profile.goalKm > 0 {
+            journeyProgress = max(0, min(1, run.scoreKm / run.profile.goalKm))
+        } else {
+            journeyProgress = 0
+        }
         launch = playLaunch(from: run.profile)
 
         let logActive = run.profile.mode == .journey || run.profile.mode == .hazardLab
@@ -131,6 +141,9 @@ final class GameSession: ObservableObject {
         hudSmash = 0
         hudPoints = 0
         goalKm = 0
+        smashTarget = 0
+        journeyProgress = 0
+        isJourney = false
         outcome = nil
         logbookToast = ""
         flavorPicked = false

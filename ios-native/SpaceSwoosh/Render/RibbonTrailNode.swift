@@ -1,5 +1,5 @@
 // RibbonTrailNode.swift
-// Changes: Continuous Flicker ribbon — two reused SKShapeNodes (Android ribbonPath).
+// Changes: Jelly energy pressure + smudge swell so a wall BOOP kicks the wake.
 
 import SpriteKit
 
@@ -70,16 +70,27 @@ final class RibbonTrailNode: SKNode {
 
         let maxWidth = shipRadius * GameConfig.Flicker.trailWidthScale
         let last = CGFloat(n - 1)
+        let jellyLive = jellyElapsedMs >= 0 && jellyElapsedMs < GameConfig.Flicker.wallJellyMs
+        let jellyT = jellyLive ? jellyElapsedMs / GameConfig.Flicker.wallJellyMs : 0
+        let energy: CGFloat = jellyLive ? exp(-1.4 * jellyT) : 0
         let widthAt: (Int) -> CGFloat = { i in
             let t = CGFloat(i) / last
             let p = self.wake[i]
-            return maxWidth * pow(t, 0.6) * (0.45 + 0.55 * p.opacity)
+            var pressure: CGFloat = 1
+            if energy > 0 {
+                let tipThin = 1 - energy * 0.55 * pow(1 - t, 1.15)
+                let mid = sin(t * .pi)
+                let midSwell = 1 + energy * 0.7 * mid * mid
+                pressure = tipThin * midSwell
+            }
+            return maxWidth * pow(t, 0.6) * (0.45 + 0.55 * p.opacity) * pressure
         }
 
-        fillEdges(count: n, widthAt: { widthAt($0) * 2.2 })
+        let smudgeScale = energy > 0 ? 2.2 + energy * 1.4 : 2.2
+        fillEdges(count: n, widthAt: { widthAt($0) * smudgeScale })
         smudge.path = makeRibbonPath(count: n)
         smudge.fillColor = BrandColors.UI.trail
-        smudge.alpha = 0.22
+        smudge.alpha = 0.22 + energy * 0.18
         smudge.isHidden = false
 
         fillEdges(count: n, widthAt: widthAt)
