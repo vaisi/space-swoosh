@@ -2,6 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Mote cloud boop: rippleScale 0.55 (still a dying hull-to-tail pulse, milder
+//   than the original cartoon pop). Dusk stays at 0.4.
 // - Fletch: smooth ogive arrow + Quill ribbon with length-wise dawn strata
 //   (not Nyan's side-by-side rainbow). Premium IAP; long wake; nock attach.
 // - Dusk: Echo crescent + Mote cloud in saber purple at 2× density, wider
@@ -924,7 +926,10 @@ const mote = {
     ...LONG_WAKE,
     drawHull: drawMoteHull,
     drawTrail(ctx, ship, trail, toScreenY) {
-        drawCloudTrail(ctx, ship, trail, toScreenY, { rippleBoop: true });
+        drawCloudTrail(ctx, ship, trail, toScreenY, {
+            rippleBoop: true,
+            rippleScale: 0.55,
+        });
     },
 };
 

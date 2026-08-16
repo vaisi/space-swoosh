@@ -758,7 +758,7 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `trace` | Square | Hairline stroke | Spring along the line |
 | `ring` | Square | Expanding rings | Ring squash only (no Halo bubble pop) |
 | `fold` | Solid origami kite (`foldPath` + crease) | Long dashed crease (hull-locked zig) | Crease amplifies; fold jelly |
-| `mote` | Soft ink disc | Denser micro-dot cloud, long wake | Hull-to-tail `ripple` through the cloud |
+| `mote` | Soft ink disc | Denser micro-dot cloud, long wake | Hull-to-tail `ripple` (`rippleScale` 0.55) |
 | `dusk` | Echo crescent | Mote cloud in saber purple, 2× specks, along-wake dust scatter | Milder dying `ripple` (`rippleScale` 0.4) |
 | `spine` | Vertical bar (`spinePath`) | Ladder rungs + thin spine | Rungs compress toward the wall |
 | `orbit` | Planetoid oval + tilted ring + satellite | Continuous lagging orbital ribbon + dense ellipse ticks | Soft lag shove; oval wobble |
