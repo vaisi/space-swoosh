@@ -1,6 +1,9 @@
 // HullCache.js
 // Phase 1: bake each skin's resting hull to an offscreen canvas; blit via drawImage.
 // Changes:
+// - Darner / Puff / Argus / Chime plus Luna / Wish / Lantern / Bloom / Lyra /
+//   Sprout / Plume / Koi / Spore / Boreal skip the cache via skipHullCache;
+//   HULL_META still listed for the jelly profile.
 // - Fletch reuses default jelly bake (smooth arrow hull).
 // - Dusk reuses Echo's default jelly bake (same crescent hull).
 // - Bake at the live canvas DPR (game.dpr) instead of a hardcoded 2, so the ship
@@ -42,6 +45,20 @@ const HULL_META = {
     ink: { profile: 'default', halfScale: 0.85 },
     flux: { profile: 'flux', halfScale: 0.72 },
     cinder: { profile: 'cinder', halfScale: 0.85 },
+    lantern: { profile: 'lantern', halfScale: 0.85 },
+    bloom: { profile: 'bloom', halfScale: 0.9 },
+    lyra: { profile: 'lyra', halfScale: 0.85 },
+    sprout: { profile: 'sprout', halfScale: 0.85 },
+    plume: { profile: 'plume', halfScale: 0.75 },
+    koi: { profile: 'koi', halfScale: 0.8 },
+    spore: { profile: 'spore', halfScale: 0.85 },
+    boreal: { profile: 'boreal', halfScale: 0.55 },
+    luna: { profile: 'luna', halfScale: 0.7 },
+    wish: { profile: 'wish', halfScale: 0.55 },
+    darner: { profile: 'darner', halfScale: 0.55 },
+    puff: { profile: 'puff', halfScale: 0.9 },
+    argus: { profile: 'argus', halfScale: 0.75 },
+    chime: { profile: 'chime', halfScale: 0.85 },
 };
 
 // Mid breath / scale so the bake isn't at a trough or peak.

@@ -1,6 +1,12 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Darner / Puff / Argus / Chime paths + jelly profiles.
+// - Luna `mothPath` + Wish `wishPath` + jelly profiles.
+// - Six more skins: starPath (Lyra), seedPath (Sprout), wingPath (Plume),
+//   koiPath, capPath (Spore), curtainPath (Boreal) + matching jelly profiles.
+// - Lantern `bellPath` (jellyfish umbrella) + Bloom `bloomPath` (central soap
+//   disc). Jelly: `lantern` medusa pulse, `bloom` inflate-then-settle.
 // - Ripple pulse dies off down the wake (along^1.2) so hull pops hard, tip barely.
 // - Focus/Ember `ripple` trail wave: hull-to-tail Gaussian (~560 ms), separate
 //   from hull jelly (420 ms). Envelope + deform shared with trails.js.
@@ -181,6 +187,198 @@ export function orbitPath(ctx, cx, cy, r, stretch = 1) {
     const ry = r * 0.78 * stretch;
     ctx.beginPath();
     ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+}
+
+/** Jellyfish umbrella — pointed nose, wide cap, scalloped underside (Lantern). */
+export function bellPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.02);
+    ctx.quadraticCurveTo(cx + r * 0.95, cy - ry * 0.35, cx + r * 0.92, cy + ry * 0.28);
+    ctx.quadraticCurveTo(cx + r * 0.62, cy + ry * 0.48, cx + r * 0.32, cy + ry * 0.32);
+    ctx.quadraticCurveTo(cx + r * 0.16, cy + ry * 0.52, cx, cy + ry * 0.36);
+    ctx.quadraticCurveTo(cx - r * 0.16, cy + ry * 0.52, cx - r * 0.32, cy + ry * 0.32);
+    ctx.quadraticCurveTo(cx - r * 0.62, cy + ry * 0.48, cx - r * 0.92, cy + ry * 0.28);
+    ctx.quadraticCurveTo(cx - r * 0.95, cy - ry * 0.35, cx, cy - ry * 1.02);
+    ctx.closePath();
+}
+
+/** Central soap disc — Bloom overlapping films / satellites are drawn in skinDefs. */
+export function bloomPath(ctx, cx, cy, r, stretch = 1) {
+    const rx = r * 0.82;
+    const ry = r * 0.82 * stretch;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+}
+
+/** 4-point star — Lyra. */
+export function starPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.05);
+    ctx.quadraticCurveTo(cx + r * 0.14, cy - ry * 0.12, cx + r * 0.9, cy);
+    ctx.quadraticCurveTo(cx + r * 0.14, cy + ry * 0.12, cx, cy + ry * 0.98);
+    ctx.quadraticCurveTo(cx - r * 0.14, cy + ry * 0.12, cx - r * 0.9, cy);
+    ctx.quadraticCurveTo(cx - r * 0.14, cy - ry * 0.12, cx, cy - ry * 1.05);
+    ctx.closePath();
+}
+
+/** Seed oval — Sprout (leaves drawn in skinDefs). */
+export function seedPath(ctx, cx, cy, r, stretch = 1) {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * 0.5, r * 0.8 * stretch, 0, 0, Math.PI * 2);
+}
+
+/** Firebird wings — Plume (fuller than Echo's crescent). */
+export function wingPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 0.88);
+    ctx.bezierCurveTo(
+        cx + r * 1.08, cy - ry * 0.32,
+        cx + r * 1.12, cy + ry * 0.52,
+        cx + r * 0.32, cy + ry * 0.7
+    );
+    ctx.quadraticCurveTo(cx, cy + ry * 0.22, cx - r * 0.32, cy + ry * 0.7);
+    ctx.bezierCurveTo(
+        cx - r * 1.12, cy + ry * 0.52,
+        cx - r * 1.08, cy - ry * 0.32,
+        cx, cy - ry * 0.88
+    );
+    ctx.closePath();
+}
+
+/** Koi body — fat teardrop; tail fin is paint in skinDefs. */
+export function koiPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.05);
+    ctx.bezierCurveTo(
+        cx + r * 0.55, cy - ry * 0.42,
+        cx + r * 0.7, cy + ry * 0.18,
+        cx + r * 0.36, cy + ry * 0.58
+    );
+    ctx.quadraticCurveTo(cx, cy + ry * 0.38, cx - r * 0.36, cy + ry * 0.58);
+    ctx.bezierCurveTo(
+        cx - r * 0.7, cy + ry * 0.18,
+        cx - r * 0.55, cy - ry * 0.42,
+        cx, cy - ry * 1.05
+    );
+    ctx.closePath();
+}
+
+/** Mushroom cap — Spore (wider/flatter than Lantern's bell). */
+export function capPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 1.02, cy + ry * 0.1);
+    ctx.quadraticCurveTo(cx - r * 0.95, cy - ry * 0.52, cx, cy - ry * 0.68);
+    ctx.quadraticCurveTo(cx + r * 0.95, cy - ry * 0.52, cx + r * 1.02, cy + ry * 0.1);
+    ctx.quadraticCurveTo(cx, cy + ry * 0.26, cx - r * 1.02, cy + ry * 0.1);
+    ctx.closePath();
+}
+
+/** Flowing aurora ribbon — Boreal. */
+export function curtainPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.2, cy - ry * 1.02);
+    ctx.bezierCurveTo(
+        cx + r * 0.58, cy - ry * 0.4,
+        cx - r * 0.52, cy + ry * 0.12,
+        cx + r * 0.26, cy + ry * 0.95
+    );
+    ctx.quadraticCurveTo(cx + r * 0.06, cy + ry * 1.04, cx - r * 0.14, cy + ry * 0.9);
+    ctx.bezierCurveTo(
+        cx - r * 0.68, cy + ry * 0.08,
+        cx + r * 0.42, cy - ry * 0.48,
+        cx - r * 0.36, cy - ry * 0.92
+    );
+    ctx.closePath();
+}
+
+/** Lunar moth — pointed head, two wide dusty wings (Luna). */
+export function mothPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 0.95);
+    ctx.bezierCurveTo(
+        cx + r * 0.32, cy - ry * 0.68,
+        cx + r * 1.12, cy - ry * 0.12,
+        cx + r * 1.0, cy + ry * 0.42
+    );
+    ctx.quadraticCurveTo(cx + r * 0.42, cy + ry * 0.5, cx + r * 0.2, cy + ry * 0.28);
+    ctx.quadraticCurveTo(cx, cy + ry * 0.48, cx - r * 0.2, cy + ry * 0.28);
+    ctx.quadraticCurveTo(cx - r * 0.42, cy + ry * 0.5, cx - r * 1.0, cy + ry * 0.42);
+    ctx.bezierCurveTo(
+        cx - r * 1.12, cy - ry * 0.12,
+        cx - r * 0.32, cy - ry * 0.68,
+        cx, cy - ry * 0.95
+    );
+    ctx.closePath();
+}
+
+/** Wish comet — crystal ogive, faceted shoulders (Wish). */
+export function wishPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.12);
+    ctx.lineTo(cx + r * 0.36, cy - ry * 0.12);
+    ctx.lineTo(cx + r * 0.26, cy + ry * 0.52);
+    ctx.quadraticCurveTo(cx, cy + ry * 0.68, cx - r * 0.26, cy + ry * 0.52);
+    ctx.lineTo(cx - r * 0.36, cy - ry * 0.12);
+    ctx.closePath();
+}
+
+/** Dragonfly body — slim needle; wings painted in skinDefs (Darner). */
+export function darnerPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.15);
+    ctx.quadraticCurveTo(cx + r * 0.16, cy - ry * 0.2, cx + r * 0.12, cy + ry * 0.55);
+    ctx.lineTo(cx, cy + ry * 1.05);
+    ctx.lineTo(cx - r * 0.12, cy + ry * 0.55);
+    ctx.quadraticCurveTo(cx - r * 0.16, cy - ry * 0.2, cx, cy - ry * 1.15);
+    ctx.closePath();
+}
+
+/** Dandelion seed head — round puff; stem painted in skinDefs (Puff). */
+export function puffPath(ctx, cx, cy, r, stretch = 1) {
+    const rx = r * 0.78;
+    const ry = r * 0.78 * stretch;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - ry * 0.08, rx, ry, 0, 0, Math.PI * 2);
+}
+
+/** Peacock body — teardrop with a short fan seat (Argus). */
+export function argusPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.0);
+    ctx.bezierCurveTo(
+        cx + r * 0.48, cy - ry * 0.35,
+        cx + r * 0.62, cy + ry * 0.15,
+        cx + r * 0.55, cy + ry * 0.62
+    );
+    ctx.quadraticCurveTo(cx, cy + ry * 0.42, cx - r * 0.55, cy + ry * 0.62);
+    ctx.bezierCurveTo(
+        cx - r * 0.62, cy + ry * 0.15,
+        cx - r * 0.48, cy - ry * 0.35,
+        cx, cy - ry * 1.0
+    );
+    ctx.closePath();
+}
+
+/** Temple bell — dome nose, flared rim (Chime). Side bells painted in skinDefs. */
+export function chimePath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 0.92);
+    ctx.quadraticCurveTo(cx + r * 0.55, cy - ry * 0.55, cx + r * 0.62, cy + ry * 0.35);
+    ctx.quadraticCurveTo(cx + r * 0.42, cy + ry * 0.62, cx, cy + ry * 0.55);
+    ctx.quadraticCurveTo(cx - r * 0.42, cy + ry * 0.62, cx - r * 0.62, cy + ry * 0.35);
+    ctx.quadraticCurveTo(cx - r * 0.55, cy - ry * 0.55, cx, cy - ry * 0.92);
+    ctx.closePath();
 }
 
 // Axis-aligned square in hull space (banks with the ship) — Square family.
@@ -378,6 +576,203 @@ export function wallJellyDeform(ship, time = performance.now(), profile = 'defau
             side: j.side,
             shake: flicker * 0.12,
             shear: flicker * 0.1,
+        };
+    }
+
+    // Lantern: squishy medusa bell — extra vertical stretch, then rebound.
+    if (profile === 'lantern') {
+        const damp = Math.exp(-1.7 * t);
+        const pulse = Math.cos(t * Math.PI * 2.0) * damp;
+        const wobble = Math.sin(t * Math.PI * 4.4) * Math.exp(-2.4 * t);
+        return {
+            sx: Math.max(0.68, 1 - 0.28 * pulse + wobble * 0.06),
+            sy: Math.min(1.55, 1 + 0.48 * pulse - wobble * 0.08),
+            side: j.side,
+            shake: wobble * 0.14,
+            shear: wobble * 0.08,
+        };
+    }
+
+    // Bloom: inflate then settle — opposite of squash; stay round (Halo cousin).
+    if (profile === 'bloom') {
+        const swell = Math.sin(Math.min(1, t * 1.6) * Math.PI) * Math.exp(-1.6 * t);
+        const damp = Math.exp(-2.0 * t);
+        const orbit = Math.sin(t * Math.PI * 4.2) * damp;
+        const settle = Math.cos(t * Math.PI * 6.5) * Math.exp(-3.2 * t);
+        return {
+            sx: Math.max(0.92, 1 + swell * 0.22 + orbit * 0.04),
+            sy: Math.max(0.92, 1 + swell * 0.22 - orbit * 0.04),
+            side: j.side,
+            shake: settle * 0.16,
+            shear: orbit * 0.18,
+        };
+    }
+
+    // Lyra: keep the star pointy — tiny orbital wobble.
+    if (profile === 'lyra') {
+        const damp = Math.exp(-2.1 * t);
+        const orbit = Math.sin(t * Math.PI * 4.4) * damp;
+        const settle = Math.cos(t * Math.PI * 6.2) * Math.exp(-3.2 * t);
+        return {
+            sx: Math.max(0.88, 1 + orbit * 0.08),
+            sy: Math.max(0.88, 1 - orbit * 0.06),
+            side: j.side,
+            shake: settle * 0.16,
+            shear: orbit * 0.2,
+        };
+    }
+
+    // Sprout: unfurl — extra vertical stretch like a leaf opening.
+    if (profile === 'sprout') {
+        const damp = Math.exp(-1.75 * t);
+        const unfurl = Math.cos(t * Math.PI * 2.0) * damp;
+        const quiver = Math.sin(t * Math.PI * 5.0) * Math.exp(-2.6 * t);
+        return {
+            sx: Math.max(0.7, 1 - 0.22 * unfurl),
+            sy: Math.min(1.5, 1 + 0.42 * unfurl),
+            side: j.side,
+            shake: quiver * 0.12,
+            shear: quiver * 0.08,
+        };
+    }
+
+    // Plume: wing flare — spread then snap back.
+    if (profile === 'plume') {
+        const damp = Math.exp(-1.9 * t);
+        const flare = Math.sin(t * Math.PI) * damp;
+        const flicker = Math.sin(t * Math.PI * 6.2) * Math.exp(-2.8 * t);
+        return {
+            sx: Math.min(1.45, 1 + 0.38 * flare),
+            sy: Math.max(0.78, 1 - 0.16 * flare),
+            side: j.side,
+            shake: flicker * 0.14,
+            shear: flicker * 0.12,
+        };
+    }
+
+    // Koi: S-curve fish flick.
+    if (profile === 'koi') {
+        const damp = Math.exp(-1.8 * t);
+        const flex = Math.cos(t * Math.PI * 3.2) * damp;
+        const settle = Math.sin(t * Math.PI * 5.4) * Math.exp(-2.8 * t);
+        return {
+            sx: Math.max(0.78, 1 - 0.18 * flex),
+            sy: Math.min(1.35, 1 + 0.22 * flex),
+            side: j.side,
+            shake: settle * 0.12,
+            shear: flex * 0.42 + settle * 0.1,
+        };
+    }
+
+    // Spore: soft cap squash — lantern cousin, a little flatter.
+    if (profile === 'spore') {
+        const damp = Math.exp(-1.7 * t);
+        const pulse = Math.cos(t * Math.PI * 2.0) * damp;
+        const wobble = Math.sin(t * Math.PI * 4.2) * Math.exp(-2.4 * t);
+        return {
+            sx: Math.max(0.72, 1 - 0.24 * pulse),
+            sy: Math.min(1.38, 1 + 0.32 * pulse - wobble * 0.06),
+            side: j.side,
+            shake: wobble * 0.12,
+            shear: wobble * 0.06,
+        };
+    }
+
+    // Boreal: aurora wave — shear along the ribbon.
+    if (profile === 'boreal') {
+        const damp = Math.exp(-1.85 * t);
+        const wave = Math.sin(t * Math.PI * 3.6) * damp;
+        const settle = Math.cos(t * Math.PI * 5.8) * Math.exp(-3.0 * t);
+        return {
+            sx: Math.max(0.82, 1 + wave * 0.12),
+            sy: Math.max(0.82, 1 - wave * 0.1),
+            side: j.side,
+            shake: settle * 0.14,
+            shear: wave * 0.38,
+        };
+    }
+
+    // Luna: wing flutter — spread then settle.
+    if (profile === 'luna') {
+        const damp = Math.exp(-1.75 * t);
+        const flutter = Math.sin(t * Math.PI * 3.8) * damp;
+        const settle = Math.cos(t * Math.PI * 5.6) * Math.exp(-2.8 * t);
+        return {
+            sx: Math.min(1.42, 1 + 0.32 * Math.abs(flutter)),
+            sy: Math.max(0.82, 1 - 0.12 * Math.abs(flutter)),
+            side: j.side,
+            shake: settle * 0.14,
+            shear: flutter * 0.16,
+        };
+    }
+
+    // Wish: sparkle wobble — stay pointy, tiny orbital shake.
+    if (profile === 'wish') {
+        const damp = Math.exp(-2.0 * t);
+        const spark = Math.sin(t * Math.PI * 5.2) * damp;
+        const settle = Math.cos(t * Math.PI * 6.8) * Math.exp(-3.2 * t);
+        return {
+            sx: Math.max(0.88, 1 + spark * 0.1),
+            sy: Math.min(1.22, 1 + Math.abs(spark) * 0.14),
+            side: j.side,
+            shake: settle * 0.18,
+            shear: spark * 0.12,
+        };
+    }
+
+    // Darner: wing spread flash.
+    if (profile === 'darner') {
+        const damp = Math.exp(-1.8 * t);
+        const spread = Math.sin(t * Math.PI) * damp;
+        const quiver = Math.sin(t * Math.PI * 6.4) * Math.exp(-2.8 * t);
+        return {
+            sx: Math.min(1.48, 1 + 0.4 * spread),
+            sy: Math.max(0.8, 1 - 0.14 * spread),
+            side: j.side,
+            shake: quiver * 0.12,
+            shear: quiver * 0.1,
+        };
+    }
+
+    // Puff: soft inflate then settle (Bloom cousin).
+    if (profile === 'puff') {
+        const swell = Math.sin(Math.min(1, t * 1.6) * Math.PI) * Math.exp(-1.6 * t);
+        const damp = Math.exp(-2.0 * t);
+        const orbit = Math.sin(t * Math.PI * 4.0) * damp;
+        return {
+            sx: Math.max(0.92, 1 + swell * 0.2 + orbit * 0.04),
+            sy: Math.max(0.92, 1 + swell * 0.2 - orbit * 0.04),
+            side: j.side,
+            shake: orbit * 0.12,
+            shear: orbit * 0.1,
+        };
+    }
+
+    // Argus: fan spread.
+    if (profile === 'argus') {
+        const damp = Math.exp(-1.85 * t);
+        const fan = Math.sin(t * Math.PI) * damp;
+        const flicker = Math.sin(t * Math.PI * 5.5) * Math.exp(-2.6 * t);
+        return {
+            sx: Math.min(1.5, 1 + 0.42 * fan),
+            sy: Math.max(0.78, 1 - 0.12 * fan),
+            side: j.side,
+            shake: flicker * 0.1,
+            shear: flicker * 0.08,
+        };
+    }
+
+    // Chime: keep round — tiny orbital wobble (Halo cousin).
+    if (profile === 'chime') {
+        const damp = Math.exp(-2.1 * t);
+        const orbit = Math.sin(t * Math.PI * 4.2) * damp;
+        const settle = Math.cos(t * Math.PI * 6.5) * Math.exp(-3.2 * t);
+        return {
+            sx: Math.max(0.9, 1 + orbit * 0.07),
+            sy: Math.max(0.9, 1 - orbit * 0.05),
+            side: j.side,
+            shake: settle * 0.16,
+            shear: orbit * 0.2,
         };
     }
 
@@ -697,6 +1092,20 @@ const PLANT_BY_PROFILE = {
     orbit: 0.4,
     flux: 0.75,
     cinder: 0.95,
+    lantern: 0.85,
+    bloom: 0.3,
+    lyra: 0.4,
+    sprout: 0.8,
+    plume: 0.55,
+    koi: 0.7,
+    spore: 0.85,
+    boreal: 0.45,
+    luna: 0.55,
+    wish: 0.4,
+    darner: 0.5,
+    puff: 0.35,
+    argus: 0.6,
+    chime: 0.35,
 };
 
 /**
@@ -721,7 +1130,9 @@ export function beginHullFrame(
         const half = (ship.radius ?? 10) * halfScale;
         const plant = PLANT_BY_PROFILE[profile] ?? 1;
         ctx.translate(jelly.side * (half - half * jelly.sx) * plant, 0);
-        const shakeScale = profile === 'halo' || profile === 'orbit' ? 0.7
+        const shakeScale = profile === 'halo' || profile === 'orbit' || profile === 'bloom'
+            || profile === 'lyra' || profile === 'boreal' || profile === 'wish'
+            || profile === 'puff' || profile === 'chime' ? 0.7
             : profile === 'needle' ? 0.55
             : 0.35;
         ctx.translate(jelly.shake * (ship.radius ?? 10) * jelly.side * shakeScale, 0);

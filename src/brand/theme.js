@@ -3,6 +3,9 @@
 // SPACE SWOOSH — Light / dark (night paper) theme switching.
 //
 // Changes:
+// - Luna mothLavender lifts on night paper.
+// - Spore amber/violet + Sprout green lift on night paper (same as Lantern).
+// - Lantern teal/gold trail tokens lift on night paper (same as Ember).
 // - Default theme is light (cream paper) when no `ssTheme` is stored.
 // - Created: two palettes, localStorage persistence, applyTheme() mutates the
 //   shared `color` / `semantic` objects + CSS vars + page shell so canvas and
@@ -40,6 +43,20 @@ const DARK = {
     ember:        '#C47855',
     emberSoft:    'rgba(196, 120, 85, 0.22)',
     emberRgb:     '196, 120, 85',
+    lanternTeal:    '#5EE0D4',
+    lanternTealSoft:'rgba(94, 224, 212, 0.28)',
+    lanternTealRgb: '94, 224, 212',
+    lanternGold:    '#F5D06A',
+    lanternGoldSoft:'rgba(245, 208, 106, 0.28)',
+    lanternGoldRgb: '245, 208, 106',
+    sporeAmber:     '#E8A05A',
+    sporeAmberRgb:  '232, 160, 90',
+    sporeViolet:    '#B57AE0',
+    sporeVioletRgb: '181, 122, 224',
+    sproutGreen:    '#6EDC8A',
+    sproutGreenRgb: '110, 220, 138',
+    mothLavender:    '#C9A6F0',
+    mothLavenderRgb: '201, 166, 240',
 };
 
 /** Classic cream paper — warm ground, near-black ink, Signal Blue. */
@@ -61,6 +78,20 @@ const LIGHT = {
     ember:        '#A65D3F',
     emberSoft:    'rgba(166, 93, 63, 0.18)',
     emberRgb:     '166, 93, 63',
+    lanternTeal:    '#2E8B8A',
+    lanternTealSoft:'rgba(46, 139, 138, 0.20)',
+    lanternTealRgb: '46, 139, 138',
+    lanternGold:    '#E8B84A',
+    lanternGoldSoft:'rgba(232, 184, 74, 0.22)',
+    lanternGoldRgb: '232, 184, 74',
+    sporeAmber:     '#C47A3A',
+    sporeAmberRgb:  '196, 122, 58',
+    sporeViolet:    '#7A4E9E',
+    sporeVioletRgb: '122, 78, 158',
+    sproutGreen:    '#3E8B5A',
+    sproutGreenRgb: '62, 139, 90',
+    mothLavender:    '#8B6BB0',
+    mothLavenderRgb: '139, 107, 176',
 };
 
 const PALETTES = {

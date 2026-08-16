@@ -2,6 +2,13 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Darner mosaic ribbons, Puff parachute umbrellas, Argus eyespot stamps,
+//   Chime sound arcs. Each thins on iOS LOD.
+// - Luna moth-dust wake + Wish constellation comet. Greatest-of-greats pair.
+// - Lyra / Sprout / Plume / Koi / Spore / Boreal wakes. Sprout+Spore reuse
+//   lantern filaments+cloud with palettes; others have dedicated renderers.
+// - Lantern `drawLanternTrail`: teal/gold filaments + plankton cloud; cloud boop.
+// - Bloom `drawBloomTrail`: iridescent soap rings + prism motes; pile/pop boop.
 // - Fletch `drawHorizonRibbonTrail`: Quill ribbon with length-wise dawn
 //   strata (not Nyan's side-by-side lanes). Solid fills, cheap-canvas safe.
 // - Dusk cloud: densityScale 2, scatter 'dust' (along-wake jitter, no polar
@@ -63,6 +70,69 @@ const FLETCH_RGB = [
     '255, 142, 64',
     '232, 72, 58',
 ];
+
+/** Bloom iridescence — rose, mint, lavender, sky (ship-local, not HUD). */
+const BLOOM_RGB = [
+    '255, 140, 180',
+    '120, 220, 190',
+    '180, 150, 255',
+    '120, 190, 255',
+];
+
+/** Cooler plankton sparkle — lantern trail only. */
+const LANTERN_CYAN_RGB = '90, 210, 200';
+
+/** Lyra / Boreal aurora — green, cyan, magenta, violet (ship-local). */
+const AURORA_RGB = [
+    '48, 186, 132',
+    '72, 198, 220',
+    '232, 92, 168',
+    '140, 110, 230',
+];
+
+/** Phoenix flame — gold hull → ember → ash (length-wise). */
+const PLUME_RGB = [
+    '72, 42, 48',
+    '196, 82, 48',
+    '232, 150, 64',
+    '255, 220, 140',
+];
+
+/** Koi scales — vermillion, cream, ink-teal. */
+const KOI_RGB = [
+    '210, 72, 58',
+    '236, 214, 168',
+    '46, 110, 118',
+];
+
+const SPORE_MINT_RGB = '120, 200, 160';
+
+/** Luna moth dust — lavender, silver, pale gold. */
+const LUNA_RGB = [
+    '139, 107, 176',
+    '198, 192, 210',
+    '232, 196, 118',
+];
+
+/** Wish prism motes — gold, white, rose, mint. */
+const WISH_RGB = [
+    '232, 184, 74',
+    '255, 248, 230',
+    '255, 140, 180',
+    '120, 220, 190',
+];
+
+/** Darner mosaic — teal, gold, violet (ship-local). */
+const DARNER_RGB = [
+    '48, 186, 168',
+    '232, 184, 74',
+    '140, 88, 210',
+];
+
+/** Argus eyespot rim — teal (gold pupil uses lantern gold). */
+const ARGUS_TEAL_RGB = '42, 168, 158';
+
+const filamentScratch = [];
 
 const KNOWN_MODES = new Set([
     'pile', 'spring', 'whip', 'desync', 'scatter', 'shatter', 'blot',
@@ -1536,6 +1606,917 @@ export function drawSaberTrail(ctx, ship, trail, toScreenY, opts = {}) {
             );
             ctx.fill();
         }
+    }
+
+    ctx.restore();
+}
+
+function filamentOffset(pts, r, offsetScale, energy) {
+    const n = pts.length;
+    const denom = Math.max(1, n - 1);
+    for (let i = 0; i < n; i++) {
+        const src = pts[i];
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const leave = 1 - i / denom;
+        const off = r * offsetScale * (0.25 + 0.75 * leave) * (1 + energy * 0.55);
+        let p = filamentScratch[i];
+        if (!p) {
+            p = { x: 0, y: 0, opacity: 1 };
+            filamentScratch[i] = p;
+        }
+        p.x = src.x + nx * off;
+        p.y = src.y + ny * off;
+        p.opacity = src.opacity;
+    }
+    filamentScratch.length = n;
+    return filamentScratch;
+}
+
+/**
+ * Lantern wake — teal/gold tentacle filaments + bioluminescent plankton.
+ * Cloud boop puffs the specks and flares the filaments.
+ */
+export function drawLanternTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.9,
+        tealRgb = color.lanternTealRgb,
+        goldRgb = color.lanternGoldRgb,
+        cyanRgb = LANTERN_CYAN_RGB,
+        palettes: palettesOpt,
+        filamentRgb: filamentRgbOpt,
+        densityScale = 1,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const denom = Math.max(1, n - 1);
+    const lod = iosBudget(ship);
+    const palettes = palettesOpt || [tealRgb, goldRgb, cyanRgb];
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const offsets = lod ? [-0.42, 0.42] : [-0.48, 0, 0.48];
+    const filamentRgb = filamentRgbOpt || [tealRgb, goldRgb, tealRgb];
+    for (let f = 0; f < offsets.length; f++) {
+        const fil = filamentOffset(pts, r, offsets[f], energy);
+        const widthAt = (i) => {
+            const t = i / denom;
+            const op = fil[i].opacity;
+            return r * (0.035 + 0.09 * t) * (0.5 + 0.5 * op)
+                * (1 + energy * 0.45 * t)
+                * (f === 1 && !lod ? 0.7 : 1);
+        };
+        ribbonPath(ctx, fil, widthAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.42 + energy * 0.22);
+        ctx.fillStyle = `rgba(${filamentRgb[f % filamentRgb.length]}, 1)`;
+        ctx.fill();
+    }
+
+    // Plankton cloud — seed-stable dots, denser farther back.
+    const step = lod ? 2 : 1;
+    const perPoint = Math.max(1, Math.round((lod ? 2 : 5) * densityScale));
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.12) continue;
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const count = energy > 0.1 ? perPoint + 2 : perPoint;
+        for (let k = 0; k < count; k++) {
+            const u = fract((p.seed ?? 0.5) * 12.9898 + k * 0.618 + i * 0.07);
+            const v = fract((p.seed ?? 0.5) * 78.233 + k * 0.37 + i * 0.13);
+            const w = fract((p.seed ?? 0.5) * 4.1414 + k * 0.11);
+            const sideOff = (u * 2 - 1) * r * (0.2 + 0.95 * leave) * (1 + energy * 0.85);
+            const alongJit = (v * 2 - 1) * r * 0.18 * leave;
+            const size = r * (0.03 + 0.07 * leave) * (0.5 + w * 0.7)
+                * (1 + energy * 0.55);
+            const rgb = palettes[k % palettes.length];
+            ctx.fillStyle = `rgba(${rgb}, 1)`;
+            ctx.globalAlpha = baseAlpha * alpha * p.opacity
+                * (0.28 + 0.45 * leave + energy * 0.35);
+            ctx.beginPath();
+            ctx.arc(
+                p.x + nx * sideOff + ny * alongJit,
+                p.y + ny * sideOff - nx * alongJit,
+                size,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Bloom wake — iridescent soap rings, prism sparkles, drifting hollow discs.
+ * Pile + inflate/pop on wall jelly (color cousin of Halo's bubbleBoop).
+ */
+export function drawBloomTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.88, bands = BLOOM_RGB } = opts;
+    const marks = denseTrailMarks(ship, trail, toScreenY);
+    const m = marks.length;
+    if (m < 2) return;
+
+    const r = ship.radius;
+    const now = performance.now();
+    const energy = jellyEnergy(ship, now);
+    const lod = iosBudget(ship);
+    const t = ship.wallJelly
+        ? Math.max(0, Math.min(1, (now - ship.wallJelly.t0) / WALL_JELLY_MS))
+        : 1;
+    const side = ship.wallJelly?.side < 0 ? -1 : 1;
+    const bandN = bands.length;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+
+    const ringStep = lod ? 2 : 1;
+    for (let i = m - 1; i >= 0; i -= ringStep) {
+        const p = marks[i];
+        const age = 1 - p.opacity;
+        let inflate = 1;
+        let stack = 0;
+        let pop = 1;
+        if (energy > 0 && p.opacity > 0.32) {
+            const youth = p.opacity;
+            inflate = 1 + energy * 1.5 * youth * Math.sin(Math.PI * Math.min(1, t * 1.6));
+            stack = side * r * 0.4 * energy * youth * youth * (i % 3) * 0.2;
+            pop = t < 0.55 ? 1 : Math.max(0.12, 1 - (t - 0.55) * 2.4 * energy);
+        }
+        const ringR = r * (0.14 + age * 1.05) * p.scale * inflate * pop;
+        const width = r * (0.05 + 0.04 * p.opacity) * p.scale;
+        const rgb = bands[i % bandN];
+        const fade = baseAlpha * p.opacity * alpha * (0.38 + 0.62 * (1 - age)) * pop;
+        const sx = (p.sx ?? 1) * (energy ? 1 + energy * 0.18 : 1);
+        const sy = p.sy ?? 1;
+
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = fade;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.ellipse(p.x + stack, p.y, ringR * sx, ringR * sy, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (!lod && age > 0.28 && p.opacity < 0.62
+            && fract((p.seed ?? 0.5) * 9.17) > 0.45) {
+            ctx.globalAlpha = fade * 0.45;
+            ctx.lineWidth = Math.max(0.7, r * 0.035);
+            ctx.beginPath();
+            ctx.ellipse(
+                p.x + stack + (fract((p.seed ?? 0.5) * 12.9) - 0.5) * r * 0.35,
+                p.y,
+                ringR * 0.42 * sx,
+                ringR * 0.42 * sy,
+                p.angle ?? 0,
+                0,
+                Math.PI * 2
+            );
+            ctx.stroke();
+        }
+    }
+
+    const sparkStep = lod ? 3 : 1;
+    const sparkChance = energy > 0.08 ? 0.82 : 0.48;
+    for (let i = 0; i < m; i += sparkStep) {
+        const p = marks[i];
+        if (p.opacity < 0.16) continue;
+        const u = fract((p.seed ?? 0.5) * 12.9898 + i * 0.37);
+        if (u > sparkChance) continue;
+        const v = fract((p.seed ?? 0.5) * 78.233 + i * 0.19);
+        const w = fract((p.seed ?? 0.5) * 4.1414 + i * 0.11);
+        const leave = 1 - (p.along ?? 0.5);
+        const ang = (p.angle ?? 0) + (u - 0.5) * 1.8;
+        const dist = r * (0.12 + 0.7 * leave) * (0.6 + v) * (1 + energy * 0.9);
+        const size = r * (0.028 + 0.04 * leave) * (0.55 + w * 0.6) * (1 + energy * 0.5);
+        const rgb = bands[(i + ((w * bandN) | 0)) % bandN];
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.32 + 0.4 * leave + energy * 0.4);
+        const sparkX = p.x + Math.cos(ang) * dist;
+        const sparkY = p.y + Math.sin(ang) * dist * 0.85;
+        ctx.beginPath();
+        ctx.arc(sparkX, sparkY, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (!lod && w > 0.55) {
+            ctx.strokeStyle = `rgba(${rgb}, 1)`;
+            ctx.lineWidth = Math.max(0.6, r * 0.03);
+            ctx.globalAlpha *= 0.85;
+            const arm = size * 2.2;
+            ctx.beginPath();
+            ctx.moveTo(sparkX - arm, sparkY);
+            ctx.lineTo(sparkX + arm, sparkY);
+            ctx.moveTo(sparkX, sparkY - arm);
+            ctx.lineTo(sparkX, sparkY + arm);
+            ctx.stroke();
+        }
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Lyra wake — aurora strata along the path + twinkling star motes.
+ */
+export function drawLyraTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.9, bands = AURORA_RGB } = opts;
+    drawHorizonRibbonTrail(ctx, ship, trail, toScreenY, {
+        widthScale: 0.72,
+        alpha,
+        bands,
+    });
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+    const step = lod ? 3 : 1;
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.18) continue;
+        const u = fract((p.seed ?? 0.5) * 12.9898 + i * 0.41);
+        if (u > (energy > 0.08 ? 0.78 : 0.42)) continue;
+        const v = fract((p.seed ?? 0.5) * 78.233 + i * 0.17);
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.18 + 0.7 * leave) * (1 + energy * 0.7);
+        const size = r * (0.03 + 0.05 * leave) * (0.5 + v * 0.7);
+        const rgb = bands[i % bands.length];
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.4 + 0.4 * leave + energy * 0.3);
+        ctx.beginPath();
+        ctx.arc(p.x + nx * side, p.y + ny * side, size, 0, Math.PI * 2);
+        ctx.fill();
+        if (!lod && v > 0.55) {
+            const arm = size * 2.1;
+            ctx.strokeStyle = `rgba(${rgb}, 1)`;
+            ctx.lineWidth = Math.max(0.6, r * 0.028);
+            ctx.beginPath();
+            ctx.moveTo(p.x + nx * side - arm, p.y + ny * side);
+            ctx.lineTo(p.x + nx * side + arm, p.y + ny * side);
+            ctx.moveTo(p.x + nx * side, p.y + ny * side - arm);
+            ctx.lineTo(p.x + nx * side, p.y + ny * side + arm);
+            ctx.stroke();
+        }
+    }
+    ctx.restore();
+}
+
+/**
+ * Plume wake — twin flame ribbons + rising embers (hot near hull).
+ */
+export function drawPlumeTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.92,
+        emberRgb = color.emberRgb,
+        goldRgb = color.lanternGoldRgb,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const denom = Math.max(1, n - 1);
+    const lod = iosBudget(ship);
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    drawHorizonRibbonTrail(ctx, ship, trail, toScreenY, {
+        widthScale: 0.7,
+        alpha: alpha * 0.85,
+        bands: PLUME_RGB,
+    });
+
+    const offsets = lod ? [-0.38, 0.38] : [-0.42, 0.42];
+    for (let f = 0; f < offsets.length; f++) {
+        const fil = filamentOffset(pts, r, offsets[f], energy);
+        const widthAt = (i) => {
+            const t = i / denom;
+            return r * (0.04 + 0.1 * t) * fil[i].opacity * (1 + energy * 0.4 * t);
+        };
+        ribbonPath(ctx, fil, widthAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.38 + energy * 0.2);
+        ctx.fillStyle = `rgba(${f === 0 ? goldRgb : emberRgb}, 1)`;
+        ctx.fill();
+    }
+
+    const step = lod ? 2 : 1;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.14) continue;
+        const leave = 1 - i / denom;
+        const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.29);
+        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.13);
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.15 + 0.8 * leave) * (1 + energy * 0.8);
+        const size = r * (0.028 + 0.06 * leave) * (0.5 + v * 0.6) * (1 + energy * 0.45);
+        const rgb = leave > 0.55 ? goldRgb : emberRgb;
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.3 + 0.45 * leave);
+        ctx.beginPath();
+        ctx.arc(p.x + nx * side, p.y + ny * side, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+/**
+ * Koi wake — vermillion water ribbon + scale stamps.
+ */
+export function drawKoiTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.9, bands = KOI_RGB } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    const widthAt = (i) => {
+        const t = i / denom;
+        return r * (0.12 + 0.22 * t) * (0.5 + 0.5 * pts[i].opacity) * (1 + energy * 0.3 * t);
+    };
+    ribbonPath(ctx, pts, widthAt);
+    ctx.globalAlpha = baseAlpha * alpha * 0.42;
+    ctx.fillStyle = `rgba(${bands[0]}, 1)`;
+    ctx.fill();
+
+    const coreAt = (i) => r * (0.04 + 0.1 * (i / denom)) * pts[i].opacity;
+    ribbonPath(ctx, pts, coreAt);
+    ctx.globalAlpha = baseAlpha * alpha * 0.55;
+    ctx.fillStyle = `rgba(${bands[1]}, 1)`;
+    ctx.fill();
+
+    const marks = denseTrailMarks(ship, trail, toScreenY);
+    const step = lod ? 2 : 1;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < marks.length; i += step) {
+        const p = marks[i];
+        if (p.opacity < 0.2) continue;
+        const rgb = bands[i % bands.length];
+        const leave = 1 - (p.along ?? 0.5);
+        const rx = r * (0.08 + 0.1 * p.opacity) * (p.sx ?? 1);
+        const ry = rx * 0.62 * (p.sy ?? 1);
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.4 + 0.4 * leave + energy * 0.25);
+        ctx.lineWidth = Math.max(0.8, r * 0.045);
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, rx, ry, p.angle ?? 0, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
+/**
+ * Boreal wake — side-by-side aurora curtains that wave on boop.
+ */
+export function drawBorealTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.9, bands = AURORA_RGB } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+    const now = performance.now();
+    const bandN = lod ? 3 : bands.length;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    for (let b = 0; b < bandN; b++) {
+        const offset = ((b / Math.max(1, bandN - 1)) * 2 - 1) * 0.42;
+        const wave = Math.sin(now * 0.003 + b * 0.9) * 0.12 * (1 + energy * 1.4);
+        const fil = filamentOffset(pts, r, offset + wave, energy);
+        const widthAt = (i) => {
+            const t = i / denom;
+            return r * (0.04 + 0.11 * t) * fil[i].opacity * (1 + energy * 0.35 * t);
+        };
+        ribbonPath(ctx, fil, widthAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.4 + energy * 0.2);
+        ctx.fillStyle = `rgba(${bands[b % bands.length]}, 1)`;
+        ctx.fill();
+    }
+
+    const step = lod ? 3 : 1;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.16) continue;
+        const u = fract((p.seed ?? 0.5) * 9.17 + i * 0.21);
+        if (u > 0.55) continue;
+        const leave = 1 - i / denom;
+        const rgb = bands[i % bands.length];
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.28 + 0.4 * leave);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * (0.03 + 0.04 * leave), 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+/**
+ * Luna wake — iridescent wing-dust ribbons + dense glittering scales.
+ * Cloud boop puffs the dust like Lantern's plankton, but denser.
+ */
+export function drawLunaTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.92,
+        lavenderRgb = color.mothLavenderRgb,
+        goldRgb = color.lanternGoldRgb,
+        palettes = [lavenderRgb, '198, 192, 210', goldRgb],
+    } = opts;
+    drawLanternTrail(ctx, ship, trail, toScreenY, {
+        alpha,
+        palettes,
+        filamentRgb: [lavenderRgb, goldRgb, lavenderRgb],
+        densityScale: 1.7,
+    });
+
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+    const step = lod ? 3 : 1;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.16) continue;
+        const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.31);
+        if (u > (energy > 0.08 ? 0.85 : 0.48)) continue;
+        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.19);
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.25 + 0.95 * leave) * (1 + energy);
+        const size = r * (0.025 + 0.045 * leave) * (0.5 + v * 0.7);
+        const rgb = palettes[i % palettes.length];
+        const sparkX = p.x + nx * side;
+        const sparkY = p.y + ny * side;
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.35 + 0.4 * leave + energy * 0.3);
+        ctx.beginPath();
+        ctx.arc(sparkX, sparkY, size, 0, Math.PI * 2);
+        ctx.fill();
+        if (!lod && v > 0.5) {
+            const arm = size * 2.4;
+            ctx.strokeStyle = `rgba(${rgb}, 1)`;
+            ctx.lineWidth = Math.max(0.55, r * 0.025);
+            ctx.beginPath();
+            ctx.moveTo(sparkX - arm, sparkY);
+            ctx.lineTo(sparkX + arm, sparkY);
+            ctx.moveTo(sparkX, sparkY - arm);
+            ctx.lineTo(sparkX, sparkY + arm);
+            ctx.stroke();
+        }
+    }
+    ctx.restore();
+}
+
+/**
+ * Wish wake — gold comet blade + cascading 4-point stars + prism motes.
+ * Flare boop bursts the constellation.
+ */
+export function drawWishTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.94,
+        goldRgb = color.lanternGoldRgb,
+        coreRgb = '255, 248, 230',
+        bands = [goldRgb, coreRgb, '255, 140, 180', '120, 220, 190'],
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (!lod) {
+        const bloomAt = (i) => {
+            const t = i / denom;
+            return r * (0.1 + 0.22 * t) * (0.5 + 0.5 * pts[i].opacity) * (1 + energy * 0.45);
+        };
+        ribbonPath(ctx, pts, bloomAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.28 + energy * 0.22);
+        ctx.fillStyle = `rgba(${goldRgb}, 1)`;
+        ctx.fill();
+    }
+
+    const bodyAt = (i) => {
+        const t = i / denom;
+        return r * (0.045 + 0.12 * t) * pts[i].opacity * (1 + energy * 0.25 * t);
+    };
+    ribbonPath(ctx, pts, bodyAt);
+    ctx.globalAlpha = baseAlpha * alpha * (0.78 + energy * 0.16);
+    ctx.fillStyle = `rgba(${goldRgb}, 1)`;
+    ctx.fill();
+
+    const coreAt = (i) => {
+        const t = i / denom;
+        return r * (0.016 + 0.045 * t) * pts[i].opacity * (1 + energy * 0.2);
+    };
+    ribbonPath(ctx, pts, coreAt);
+    ctx.globalAlpha = baseAlpha * alpha * 0.92;
+    ctx.fillStyle = `rgba(${coreRgb}, 1)`;
+    ctx.fill();
+
+    const step = lod ? 2 : 1;
+    const starChance = energy > 0.08 ? 0.88 : 0.52;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.14) continue;
+        const u = fract((p.seed ?? 0.5) * 12.9898 + i * 0.37);
+        if (u > starChance) continue;
+        const v = fract((p.seed ?? 0.5) * 78.233 + i * 0.19);
+        const w = fract((p.seed ?? 0.5) * 4.1414 + i * 0.11);
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.15 + 0.85 * leave) * (1 + energy * 1.1);
+        const size = r * (0.035 + 0.055 * leave) * (0.55 + v * 0.6) * (1 + energy * 0.55);
+        const rgb = bands[(i + ((w * bands.length) | 0)) % bands.length];
+        const sx = p.x + nx * side;
+        const sy = p.y + ny * side;
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.38 + 0.4 * leave + energy * 0.4);
+        ctx.beginPath();
+        ctx.arc(sx, sy, size * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+        const arm = size * (w > 0.45 || energy > 0.1 ? 2.6 : 1.8);
+        ctx.lineWidth = Math.max(0.6, r * 0.03);
+        ctx.beginPath();
+        ctx.moveTo(sx - arm, sy);
+        ctx.lineTo(sx + arm, sy);
+        ctx.moveTo(sx, sy - arm);
+        ctx.lineTo(sx, sy + arm);
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function fillDiamond(ctx, x, y, size) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - size);
+    ctx.lineTo(x + size * 0.62, y);
+    ctx.lineTo(x, y + size);
+    ctx.lineTo(x - size * 0.62, y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+/**
+ * Darner wake — twin mosaic-scale ribbons + diamond specks (teal / gold / violet).
+ * Flare boop flashes the wings; specks densify near the hull.
+ */
+export function drawDarnerTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.9, bands = DARNER_RGB } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+    const bandN = bands.length;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const offsets = lod ? [-0.4, 0.4] : [-0.46, 0.46];
+    for (let f = 0; f < offsets.length; f++) {
+        const fil = filamentOffset(pts, r, offsets[f], energy);
+        const widthAt = (i) => {
+            const t = i / denom;
+            return r * (0.04 + 0.11 * t) * fil[i].opacity * (1 + energy * 0.45 * t);
+        };
+        ribbonPath(ctx, fil, widthAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.4 + energy * 0.22);
+        ctx.fillStyle = `rgba(${bands[f % bandN]}, 1)`;
+        ctx.fill();
+    }
+
+    const step = lod ? 3 : 1;
+    const speckChance = energy > 0.08 ? 0.9 : 0.55;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.14) continue;
+        const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.31);
+        if (u > speckChance) continue;
+        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.19);
+        const w = fract((p.seed ?? 0.5) * 4.14 + i * 0.11);
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.18 + 0.9 * leave) * (1 + energy * 1.05);
+        const size = r * (0.03 + 0.055 * leave) * (0.55 + v * 0.55) * (1 + energy * 0.5);
+        const rgb = bands[(i + ((w * bandN) | 0)) % bandN];
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.34 + 0.42 * leave + energy * 0.38);
+        fillDiamond(ctx, p.x + nx * side, p.y + ny * side, size);
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Puff wake — parachute umbrellas (tiny inverted-V + disc) drifting off the path.
+ * Cloud boop puffs the seeds like Lantern plankton.
+ */
+export function drawPuffTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.9,
+        goldRgb = color.lanternGoldRgb,
+        tealRgb = color.lanternTealRgb,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const widthAt = (i) => {
+        const t = i / denom;
+        return r * (0.03 + 0.08 * t) * pts[i].opacity * (1 + energy * 0.25 * t);
+    };
+    ribbonPath(ctx, pts, widthAt);
+    ctx.globalAlpha = baseAlpha * alpha * (0.22 + energy * 0.14);
+    ctx.fillStyle = `rgba(${goldRgb}, 1)`;
+    ctx.fill();
+
+    const step = lod ? 3 : 1;
+    const chance = energy > 0.08 ? 0.92 : 0.58;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.14) continue;
+        const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.29);
+        if (u > chance) continue;
+        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.17);
+        const w = fract((p.seed ?? 0.5) * 4.14 + i * 0.13);
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const drift = (u * 2 - 1) * r * (0.22 + 1.05 * leave) * (1 + energy * 1.15);
+        const along = (v * 2 - 1) * r * 0.22 * leave;
+        const sx = p.x + nx * drift + ny * along;
+        const sy = p.y + ny * drift - nx * along;
+        const size = r * (0.045 + 0.07 * leave) * (0.55 + w * 0.55) * (1 + energy * 0.5);
+        const rgb = w > 0.5 ? goldRgb : tealRgb;
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.32 + 0.4 * leave + energy * 0.35);
+        ctx.lineWidth = Math.max(0.6, r * 0.03);
+        ctx.beginPath();
+        ctx.moveTo(sx - size, sy + size * 0.15);
+        ctx.lineTo(sx, sy - size * 0.55);
+        ctx.lineTo(sx + size, sy + size * 0.15);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(sx, sy + size * 0.22, size * 0.32, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Argus wake — eyespot rings (teal rim, gold pupil) stamped along the path.
+ * Pile boop flares the fan.
+ */
+export function drawArgusTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.9,
+        rimRgb = ARGUS_TEAL_RGB,
+        pupilRgb = color.lanternGoldRgb,
+    } = opts;
+    const marks = denseTrailMarks(ship, trail, toScreenY);
+    const m = marks.length;
+    if (m < 2) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+
+    const step = lod ? 2 : 1;
+    for (let i = m - 1; i >= 0; i -= step) {
+        const p = marks[i];
+        if (p.opacity < 0.16) continue;
+        const leave = 1 - (p.along ?? 0.5);
+        const ringR = r * (0.1 + 0.22 * leave) * (p.scale ?? 1)
+            * (p.sx ?? 1) * (1 + energy * 0.35);
+        const fade = baseAlpha * alpha * p.opacity * (0.38 + 0.5 * leave + energy * 0.28);
+        ctx.strokeStyle = `rgba(${rimRgb}, 1)`;
+        ctx.globalAlpha = fade;
+        ctx.lineWidth = Math.max(0.8, r * (0.04 + 0.03 * p.opacity));
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, ringR, ringR * 0.78 * (p.sy ?? 1), p.angle ?? 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = `rgba(${pupilRgb}, 1)`;
+        ctx.globalAlpha = fade * 0.85;
+        ctx.beginPath();
+        ctx.ellipse(
+            p.x,
+            p.y,
+            ringR * 0.32,
+            ringR * 0.26 * (p.sy ?? 1),
+            p.angle ?? 0,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+
+        if (!lod && leave > 0.2) {
+            ctx.fillStyle = 'rgba(18, 22, 28, 1)';
+            ctx.globalAlpha = fade * 0.55;
+            ctx.beginPath();
+            ctx.ellipse(
+                p.x,
+                p.y,
+                ringR * 0.12,
+                ringR * 0.1 * (p.sy ?? 1),
+                p.angle ?? 0,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
+
+    ctx.restore();
+}
+
+/**
+ * Chime wake — expanding sound arcs + gold/ink note motes.
+ * Ripple boop sends a ring pulse down the wake.
+ */
+export function drawChimeTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.9,
+        goldRgb = color.lanternGoldRgb,
+        inkRgb = color.inkRgb,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const now = performance.now();
+    const energy = jellyEnergy(ship, now);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+    const t = ship.wallJelly
+        ? Math.max(0, Math.min(1, (now - ship.wallJelly.t0) / WALL_JELLY_MS))
+        : 1;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+
+    const arcStep = lod ? 3 : 1;
+    for (let i = 0; i < n; i += arcStep) {
+        const p = pts[i];
+        if (p.opacity < 0.16) continue;
+        const leave = 1 - i / denom;
+        const age = 1 - p.opacity;
+        const pulse = energy > 0 ? 1 + energy * 0.7 * Math.sin(Math.PI * t) * p.opacity : 1;
+        const arcR = r * (0.16 + age * 0.95) * pulse * (p.sx ?? 1);
+        const rgb = i % 2 === 0 ? goldRgb : inkRgb;
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.28 + 0.42 * leave + energy * 0.28);
+        ctx.lineWidth = Math.max(0.7, r * (0.035 + 0.02 * leave));
+        ctx.beginPath();
+        ctx.ellipse(
+            p.x,
+            p.y,
+            arcR,
+            arcR * 0.55 * (p.sy ?? 1),
+            p.angle ?? 0,
+            Math.PI * 0.15,
+            Math.PI * 0.85
+        );
+        ctx.stroke();
+    }
+
+    const noteStep = lod ? 3 : 1;
+    const noteChance = energy > 0.08 ? 0.86 : 0.5;
+    for (let i = 0; i < n; i += noteStep) {
+        const p = pts[i];
+        if (p.opacity < 0.14) continue;
+        const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.33);
+        if (u > noteChance) continue;
+        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.21);
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.16 + 0.8 * leave) * (1 + energy * 0.95);
+        const sx = p.x + nx * side;
+        const sy = p.y + ny * side;
+        const size = r * (0.032 + 0.05 * leave) * (0.55 + v * 0.5) * (1 + energy * 0.45);
+        const rgb = v > 0.45 ? goldRgb : inkRgb;
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.36 + 0.4 * leave + energy * 0.35);
+        ctx.beginPath();
+        ctx.arc(sx, sy + size * 0.35, size * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = Math.max(0.6, r * 0.028);
+        ctx.beginPath();
+        ctx.moveTo(sx + size * 0.4, sy + size * 0.35);
+        ctx.lineTo(sx + size * 0.4, sy - size * 1.35);
+        ctx.stroke();
     }
 
     ctx.restore();

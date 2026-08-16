@@ -216,7 +216,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). Spend on crash/fuel; Pro bypasses. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | Ship roster (Focus…Saber…Fletch…Nyan…Cinder) composed from hulls + trails + boop signatures. |
+| `ships/skinDefs.js` | Ship roster (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime) composed from hulls + trails + boop signatures. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
@@ -765,6 +765,20 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `ink` | Flicker tear | Fine dark ribbon | Tip/mid reverse on boop; hull end stays attached |
 | `flux` | Hex crystal (`hexPath`) | Alternating ink / Signal-Blue dashes | Dashes stretch then snap (`flick`) |
 | `cinder` | Soft petal (`petalPath`) | Calm ember ribbon + cool ash dots + ink hairline | Soft burst on boop (`cinder`); Signal glints |
+| `lantern` | Jellyfish bell (`bellPath`) + gold heart + live tentacles | Teal/gold filaments + plankton cloud, long wake | Isotropic `cloud` puff; medusa jelly; `skipHullCache` |
+| `bloom` | Overlapping soap films (`bloomPath`) + orbiting bubbles | Iridescent rings + prism motes, long wake | `pile` inflate/pop; swell jelly; `skipHullCache` |
+| `lyra` | 4-point star (`starPath`) + twinkles | Aurora strata + star motes | `flare`; orbital jelly; `skipHullCache` |
+| `sprout` | Seed oval (`seedPath`) + breathing leaves | Green/gold filaments + pollen (Lantern renderer) | `cloud` puff; unfurl jelly; `skipHullCache` |
+| `plume` | Firebird wings (`wingPath`) + flame core | Twin flame ribbons + rising embers | `cinder` burst; wing flare; `skipHullCache` |
+| `koi` | Fish body (`koiPath`) + waving tail | Vermillion ribbon + scale stamps | `whip` flick; S-curve jelly; `skipHullCache` |
+| `spore` | Mushroom cap (`capPath`) + gills + amber heart | Denser amber/violet spore cloud (Lantern cousin) | `cloud` puff; soft cap jelly; `skipHullCache` |
+| `boreal` | Flowing aurora ribbon (`curtainPath`) | Side-by-side waving aurora curtains | `spring`; shear wave; `skipHullCache` |
+| `luna` | Lunar moth (`mothPath`) + moon heart + antennae | Wing-dust ribbons + glittering scales | `cloud` puff; wing flutter; `skipHullCache` |
+| `wish` | Crystal comet (`wishPath`) + orbiting stars | Gold comet blade + cascading 4-point stars | `flare` burst; sparkle wobble; `skipHullCache` |
+| `darner` | Dragonfly needle (`darnerPath`) + iridescent wings + gold thorax | Twin mosaic ribbons + diamond specks (teal/gold/violet) | `flare`; wing-spread jelly; `skipHullCache` |
+| `puff` | Dandelion clock (`puffPath`) + radiating seed ticks | Parachute umbrellas (inverted-V + disc) | `cloud` puff; inflate jelly; `skipHullCache` |
+| `argus` | Peacock teardrop (`argusPath`) + pulsing eyespots | Teal-rim / gold-pupil eyespot stamps | `pile` fan flare; fan-spread jelly; `skipHullCache` |
+| `chime` | Temple bell (`chimePath`) + swaying side bells | Expanding sound arcs + gold/ink note motes | `ripple` ring pulse; Halo-like wobble; `skipHullCache` |
 
 Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circles
 filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
@@ -773,7 +787,7 @@ local scale / shear); the hitbox does not deform.
 
 **Jelly profiles** (optional 7th arg to `beginHullFrame` / `wallJellyDeform`):
 `default`, `needle`, `halo`, `shard`, `stamp`, `fold`, `spine`, `mote`, `orbit`,
-`flux`, `cinder`.
+`flux`, `cinder`, `lantern`, `bloom`, `lyra`, `sprout`, `plume`, `koi`, `spore`, `boreal`, `luna`, `wish`, `darner`, `puff`, `argus`, `chime`.
 
 Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 `hulls.js` shoves the wake at render time. Discrete marks also squash via
@@ -784,29 +798,40 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 
 | Mode | Ships |
 | --- | --- |
-| `pile` | Halo, Hatch / Ring |
+| `pile` | Halo, Hatch / Ring, Bloom, Argus |
 | `dense` | Pulse |
-| `ripple` | Focus, Ember, Mote, Dusk — hull-to-tail Gaussian (~560 ms); pop shrinks down the wake |
+| `ripple` | Focus, Ember, Mote, Dusk, Chime — hull-to-tail Gaussian (~560 ms); pop shrinks down the wake |
 | `blot` | Seal |
 | `scatter` | (unused; Ember moved to `ripple`) |
 | `shatter` | Shard |
 | `desync` | Echo |
-| `flare` | Wisp |
-| `spring` | Flicker, Quill, Nyan, Trace |
-| `whip` | Needle, Saber |
+| `flare` | Wisp, Lyra, Wish, Darner |
+| `spring` | Flicker, Quill, Nyan, Trace, Boreal |
+| `whip` | Needle, Saber, Koi |
 | `crease` | Fold |
-| `cloud` | (unused; Mote moved to `ripple`) |
+| `cloud` | Lantern, Sprout, Spore, Luna, Puff — isotropic puff |
 | `ladder` | Spine |
 | `lag` | Orbit |
 | `script` | Ink — calligraphic reverse/whip on mid+tip (hull locked); `reverseBoop` adds pressure pulse + tip flecks |
 | `flick` | Flux |
-| `cinder` | Cinder |
+| `cinder` | Cinder, Plume |
 
 Trail color accents: Signal Blue (`color.signalRgb`) on Pulse / Quill / Flux
 dashes / Cinder glints; warm Ember (`color.emberRgb`) on Cinder wakes only;
 bright purple Saber (`color.saberRgb` / `saberCoreRgb`) on the free **Saber**
 wake (`drawSaberTrail` — slim bloom + hot core + crackle sparks, denser on
-whip jelly); **Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe
+whip jelly); biolume teal/gold (`color.lanternTealRgb` / `lanternGoldRgb`,
+night-paper lifts in `theme.js`) on **Lantern** (`drawLanternTrail` — filaments
++ plankton, `cloud` puff); **Bloom** uses ship-local rose/mint/lavender/sky
+(`drawBloomTrail` — iridescent rings + prism motes, pile inflate/pop, not HUD);
+**Spore** / **Sprout** reuse `drawLanternTrail` with amber-violet / leaf-gold palettes
+(theme lifts in `theme.js`); **Lyra** / **Boreal** share ship-local aurora bands;
+**Plume** uses ember+gold flame strata; **Koi** vermillion scale stamps;
+**Darner** uses ship-local teal/gold/violet mosaic diamonds (`drawDarnerTrail`);
+**Puff** reuses lantern gold/teal for parachute umbrellas (`drawPuffTrail`);
+**Argus** stamps teal-rim / gold-pupil eyespots (`drawArgusTrail`, ship-local rim);
+**Chime** draws expanding gold/ink sound arcs + note motes (`drawChimeTrail`);
+**Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe
 bands, not HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in
 dark gray with two clipped pink spots (`CRESCENT_HITBOX`); `trailTailOffset: 0`
 so the rainbow starts at the hull centre (other skins default 0.6 radii aft).
@@ -815,13 +840,20 @@ along the path (dawn: indigo tip → persimmon hull) and `fletchPath` ogive arro
 (`trailTailOffset` 0.32 into the nock). Optional skin fields
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
 `1/360`; Quill / Fletch / Shard / Seal / Hatch / Trace / Fold / Spine / Mote / Pulse /
-Echo / Dusk / Ink / Cinder: 200 pts, fade `1/420` so the tip leaves the viewport).
+Echo / Dusk / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime: 200 pts, fade `1/420` so the tip leaves the viewport).
 Menu preview always uses the short sample wake so it never covers the title.
 iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
-Fold, Needle, Halo, Square, Mote, Spine, Orbit, Nyan, and Fletch have dedicated drawers.
+Fold, Needle, Halo, Square, Mote, Spine, Orbit, Nyan, Fletch, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, and Chime have dedicated drawers.
 **Orbit** hitbox is the solid oval body only (ring/satellite decorative).
+**Lantern** hitbox is the bell only (tentacles decorative). **Bloom** hitbox is
+the central soap disc (`r` 0.70; films / satellites decorative). **Sprout** is the
+seed only (leaves decorative). **Koi** is the body only (tail decorative).
+**Darner** is the needle body only (wings decorative). **Puff** is the seed head
+only (stem / ticks decorative). **Argus** is the body + inner fan (feather tips
+decorative). **Chime** is the central bell only (side bells / clappers decorative).
+Animated colour hulls set `skipHullCache` so live paint keeps moving on cheap Canvas.
 **Spine** is stacked circles down the bar only.
 
 - Registry: `ships/skins.js` (`getSkin`, `drawSkinPreview`, `loadShipSkinId` / `saveShipSkinId`).

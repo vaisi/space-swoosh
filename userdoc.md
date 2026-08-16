@@ -299,13 +299,35 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Ink** | Quill’s dark twin — a fine ink ribbon that flourishes hard on a wall boop (tip reverses, mid swells, a few flecks spray) while staying attached to the hull. |
 | **Flux** | Hex crystal; wake is alternating ink and Signal-Blue dashes that stretch on a wall hit. |
 | **Cinder** | Soft petal; a calm warm ember ribbon that cools into soft ash dots (blue glints mainly on a wall hit). |
+| **Lantern** | A jellyfish bell with a pulsing gold heart and waving tentacles. The wake is teal-and-gold filaments plus a cloud of plankton specks that puff out on a wall hit. Tentacles are looks only. |
+| **Bloom** | Overlapping soap-film spheres with tiny orbiting bubbles. The wake is iridescent rings and prism sparkles that inflate and pop on a wall hit. The little bubbles are looks only. |
+| **Lyra** | A four-point star with twinkling motes. The wake is aurora colour stacked along the path, plus tiny star sparkles. |
+| **Sprout** | A living seed with two breathing leaves. Green-and-gold filaments and pollen puff out on a wall hit. Leaves are looks only. |
+| **Plume** | A firebird with a gold flame heart. Twin flame ribbons and rising embers cool toward the old wake. |
+| **Koi** | A river-spirit fish with a waving tail. Vermillion water ribbon and scale stamps; the tail flicks on a wall hit. Tail is looks only. |
+| **Spore** | Lantern’s mushroom cousin — a wide cap, glowing gills, amber heart. A denser cloud of amber and violet spores puffs on a wall hit. |
+| **Boreal** | A flowing ribbon of northern light. Side-by-side aurora curtains wave, and the hull shears on a wall hit. |
+| **Luna** | A lunar moth with a moon heart and waving antennae. The wake is glittering wing-dust that puffs on a wall hit. Antennae and dust motes are looks only. |
+| **Wish** | A crystal comet with a gold wish-heart and three orbiting stars. The wake is a gold blade that sheds 4-point stars; a wall hit bursts the constellation. Orbiting stars are looks only. |
+| **Darner** | A slim dragonfly with iridescent wings and a gold thorax. Twin mosaic ribbons and diamond specks (teal, gold, violet); wings flash on a wall hit. Wings are looks only. |
+| **Puff** | A dandelion clock with a short stem and breathing seed ticks. Tiny parachute umbrellas drift off the path and puff on a wall hit. Stem and ticks are looks only. |
+| **Argus** | A peacock teardrop with a rear fan of pulsing eyespots. Teal-rim, gold-pupil rings stamp the path; the fan flares on a wall hit. Thin feather tips are looks only. |
+| **Chime** | A temple bell with two smaller side bells and swaying clappers. Expanding sound arcs and gold/ink notes ring down the wake. Side bells are looks only. |
 
-Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Ink, and
-Cinder leave a longer wake in play so the far end runs off the screen. The
+Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Ink,
+Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, and Chime leave a longer wake in play so the far end runs off the screen. The
 home-screen ship picture stays short so it does not cover the title.
 
 Seal, Hatch, Trace, and Ring collide as the box you see. **Orbit** collides on its solid
-planetoid body (the ring and satellite are looks only). On a side-wall bounce,
+planetoid body (the ring and satellite are looks only). **Lantern** collides on the
+bell (tentacles are looks only). **Bloom** collides on the central soap disc (orbiting
+bubbles are looks only). **Sprout** collides on the seed (leaves are looks only). **Koi**
+collides on the body (the tail is looks only). **Luna** collides on the inner moth
+(the dust motes are looks only). **Wish** collides on the crystal (orbiting stars
+are looks only). **Darner** collides on the needle body (wings are looks only).
+**Puff** collides on the seed head (stem and ticks are looks only). **Argus**
+collides on the body and inner fan (thin feather tips are looks only). **Chime**
+collides on the central bell (side bells and clappers are looks only). On a side-wall bounce,
 **every** ship reacts —
 animation only; the hitbox does not squash. Each vessel has its own feel: some
 squash like jelly, Needle flexes, Halo wobbles in a tiny orbit, Shard cracks,

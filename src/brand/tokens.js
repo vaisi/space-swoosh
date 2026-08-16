@@ -14,6 +14,9 @@
 //   light keeps cream paper, near-black ink, Signal Blue. Added `paperRgb`.
 // - Added `ember` / `emberRgb` — warm trail-only accent for special ship wakes
 //   (Cinder). Not a second UI accent.
+// - Added `lanternTeal` / `lanternGold` (+ rgb) — trail-only biolume for the
+//   Lantern ship. Never HUD / buttons.
+// - Added `mothLavender` — trail-only dust for Luna. Never HUD.
 // - Added `inkRgb` so canvas VFX (e.g. wall BOOP) can build rgba() strings
 //   the same way Signal Blue does via `signalRgb`.
 // - Created file: the canonical brand kit for the game, distilled from the
@@ -61,6 +64,28 @@ export const color = {
     ember:        '#A65D3F',
     emberSoft:    'rgba(166, 93, 63, 0.18)',
     emberRgb:     '166, 93, 63',
+
+    // Lantern — biolume teal / gold for the jellyfish wake (never HUD).
+    lanternTeal:    '#2E8B8A',
+    lanternTealSoft:'rgba(46, 139, 138, 0.20)',
+    lanternTealRgb: '46, 139, 138',
+    lanternGold:    '#E8B84A',
+    lanternGoldSoft:'rgba(232, 184, 74, 0.22)',
+    lanternGoldRgb: '232, 184, 74',
+
+    // Spore — amber / violet biolume for the mushroom wake (never HUD).
+    sporeAmber:     '#C47A3A',
+    sporeAmberRgb:  '196, 122, 58',
+    sporeViolet:    '#7A4E9E',
+    sporeVioletRgb: '122, 78, 158',
+
+    // Sprout — leaf green for the seed-ship wake (never HUD).
+    sproutGreen:    '#3E8B5A',
+    sproutGreenRgb: '62, 139, 90',
+
+    // Luna — moth-wing dust (trail / hull motes only; never HUD).
+    mothLavender:    '#8B6BB0',
+    mothLavenderRgb: '139, 107, 176',
 
     // Saber — bright purple lightsaber wake (Saber ship only; never HUD).
     saber:        '#A855FF',

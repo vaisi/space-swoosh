@@ -1,6 +1,9 @@
 <!--
   docs/IAP.md
   Changes:
+  - Added Darner (dragonfly), Puff (dandelion), Argus (peacock), Chime (temple bells).
+  - Added Luna (lunar moth) and Wish (constellation comet).
+  - Added Lantern (jellyfish bell + plankton) and Bloom (soap-film + prism motes).
   - Added Fletch (smooth arrow + length-wise dawn ribbon).
   - Added Dusk (Echo crescent + purple Mote cloud).
   - Expanded to all premium ships (everything except Focus / Flicker / Ember / Saber).
@@ -41,6 +44,20 @@ Type: **non-consumable** on both App Store Connect and Google Play Console.
 | Ink | `com.orbi.spaceswoosh.skin.ink` | `skin_ink` |
 | Flux | `com.orbi.spaceswoosh.skin.flux` | `skin_flux` |
 | Cinder | `com.orbi.spaceswoosh.skin.cinder` | `skin_cinder` |
+| Lantern | `com.orbi.spaceswoosh.skin.lantern` | `skin_lantern` |
+| Bloom | `com.orbi.spaceswoosh.skin.bloom` | `skin_bloom` |
+| Lyra | `com.orbi.spaceswoosh.skin.lyra` | `skin_lyra` |
+| Sprout | `com.orbi.spaceswoosh.skin.sprout` | `skin_sprout` |
+| Plume | `com.orbi.spaceswoosh.skin.plume` | `skin_plume` |
+| Koi | `com.orbi.spaceswoosh.skin.koi` | `skin_koi` |
+| Spore | `com.orbi.spaceswoosh.skin.spore` | `skin_spore` |
+| Boreal | `com.orbi.spaceswoosh.skin.boreal` | `skin_boreal` |
+| Luna | `com.orbi.spaceswoosh.skin.luna` | `skin_luna` |
+| Wish | `com.orbi.spaceswoosh.skin.wish` | `skin_wish` |
+| Darner | `com.orbi.spaceswoosh.skin.darner` | `skin_darner` |
+| Puff | `com.orbi.spaceswoosh.skin.puff` | `skin_puff` |
+| Argus | `com.orbi.spaceswoosh.skin.argus` | `skin_argus` |
+| Chime | `com.orbi.spaceswoosh.skin.chime` | `skin_chime` |
 
 Suggested price tier: the cheapest meaningful cosmetic tier in your market
 (e.g. $0.99 / €0.99) — tune per SKU later.
