@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Shield 4s; sparkle Signal halo; BOOP path wiggle (no width swell).
+  Changes: Sparkle signalDisc halo; Flicker ribbon tucks under the hull.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -21,8 +21,8 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash on the engine pool (synth fallback); baked boop/collect/portal/swoosh. Clear-flyout smash SFX throttled to 120 ms
 - HUD: Android mockup C (pause glyph + route / fuel / smash icon rows). Stagger: KM+fuel at 2s, pause at 3s, smash after first event
 - Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
-- Sparkles: 8-vertex 4-point star (`innerRatio` 0.4) at Android radius `1.15×` unit (sprite diameter `2r`); `glowSignal` halo diameter `3.8r` (`signalSoft` alpha)
-- Flicker wake: one continuous `SKShapeNode` ribbon; spring path wiggle on wall BOOP (flat width, no swell)
+- Sparkles: 8-vertex 4-point star (`innerRatio` 0.4) at Android radius `1.15×` unit (sprite diameter `2r`); filled `signalDisc` halo diameter `3.8r` (`signalSoft` alpha, not additive glow)
+- Flicker wake: one continuous `SKShapeNode` ribbon tucked under the hull center; smudge tapers at the join; spring path wiggle on wall BOOP
 - Drift / wind: 7 thin ink30 dashes, `baseUnit`-scaled period, scrolled by phase × direction
 - Cruise: Android snappy tick × **0.90** (`GameConfig.feelSpeed`)
 - Menu / pause / outcome: framed ink buttons, paper wash, two-bar **MISSION PAUSED**, Flicker-only home preview (no ship picker)
@@ -50,7 +50,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
-(Apple already has **1.0.0 (1)**). CI stamps **6+**.
+(Apple already has **1.0.0 (1)**). CI stamps **7+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

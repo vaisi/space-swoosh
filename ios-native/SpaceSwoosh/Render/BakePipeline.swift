@@ -1,5 +1,5 @@
 // BakePipeline.swift
-// Changes: Sparkle star fills the texture so sprite size == visual diameter.
+// Changes: Full-bleed signalDisc for the sparkle Signal-soft halo.
 
 import SpriteKit
 import UIKit
@@ -9,6 +9,7 @@ final class BakePipeline {
     let glowSignal: SKTexture
     let glowInk: SKTexture
     let sparkle: SKTexture
+    let signalDisc: SKTexture
     let ring: SKTexture
     let shieldRingInner: SKTexture
     let shieldRingOuter: SKTexture
@@ -31,6 +32,7 @@ final class BakePipeline {
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)
         sparkle = Self.sparkleStar(color: BrandColors.UI.signal, size: 64, fill: true)
+        signalDisc = Self.signalDisc(size: 96)
         ring = Self.ring(size: 96)
         shieldRingInner = Self.shieldRing(size: 128, strokeFrac: 0.067)
         shieldRingOuter = Self.shieldRing(size: 128, strokeFrac: 0.030)
@@ -147,6 +149,14 @@ final class BakePipeline {
                 cg.addPath(path)
                 cg.strokePath()
             }
+        }
+    }
+
+    /// Android `signalSoft` fill — full-bleed disc so sprite size == diameter.
+    private static func signalDisc(size: CGFloat) -> SKTexture {
+        rectImage(width: size, height: size) { cg, w, h in
+            cg.setFillColor(BrandColors.UI.signal.cgColor)
+            cg.fillEllipse(in: CGRect(x: 0, y: 0, width: w, height: h))
         }
     }
 

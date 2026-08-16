@@ -1,5 +1,5 @@
 // PooledSpriteField.swift
-// Changes: Sparkle + halo use Android radius (1.15× unit) as diameter 2r / 3.8r.
+// Changes: Sparkle halo is a filled signalDisc (alpha blend, signalSoft).
 
 import SpriteKit
 
@@ -166,8 +166,8 @@ final class PooledSpriteField: SKNode {
                 if let halo = rings.first {
                     let haloD = r * 1.9 * 2
                     halo.isHidden = false
-                    halo.texture = bake.glowSignal
-                    halo.blendMode = .add
+                    halo.texture = bake.signalDisc
+                    halo.blendMode = .alpha
                     halo.size = CGSize(width: haloD, height: haloD)
                     halo.alpha = BrandColors.UI.signalSoftAlpha
                     halo.position = .zero

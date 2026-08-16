@@ -1,5 +1,5 @@
 // RibbonTrailNode.swift
-// Changes: Flat Flicker ribbon width; BOOP is spring path wiggle only.
+// Changes: Trail smudge uses ink12 so the outer glow matches the hull halo.
 
 import SpriteKit
 
@@ -20,7 +20,7 @@ final class RibbonTrailNode: SKNode {
         var seed: CGFloat
     }
 
-    init(maxPoints: Int = GameConfig.Spacecraft.trailMaxPoints + 1) {
+    init(maxPoints: Int = GameConfig.Spacecraft.trailMaxPoints + 2) {
         self.maxPoints = max(maxPoints, 3)
         left = Array(repeating: .zero, count: self.maxPoints)
         right = Array(repeating: .zero, count: self.maxPoints)
@@ -76,10 +76,14 @@ final class RibbonTrailNode: SKNode {
             return maxWidth * pow(t, 0.6) * (0.45 + 0.55 * p.opacity)
         }
 
-        fillEdges(count: n, widthAt: { widthAt($0) * 2.2 })
+        fillEdges(count: n, widthAt: { i in
+            let t = CGFloat(i) / last
+            let bloom: CGFloat = t < 0.8 ? 2.2 : 2.2 - 1.2 * ((t - 0.8) / 0.2)
+            return widthAt(i) * bloom
+        })
         smudge.path = makeRibbonPath(count: n)
-        smudge.fillColor = BrandColors.UI.trail
-        smudge.alpha = 0.22
+        smudge.fillColor = BrandColors.UI.ink12
+        smudge.alpha = 1
         smudge.isHidden = false
 
         fillEdges(count: n, widthAt: widthAt)
@@ -98,7 +102,7 @@ final class RibbonTrailNode: SKNode {
         node.isHidden = true
     }
 
-    /// Oldest → newest, screen space. Appends a hull-locked live tail when ahead.
+    /// Oldest → newest, screen space. Live tail, then a hull-center tuck.
     @discardableResult
     private func collectWake(
         trail: TrailRingBuffer,
@@ -114,7 +118,7 @@ final class RibbonTrailNode: SKNode {
         }
         let jellyLive = jellyElapsedMs >= 0 && jellyElapsedMs < GameConfig.Flicker.wallJellyMs
         let jellyT = jellyLive ? jellyElapsedMs / GameConfig.Flicker.wallJellyMs : 0
-        let recorded = min(trail.count, maxPoints - 1)
+        let recorded = min(trail.count, maxPoints - 2)
         let denom = CGFloat(max(recorded - 1, 1))
 
         for i in 0..<recorded {
@@ -164,6 +168,10 @@ final class RibbonTrailNode: SKNode {
         }
         if ahead > 0.5, count < maxPoints {
             wake[count] = WakePoint(x: sx, y: sy, opacity: 1, seed: 0.5)
+            count += 1
+        }
+        if count < maxPoints {
+            wake[count] = WakePoint(x: ship.x, y: screenY(ship.y), opacity: 1, seed: 0.5)
             count += 1
         }
         return count
