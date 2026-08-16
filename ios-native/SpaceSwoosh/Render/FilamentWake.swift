@@ -1,5 +1,5 @@
 // FilamentWake.swift
-// Changes: Android drawLanternTrail — 3 reused filaments + plankton pool.
+// Changes: Palette factories live on Palette so SkinTrail type-context resolves.
 
 import SpriteKit
 
@@ -12,46 +12,46 @@ final class FilamentWake: SKNode, SkinTrail {
         var density: CGFloat
         var glitter: Bool
         var alpha: CGFloat
-    }
 
-    static func lantern() -> Palette {
-        Palette(
-            filaments: [BrandColors.UI.lanternTeal, BrandColors.UI.lanternGold, BrandColors.UI.lanternTeal],
-            plankton: [BrandColors.UI.lanternTeal, BrandColors.UI.lanternGold, BrandColors.UI.lanternCyan],
-            density: 1,
-            glitter: false,
-            alpha: 0.9
-        )
-    }
+        static func lantern() -> Palette {
+            Palette(
+                filaments: [BrandColors.UI.lanternTeal, BrandColors.UI.lanternGold, BrandColors.UI.lanternTeal],
+                plankton: [BrandColors.UI.lanternTeal, BrandColors.UI.lanternGold, BrandColors.UI.lanternCyan],
+                density: 1,
+                glitter: false,
+                alpha: 0.9
+            )
+        }
 
-    static func sprout() -> Palette {
-        Palette(
-            filaments: [BrandColors.UI.sproutGreen, BrandColors.UI.lanternGold, BrandColors.UI.sproutGreen],
-            plankton: [BrandColors.UI.sproutGreen, BrandColors.UI.lanternGold],
-            density: 1,
-            glitter: false,
-            alpha: 0.9
-        )
-    }
+        static func sprout() -> Palette {
+            Palette(
+                filaments: [BrandColors.UI.sproutGreen, BrandColors.UI.lanternGold, BrandColors.UI.sproutGreen],
+                plankton: [BrandColors.UI.sproutGreen, BrandColors.UI.lanternGold],
+                density: 1,
+                glitter: false,
+                alpha: 0.9
+            )
+        }
 
-    static func spore() -> Palette {
-        Palette(
-            filaments: [BrandColors.UI.sporeAmber, BrandColors.UI.sporeViolet, BrandColors.UI.sporeAmber],
-            plankton: [BrandColors.UI.sporeAmber, BrandColors.UI.sporeViolet, BrandColors.UI.sporeMint],
-            density: 1.45,
-            glitter: false,
-            alpha: 0.9
-        )
-    }
+        static func spore() -> Palette {
+            Palette(
+                filaments: [BrandColors.UI.sporeAmber, BrandColors.UI.sporeViolet, BrandColors.UI.sporeAmber],
+                plankton: [BrandColors.UI.sporeAmber, BrandColors.UI.sporeViolet, BrandColors.UI.sporeMint],
+                density: 1.45,
+                glitter: false,
+                alpha: 0.9
+            )
+        }
 
-    static func luna() -> Palette {
-        Palette(
-            filaments: [BrandColors.UI.mothLavender, BrandColors.UI.lanternGold, BrandColors.UI.mothLavender],
-            plankton: [BrandColors.UI.mothLavender, BrandColors.UI.lunaSilver, BrandColors.UI.lanternGold],
-            density: 1.7,
-            glitter: true,
-            alpha: 0.92
-        )
+        static func luna() -> Palette {
+            Palette(
+                filaments: [BrandColors.UI.mothLavender, BrandColors.UI.lanternGold, BrandColors.UI.mothLavender],
+                plankton: [BrandColors.UI.mothLavender, BrandColors.UI.lunaSilver, BrandColors.UI.lanternGold],
+                density: 1.7,
+                glitter: true,
+                alpha: 0.92
+            )
+        }
     }
 
     private let ribbons: [SKShapeNode]

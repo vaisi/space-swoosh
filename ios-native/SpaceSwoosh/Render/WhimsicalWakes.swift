@@ -1,5 +1,5 @@
 // WhimsicalWakes.swift
-// Changes: Dedicated Android wakes for Bloom…Chime (not ParticleWakeField).
+// Changes: Dedicated Android wakes for Bloom…Chime; Chime arc transform is let.
 
 import QuartzCore
 import SpriteKit
@@ -1024,7 +1024,7 @@ final class ChimeWake: SKNode, SkinTrail {
             let arcR = r * (0.16 + age * 0.95) * pulse * p.sx
             let rgb = i % 2 == 0 ? BrandColors.UI.lanternGold : BrandColors.UI.ink
             let path = CGMutablePath()
-            var tform = CGAffineTransform(scaleX: 1, y: 0.55 * p.sy)
+            let tform = CGAffineTransform(scaleX: 1, y: 0.55 * p.sy)
             path.addArc(center: .zero, radius: arcR, startAngle: .pi * 0.15, endAngle: .pi * 0.85, clockwise: false, transform: tform)
             let node = arcs[ai]
             node.position = CGPoint(x: p.x, y: p.y)
