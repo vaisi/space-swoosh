@@ -1,5 +1,5 @@
 // GameConfig.swift
-// Changes: Slice D — Flicker trail/hit/jelly/boop numbers from game-constants.json.
+// Changes: bankSmoothing 0.34 — Android hull lean ease (path stays instant).
 
 import Foundation
 import CoreGraphics
@@ -29,6 +29,8 @@ enum GameConfig {
         static let trailSpacing: CGFloat = 10
         static let maxBank: CGFloat = 0.96
         static let tailOffset: CGFloat = 0.6
+        /// JS `BANK_SMOOTHING` — lean eases by elapsed time, not a snap.
+        static let bankSmoothing: CGFloat = 0.34
     }
 
     enum Flicker {

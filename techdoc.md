@@ -1002,7 +1002,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Brand/` | `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; synth boop/turn/collect/crash/shield/portal/swoosh; file BGM/voice if `Voice/` has MP3s; engine recover after interruptions |
 | `SpaceSwoosh/Core/` | `GameConfig` (Flicker + fuel + stress caps), fixed-step clock, pacing HUD |
-| `SpaceSwoosh/Sim/` | `WorldState`, zigzag ship, `ShipHitbox`, jelly, `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
+| `SpaceSwoosh/Sim/` | `WorldState` (no bank lerp through 0 on flip), zigzag path instant + `bankSmoothing` 0.34, `ShipHitbox`, jelly, `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | Flicker hull bake, continuous ribbon (`RibbonTrailNode` two reused `SKShapeNode`s), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
@@ -1014,7 +1014,9 @@ Android `ribbonPath` / `traceSmooth`, with a hull-locked live tail. Sim at
 1/60 with interpolated presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
 Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
-`0.028 * dt * 60` like `WallBoopManager`. Do not retune input or
+`0.028 * dt * 60` like `WallBoopManager`. Zigzag lean eases like Android
+`BANK_SMOOTHING`; hull stretch uses `|tangent|` so a tap does not shrink
+the tear. `playTurn` is synth-only. Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Slice D: Flicker tear + `TEAR_HITBOX`, Arc/zigzag, overlap spawn, cluster
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,

@@ -1,5 +1,5 @@
 // ShipSimulator.swift
-// Changes: let for unmutated y (Xcode 26 warning).
+// Changes: Zigzag path snaps; bank eases with Android BANK_SMOOTHING (no tap hop).
 
 import Foundation
 import CoreGraphics
@@ -52,7 +52,7 @@ struct ShipSimulator {
         world.ship.x = x
         world.ship.y = y
         world.ship.tangent = world.ship.zigzagSign * rad
-        world.ship.bank = world.ship.tangent
+        easeBank(world: &world, target: world.ship.tangent, dt: dt)
         world.ship.distance += cos(rad) * dist
         world.ship.verticalVel = speed * cos(rad)
     }
@@ -118,6 +118,19 @@ struct ShipSimulator {
         let target = max(-GameConfig.Spacecraft.maxBank, min(GameConfig.Spacecraft.maxBank, world.ship.tangent))
         world.ship.bank += (target - world.ship.bank) * 0.28
         world.ship.distance += max(0, vy)
+    }
+
+    /// Hull lean only. Path / tangent stay instant.
+    private func easeBank(world: inout WorldState, target: CGFloat, dt: CGFloat) {
+        let keep = pow(1 - GameConfig.Spacecraft.bankSmoothing, dt * 60)
+        world.ship.bank += Self.wrapAngle(target - world.ship.bank) * (1 - keep)
+    }
+
+    private static func wrapAngle(_ angle: CGFloat) -> CGFloat {
+        var x = angle
+        while x > .pi { x -= 2 * .pi }
+        while x < -.pi { x += 2 * .pi }
+        return x
     }
 
     private func beginArc(

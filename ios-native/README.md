@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: TestFlight audio uses .playback (Silent switch no longer mutes SFX).
+  Changes: Zigzag tap hop — ease bank, stretch from tangent, synth-only turn.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -22,6 +22,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - HUD: after intro, KM + fuel fade at 2s, pause at 3s; smash/PTS after first event
 - Flicker wake: one continuous `SKShapeNode` ribbon (Android `ribbonPath`), spring jelly, hull-locked live tail
 - Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick
+- Zigzag path flips instantly; hull lean eases (`bankSmoothing` 0.34). Stretch follows `|tangent|` so an isolated tap does not drop the corridor 1–2px. Turn SFX is synth-only (no `AVAudioPlayer` hitch).
 
 Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`). That folder is **empty in git** (`.gitkeep` only) — BGM and NAV voice stay silent until those MP3s are added. Gameplay SFX (boop, turn, collect, portal, swoosh, crash, shield) are synthesized and do **not** need files.
 

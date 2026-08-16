@@ -1,5 +1,5 @@
 // SfxPlayer.swift
-// Changes: .playback session; restart a dead engine; synth crash/shield if MP3s missing.
+// Changes: playTurn always uses the synth buffer — no AVAudioPlayer hitch on tap.
 
 import AVFoundation
 import Foundation
@@ -24,7 +24,6 @@ final class SfxPlayer {
     private let crashCue = FileCue(name: "crash", volume: 0.40)
     private let shieldCrashCue = FileCue(name: "crash_with_shield", volume: 0.40)
     private let shieldCue = FileCue(name: "shield", volume: 0.40)
-    private let turnCue = FileCue(name: "turn", volume: 0.30)
 
     private init() {
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
@@ -76,11 +75,7 @@ final class SfxPlayer {
     }
 
     func playTurn() {
-        if turnCue.available {
-            turnCue.play(muted: muted)
-        } else {
-            play(turnSynth)
-        }
+        play(turnSynth)
     }
 
     func playCrash() {

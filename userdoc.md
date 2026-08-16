@@ -331,10 +331,12 @@ backing out to the menu.
 | Steer (Arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
 | Pause | Escape or the pause button (top-right). In Arc, Space also pauses. | Pause button (top-right) |
 
-In Arc, each bank is a smooth swoosh that curves out and back to the same lane
-you started from, then you fly straight again. Press mid-turn and a full new arc
-starts from where you are — left and right feel the same. Turn taps play a short
-cue without hitching the flight. You also bounce off the side walls (with a
+In Zigzag the path flips as soon as you tap; the hull leans over instead of
+popping upright for a frame (that used to look like a 1–2px camera hop on
+iPhone). In Arc, each bank is a smooth swoosh that curves out and back to the
+same lane you started from, then you fly straight again. Press mid-turn and a
+full new arc starts from where you are — left and right feel the same. Turn
+taps play a short cue without hitching the flight. You also bounce off the side walls (with a
 **BOOP**), so plan your turns a little ahead.
 
 ## Pausing and quitting

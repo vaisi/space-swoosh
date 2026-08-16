@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: Continuous Flicker ribbon — pass interpolated ship for hull-locked tail.
+// Changes: Hull stretch from |tangent| so a tap lean does not shrink the tear.
 
 import SpriteKit
 import QuartzCore
@@ -265,7 +265,7 @@ final class PlayScene: SKScene {
         let breath = 0.9 + 0.06 * sin(nowMs * 0.0056) + 0.04 * sin(nowMs * 0.0088)
         let scale = 0.97 + 0.03 * sin(nowMs * 0.0044)
         let r = radius * 0.95 * scale
-        let turn = min(1, abs(ship.bank) / GameConfig.Spacecraft.maxBank)
+        let turn = min(1, abs(ship.tangent) / GameConfig.Spacecraft.maxBank)
         let stretch = 1 + 0.2 * turn
         let jelly = WallJelly.hullScale(elapsedMs: world.jellyElapsedMs, side: world.jellySide)
         let pad = r * GameConfig.Flicker.hullDrawPad

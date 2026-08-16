@@ -1,5 +1,5 @@
 // WorldState.swift
-// Changes: wallBoopSide is a one-shot latch; CombatSimulator clears it after emit.
+// Changes: Do not lerp bank/tangent through 0 on a zigzag flip frame.
 
 import Foundation
 import CoreGraphics
@@ -75,11 +75,12 @@ struct WorldState {
 
 enum WorldInterpolator {
     static func ship(_ a: ShipState, _ b: ShipState, alpha: CGFloat) -> ShipState {
-        ShipState(
+        let flipped = a.zigzagSign != b.zigzagSign || a.bank * b.bank < 0
+        return ShipState(
             x: a.x + (b.x - a.x) * alpha,
             y: a.y + (b.y - a.y) * alpha,
-            tangent: a.tangent + (b.tangent - a.tangent) * alpha,
-            bank: a.bank + (b.bank - a.bank) * alpha,
+            tangent: flipped ? b.tangent : a.tangent + (b.tangent - a.tangent) * alpha,
+            bank: flipped ? b.bank : a.bank + (b.bank - a.bank) * alpha,
             zigzagSign: b.zigzagSign,
             distance: a.distance + (b.distance - a.distance) * alpha,
             arcActive: b.arcActive,
