@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Mockup C HUD + brand pause / outcome chrome.
+// Changes: Brand type on pause/outcome; SPACE BOARD overlays Open Space game over.
 
 import SwiftUI
 import SpriteKit
@@ -15,6 +15,7 @@ struct PlayContainerView: View {
     @StateObject private var session = GameSession()
     @State private var scene = PlayScene(size: CGSize(width: 390, height: 844))
     @State private var paused = false
+    @State private var showHighScores = false
     @State private var currentLaunch: PlayLaunch
 
     init(launch: PlayLaunch, onMenu: @escaping () -> Void, onMap: @escaping () -> Void) {
@@ -94,6 +95,11 @@ struct PlayContainerView: View {
                             .opacity(Double(session.overlayAlpha))
                     }
                 }
+
+                if showHighScores {
+                    HighScoresView(onBack: { showHighScores = false })
+                        .padding(.top, geo.safeAreaInsets.top)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
@@ -102,8 +108,8 @@ struct PlayContainerView: View {
                 scene.size = geo.size
                 scene.pacingMonitor = pacing
                 scene.session = session
-                SfxPlayer.shared.muted = settings.muted
-                MusicPlayer.shared.muted = settings.muted
+                SfxPlayer.shared.muted = settings.muted || !settings.sfxEnabled
+                MusicPlayer.shared.muted = settings.muted || !settings.musicEnabled
                 VoicePlayer.shared.enabled = settings.voiceEnabled && !settings.muted
                 scene.startRun(currentLaunch)
             }
@@ -157,7 +163,8 @@ struct PlayContainerView: View {
                 }
                 .padding(.horizontal, 28)
                 Text("EXIT ENDS THE RUN — NOTHING IS SAVED")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .font(BrandType.label(10))
+                    .tracking(BrandType.labelTracking(10))
                     .foregroundStyle(BrandColors.ink.opacity(0.30))
                     .padding(.bottom, 28)
             }
@@ -169,29 +176,30 @@ struct PlayContainerView: View {
             VStack(spacing: 16) {
                 Spacer()
                 Text(session.failTitle)
-                    .font(.system(size: 26, weight: .bold))
+                    .font(BrandType.display(26))
+                    .tracking(BrandType.displayTracking(26))
                     .foregroundStyle(BrandColors.ink)
-                    .tracking(1.2)
                 Text(session.failDetail)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(BrandType.body(14))
                     .foregroundStyle(BrandColors.ink55)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 28)
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(session.scoreKm)")
-                        .font(.system(size: 40, weight: .bold, design: .monospaced))
+                        .font(BrandType.mono(40))
                     Text("KM")
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .font(BrandType.label(12))
+                        .tracking(BrandType.labelTracking(12))
                         .foregroundStyle(BrandColors.ink55)
                 }
                 .foregroundStyle(BrandColors.ink)
                 if session.isNewBest {
                     Text("NEW BEST  \(session.personalBest) KM")
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .font(BrandType.mono(12))
                         .foregroundStyle(BrandColors.signal)
                 } else if session.personalBest > 0 {
                     Text("BEST  \(session.personalBest) KM")
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .font(BrandType.mono(12, bold: false))
                         .foregroundStyle(BrandColors.ink55)
                 }
                 ShellChrome.divider()
@@ -205,10 +213,13 @@ struct PlayContainerView: View {
                 }
                 .padding(.horizontal, 28)
                 VStack(spacing: 12) {
-                    ShellChrome.brandButton("Play Again", tag: "▶", primary: true) {
+                    ShellChrome.brandButton("Play Again", tag: "↺", primary: true) {
                         replay(currentLaunch)
                     }
-                    ShellChrome.ghostButton("Menu", action: onMenu)
+                    ShellChrome.brandButton("High Scores", tag: "#") {
+                        showHighScores = true
+                    }
+                    ShellChrome.brandButton("Menu", tag: "⌂", action: onMenu)
                 }
                 .padding(.horizontal, 28)
                 .padding(.bottom, 36)
@@ -221,11 +232,11 @@ struct PlayContainerView: View {
             VStack(spacing: 14) {
                 Spacer()
                 Text(outcome.title)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(BrandType.display(24))
+                    .tracking(BrandType.displayTracking(24))
                     .foregroundStyle(BrandColors.ink)
-                    .tracking(1.2)
                 Text(outcome.flavor)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(BrandType.body(14))
                     .foregroundStyle(BrandColors.ink55)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 28)
@@ -238,15 +249,17 @@ struct PlayContainerView: View {
                             )
                             .frame(width: 16, height: 16)
                         Text(outcome.labels[i].uppercased())
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .font(BrandType.label(11))
+                            .tracking(BrandType.labelTracking(11))
                         Spacer()
                         if i < outcome.values.count {
                             Text(outcome.values[i])
-                                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                .font(BrandType.mono(12))
                         }
                         if i < outcome.newStars.count, outcome.newStars[i] {
                             Text("NEW")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .font(BrandType.label(10))
+                                .tracking(BrandType.labelTracking(10))
                                 .foregroundStyle(BrandColors.signal)
                         }
                     }

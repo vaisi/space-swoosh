@@ -1,5 +1,5 @@
 // JourneyProgress.swift
-// Changes: Slice E — local journeyProgress + loreSeen, cumulative stars.
+// Changes: UNLOCK_ALL_LEVELS playtest flag (map tiles only; saved unlocked stays).
 
 import Foundation
 import Combine
@@ -19,6 +19,8 @@ struct JourneySnapshot: Equatable {
 enum JourneyProgress {
     static let storageKey = "journeyProgress"
     private static let version = 1
+    /// Playtest unlock — true so the Journey map can fly every level. Flip false for store.
+    static let UNLOCK_ALL_LEVELS = true
 
     static func empty() -> JourneySnapshot {
         JourneySnapshot(version: version, unlocked: 1, loreSeen: false, levels: [:])
@@ -73,7 +75,8 @@ enum JourneyProgress {
     }
 
     static func isUnlocked(_ snapshot: JourneySnapshot, level: Int) -> Bool {
-        level <= snapshot.unlocked
+        if UNLOCK_ALL_LEVELS { return true }
+        return level <= snapshot.unlocked
     }
 
     static func nextPlayable(_ snapshot: JourneySnapshot) -> Int {

@@ -1,5 +1,5 @@
 // RootView.swift
-// Changes: Home ship tag uses equipped roster name (full 41 hangar).
+// Changes: Android menu map — 4 home buttons, nested Options, PLAY cards, SPACE BOARD.
 
 import SwiftUI
 
@@ -7,7 +7,10 @@ enum ShellScreen {
     case menu
     case modeSelect
     case options
+    case optionsControls
+    case optionsSound
     case shipPicker
+    case highScores
     case lore
     case journeyMap
     case logbook
@@ -19,6 +22,7 @@ struct RootView: View {
     @ObservedObject private var journey = JourneyStore.shared
     @State private var screen: ShellScreen = .menu
     @State private var launch: PlayLaunch = .openSpace
+    @State private var logbookReturn: ShellScreen = .menu
     @State private var menuFlavor = CopyBank.pick(.menu)
     @State private var journeyBlurb = CopyBank.pick(.modeJourney)
     @State private var openBlurb = CopyBank.pick(.modeOpenWorld)
@@ -34,8 +38,14 @@ struct RootView: View {
                 modeSelect
             case .options:
                 options
+            case .optionsControls:
+                optionsControls
+            case .optionsSound:
+                optionsSound
             case .shipPicker:
                 ShipPickerView(onBack: { screen = .options })
+            case .highScores:
+                HighScoresView(onBack: { screen = .menu })
             case .lore:
                 LoreView(
                     onBack: { screen = .modeSelect },
@@ -44,14 +54,17 @@ struct RootView: View {
             case .journeyMap:
                 JourneyMapView(
                     onBack: { screen = .modeSelect },
-                    onLogbook: { screen = .logbook },
+                    onLogbook: {
+                        logbookReturn = .journeyMap
+                        screen = .logbook
+                    },
                     onPlay: { next in
                         launch = next
                         screen = .play
                     }
                 )
             case .logbook:
-                LogbookView(onBack: { screen = .journeyMap })
+                LogbookView(onBack: { screen = logbookReturn })
             case .play:
                 PlayContainerView(
                     launch: launch,
@@ -69,14 +82,14 @@ struct RootView: View {
     }
 
     private var menu: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 14) {
             Spacer()
             Text("SPACE SWOOSH")
-                .font(.system(size: 38, weight: .bold))
+                .font(BrandType.display(38))
+                .tracking(BrandType.displayTracking(38))
                 .foregroundStyle(BrandColors.ink)
-                .tracking(2.4)
             Text(menuFlavor)
-                .font(.system(size: 15, weight: .medium))
+                .font(BrandType.body(15))
                 .foregroundStyle(BrandColors.ink55)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 36)
@@ -89,91 +102,59 @@ struct RootView: View {
                     openBlurb = CopyBank.pick(.modeOpenWorld)
                     screen = .modeSelect
                 }
+                ShellChrome.brandButton("Space Log", tag: "□") {
+                    logbookReturn = .menu
+                    screen = .logbook
+                }
                 ShellChrome.brandButton("Options", tag: "⚙") { screen = .options }
+                ShellChrome.brandButton("High Scores", tag: "#") { screen = .highScores }
             }
             .padding(.horizontal, 24)
-            .padding(.bottom, 36)
+            .padding(.bottom, 28)
         }
     }
 
     private var modeSelect: some View {
         VStack(alignment: .leading, spacing: 16) {
-            ShellChrome.header("SELECT", back: { screen = .menu })
+            ShellChrome.header("PLAY", back: { screen = .menu })
             modeCard(
-                title: "OPEN SPACE",
-                blurb: openBlurb,
-                locked: false,
-                footer: pbLine
-            ) {
-                launch = .openSpace
-                screen = .play
-            }
-            modeCard(
-                title: "JOURNEY",
+                title: "Journey",
                 blurb: journeyBlurb,
-                locked: false,
+                tag: "RECOMMENDED",
+                signal: true,
                 footer: journeyFooter
             ) {
                 screen = journey.snapshot.loreSeen ? .journeyMap : .lore
             }
             modeCard(
-                title: "HAZARD LAB",
-                blurb: "Practice the rare set-pieces.",
-                locked: false,
-                footer: "Always unlocked · nothing counts"
+                title: "Open Space",
+                blurb: openBlurb,
+                tag: "ENDLESS",
+                signal: false,
+                footer: pbLine
             ) {
-                launch = .hazardLab
+                launch = .openSpace
                 screen = .play
             }
             Spacer()
+            ShellChrome.footnote("SAME SHIP. SAME CONTROLS.")
+                .padding(.bottom, 20)
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
     }
 
-    private var shipTag: String {
-        let name = SkinCatalog.def(settings.shipSkinId).name
-        return String(name.prefix(3)).uppercased()
-    }
-
-    private var pbLine: String {
-        let zig = OpenWorldProgress.best(for: .zigzag)
-        let arc = OpenWorldProgress.best(for: .arc)
-        var parts: [String] = []
-        if zig > 0 { parts.append("Zigzag \(zig) KM") }
-        if arc > 0 { parts.append("Arc \(arc) KM") }
-        return parts.isEmpty ? "No personal best yet" : parts.joined(separator: "  ·  ")
-    }
-
-    private var journeyFooter: String {
-        let stars = JourneyProgress.totalStars(journey.snapshot)
-        let next = JourneyProgress.nextPlayable(journey.snapshot)
-        return "\(stars) / \(JourneyConfig.totalStars)  ·  Level \(next)"
-    }
-
     private var options: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             ShellChrome.header("OPTIONS", back: { screen = .menu })
-            Text("Vessel. Controls. Signal.")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(BrandColors.ink55)
-                .frame(maxWidth: .infinity)
-            ShellChrome.brandButton("Ship", tag: shipTag) {
-                screen = .shipPicker
-            }
+            ShellChrome.screenBlurb("Vessel. Controls. Signal.")
+            ShellChrome.brandButton("Ship", tag: "●") { screen = .shipPicker }
+            ShellChrome.brandButton("Controls", tag: "↔") { screen = .optionsControls }
+            ShellChrome.brandButton("Sound", tag: "♪") { screen = .optionsSound }
             ShellChrome.brandButton(
-                "Flight",
-                tag: settings.flightStyle == .zigzag ? "ZIG" : "ARC"
+                settings.isDark ? "Dark Mode" : "Light Mode",
+                tag: "◐"
             ) {
-                settings.setFlightStyle(settings.flightStyle == .zigzag ? .arc : .zigzag)
-            }
-            ShellChrome.brandButton("Sound", tag: settings.muted ? "OFF" : "ON") {
-                settings.toggleMute()
-            }
-            ShellChrome.brandButton("Voice", tag: settings.voiceEnabled ? "ON" : "OFF") {
-                settings.toggleVoice()
-            }
-            ShellChrome.brandButton("Theme", tag: settings.isDark ? "NIGHT" : "PAPER") {
                 settings.toggleTheme()
             }
             Spacer()
@@ -182,38 +163,114 @@ struct RootView: View {
         .padding(.top, 20)
     }
 
+    private var optionsControls: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ShellChrome.header("CONTROLS", back: { screen = .options })
+            ShellChrome.screenBlurb("How the ship steers.")
+            ShellChrome.brandButton(
+                "Zigzag",
+                tag: settings.flightStyle == .zigzag ? "ON" : nil,
+                primary: settings.flightStyle == .zigzag
+            ) {
+                settings.setFlightStyle(.zigzag)
+            }
+            ShellChrome.footnote("TAP OR SPACE · STRAIGHT ±52°")
+            ShellChrome.brandButton(
+                "Arc",
+                tag: settings.flightStyle == .arc ? "ON" : nil,
+                primary: settings.flightStyle == .arc
+            ) {
+                settings.setFlightStyle(.arc)
+            }
+            ShellChrome.footnote("CLASSIC SWOOSH ARCS")
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 20)
+    }
+
+    private var optionsSound: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ShellChrome.header("SOUND", back: { screen = .options })
+            ShellChrome.screenBlurb("Isolate each channel.")
+            ShellChrome.brandButton(
+                "Music",
+                tag: settings.musicEnabled ? "ON" : "OFF",
+                primary: settings.musicEnabled
+            ) {
+                settings.toggleMusic()
+            }
+            ShellChrome.brandButton(
+                "Sound FX",
+                tag: settings.sfxEnabled ? "ON" : "OFF",
+                primary: settings.sfxEnabled
+            ) {
+                settings.toggleSfx()
+            }
+            ShellChrome.brandButton(
+                "Voice",
+                tag: settings.voiceEnabled ? "ON" : "OFF",
+                primary: settings.voiceEnabled
+            ) {
+                settings.toggleVoice()
+            }
+            ShellChrome.footnote("SAVED AUTOMATICALLY")
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 20)
+    }
+
+    private var pbLine: String? {
+        let zig = OpenWorldProgress.best(for: .zigzag)
+        let arc = OpenWorldProgress.best(for: .arc)
+        if zig > 0, arc > 0 { return "Zigzag: \(zig) KM · Arc: \(arc) KM" }
+        if zig > 0 { return "Personal best: \(zig) KM" }
+        if arc > 0 { return "Personal best: \(arc) KM" }
+        return nil
+    }
+
+    private var journeyFooter: String {
+        let stars = JourneyProgress.totalStars(journey.snapshot)
+        let next = JourneyProgress.nextPlayable(journey.snapshot)
+        return "LEVEL \(next)  ·  \(stars) / \(JourneyConfig.totalStars) STARS"
+    }
+
     private func modeCard(
         title: String,
         blurb: String,
-        locked: Bool,
-        footer: String,
+        tag: String,
+        signal: Bool,
+        footer: String?,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            ShellChrome.framedTile {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(title)
-                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+            ShellChrome.framedTile(signal: signal) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(title.uppercased())
+                            .font(BrandType.ui(16))
+                            .tracking(BrandType.uiTracking(16))
                         Spacer()
-                        if locked {
-                            Text("LOCKED")
-                                .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        }
+                        Text(tag)
+                            .font(BrandType.label(10))
+                            .tracking(BrandType.labelTracking(10))
+                            .foregroundStyle(signal ? BrandColors.signal : BrandColors.ink55)
                     }
                     Text(blurb)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(BrandType.body(14))
                         .foregroundStyle(BrandColors.ink55)
                         .multilineTextAlignment(.leading)
-                    Text(footer)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(BrandColors.ink80)
+                    if let footer {
+                        Text(footer.uppercased())
+                            .font(BrandType.label(10))
+                            .tracking(BrandType.labelTracking(10))
+                            .foregroundStyle(BrandColors.ink.opacity(0.30))
+                    }
                 }
                 .foregroundStyle(BrandColors.ink)
             }
-            .opacity(locked ? 0.55 : 1)
         }
         .buttonStyle(.plain)
-        .disabled(locked)
     }
 }

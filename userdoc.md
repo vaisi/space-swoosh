@@ -10,9 +10,13 @@
 > personal bests stay on your device.
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
-> app. TestFlight now includes **Open Space**, the **40-level Journey**, and
-> **Hazard Lab** with the **full hangar** (41 ships). Cycle them on the home
-> screen (◀ / ▶) or pick one under Options → Ship; your choice is saved. The
+> app. TestFlight menus use the same paper/ink framed chrome as Android (Space
+> Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
+> Options is a hub (Ship, Controls, Sound, Light/Dark Mode). Play offers Journey
+> then Open Space; Hazard Lab is the **LAB** tile on the Journey map. High Scores
+> is a local SPACE BOARD (your best KM / smash count per Zigzag or Arc) until the
+> online board is wired. Cycle ships on the home screen (◀ / ▶) or pick one under
+> Options → Ship; your choice is saved. The
 > whimsical ships (Lantern through Chime) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s satellite, and
 > **Nyan**’s gray crescent with pink spots match Android in play (hangar cards
@@ -21,7 +25,8 @@
 > under the hull — chevrons, rings, stamps, dashes, and the rest of the
 > family, not a column of dots. The
 > four free ships are **Focus**, **Flicker**, **Ember**, and **Saber** — the
-> rest are unlocked for this playtest build. Zigzag or Arc (Options), wall BOOP (the word
+> rest are unlocked for this playtest build. Journey tiles are also all open
+> (`UNLOCK_ALL_LEVELS`) so you can tap any level. Zigzag or Arc (Options), wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,
 > flowing wind dashes, a pulsing two-ring shield (about four seconds),
 > the same four-point sparkle as Android with a soft blue disc behind it, blue `+FUEL`,
@@ -32,12 +37,12 @@
 > icon HUD eases in (route, then pause, then smash). Voice lines play if the
 > build includes them; turn Voice off in Options if you want captions only.
 > Wall hits, turns, pickups, and crashes should make sound on the **newest**
-> TestFlight even if the Silent switch is on (Options → SOUND OFF still
-> mutes). The turn cue is the same clip as Android when `turn.mp3` is in the
+> TestFlight even if the Silent switch is on (pause → Sound still
+> mutes everything; Options → Sound isolates Music / Sound FX / Voice). The turn cue is the same clip as Android when `turn.mp3` is in the
 > build. Music and spoken NAV lines play only when those clips are in the
 > build. The **browser App Preview** is a video of the simulator — it often
-> has **no sound** and extra tap delay. Store prices, restore, and the online board
-> are not in this iOS build yet. Android and web remain the complete game.
+> has **no sound** and extra tap delay. Store prices, restore, and the **online**
+> board are not in this iOS build yet (High Scores shows your device bests). Android and web remain the complete game.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap
@@ -172,10 +177,10 @@ beside it (or press **Left** / **Right** on a keyboard) to browse the full
 roster — owned ships equip and save; locked ships show a price (tap the ship
 to unlock on the apps). Options → Ship has the same roster in a grid.
 
-- **Play** — choose Open Space or Journey.
+- **Play** — Journey (recommended) then Open Space. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
-- **Options** — Ship, Controls, Sound, theme, and Restore Purchases (see below).
-- **High Scores** — open the Space Board (Zigzag/Arc button in the title; 10 scores per page, up to 10 pages each).
+- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), and Light/Dark Mode. Android also has Restore Purchases; native TestFlight omits that row until IAP.
+- **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS shows your local bests (call sign **YOU**) until the online board is wired. Android pages 10 scores at a time.
 
 After a run, **Menu** on the end screen brings you back here.
 
@@ -225,6 +230,8 @@ level with its three stars underneath. It opens roughly where you left off.
 - **Scroll** with the mouse wheel, or drag up and down on touch.
 - The tile outlined in **blue** is the next level you haven't cleared.
 - **Faded** tiles are still locked — you can see what's coming, but not play it yet.
+  Playtest builds may show a **TEST** chip and leave every tile open so testers
+  can jump around; your real furthest level is still saved.
 
 Tap an unlocked tile to fly it. A filled blue star under a tile is one you've
 earned; an outlined one is still open.
@@ -257,7 +264,7 @@ Options opens a short list:
 | **Controls** | Flight style (Zigzag or Arc) and how steering works. |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
-| **Restore Purchases** | Re-sync ship unlocks and Pro after reinstall (iOS / Android). |
+| **Restore Purchases** | Re-sync ship unlocks and Pro after reinstall (iOS / Android). Native TestFlight omits this row until IAP. |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
 main menu.

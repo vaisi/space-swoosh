@@ -1,5 +1,5 @@
 // LoreView.swift
-// Changes: Continue uses framed brand button.
+// Changes: Brand type on SIGNAL lore + framed Continue.
 
 import SwiftUI
 
@@ -12,7 +12,7 @@ struct LoreView: View {
             ShellChrome.header("SIGNAL", back: onBack)
             Spacer()
             Text(GeneratedJourneyData.lore)
-                .font(.system(size: 16, weight: .medium))
+                .font(BrandType.body(16))
                 .foregroundStyle(BrandColors.ink)
                 .lineSpacing(6)
             Spacer()

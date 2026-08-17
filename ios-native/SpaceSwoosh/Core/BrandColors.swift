@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: Nyan gray token; theme-aware live-ship accents.
+// Changes: ink30 token for dotted menu rules; Nyan gray; live-ship accents.
 
 import SwiftUI
 import UIKit
@@ -13,6 +13,7 @@ enum BrandColors {
     static var ink: Color { uiColor(.ink).color }
     static var ink80: Color { uiColor(.ink).color.opacity(0.80) }
     static var ink55: Color { uiColor(.ink).color.opacity(0.55) }
+    static var ink30: Color { uiColor(.ink).color.opacity(0.30) }
     static var signal: Color { uiColor(.signal).color }
 
     enum Swatch {

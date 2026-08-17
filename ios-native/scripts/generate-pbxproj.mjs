@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: CFBundleVersion 11; pack Voice/SFX mp3s; include new Swift files.
+// Changes: CFBundleVersion 12; pack Voice/SFX mp3s and brand TTF fonts.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -30,6 +30,7 @@ const voiceFiles = walk(appRoot).filter((f) => {
   if (name.includes('ElevenLabs')) return false;
   return /^(level-\d+|first-boop|swoosh-voice|background|crash|crash_with_shield|shield|turn)\.(mp3|m4a)$/.test(name);
 });
+const fontFiles = walk(appRoot).filter((f) => /\.(ttf|otf)$/i.test(f));
 const infoPlist = path.join(appRoot, 'Info.plist');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');
 
@@ -70,6 +71,9 @@ for (const f of swiftFiles) ensureFile(f, 'sourcecode.swift');
 for (const f of voiceFiles) {
   ensureFile(f, f.endsWith('.m4a') ? 'file' : 'audio.mp3');
 }
+for (const f of fontFiles) {
+  ensureFile(f, f.toLowerCase().endsWith('.otf') ? 'file' : 'font.ttf');
+}
 ensureFile(infoPlist, 'text.plist.xml');
 ensureFile(privacyPlist, 'text.plist.xml');
 
@@ -91,7 +95,7 @@ function groupFor(dirRel) {
 }
 
 groupFor('SpaceSwoosh');
-for (const f of [...swiftFiles, ...voiceFiles, infoPlist, privacyPlist]) {
+for (const f of [...swiftFiles, ...voiceFiles, ...fontFiles, infoPlist, privacyPlist]) {
   const rel = path.relative(root, f).replace(/\\/g, '/');
   const dir = path.posix.dirname(rel);
   const parts = dir.split('/');
@@ -131,6 +135,10 @@ pbx += `\t\t${assets.build} /* Assets.xcassets in Resources */ = {isa = PBXBuild
 const privacy = ensureFile(path.join(appRoot, 'PrivacyInfo.xcprivacy'));
 pbx += `\t\t${privacy.build} /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ${privacy.ref} /* PrivacyInfo.xcprivacy */; };\n`;
 for (const f of voiceFiles) {
+  const meta = ensureFile(f);
+  pbx += `\t\t${meta.build} /* ${meta.name} in Resources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
+}
+for (const f of fontFiles) {
   const meta = ensureFile(f);
   pbx += `\t\t${meta.build} /* ${meta.name} in Resources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
 }
@@ -245,7 +253,7 @@ pbx += `/* End PBXGroup section */
 			files = (
 				${assets.build} /* Assets.xcassets in Resources */,
 				${privacy.build} /* PrivacyInfo.xcprivacy in Resources */,
-${voiceFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}\t\t\t);
+${voiceFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}${fontFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}\t\t\t);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
@@ -296,7 +304,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -318,7 +326,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

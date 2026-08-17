@@ -1,5 +1,5 @@
 // LogbookView.swift
-// Changes: Slice E — 63-entry catalog with observe / known states.
+// Changes: SPACE LOG header + Grotesk/Mono chrome matching Android logbook.
 
 import SwiftUI
 
@@ -11,20 +11,26 @@ struct LogbookView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            ShellChrome.header("LOGBOOK", back: onBack)
+            ShellChrome.header("SPACE LOG", back: onBack)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(LogbookCatalog.categories, id: \.id) { item in
                         Button {
                             category = item.id
                         } label: {
-                            Text(item.label.uppercased())
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .foregroundStyle(category == item.id ? BrandColors.paper : BrandColors.ink)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(category == item.id ? BrandColors.signal : BrandColors.paperTint)
+                            VStack(spacing: 4) {
+                                Text(item.label.uppercased())
+                                    .font(BrandType.label(11))
+                                    .tracking(BrandType.labelTracking(11))
+                                    .foregroundStyle(category == item.id ? BrandColors.ink : BrandColors.ink55)
+                                if category == item.id {
+                                    ShellChrome.dottedRule().frame(width: 48)
+                                } else {
+                                    Color.clear.frame(height: 4)
+                                }
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -32,7 +38,7 @@ struct LogbookView: View {
             let rows = LogbookCatalog.entries(in: category)
             if rows.allSatisfy({ LogbookProgress.state(store.snapshot, id: $0.id) == .locked }) {
                 Text(GeneratedJourneyData.emptyCategory[category] ?? GeneratedJourneyData.emptyLogbook)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(BrandType.body(14))
                     .foregroundStyle(BrandColors.ink55)
                     .padding(.top, 12)
                 Spacer()
@@ -55,31 +61,32 @@ struct LogbookView: View {
     private func entryCard(_ entry: LogbookEntrySpec) -> some View {
         let state = LogbookProgress.state(store.snapshot, id: entry.id)
         if state != .locked {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(entry.name.uppercased())
-                        .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    Spacer()
-                    Text(state == .known ? "KNOWN" : "OBSERVED")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundStyle(BrandColors.signal)
+            ShellChrome.framedTile {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(entry.name.uppercased())
+                            .font(BrandType.label(12))
+                            .tracking(BrandType.labelTracking(12))
+                        Spacer()
+                        Text(state == .known ? "KNOWN" : "OBSERVED")
+                            .font(BrandType.label(9))
+                            .tracking(BrandType.labelTracking(9))
+                            .foregroundStyle(BrandColors.signal)
+                    }
+                    if state == .known {
+                        Text(entry.definition)
+                            .font(BrandType.body(14))
+                        Text(entry.remark)
+                            .font(BrandType.body(13))
+                            .foregroundStyle(BrandColors.ink55)
+                    } else {
+                        Text(pendingLine(for: entry.id))
+                            .font(BrandType.body(14))
+                            .foregroundStyle(BrandColors.ink55)
+                    }
                 }
-                if state == .known {
-                    Text(entry.definition)
-                        .font(.system(size: 14, weight: .medium))
-                    Text(entry.remark)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(BrandColors.ink55)
-                } else {
-                    Text(pendingLine(for: entry.id))
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(BrandColors.ink55)
-                }
+                .foregroundStyle(BrandColors.ink)
             }
-            .foregroundStyle(BrandColors.ink)
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(BrandColors.paperTint)
         }
     }
 

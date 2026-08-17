@@ -1,48 +1,88 @@
 // ShellChrome.swift
-// Changes: Hangar hulls use ClassicHullPaint / LiveHullPaint after the short wake.
+// Changes: Android BrandDraw chrome — Grotesk/Mono, ← Back, dotted rules, signal tiles.
 
 import SwiftUI
 import UIKit
 
 enum ShellChrome {
-    static func header(_ title: String, back: @escaping () -> Void) -> some View {
-        VStack(spacing: 10) {
+    static func header(
+        _ title: String,
+        back: @escaping () -> Void,
+        trailingTitle: String? = nil,
+        trailingTag: String? = nil,
+        trailing: (() -> Void)? = nil
+    ) -> some View {
+        VStack(spacing: 12) {
             ZStack {
                 Text(title)
-                    .font(.system(size: 22, weight: .bold))
+                    .font(BrandType.display(22))
+                    .tracking(BrandType.displayTracking(22))
                     .foregroundStyle(BrandColors.ink)
-                    .tracking(1.2)
-                HStack {
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, trailingTitle == nil ? 72 : 96)
+                HStack(alignment: .center, spacing: 8) {
                     Button(action: back) {
-                        Text("BACK")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(BrandColors.ink)
+                        Text("← Back")
+                            .font(BrandType.body(13))
+                            .foregroundStyle(BrandColors.ink55)
                     }
+                    .buttonStyle(.plain)
                     Spacer()
+                    if let trailingTitle, let trailing {
+                        compactButton(trailingTitle, tag: trailingTag, action: trailing)
+                    }
                 }
             }
-            .padding(.horizontal, 4)
-            divider()
+            dottedRule()
         }
     }
 
+    static func compactButton(_ title: String, tag: String? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 0) {
+                Text(title.uppercased())
+                    .font(BrandType.ui(11))
+                    .tracking(BrandType.uiTracking(11))
+                    .foregroundStyle(BrandColors.ink)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 8)
+                if let tag {
+                    Rectangle()
+                        .fill(BrandColors.ink.opacity(0.12))
+                        .frame(width: 1, height: 16)
+                    Text(tag)
+                        .font(BrandType.mono(11))
+                        .foregroundStyle(BrandColors.ink55)
+                        .frame(width: 22)
+                }
+            }
+            .background(BrandColors.paperTint)
+            .overlay(Rectangle().stroke(BrandColors.ink, lineWidth: 1.5))
+        }
+        .buttonStyle(.plain)
+    }
+
     static func divider() -> some View {
-        Rectangle()
-            .fill(BrandColors.ink.opacity(0.12))
-            .frame(height: 1)
+        dottedRule()
+    }
+
+    static func dottedRule() -> some View {
+        DottedRule()
+            .frame(height: 4)
     }
 
     static func brandButton(
         _ title: String,
         tag: String? = nil,
         primary: Bool = false,
+        signal: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             HStack(spacing: 0) {
                 Text(title.uppercased())
-                    .font(.system(size: 17, weight: .semibold))
-                    .tracking(1.1)
+                    .font(BrandType.ui(17))
+                    .tracking(BrandType.uiTracking(17))
                     .foregroundStyle(primary ? BrandColors.paper : BrandColors.ink)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
@@ -51,7 +91,7 @@ enum ShellChrome {
                         .fill(primary ? BrandColors.paper.opacity(0.25) : BrandColors.ink.opacity(0.12))
                         .frame(width: 1, height: 28)
                     Text(tag)
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .font(BrandType.mono(14))
                         .foregroundStyle(primary ? BrandColors.paper.opacity(0.85) : BrandColors.ink55)
                         .frame(width: 52)
                 }
@@ -59,7 +99,7 @@ enum ShellChrome {
             .background(primary ? BrandColors.ink : BrandColors.paperTint)
             .overlay(
                 Rectangle()
-                    .stroke(BrandColors.ink, lineWidth: 1.5)
+                    .stroke(signal ? BrandColors.signal : BrandColors.ink, lineWidth: 1.5)
             )
         }
         .buttonStyle(.plain)
@@ -68,21 +108,40 @@ enum ShellChrome {
     static func ghostButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title.uppercased())
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .font(BrandType.mono(13))
                 .foregroundStyle(BrandColors.ink)
         }
         .buttonStyle(.plain)
     }
 
-    static func framedTile<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    static func framedTile<Content: View>(
+        signal: Bool = false,
+        selected: Bool = false,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         content()
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(BrandColors.paperTint)
-            .overlay(
+            .background(selected ? BrandColors.paperDeep : BrandColors.paperTint)
+            .overlay {
                 Rectangle()
-                    .stroke(BrandColors.ink, lineWidth: 1.5)
-            )
+                    .stroke(signal || selected ? BrandColors.signal : BrandColors.ink, lineWidth: selected ? 2 : 1.5)
+            }
+            .overlay {
+                if selected {
+                    Rectangle()
+                        .stroke(BrandColors.signal, lineWidth: 2)
+                        .padding(4)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if selected {
+                    Circle()
+                        .fill(BrandColors.signal)
+                        .frame(width: 8, height: 8)
+                        .padding(8)
+                }
+            }
     }
 
     static func paperWash<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -99,22 +158,55 @@ enum ShellChrome {
                 Rectangle().fill(BrandColors.ink).frame(width: 10, height: 36)
             }
             Text("MISSION PAUSED")
-                .font(.system(size: 26, weight: .bold))
+                .font(BrandType.display(26))
+                .tracking(BrandType.displayTracking(26))
                 .foregroundStyle(BrandColors.ink)
-                .tracking(1.4)
         }
     }
 
     static func statColumn(value: String, label: String) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 22, weight: .bold, design: .monospaced))
+                .font(BrandType.mono(22))
                 .foregroundStyle(BrandColors.ink)
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .font(BrandType.label(10))
+                .tracking(BrandType.labelTracking(10))
                 .foregroundStyle(BrandColors.ink55)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    static func screenBlurb(_ text: String) -> some View {
+        Text(text)
+            .font(BrandType.body(14))
+            .foregroundStyle(BrandColors.ink55)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+    }
+
+    static func footnote(_ text: String) -> some View {
+        Text(text)
+            .font(BrandType.label(10))
+            .tracking(BrandType.labelTracking(10))
+            .foregroundStyle(BrandColors.ink.opacity(0.30))
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+    }
+}
+
+private struct DottedRule: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let r: CGFloat = 1.3
+            var x: CGFloat = r
+            while x < size.width {
+                let rect = CGRect(x: x - r, y: (size.height - r * 2) / 2, width: r * 2, height: r * 2)
+                ctx.fill(Path(ellipseIn: rect), with: .color(BrandColors.ink30))
+                x += 8
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
 
@@ -172,7 +264,7 @@ struct ShipPreview: View {
                     settings.setShipSkin(SkinCatalog.prev(before: settings.shipSkinId))
                 } label: {
                     Text("◀")
-                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .font(BrandType.mono(22))
                         .foregroundStyle(BrandColors.ink)
                         .frame(width: 36, height: 44)
                 }
@@ -186,14 +278,15 @@ struct ShipPreview: View {
                     settings.setShipSkin(SkinCatalog.next(after: settings.shipSkinId))
                 } label: {
                     Text("▶")
-                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .font(BrandType.mono(22))
                         .foregroundStyle(BrandColors.ink)
                         .frame(width: 36, height: 44)
                 }
                 .buttonStyle(.plain)
             }
             Text(skin.name.uppercased())
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .font(BrandType.label(11))
+                .tracking(BrandType.labelTracking(11))
                 .foregroundStyle(BrandColors.ink80)
         }
     }

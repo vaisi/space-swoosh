@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: CFBundleVersion 11 — remaining 25-ship hull + wake fidelity.
+  Changes: CFBundleVersion 12 — Android menu chrome (type, nested Options, local SPACE BOARD).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -10,9 +10,15 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 ## Hangar (current)
 
 - **41 ships** in Android `SKIN_DEFS` order. Playtest flag `UNLOCK_ALL_SKINS = true` (flip false before store). No prices / locked tiles / RevenueCat in this build
+- Playtest flag `UNLOCK_ALL_LEVELS = true` (flip false before store) opens every Journey map tile without rewriting saved `unlocked`
 - Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for later IAP
+- Home: **SPACE SWOOSH** + flavor + ◀ hull ▶, then Play / Space Log / Options / High Scores (Android tags ▶ □ ⚙ #)
+- Play: **PLAY** header, Journey (RECOMMENDED) then Open Space (ENDLESS). Hazard Lab is the Journey-map **LAB** tile only
+- Options hub: Ship ●, Controls ↔, Sound ♪, Light/Dark Mode ◐. Controls = Zigzag/Arc. Sound = Music / Sound FX / Voice (`soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`). Pause Sound stays master mute
+- **SPACE BOARD**: local Zigzag/Arc + DISTANCE/OBSTACLES; empty copy until a PB exists. No Supabase yet
+- Type: bundled Space Grotesk + Space Mono (`BrandType`). Framed ink tiles, 0 radius, dotted rules, **← Back**
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
-- Home: equipped hull + short wake + ◀ / ▶ cycle. Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
+- Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
 - Hangar stills bake Android `previewWake` (12 pts, span 3.4r, never the long in-play wake) then a banked hull. Live hulls use `LiveHullPaint` / `ClassicHullPaint` at t=1400 ms
 - One equipped renderer at `startRun` (do not allocate a trail node per ship). Richer baked silhouettes (wash + highlight + crease) for static ink hulls; **17** live-draw (`skipHullCache`: Nyan, Halo, Orbit, Lantern…Chime)
 - Classic wakes (Wisp sparks, Shard chevrons, Halo/Ring hollow rings, Dusk violet cloud, Seal stamps, Hatch ticks, Fold crease, Spine ladder, Orbit lag ellipses, Flux dashes, Cinder ember/ash) are dedicated drawers — not `ParticleWakeField`
@@ -27,8 +33,8 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Clear: Android hold / ramp / min / cap / fade; lean preserved; hull leaves the top
 - L40 clear: sequenced `ENDING_BEATS` captions, then `JOURNEY COMPLETE` (no lights show)
 - **Logbook** observe / interact / known
-- Options: ship, flight, mute, **voice**, night paper
-- Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId` (same keys as Android)
+- Options: nested hub (ship, controls, sound channels, night paper). No Restore in this build
+- Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId`, `soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled` (same keys as Android)
 - Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash / **first-boop** / **swoosh-voice** on the engine pool (synth fallback for turn/crash/shield); baked boop/collect/portal/swoosh. First wall BOOP and first style swoosh no longer open a fresh `AVAudioPlayer` (that hitch glitched the synth SFX). Clear-flyout smash SFX throttled to 120 ms
 - HUD: Android mockup C (pause glyph + route / fuel / smash icon rows). Stagger: KM+fuel at 2s, pause at 3s, smash after first event
 - Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
@@ -37,7 +43,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Focus ripple dots / Ember twin-dots / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs). Live ships: pooled hull graph + dedicated wakes. Remaining premiums: classic ribbon/mark wakes (not a particle dump)
 - Drift / wind: 7 thin ink30 dashes, `baseUnit`-scaled period, scrolled by phase × direction
 - Cruise: Android snappy tick × **0.90** (`GameConfig.feelSpeed`)
-- Menu / pause / outcome: framed ink buttons, paper wash, two-bar **MISSION PAUSED**
+- Menu / pause / outcome: Space Grotesk/Mono, framed ink buttons, paper wash, two-bar **MISSION PAUSED**. Open Space game over includes High Scores
 - Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick
 - Zigzag path flips instantly; hull lean eases (`bankSmoothing` 0.34). Stretch follows `|tangent|`
 
@@ -45,7 +51,7 @@ Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `fir
 
 The audio session is **`.playback`**, so TestFlight plays with the Silent switch on. Options → SOUND OFF still mutes. Codemagic **App Preview** may still forward no audio; that is the stream, not the IPA.
 
-Not yet: IAP / Lives / Pro / RevenueCat restore, Supabase board, Firebase.
+Not yet: IAP / Lives / Pro / RevenueCat restore, online Supabase board (SPACE BOARD is local PBs), Firebase.
 
 ### Gate
 
@@ -63,7 +69,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
-(Apple already has **1.0.0 (1)**). CI stamps **11+**.
+(Apple already has **1.0.0 (1)**). CI stamps **12+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

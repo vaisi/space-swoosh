@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4D8F969D08F5398B379BC3 /* GameSession.swift */; };
+		45A9EB4E3E924C572E352D28 /* HighScoresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DBC28E3579231DC1FCFD4B /* HighScoresView.swift */; };
 		D87F6D6A44939F7275C24F23 /* HudChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA139AC5EAE9BEE9E03B44C /* HudChrome.swift */; };
 		B86EA14028FBC90DFDBAB0D8 /* JourneyMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A837B3027E02E529D54B2E9 /* JourneyMapView.swift */; };
 		0698F1EC3408FAF7B8206394 /* JourneyProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE284E9C2D2EA4ED6CC2F8AD /* JourneyProgress.swift */; };
@@ -24,6 +25,7 @@
 		972FC16FEAAE1DC4F9438E96 /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BA70A150419A4AB36C6777 /* MusicPlayer.swift */; };
 		EFE745DA4075261482F299F9 /* SfxPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EEFD56E50FD27D345126C2E /* SfxPlayer.swift */; };
 		666DC768E71D2000B62DF5C0 /* VoicePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7186B18F3FBD7B8CEF1EE4 /* VoicePlayer.swift */; };
+		83167330DF37E41F6CC3BF2D /* BrandType.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC21AD8621FC6186FEF98E79 /* BrandType.swift */; };
 		276519B04400881558B3FD9C /* CopyBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B19E3A07C7916B4007E8E0C /* CopyBank.swift */; };
 		4A319F5374A235778FC3D43B /* BrandColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6EA96BFCECAE6E841B49379 /* BrandColors.swift */; };
 		0E10BBEF02CB137E7C6858C9 /* FixedStepSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F074AE096BE5B92769FA492 /* FixedStepSimulator.swift */; };
@@ -126,11 +128,16 @@
 		01B5FB914F60E1C252338298 /* shield.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E37ADA05BD016A6CFBFB4689 /* shield.mp3 */; };
 		C1C68CFFEEE225CF2AA4D608 /* swoosh-voice.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 595DAC36E765EC2C271301EF /* swoosh-voice.mp3 */; };
 		CEA8216B9DE1E0F3DFE465E6 /* turn.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3432A251E54ECD860C6E5906 /* turn.mp3 */; };
+		61AB6CD305A7B4AF2C57BD2F /* SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 827114B874C9BEB00130DE7A /* SpaceGrotesk-Bold.ttf */; };
+		7728435FA543832829472DC2 /* SpaceGrotesk-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3F5FD29250F5F8B5730EDD7C /* SpaceGrotesk-Medium.ttf */; };
+		8837165F70538C3EBF0381E7 /* SpaceMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4BB453354C3DCF1214B5020A /* SpaceMono-Bold.ttf */; };
+		376DCDFCB29F5F84D4D78B71 /* SpaceMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 77250E0D78DB6FD5494F928D /* SpaceMono-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpaceSwoosh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B4D8F969D08F5398B379BC3 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
+		D9DBC28E3579231DC1FCFD4B /* HighScoresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighScoresView.swift; sourceTree = "<group>"; };
 		8FA139AC5EAE9BEE9E03B44C /* HudChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HudChrome.swift; sourceTree = "<group>"; };
 		1A837B3027E02E529D54B2E9 /* JourneyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyMapView.swift; sourceTree = "<group>"; };
 		AE284E9C2D2EA4ED6CC2F8AD /* JourneyProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyProgress.swift; sourceTree = "<group>"; };
@@ -147,6 +154,7 @@
 		E9BA70A150419A4AB36C6777 /* MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
 		9EEFD56E50FD27D345126C2E /* SfxPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SfxPlayer.swift; sourceTree = "<group>"; };
 		BA7186B18F3FBD7B8CEF1EE4 /* VoicePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePlayer.swift; sourceTree = "<group>"; };
+		AC21AD8621FC6186FEF98E79 /* BrandType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandType.swift; sourceTree = "<group>"; };
 		0B19E3A07C7916B4007E8E0C /* CopyBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyBank.swift; sourceTree = "<group>"; };
 		C6EA96BFCECAE6E841B49379 /* BrandColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandColors.swift; sourceTree = "<group>"; };
 		8F074AE096BE5B92769FA492 /* FixedStepSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedStepSimulator.swift; sourceTree = "<group>"; };
@@ -247,6 +255,10 @@
 		E37ADA05BD016A6CFBFB4689 /* shield.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = shield.mp3; sourceTree = "<group>"; };
 		595DAC36E765EC2C271301EF /* swoosh-voice.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = swoosh-voice.mp3; sourceTree = "<group>"; };
 		3432A251E54ECD860C6E5906 /* turn.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = turn.mp3; sourceTree = "<group>"; };
+		827114B874C9BEB00130DE7A /* SpaceGrotesk-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = font.ttf; path = SpaceGrotesk-Bold.ttf; sourceTree = "<group>"; };
+		3F5FD29250F5F8B5730EDD7C /* SpaceGrotesk-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = font.ttf; path = SpaceGrotesk-Medium.ttf; sourceTree = "<group>"; };
+		4BB453354C3DCF1214B5020A /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = font.ttf; path = SpaceMono-Bold.ttf; sourceTree = "<group>"; };
+		77250E0D78DB6FD5494F928D /* SpaceMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = font.ttf; path = SpaceMono-Regular.ttf; sourceTree = "<group>"; };
 		16E09E6EAEF6689E81279D8C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		32BB636196F91ED59D7A4919 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -290,6 +302,7 @@
 				420455E087BAFCC49D994517,
 				2943659BE7AAEF2C8E136D43,
 				1B204731A97A34BC07EF19F4,
+				BA4BEFAE096B7347A769FCF4,
 				C12156954CE41A675D560E64,
 				6BB6D1839E25C9B48655515C,
 				0C9AF417F2AD255E43B44FCC,
@@ -302,6 +315,7 @@
 			isa = PBXGroup;
 			children = (
 				8B4D8F969D08F5398B379BC3,
+				D9DBC28E3579231DC1FCFD4B,
 				8FA139AC5EAE9BEE9E03B44C,
 				1A837B3027E02E529D54B2E9,
 				AE284E9C2D2EA4ED6CC2F8AD,
@@ -332,6 +346,7 @@
 		2943659BE7AAEF2C8E136D43 /* Brand */ = {
 			isa = PBXGroup;
 			children = (
+				AC21AD8621FC6186FEF98E79,
 				0B19E3A07C7916B4007E8E0C,
 			);
 			path = Brand;
@@ -350,6 +365,17 @@
 				EC76A2BA5E819E3790D06EC6,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		BA4BEFAE096B7347A769FCF4 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				827114B874C9BEB00130DE7A,
+				3F5FD29250F5F8B5730EDD7C,
+				4BB453354C3DCF1214B5020A,
+				77250E0D78DB6FD5494F928D,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		C12156954CE41A675D560E64 /* Input */ = {
@@ -572,6 +598,10 @@
 				01B5FB914F60E1C252338298 /* shield.mp3 in Resources */,
 				C1C68CFFEEE225CF2AA4D608 /* swoosh-voice.mp3 in Resources */,
 				CEA8216B9DE1E0F3DFE465E6 /* turn.mp3 in Resources */,
+				61AB6CD305A7B4AF2C57BD2F /* SpaceGrotesk-Bold.ttf in Resources */,
+				7728435FA543832829472DC2 /* SpaceGrotesk-Medium.ttf in Resources */,
+				8837165F70538C3EBF0381E7 /* SpaceMono-Bold.ttf in Resources */,
+				376DCDFCB29F5F84D4D78B71 /* SpaceMono-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -583,6 +613,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9AEDF6A12022CB9FEAD8AD1A /* GameSession.swift in Sources */,
+				45A9EB4E3E924C572E352D28 /* HighScoresView.swift in Sources */,
 				D87F6D6A44939F7275C24F23 /* HudChrome.swift in Sources */,
 				B86EA14028FBC90DFDBAB0D8 /* JourneyMapView.swift in Sources */,
 				0698F1EC3408FAF7B8206394 /* JourneyProgress.swift in Sources */,
@@ -599,6 +630,7 @@
 				972FC16FEAAE1DC4F9438E96 /* MusicPlayer.swift in Sources */,
 				EFE745DA4075261482F299F9 /* SfxPlayer.swift in Sources */,
 				666DC768E71D2000B62DF5C0 /* VoicePlayer.swift in Sources */,
+				83167330DF37E41F6CC3BF2D /* BrandType.swift in Sources */,
 				276519B04400881558B3FD9C /* CopyBank.swift in Sources */,
 				4A319F5374A235778FC3D43B /* BrandColors.swift in Sources */,
 				0E10BBEF02CB137E7C6858C9 /* FixedStepSimulator.swift in Sources */,
@@ -693,7 +725,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -715,7 +747,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

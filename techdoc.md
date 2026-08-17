@@ -7,9 +7,13 @@
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
 > Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Playtest flag
-> `UNLOCK_ALL_SKINS = true` (flip false before store). Free forever (no
-> `productId`): Focus, Flicker, Ember, Saber. Home ◀/▶ + Options → Ship
-> scrolling 2-col grid; `shipSkinId` persists (unknown id stays **Flicker**).
+> `UNLOCK_ALL_SKINS = true` (flip false before store). Playtest flag
+> `UNLOCK_ALL_LEVELS = true` opens every Journey tile (flip false before store;
+> web also `?unlocklevels=1|0`). Free forever (no
+> `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
+> High Scores plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
+> Light Mode. PLAY is Journey then Open Space; Lab is the map tile. Local SPACE BOARD.
+> `shipSkinId` persists (unknown id stays **Flicker**).
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
 > 17 `skipHullCache` hulls (Nyan, Halo, Orbit, plus `Lantern`…`Chime`) share
@@ -40,7 +44,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
-> `CFBundleVersion` ≥ 11 on each TestFlight upload.
+> `CFBundleVersion` ≥ 12 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -84,6 +88,7 @@
 > one-time pick any 3 ships. While off, Open Space / Journey retries are
 > unlimited and the lives chip / paywall stay hidden.
 > `UNLOCK_ALL_SKINS` = **true (playtest hangar — flip false before store)** /
+> `UNLOCK_ALL_LEVELS` = **true (playtest Journey map — flip false before store)** /
 > `UNLOCK_PRO` = false for store — Focus/Flicker/Ember/Saber free; all
 > other ships gated via RevenueCat. Advertising ID: collection disabled
 > (`google_analytics_adid_collection_enabled=false`) and
@@ -236,7 +241,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
-| `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points, `loreSeen`. |
+| `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points, `loreSeen`. Playtest **`UNLOCK_ALL_LEVELS`** (true) + web `?unlocklevels=1\|0` make `isLevelUnlocked` return true for every tile without rewriting saved `unlocked`. Flip the constant **false** before store. |
 | `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance per flight style (`bestByStyle`; v1 `bestScore` migrates to zigzag). |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
 | `config/HazardLabConfig.js` | Sandbox descriptor for Phase + Sweep Gate (no Journey progress). |
@@ -470,6 +475,13 @@ select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
 `{ version, unlocked, loreSeen, levels: { n: { stars, bestPoints } } }` under
 `journeyProgress`. Stars are **cumulative** across attempts; only clearing the
 frontier level advances `unlocked`. Journey never writes to Supabase.
+
+Playtest **`UNLOCK_ALL_LEVELS`** (JS + iOS `JourneyProgress`) opens every map
+tile so you can jump to any level. Saved `unlocked` is unchanged — turning the
+flag off restores the real lock cursor. Web override: `?unlocklevels=1` forces
+on, `?unlocklevels=0` forces the real lock even when the constant is true. The
+Journey map shows a **TEST** chip while the flag is on. iOS has the constant
+only (no URL).
 
 ### Open Space unlock ladder (`OPEN_WORLD_UNLOCKS`)
 
@@ -1096,14 +1108,15 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | SwiftUI menu + pause + CopyBank game-over + `SpriteView` host |
-| `SpaceSwoosh/Brand/` | `CopyBank` (menu / crash / fuelOut pools) |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound, local `HighScoresView` SPACE BOARD, Journey-first PLAY cards, Lab on map. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). |
+| `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
+| `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
-| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
+| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files or brand TTFs. `CURRENT_PROJECT_VERSION` 12. |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s

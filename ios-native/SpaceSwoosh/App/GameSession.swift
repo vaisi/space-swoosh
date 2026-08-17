@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Publish mockup-C HUD fields (journey bar, smash target).
+// Changes: Record Open Space smash PBs with distance for SPACE BOARD.
 
 import Foundation
 import Combine
@@ -106,7 +106,11 @@ final class GameSession: ObservableObject {
                 case .crash, .none:
                     failDetail = CopyBank.pick(.crash)
                 }
-                let recorded = OpenWorldProgress.record(score: Int(run.scoreKm), style: run.flightStyle)
+                let recorded = OpenWorldProgress.record(
+                    score: Int(run.scoreKm),
+                    destroyed: run.obstaclesDestroyed,
+                    style: run.flightStyle
+                )
                 personalBest = recorded.best
                 isNewBest = recorded.isNew
             } else {
