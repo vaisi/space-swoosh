@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Record Open Space smash PBs with distance for SPACE BOARD.
+// Changes: Open Space rank lookup fields for Supabase submit prompt.
 
 import Foundation
 import Combine
@@ -50,8 +50,22 @@ final class GameSession: ObservableObject {
     @Published var launch: PlayLaunch = .openSpace
     @Published var outcome: LevelOutcome?
     @Published var logbookToast: String = ""
+    @Published var boardRank: Int?
+    @Published var rankLookupFailed = false
+    @Published var scoreSubmitted = false
 
     private var flavorPicked = false
+
+    var rankLabel: String {
+        if rankLookupFailed { return "?" }
+        if let boardRank { return "#\(boardRank)" }
+        return "…"
+    }
+
+    var shouldAutoPromptSubmit: Bool {
+        guard !scoreSubmitted, !rankLookupFailed, let boardRank else { return false }
+        return boardRank <= 10
+    }
 
     func apply(run: RunState) {
         scoreKm = Int(run.scoreKm)
@@ -150,6 +164,9 @@ final class GameSession: ObservableObject {
         isJourney = false
         outcome = nil
         logbookToast = ""
+        boardRank = nil
+        rankLookupFailed = false
+        scoreSubmitted = false
         flavorPicked = false
         LogbookStore.shared.clearToast()
     }

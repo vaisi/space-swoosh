@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: CFBundleVersion 12 — native menu 1:1 with Android chrome. -->
+	<!-- Changes: CFBundleVersion 13 — SPACE BOARD reads/writes vaisi's Project high_scores. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -20,7 +20,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>12</string>
+	<string>13</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<!-- Required for ProMotion 120 Hz. Without this, iOS caps third-party apps at 60. -->
@@ -46,6 +46,11 @@
 	<!-- Skip App Encryption questionnaire on every upload (HTTPS / OS crypto only). -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Public anon/publishable key only. Injected at build from VITE_SUPABASE_*. -->
+	<key>SUPABASE_URL</key>
+	<string></string>
+	<key>SUPABASE_ANON_KEY</key>
+	<string></string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>SpaceGrotesk-Bold.ttf</string>

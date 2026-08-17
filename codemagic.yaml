@@ -2,6 +2,8 @@
 # Changes:
 # - Add ios-native-simulator: unsigned iPhone simulator .app for App Preview.
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
+# - Inject VITE_SUPABASE_* into native Info.plist for SPACE BOARD.
+# - Floor build number at 3 for C.5 TestFlight.
 # - Floor build number at 3 for C.5 TestFlight.
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
@@ -86,6 +88,13 @@ workflows:
             echo "ERROR: CFBundleVersion did not increment (still $STAMPED)."
             exit 1
           fi
+          if [ -n "${VITE_SUPABASE_URL:-}" ] && [ -n "${VITE_SUPABASE_ANON_KEY:-}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :SUPABASE_URL $VITE_SUPABASE_URL" ios-native/SpaceSwoosh/Info.plist
+            /usr/libexec/PlistBuddy -c "Set :SUPABASE_ANON_KEY $VITE_SUPABASE_ANON_KEY" ios-native/SpaceSwoosh/Info.plist
+            echo "Injected SUPABASE_URL into Info.plist"
+          else
+            echo "WARN: VITE_SUPABASE_* missing — SPACE BOARD will be offline in this IPA"
+          fi
       - name: Build native IPA
         script: |
           EXPORT_PLIST=/Users/builder/export_options.plist
@@ -120,11 +129,23 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 30
     environment:
+      groups:
+        - spaceswoosh
       vars:
         XCODE_PROJECT: ios-native/SpaceSwoosh.xcodeproj
         XCODE_SCHEME: SpaceSwoosh
       xcode: latest
     scripts:
+      - name: Inject leaderboard credentials
+        script: |
+          set -euo pipefail
+          if [ -n "${VITE_SUPABASE_URL:-}" ] && [ -n "${VITE_SUPABASE_ANON_KEY:-}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :SUPABASE_URL $VITE_SUPABASE_URL" ios-native/SpaceSwoosh/Info.plist
+            /usr/libexec/PlistBuddy -c "Set :SUPABASE_ANON_KEY $VITE_SUPABASE_ANON_KEY" ios-native/SpaceSwoosh/Info.plist
+            echo "Injected SUPABASE_URL into Info.plist"
+          else
+            echo "WARN: VITE_SUPABASE_* missing — SPACE BOARD will be offline in App Preview"
+          fi
       - name: Build unsigned iPhone simulator .app
         script: |
           set -euo pipefail

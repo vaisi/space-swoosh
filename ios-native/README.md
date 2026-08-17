@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: CFBundleVersion 12 — Android menu chrome (type, nested Options, local SPACE BOARD).
+  Changes: CFBundleVersion 13 — SPACE BOARD talks to the same Supabase table as Android.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -15,7 +15,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Home: **SPACE SWOOSH** + flavor + ◀ hull ▶, then Play / Space Log / Options / High Scores (Android tags ▶ □ ⚙ #)
 - Play: **PLAY** header, Journey (RECOMMENDED) then Open Space (ENDLESS). Hazard Lab is the Journey-map **LAB** tile only
 - Options hub: Ship ●, Controls ↔, Sound ♪, Light/Dark Mode ◐. Controls = Zigzag/Arc. Sound = Music / Sound FX / Voice (`soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`). Pause Sound stays master mute
-- **SPACE BOARD**: local Zigzag/Arc + DISTANCE/OBSTACLES; empty copy until a PB exists. No Supabase yet
+- **SPACE BOARD**: same `high_scores` table as Android (Zigzag/Arc, DISTANCE/OBSTACLES, 10×10 pages). Submit Score + top-10 auto-prompt. Local PBs still back the PLAY card.
 - Type: bundled Space Grotesk + Space Mono (`BrandType`). Framed ink tiles, 0 radius, dotted rules, **← Back**
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
 - Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
@@ -34,7 +34,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - L40 clear: sequenced `ENDING_BEATS` captions, then `JOURNEY COMPLETE` (no lights show)
 - **Logbook** observe / interact / known
 - Options: nested hub (ship, controls, sound channels, night paper). No Restore in this build
-- Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId`, `soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled` (same keys as Android)
+- Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId`, `soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`, `playerName` (same keys as Android)
 - Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash / **first-boop** / **swoosh-voice** on the engine pool (synth fallback for turn/crash/shield); baked boop/collect/portal/swoosh. First wall BOOP and first style swoosh no longer open a fresh `AVAudioPlayer` (that hitch glitched the synth SFX). Clear-flyout smash SFX throttled to 120 ms
 - HUD: Android mockup C (pause glyph + route / fuel / smash icon rows). Stagger: KM+fuel at 2s, pause at 3s, smash after first event
 - Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
@@ -51,7 +51,7 @@ Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `fir
 
 The audio session is **`.playback`**, so TestFlight plays with the Silent switch on. Options → SOUND OFF still mutes. Codemagic **App Preview** may still forward no audio; that is the stream, not the IPA.
 
-Not yet: IAP / Lives / Pro / RevenueCat restore, online Supabase board (SPACE BOARD is local PBs), Firebase.
+Not yet: IAP / Lives / Pro / RevenueCat restore, Firebase.
 
 ### Gate
 
@@ -69,7 +69,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Each upload must use a new `CFBundleVersion`
-(Apple already has **1.0.0 (1)**). CI stamps **12+**.
+(Apple already has **1.0.0 (1)**). CI stamps **13+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

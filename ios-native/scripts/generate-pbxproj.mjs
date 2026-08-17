@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: CFBundleVersion 12; pack Voice/SFX mp3s and brand TTF fonts.
+// Changes: CFBundleVersion 13; pack fonts; inject-leaderboard-secrets build phase.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -39,6 +39,7 @@ const targetId = id('target');
 const sourcesPhase = id('sources');
 const resourcesPhase = id('resources');
 const frameworksPhase = id('frameworks');
+const secretsPhase = id('secretsPhase');
 const mainGroup = id('mainGroup');
 const productsGroup = id('productsGroup');
 const appGroup = id('appGroup');
@@ -208,6 +209,7 @@ pbx += `/* End PBXGroup section */
 				${sourcesPhase} /* Sources */,
 				${frameworksPhase} /* Frameworks */,
 				${resourcesPhase} /* Resources */,
+				${secretsPhase} /* Inject leaderboard secrets */,
 			);
 			buildRules = (
 			);
@@ -258,6 +260,28 @@ ${voiceFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		${secretsPhase} /* Inject leaderboard secrets */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Inject leaderboard secrets";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \\"\${SRCROOT}/scripts/inject-leaderboard-secrets.sh\\"\\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		${sourcesPhase} /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -304,7 +328,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -326,7 +350,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

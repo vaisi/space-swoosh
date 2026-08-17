@@ -14,8 +14,9 @@
 > Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
 > Options is a hub (Ship, Controls, Sound, Light/Dark Mode). Play offers Journey
 > then Open Space; Hazard Lab is the **LAB** tile on the Journey map. High Scores
-> is a local SPACE BOARD (your best KM / smash count per Zigzag or Arc) until the
-> online board is wired. Cycle ships on the home screen (◀ / ▶) or pick one under
+> is the same online SPACE BOARD as Android (Zigzag/Arc, distance or obstacles).
+> A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
+> Cycle ships on the home screen (◀ / ▶) or pick one under
 > Options → Ship; your choice is saved. The
 > whimsical ships (Lantern through Chime) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s satellite, and
@@ -41,8 +42,8 @@
 > mutes everything; Options → Sound isolates Music / Sound FX / Voice). The turn cue is the same clip as Android when `turn.mp3` is in the
 > build. Music and spoken NAV lines play only when those clips are in the
 > build. The **browser App Preview** is a video of the simulator — it often
-> has **no sound** and extra tap delay. Store prices, restore, and the **online**
-> board are not in this iOS build yet (High Scores shows your device bests). Android and web remain the complete game.
+> has **no sound** and extra tap delay. Store prices and restore are not in this
+> iOS build yet. High Scores / Submit Score use the same online board as Android.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap
@@ -180,7 +181,7 @@ to unlock on the apps). Options → Ship has the same roster in a grid.
 - **Play** — Journey (recommended) then Open Space. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), and Light/Dark Mode. Android also has Restore Purchases; native TestFlight omits that row until IAP.
-- **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS shows your local bests (call sign **YOU**) until the online board is wired. Android pages 10 scores at a time.
+- **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS and Android share the same online board (call sign + ship). Android pages 10 scores at a time (up to 100).
 
 After a run, **Menu** on the end screen brings you back here.
 

@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Brand type on pause/outcome; SPACE BOARD overlays Open Space game over.
+// Changes: Open Space Submit Score + auto-prompt; SPACE BOARD overlays game over.
 
 import SwiftUI
 import SpriteKit
@@ -16,6 +16,8 @@ struct PlayContainerView: View {
     @State private var scene = PlayScene(size: CGSize(width: 390, height: 844))
     @State private var paused = false
     @State private var showHighScores = false
+    @State private var showSubmit = false
+    @State private var didAutoPrompt = false
     @State private var currentLaunch: PlayLaunch
 
     init(launch: PlayLaunch, onMenu: @escaping () -> Void, onMap: @escaping () -> Void) {
@@ -96,6 +98,23 @@ struct PlayContainerView: View {
                     }
                 }
 
+                if showSubmit {
+                    SubmitScoreView(
+                        score: session.scoreKm,
+                        destroyed: session.destroyed,
+                        rank: session.rankLabel,
+                        shipId: settings.shipSkinId,
+                        style: settings.flightStyle,
+                        onDone: {
+                            session.scoreSubmitted = true
+                            showSubmit = false
+                            showHighScores = true
+                        },
+                        onCancel: { showSubmit = false }
+                    )
+                    .padding(.top, geo.safeAreaInsets.top)
+                }
+
                 if showHighScores {
                     HighScoresView(onBack: { showHighScores = false })
                         .padding(.top, geo.safeAreaInsets.top)
@@ -126,6 +145,17 @@ struct PlayContainerView: View {
             .onDisappear {
                 UIApplication.shared.isIdleTimerDisabled = false
                 scene.stopRun()
+            }
+            .onChange(of: session.isOver) { _, over in
+                if over, !currentLaunch.isLevelRun {
+                    Task { await lookupBoardRank() }
+                }
+            }
+            .onChange(of: session.overlayAlpha) { _, alpha in
+                maybeAutoPrompt(alpha)
+            }
+            .onChange(of: session.boardRank) { _, _ in
+                maybeAutoPrompt(session.overlayAlpha)
             }
             .onChange(of: geo.size) { _, newSize in
                 scene.size = newSize
@@ -216,6 +246,11 @@ struct PlayContainerView: View {
                     ShellChrome.brandButton("Play Again", tag: "↺", primary: true) {
                         replay(currentLaunch)
                     }
+                    if !session.scoreSubmitted {
+                        ShellChrome.brandButton("Submit Score", tag: "↑") {
+                            showSubmit = true
+                        }
+                    }
                     ShellChrome.brandButton("High Scores", tag: "#") {
                         showHighScores = true
                     }
@@ -289,8 +324,38 @@ struct PlayContainerView: View {
     private func replay(_ launch: PlayLaunch) {
         currentLaunch = launch
         paused = false
+        showSubmit = false
+        showHighScores = false
+        didAutoPrompt = false
         scene.isPaused = false
         scene.startRun(launch)
+    }
+
+    private func lookupBoardRank() async {
+        guard ScoreService.isAvailable else {
+            await MainActor.run { session.rankLookupFailed = true }
+            return
+        }
+        do {
+            let higher = try await ScoreService.higherCount(score: session.scoreKm, style: settings.flightStyle)
+            await MainActor.run {
+                session.boardRank = higher + 1
+                session.rankLookupFailed = false
+            }
+        } catch {
+            await MainActor.run {
+                session.rankLookupFailed = true
+                session.boardRank = nil
+            }
+        }
+        await MainActor.run { maybeAutoPrompt(session.overlayAlpha) }
+    }
+
+    private func maybeAutoPrompt(_ alpha: CGFloat) {
+        guard !didAutoPrompt, !showSubmit, !currentLaunch.isLevelRun else { return }
+        guard session.shouldAutoPromptSubmit, alpha >= 0.98 else { return }
+        didAutoPrompt = true
+        showSubmit = true
     }
 
     private func leaveToMapOrMenu() {
