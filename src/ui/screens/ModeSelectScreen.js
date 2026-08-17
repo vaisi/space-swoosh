@@ -3,6 +3,9 @@
 // (endless run + leaderboard). Two description cards rather than two bare
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
+// - Lives chip in the header (hidden while LIVES_ENABLED is false).
+// - Open Space start goes through tryBeginOpenWorld (lives gate / Pro paywall
+//   only when LIVES_ENABLED).
 // - Open Space footer uses per-style personal bests: one style keeps
 //   "Personal best: X KM"; both show "Zigzag: A KM · Arc: B KM"; empty styles
 //   are omitted (never Arc: 0 KM).
@@ -17,13 +20,14 @@
 import { color, font } from '../../brand/tokens.js';
 import { drawFramedTile, setLabelType, resetType } from '../../utils/BrandDraw.js';
 import { screenLayout, fitPx, wrapLines } from '../ScreenKit.js';
-import { PLAY_MODE } from '../../modes/index.js';
 import { TOTAL_STARS } from '../../config/JourneyConfig.js';
 import { nextPlayableLevel, totalStars } from '../../services/JourneyProgress.js';
 import { personalBestsPresent } from '../../services/OpenWorldProgress.js';
 import { ScoreService } from '../../services/ScoreService.js';
 import { FLIGHT_STYLE } from '../../config/flightStyle.js';
 import { enterJourneyFromModeSelect } from './LoreScreen.js';
+import { drawLivesChip } from '../LivesChip.js';
+import { ensureRegen } from '../../services/Lives.js';
 
 function openWorldFooter(progress) {
     const present = personalBestsPresent(progress);
@@ -39,11 +43,17 @@ function openWorldFooter(progress) {
 
 /** Draws the screen and returns the hit-boxes Game routes clicks against. */
 export function renderModeSelect(game) {
+    ensureRegen();
     const ctx = game.ctx;
     const unit = game.baseUnit;
     const L = screenLayout(game, unit);
 
     const header = game.drawScreenHeader('PLAY', { back: true });
+    drawLivesChip(game, {
+        x: L.right,
+        y: L.top + (L.isMobile ? unit * 2.1 : unit * 1.9),
+        align: 'right',
+    });
 
     const footnotePx = Math.max(9, unit * 0.9);
     const gap = unit * 2.2;
@@ -148,7 +158,7 @@ export function handleModeSelectClick(game, x, y) {
         return true;
     }
     if (game.isClickInButton(x, y, buttons.openWorld)) {
-        game.beginRun(PLAY_MODE.openWorld);
+        game.tryBeginOpenWorld();
         return true;
     }
     if (game.isClickInButton(x, y, buttons.journey)) {

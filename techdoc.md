@@ -78,8 +78,11 @@
 >
 > **BUILD 28 (Android store):** Firebase Analytics on Capacitor Android
 > (`@capacitor-firebase/analytics`). Premium ships IAP + menu browse/buy.
-> **Pro lives:** free pool (10 start, +6/6h, cap 10); spend on death/fuel;
-> weekly/yearly Pro = unlimited lives; yearly also one-time pick any 3 ships.
+> **Pro lives:** implemented but **dark** (`LIVES_ENABLED = false` in
+> `services/Lives.js`). Flip true to restore: free pool (10 start, +6/6h, cap
+> 10); spend on death/fuel; weekly/yearly Pro = unlimited lives; yearly also
+> one-time pick any 3 ships. While off, Open Space / Journey retries are
+> unlimited and the lives chip / paywall stay hidden.
 > `UNLOCK_ALL_SKINS` = **true (playtest hangar — flip false before store)** /
 > `UNLOCK_PRO` = false for store — Focus/Flicker/Ember/Saber free; all
 > other ships gated via RevenueCat. Advertising ID: collection disabled
@@ -221,7 +224,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Params sanitized to string/number (booleans → 0/1) so Android does not drop custom events. Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. Android: AD ID collection off + `AD_ID` permission stripped in `AndroidManifest.xml` for Play declaration **No**. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is true for playtest** (home picker + Play equip the full roster, no IAP). Flip **false** before a store build. `UNLOCK_PRO` stays **false**. |
-| `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). Spend on crash/fuel; Pro bypasses. |
+| `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
 | `ships/skinDefs.js` | Ship roster (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime) composed from hulls + trails + boop signatures. |
@@ -242,13 +245,13 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
 | `ui/screens/LogbookScreen.js` | Space Log screen: category tabs; Journey rows text-only; other tabs keep icon cards. |
-| `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip. |
+| `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
-| `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles; lives chip. |
+| `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles; lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
-| `ui/screens/ProPaywallScreen.js` | Empty lives → weekly / yearly Pro offers + restore. |
+| `ui/screens/ProPaywallScreen.js` | Empty lives → weekly / yearly Pro offers + restore (only when `LIVES_ENABLED`). |
 | `ui/screens/AnnualShipPickScreen.js` | Yearly Pro one-time pick of up to 3 premium ships. |
-| `ui/LivesChip.js` | Compact lives / ∞ + regen countdown. |
+| `ui/LivesChip.js` | Compact lives / ∞ + regen countdown. Hidden while `LIVES_ENABLED` is false. |
 | `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost off the top, fade world, fade screen in. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
 | `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–40 voice; holds belt until done. |
@@ -970,6 +973,12 @@ Firebase Explorations, break down `game_over` + `journey_level_end` by
 
 ### Lives + Pro (economy)
 
+**Currently off.** `LIVES_ENABLED` in `services/Lives.js` is **false**. Gates,
+spend, regen, the lives chip, and `ProPaywallScreen` are inactive; Open Space
+and Journey play with unlimited retries. Flip the flag to `true` to restore the
+economy below. Stored `livesState` is left as-is; the next `ensureRegen()` after
+re-enable catches up.
+
 Free players have a **lives** pool for Open Space and Journey (Hazard Lab is free):
 
 | Rule | Value |
@@ -989,7 +998,7 @@ Free players have a **lives** pool for Open Space and Journey (Hazard Lab is fre
 | Weekly | `com.orbi.spaceswoosh.pro.weekly` | Unlimited lives |
 | Yearly | `com.orbi.spaceswoosh.pro.yearly` | Unlimited lives + one-time pick any 3 premium ships (device-local `annualShipPicks`; kept after sub ends) |
 
-UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly claim. Screens show a lives chip (`ui/LivesChip.js`).
+UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly claim. Screens show a lives chip (`ui/LivesChip.js`). All of this UI is dormant while `LIVES_ENABLED` is false.
 
 ### Fuel system (data flow)
 

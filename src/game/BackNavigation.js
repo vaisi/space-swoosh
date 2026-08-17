@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Pro paywall retreats to mode select (or stored return via leave path).
 // - Hazard Lab game-over retreats to the Journey map (same as Journey).
 // - Lore screen retreats to mode select (without marking loreSeen).
 // - Run-start intro does not skip on back — pause/resume like a normal run.
@@ -27,6 +28,7 @@ const PARENT_SCREEN = {
     optionsShip: 'options',
     optionsControls: 'options',
     optionsSound: 'options',
+    proPaywall: 'modeSelect',
 };
 
 /**
@@ -81,6 +83,26 @@ export function goBack(game) {
         } else {
             game.goToMenu();
         }
+        return true;
+    }
+
+    if (game.appScreen === 'proPaywall') {
+        const ret = game.proPaywallReturnScreen || 'modeSelect';
+        game.pendingProResume = null;
+        game.proPaywallReturnScreen = null;
+        if (ret === 'journeyMap') game.goToJourneyMap();
+        else if (ret === 'menu') game.goToMenu();
+        else if (ret === 'gameover') {
+            game.appScreen = 'gameover';
+            game.updatePauseButtonVisibility();
+        } else {
+            game.goToModeSelect();
+        }
+        return true;
+    }
+
+    // Annual ship pick is required once yearly unlocks — don't abandon mid-claim.
+    if (game.appScreen === 'annualShipPick') {
         return true;
     }
 

@@ -3,6 +3,8 @@
 // against each, and where to go next. Replaces the Open Space game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
+// - Retry / next level go through tryBeginJourneyLevel (lives gate / Pro
+//   paywall only when LIVES_ENABLED).
 // - Star 2 value is sparklesCollected / sparklesTarget (fuel diamonds).
 // - Hazard Lab outcomes: no star band; titles LAB CLEAR / LAB FAILED; actions
 //   are Replay / Level Select / Menu (retry calls beginHazardLab).
@@ -34,6 +36,8 @@ import {
 import { screenLayout, fitPx, drawDivider, drawRuledLabel } from '../ScreenKit.js';
 import { starLabelsFor, TOTAL_LEVELS } from '../../config/JourneyConfig.js';
 import { ScoreService } from '../../services/ScoreService.js';
+import { drawLivesChip } from '../LivesChip.js';
+import { ensureRegen } from '../../services/Lives.js';
 
 // Every vertical size on the screen, derived from one unit so the whole thing can
 // be scaled to fit in a single pass. `baseUnit` is width-derived on desktop, which
@@ -75,10 +79,17 @@ function isLabOutcome(outcome) {
 }
 
 export function renderLevelOutcome(game) {
+    ensureRegen();
     const ctx = game.ctx;
     const L = screenLayout(game, game.baseUnit);
     const outcome = game.levelOutcome;
     if (!outcome) return {};
+
+    drawLivesChip(game, {
+        x: L.right,
+        y: L.top + game.baseUnit * 1.2,
+        align: 'right',
+    });
 
     const lab = isLabOutcome(outcome);
     const starSlots = lab ? 0 : (outcome.descriptor.starSlots ?? 3);
@@ -345,14 +356,14 @@ export function handleLevelOutcomeClick(game, x, y) {
     if (game.gameOverAlpha < 0.6) return true;
 
     if (game.isClickInButton(x, y, buttons.next)) {
-        game.beginJourneyLevel(outcome.descriptor.level + 1);
+        game.tryBeginJourneyLevel(outcome.descriptor.level + 1);
         return true;
     }
     if (game.isClickInButton(x, y, buttons.retry)) {
         if (isLabOutcome(outcome)) {
             game.beginHazardLab();
         } else {
-            game.beginJourneyLevel(outcome.descriptor.level);
+            game.tryBeginJourneyLevel(outcome.descriptor.level);
         }
         return true;
     }

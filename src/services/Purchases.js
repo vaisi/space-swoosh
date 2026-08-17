@@ -1,6 +1,7 @@
 // Purchases.js
 // Thin wrapper around RevenueCat (@revenuecat/purchases-capacitor).
 // Changes:
+// - Pro weekly/yearly product ids + customer Pro snapshot (active + product).
 // - Created file: native-only IAP. On web, or when API keys are missing, every
 //   call no-ops / returns empty so the ship picker still works offline and in
 //   the browser. Product IDs and entitlement ids are the contract with the
@@ -10,6 +11,13 @@ import { Capacitor } from '@capacitor/core';
 
 const IOS_KEY = import.meta.env.VITE_REVENUECAT_IOS_KEY || '';
 const ANDROID_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_KEY || '';
+
+/** Auto-renewable — unlimited lives. */
+export const PRO_WEEKLY_PRODUCT_ID = 'com.orbi.spaceswoosh.pro.weekly';
+/** Auto-renewable — unlimited lives + one-time pick any 3 ships. */
+export const PRO_YEARLY_PRODUCT_ID = 'com.orbi.spaceswoosh.pro.yearly';
+/** RevenueCat entitlement attached to both Pro products. */
+export const PRO_ENTITLEMENT_ID = 'pro';
 
 let configured = false;
 let Purchases = null;
@@ -57,21 +65,48 @@ export async function initPurchases() {
 }
 
 /**
- * Active entitlement ids from RevenueCat (e.g. "skin_pulse").
+ * Active entitlement ids from RevenueCat (e.g. "skin_pulse", "pro").
  * @returns {Promise<string[] | null>} `null` on failure so callers keep their
  *   local cache instead of wiping ownership on a flaky network.
  */
 export async function getOwnedEntitlementIds() {
+    const info = await getCustomerProInfo();
+    return info ? info.entitlementIds : null;
+}
+
+/**
+ * Snapshot of Pro subscription state from RevenueCat.
+ * @returns {Promise<{
+ *   entitlementIds: string[],
+ *   proActive: boolean,
+ *   yearlyActive: boolean,
+ *   productId: string | null,
+ * } | null>} `null` on failure (keep local cache).
+ */
+export async function getCustomerProInfo() {
     if (!configured || !Purchases) return null;
 
     try {
         const { customerInfo } = await Purchases.getCustomerInfo();
-        const active = customerInfo?.entitlements?.active || {};
-        return Object.keys(active);
+        return proInfoFromCustomer(customerInfo);
     } catch (error) {
         console.error('[purchases] getCustomerInfo failed:', error);
         return null;
     }
+}
+
+function proInfoFromCustomer(customerInfo) {
+    const active = customerInfo?.entitlements?.active || {};
+    const entitlementIds = Object.keys(active);
+    const proEnt = active[PRO_ENTITLEMENT_ID] || null;
+    const productId = proEnt?.productIdentifier || null;
+    const yearlyActive = productId === PRO_YEARLY_PRODUCT_ID;
+    return {
+        entitlementIds,
+        proActive: Boolean(proEnt),
+        yearlyActive,
+        productId,
+    };
 }
 
 /**
@@ -122,14 +157,20 @@ export async function purchaseProduct(productId) {
     if (!aPackage) {
         return {
             ok: false,
-            message: 'This ship is not available in the store yet.',
+            message: 'This product is not available in the store yet.',
         };
     }
 
     try {
         const { customerInfo } = await Purchases.purchasePackage({ aPackage });
-        const active = customerInfo?.entitlements?.active || {};
-        return { ok: true, entitlementIds: Object.keys(active) };
+        const info = proInfoFromCustomer(customerInfo);
+        return {
+            ok: true,
+            entitlementIds: info.entitlementIds,
+            proActive: info.proActive,
+            yearlyActive: info.yearlyActive,
+            productId: info.productId,
+        };
     } catch (error) {
         // User-cancelled purchases are not errors worth alarming over.
         const code = error?.code || error?.errorCode;
@@ -162,8 +203,14 @@ export async function restorePurchases() {
 
     try {
         const { customerInfo } = await Purchases.restorePurchases();
-        const active = customerInfo?.entitlements?.active || {};
-        return { ok: true, entitlementIds: Object.keys(active) };
+        const info = proInfoFromCustomer(customerInfo);
+        return {
+            ok: true,
+            entitlementIds: info.entitlementIds,
+            proActive: info.proActive,
+            yearlyActive: info.yearlyActive,
+            productId: info.productId,
+        };
     } catch (error) {
         console.error('[purchases] restore failed:', error);
         return {
@@ -171,6 +218,14 @@ export async function restorePurchases() {
             message: error?.message || 'Restore failed.',
         };
     }
+}
+
+export async function purchaseProWeekly() {
+    return purchaseProduct(PRO_WEEKLY_PRODUCT_ID);
+}
+
+export async function purchaseProYearly() {
+    return purchaseProduct(PRO_YEARLY_PRODUCT_ID);
 }
 
 /**

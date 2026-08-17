@@ -6,6 +6,9 @@
 //   production build) so a device install can be verified vs an old APK.
 // - cameraReseatEnabled: Android native (all modes) + Hazard Lab everywhere,
 //   so web lab can practice the 5s-below-seat ease after wormhole / black hole.
+// - Pro lives economy (LIVES_ENABLED, default false): when on, gate Open Space
+//   / Journey at 0 lives, spendLife on crash/fuel gameOver, Pro paywall +
+//   annual 3-ship pick. When off, starts and retries are unlimited.
 // - Pause freezes navigator voice with BGM (pauseLevelVoice / resumeLevelVoice).
 // - In-run HUD mockup C: three equal-height icon+meter rows (route/ink bar,
 //   sparkle/Signal fuel bar, target/dots or Open Space count) — no captions.
@@ -181,9 +184,17 @@ import {
     getSkinPriceLabel,
     isSkinOwned,
     isSkinPremium,
+    markAnnualShipPicksComplete,
+    needsAnnualShipPick,
     purchaseSkin,
     restorePurchases,
 } from '../services/Entitlements.js';
+import {
+    canStartRun,
+    ensureRegen,
+    spendLife,
+} from '../services/Lives.js';
+import { drawLivesChip } from '../ui/LivesChip.js';
 import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { color, font } from '../brand/tokens.js';
@@ -248,6 +259,15 @@ import {
     handleLogbookClick,
     clampLogbookScroll,
 } from '../ui/screens/LogbookScreen.js';
+import {
+    renderProPaywall,
+    handleProPaywallClick,
+} from '../ui/screens/ProPaywallScreen.js';
+import {
+    renderAnnualShipPick,
+    handleAnnualShipPickClick,
+    clampAnnualPickScroll,
+} from '../ui/screens/AnnualShipPickScreen.js';
 import { LevelClearSequence } from './LevelClearSequence.js';
 import { LevelIntroSequence } from './LevelIntroSequence.js';
 import { clamp01 } from '../utils/math.js';
@@ -291,7 +311,8 @@ export class Game {
         this.explosionParticles = [];
         this.gameOverScreen = 'main'; // nested: 'main' or 'highscores' while appScreen is gameover
         // menu | modeSelect | journeyMap | logbook | options | optionsShip |
-        // optionsControls | optionsSound | highscores | playing | gameover
+        // optionsControls | optionsSound | highscores | playing | gameover |
+        // proPaywall | annualShipPick
         this.appScreen = 'menu';
         this.menuFlavor = pickCopy('menu');
         this.modeJourneyBlurb = pickCopy('modeJourney');
@@ -310,6 +331,13 @@ export class Game {
         this.journeyMapButtons = null;
         this.levelOutcomeButtons = null;
         this.logbookButtons = null;
+        this.proPaywallButtons = null;
+        this.proPaywallReturnScreen = null;
+        /** @type {{ type: string, mode?: string, level?: number } | null} */
+        this.pendingProResume = null;
+        this.annualPickButtons = null;
+        this.annualPickSelection = new Set();
+        this.annualPickScroll = 0;
         this.logbookCategory = 'obstacles';
         this.logbookScroll = 0;
         this.frameCount = 0;
@@ -878,6 +906,14 @@ export class Game {
         }
         if (this.appScreen === 'modeSelect') {
             this.modeSelectButtons = renderModeSelect(this);
+            return;
+        }
+        if (this.appScreen === 'proPaywall') {
+            this.proPaywallButtons = renderProPaywall(this);
+            return;
+        }
+        if (this.appScreen === 'annualShipPick') {
+            this.annualPickButtons = renderAnnualShipPick(this);
             return;
         }
         if (this.appScreen === 'lore') {
@@ -2328,6 +2364,9 @@ export class Game {
                 this.shipSkinId = loadShipSkinId();
                 this.menuShipBrowseId = this.shipSkinId;
                 this.setPurchaseStatus(result.message || 'Restored.');
+                if (needsAnnualShipPick()) {
+                    this.openAnnualShipPick();
+                }
             } else {
                 this.setPurchaseStatus(result.message || 'Restore unavailable.');
             }
@@ -2340,7 +2379,63 @@ export class Game {
     quickPlayEndless() {
         if (!isSkinOwned(this.shipSkinId)) return;
         track('quick_play_endless', { skin_id: this.shipSkinId });
+        this.tryBeginOpenWorld();
+    }
+
+    /** Empty lives → Pro paywall; otherwise start Open Space. */
+    tryBeginOpenWorld() {
+        ensureRegen();
+        if (!canStartRun()) {
+            this.showProPaywall('modeSelect', {
+                type: 'openWorld',
+                mode: PLAY_MODE.openWorld,
+            });
+            return false;
+        }
         this.beginRun(PLAY_MODE.openWorld);
+        return true;
+    }
+
+    /** Empty lives → Pro paywall; otherwise start a Journey level. */
+    tryBeginJourneyLevel(level) {
+        ensureRegen();
+        if (!canStartRun()) {
+            this.showProPaywall('journeyMap', {
+                type: 'journey',
+                level,
+            });
+            return false;
+        }
+        this.beginJourneyLevel(level);
+        return true;
+    }
+
+    showProPaywall(returnScreen, pendingResume = null) {
+        ensureRegen();
+        this.proPaywallReturnScreen = returnScreen;
+        this.pendingProResume = pendingResume;
+        this.appScreen = 'proPaywall';
+        this.updatePauseButtonVisibility();
+    }
+
+    openAnnualShipPick() {
+        const lockedPremium = SHIP_SKIN_LIST.filter(
+            (s) => isSkinPremium(s.id) && !isSkinOwned(s.id)
+        );
+        if (lockedPremium.length === 0) {
+            markAnnualShipPicksComplete();
+            const pending = this.pendingProResume;
+            this.pendingProResume = null;
+            if (pending?.type === 'openWorld') this.beginRun(pending.mode);
+            else if (pending?.type === 'journey') this.beginJourneyLevel(pending.level);
+            else if (pending?.type === 'restart') this.restart();
+            else this.goToModeSelect();
+            return;
+        }
+        this.annualPickSelection = new Set();
+        this.annualPickScroll = 0;
+        this.appScreen = 'annualShipPick';
+        this.updatePauseButtonVisibility();
     }
 
     // The one entry point into a run. The profile is built first because the
@@ -2508,6 +2603,13 @@ export class Game {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
+
+        ensureRegen();
+        drawLivesChip(this, {
+            x: L.right,
+            y: L.top + unit * 1.2,
+            align: 'right',
+        });
 
         // Three bands: verdict, stats, actions — separated by dotted rules and
         // centred as one block so the screen never sits top-heavy.
@@ -3070,6 +3172,12 @@ export class Game {
             this.gameOverStartTime = performance.now();
             this.finalScore = Math.floor(this.score);
 
+            // Free lives: spend on Open Space / Journey failure only.
+            if (this.playMode === PLAY_MODE.openWorld
+                || this.playMode === PLAY_MODE.journey) {
+                spendLife();
+            }
+
             // Hide pause button
             this.updatePauseButtonVisibility();
 
@@ -3284,6 +3392,16 @@ export class Game {
 
             if (this.appScreen === 'modeSelect') {
                 handleModeSelectClick(this, x, y);
+                return;
+            }
+
+            if (this.appScreen === 'proPaywall') {
+                await handleProPaywallClick(this, x, y);
+                return;
+            }
+
+            if (this.appScreen === 'annualShipPick') {
+                handleAnnualShipPickClick(this, x, y);
                 return;
             }
 
@@ -3503,7 +3621,8 @@ export class Game {
             // A drag on a scrollable list wasn't aiming at a tile/button.
             if ((this.appScreen === 'journeyMap'
                 || this.appScreen === 'optionsShip'
-                || this.appScreen === 'logbook')
+                || this.appScreen === 'logbook'
+                || this.appScreen === 'annualShipPick')
                 && this.touchDragged) {
                 this.touchDragged = false;
                 this.touchStart = null;
@@ -3535,13 +3654,22 @@ export class Game {
             if (this.appScreen === 'optionsShip') {
                 e.preventDefault();
                 this.shipPickerScroll = this.clampShipPickerScroll(this.shipPickerScroll + e.deltaY);
+                return;
+            }
+            if (this.appScreen === 'annualShipPick') {
+                e.preventDefault();
+                this.annualPickScroll = clampAnnualPickScroll(
+                    this,
+                    (this.annualPickScroll || 0) + e.deltaY
+                );
             }
         }, { passive: false });
 
         this.canvas.addEventListener('touchstart', (e) => {
             const scrollable = this.appScreen === 'journeyMap'
                 || this.appScreen === 'optionsShip'
-                || this.appScreen === 'logbook';
+                || this.appScreen === 'logbook'
+                || this.appScreen === 'annualShipPick';
             if (!scrollable) return;
             const touch = e.touches[0];
             this.touchStart = {
@@ -3551,7 +3679,9 @@ export class Game {
                     ? this.journeyMapScroll
                     : this.appScreen === 'logbook'
                         ? this.logbookScroll
-                        : this.shipPickerScroll,
+                        : this.appScreen === 'annualShipPick'
+                            ? (this.annualPickScroll || 0)
+                            : this.shipPickerScroll,
             };
             this.touchDragged = false;
         }, { passive: true });
@@ -3560,7 +3690,8 @@ export class Game {
             if (!this.touchStart) return;
             if (this.appScreen !== 'journeyMap'
                 && this.appScreen !== 'optionsShip'
-                && this.appScreen !== 'logbook') return;
+                && this.appScreen !== 'logbook'
+                && this.appScreen !== 'annualShipPick') return;
             const touch = e.touches[0];
             const dy = touch.clientY - this.touchStart.y;
             const dx = touch.clientX - this.touchStart.x;
@@ -3571,6 +3702,8 @@ export class Game {
                 this.journeyMapScroll = this.clampJourneyScroll(next);
             } else if (this.appScreen === 'logbook') {
                 this.logbookScroll = clampLogbookScroll(this, next);
+            } else if (this.appScreen === 'annualShipPick') {
+                this.annualPickScroll = clampAnnualPickScroll(this, next);
             } else {
                 this.shipPickerScroll = this.clampShipPickerScroll(next);
             }
@@ -3587,8 +3720,18 @@ export class Game {
     }
 
     // Play Again keeps you in the mode you were in — in Journey that means the
-    // same level, not the next one.
+    // same level, not the next one. Empty lives opens the Pro paywall.
     restart() {
+        if (this.playMode !== PLAY_MODE.hazardLab) {
+            ensureRegen();
+            if (!canStartRun()) {
+                this.showProPaywall(
+                    this.isLevelRun() ? 'journeyMap' : 'gameover',
+                    { type: 'restart' }
+                );
+                return;
+            }
+        }
         if (this.playMode === PLAY_MODE.hazardLab) {
             this.beginHazardLab();
         } else if (this.playMode === PLAY_MODE.journey) {

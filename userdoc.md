@@ -67,12 +67,9 @@
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
 > night paper — charcoal ground, light ink, vivid mint accents.
 >
-> **Lives:** You start with **10** lives for Journey and Open Space. Crashing or
-> running out of fuel costs **1** life (clearing a Journey level does not). Lives
-> refill **+6 every 6 hours**, never above 10. At zero, you can wait or go **Pro**
-> (unlimited lives): about **$1.99 / week** or **$19.99 / year**. Yearly Pro also
-> lets you permanently unlock any **3** premium ships. Hazard Lab does not use
-> lives. Use **Options → Restore Purchases** after reinstalling.
+> **Lives:** Not active in this build. Journey and Open Space can be retried
+> as often as you like after a crash or empty tank. (A lives pool and Pro
+> unlimited-lives offer are in the code, switched off until further notice.)
 
 ## The goal
 

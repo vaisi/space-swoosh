@@ -4,6 +4,8 @@
 // level locked. The list is taller than the screen, so it scrolls (wheel or
 // drag — Game owns the gesture and hands us the offset).
 // Changes:
+// - Lives chip in the header (hidden while LIVES_ENABLED is false); level
+//   starts use tryBeginJourneyLevel (lives gate only when the flag is on).
 // - Dropped chapter blurb lines under headings (clutter + story spoilers);
 //   keep name + level range only.
 // - Always-unlocked Hazard Lab tile pinned above Troposphere (sandbox for
@@ -34,6 +36,8 @@ import {
     nextPlayableLevel,
     totalStars,
 } from '../../services/JourneyProgress.js';
+import { drawLivesChip } from '../LivesChip.js';
+import { ensureRegen } from '../../services/Lives.js';
 
 /**
  * Draws the map and returns `{ back, levels, metrics }`. `metrics` tells Game
@@ -41,15 +45,21 @@ import {
  * so click routing needs no knowledge of the scroll offset.
  */
 export function renderJourneyMap(game) {
+    ensureRegen();
     const ctx = game.ctx;
     const unit = game.baseUnit;
     const L = screenLayout(game, unit);
 
     const header = game.drawScreenHeader('JOURNEY', { back: true });
 
-    // Star tally, pinned to the header band on the right.
+    // Lives left of the star tally in the header band.
     const tallyPx = Math.max(9, unit * 0.95);
     const tallyY = L.top + (L.isMobile ? unit * 2.1 : unit * 1.9);
+    drawLivesChip(game, {
+        x: L.left,
+        y: tallyY,
+        align: 'left',
+    });
     const tally = `${totalStars(game.journeyProgress)} / ${TOTAL_STARS}`;
     ctx.save();
     ctx.textAlign = 'right';
@@ -300,7 +310,7 @@ export function handleJourneyMapClick(game, x, y) {
         if (tile.hazardLab) {
             game.beginHazardLab();
         } else {
-            game.beginJourneyLevel(tile.level);
+            game.tryBeginJourneyLevel(tile.level);
         }
         return true;
     }
