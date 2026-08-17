@@ -12,8 +12,9 @@
 > scrolling 2-col grid; `shipSkinId` persists (unknown id stays **Flicker**).
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
-> 16 `skipHullCache` hulls (`Lantern`…`Chime`) share one `LiveHullPaint` for
-> play and hangar stills (t = 1400 ms). Native hangar tiles bake Android’s
+> 17 `skipHullCache` hulls (Nyan, Halo, Orbit, plus `Lantern`…`Chime`) share
+> `LiveHullPaint` / `ClassicHullPaint` for play and hangar stills (t = 1400 ms).
+> Other ink hulls bake Android wash + highlight + crease. Native hangar tiles bake Android’s
 > short `previewWake` (12 pts, span 3.4r) under a banked hull. Dedicated wakes (filaments, soap rings,
 > aurora strata, peacock stamps, …) — not a generic particle dump. Hitboxes are JS circle
 > packs; jelly does not deform the hitbox. Plus **Journey** (40 levels / 113 stars),
@@ -39,7 +40,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps
-> `CFBundleVersion` ≥ 10 on each TestFlight upload.
+> `CFBundleVersion` ≥ 11 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -864,6 +865,7 @@ seed only (leaves decorative). **Koi** is the body only (tail decorative).
 only (stem / ticks decorative). **Argus** is the body + inner fan (feather tips
 decorative). **Chime** is the central bell only (side bells / clappers decorative).
 Animated colour hulls set `skipHullCache` so live paint keeps moving on cheap Canvas.
+Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Chime; other Focus–Cinder hulls bake Android wash + highlight + crease (`ClassicHullPaint`, t = 1400 ms). Classic wakes (Wisp–Cinder) are dedicated SpriteKit drawers, not `ParticleWakeField`.
 **Spine** is stacked circles down the bar only.
 
 - Registry: `ships/skins.js` (`getSkin`, `drawSkinPreview`, `loadShipSkinId` / `saveShipSkinId`).
@@ -1090,14 +1092,14 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `HullBake` on-demand by `HullKind`, `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (16), hangar stills from `PreviewWakePaint` (short Android `previewWake` + family trail) then banked hull, dedicated whimsical wakes (`FilamentWake` / Bloom rings / horizon strata / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core / pooled particle wakes for remaining premiums, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
 (smudge + body). Saber wake: three **reused** ribbons (bloom / body / core)
-plus a spark pool. Focus / Ember use pooled discs. The 16 live ships reuse a
+plus a spark pool. Focus / Ember use pooled discs. The 17 live ships reuse a
 fixed fill/stroke/disc pool and rewrite `path` / position each frame; lantern-family
 wakes reuse 3 filament `SKShapeNode`s plus a plankton sprite pool (cap ~600). Sim at
 1/60 with interpolated presentation; `preferredFramesPerSecond = 120` +
@@ -1113,7 +1115,7 @@ Cruise travel is `snappyHz * feelSpeed` (0.90). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,
 matching hull bakes / `LiveHullPaint` (play + picker), and Android trail + `wallTrailDeform`
-modes (incl. Focus ripple + Ember twin-dots). The 16 live ships use dedicated wake
+modes (incl. Focus ripple + Ember twin-dots). The 17 live ships use dedicated wake
 drawers and `trailTailOffset`. Hull jelly does not
 deform the hitbox. Shield smash stays a scaled circle. IAP / RevenueCat /
 locked tiles later (`productId` is data only until the flag flips false). Slice D feel remains: Arc/zigzag, overlap spawn, cluster

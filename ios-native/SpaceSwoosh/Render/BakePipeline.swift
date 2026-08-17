@@ -1,5 +1,5 @@
 // BakePipeline.swift
-// Changes: On-demand HullBake cache keyed by HullKind (full 41-ship roster).
+// Changes: ClassicHullPaint stills (wash / highlight / Flux 0.82) keyed by HullKind.
 
 import SpriteKit
 import UIKit
@@ -62,7 +62,7 @@ final class BakePipeline {
     func hull(for id: SkinId) -> SKTexture {
         let kind = SkinCatalog.def(id).hullKind
         if let hit = hullByKind[kind] { return hit }
-        let tex = HullBake.make(kind: kind)
+        let tex = ClassicHullPaint.make(kind: kind)
         hullByKind[kind] = tex
         return tex
     }

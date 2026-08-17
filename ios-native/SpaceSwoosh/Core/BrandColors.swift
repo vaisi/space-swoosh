@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: Theme-aware live-ship accents + bloom/aurora/plume/koi/wish/darner palettes.
+// Changes: Nyan gray token; theme-aware live-ship accents.
 
 import SwiftUI
 import UIKit
@@ -119,6 +119,7 @@ enum BrandColors {
         static func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> UIColor {
             UIColor(red: r / 255, green: g / 255, blue: b / 255, alpha: 1)
         }
+        static var nyanGray: UIColor { UIColor(red: 196 / 255, green: 189 / 255, blue: 176 / 255, alpha: 1) }
         static var nyanPink: UIColor { UIColor(red: 1, green: 143 / 255, blue: 184 / 255, alpha: 1) }
         static let nyanBands: [UIColor] = [
             UIColor(red: 1, green: 0, blue: 102 / 255, alpha: 1),

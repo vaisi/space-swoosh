@@ -14,8 +14,12 @@
 > **Hazard Lab** with the **full hangar** (41 ships). Cycle them on the home
 > screen (◀ / ▶) or pick one under Options → Ship; your choice is saved. The
 > whimsical ships (Lantern through Chime) show their colors on the hangar tile,
-> not a plain ink blob. Each hangar card also shows a short sample of that
-> ship’s wake under the hull, the same way Android does. The
+> not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s satellite, and
+> **Nyan**’s gray crescent with pink spots match Android in play (hangar cards
+> freeze that pose). The other hulls show the same ink wash and crease as
+> Android. Each hangar card also shows a short sample of that ship’s wake
+> under the hull — chevrons, rings, stamps, dashes, and the rest of the
+> family, not a column of dots. The
 > four free ships are **Focus**, **Flicker**, **Ember**, and **Saber** — the
 > rest are unlocked for this playtest build. Zigzag or Arc (Options), wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,

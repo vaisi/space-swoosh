@@ -35,6 +35,9 @@
 		D573C8A863FDFE1BF358F8FE /* SkinCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC76A2BA5E819E3790D06EC6 /* SkinCatalog.swift */; };
 		74A8A627E67F859E9B14028C /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90419B24548F3DDF98C2E7E /* InputService.swift */; };
 		C05DAB3B91F8482E9BC52541 /* BakePipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC91D803627C8826BAD1FB84 /* BakePipeline.swift */; };
+		92E79CE004698D4DA2B5BC83 /* ClassicHullPaint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E9BDB4F10C5E20D5CB87DB /* ClassicHullPaint.swift */; };
+		2A9DBDAF543C0FF583B54C7F /* ClassicMarkWakes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79E1E492D2D66EEDAA3D0C5 /* ClassicMarkWakes.swift */; };
+		92720FF7303BB172088EC616 /* ClassicRibbonWakes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326BAA025A09833C954AB507 /* ClassicRibbonWakes.swift */; };
 		1951A766F47C28770063B167 /* DotTrailField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC6A7CB1F9AB22DDD03BA3C /* DotTrailField.swift */; };
 		3644335780904EE6C2565370 /* EmberHullTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11C8938F3E181C834518A1E /* EmberHullTexture.swift */; };
 		67F3A2A2369239049433ED8C /* FilamentWake.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72236B59DF3D6E4C9BD6DAC /* FilamentWake.swift */; };
@@ -155,6 +158,9 @@
 		EC76A2BA5E819E3790D06EC6 /* SkinCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinCatalog.swift; sourceTree = "<group>"; };
 		F90419B24548F3DDF98C2E7E /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
 		AC91D803627C8826BAD1FB84 /* BakePipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BakePipeline.swift; sourceTree = "<group>"; };
+		A4E9BDB4F10C5E20D5CB87DB /* ClassicHullPaint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassicHullPaint.swift; sourceTree = "<group>"; };
+		C79E1E492D2D66EEDAA3D0C5 /* ClassicMarkWakes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassicMarkWakes.swift; sourceTree = "<group>"; };
+		326BAA025A09833C954AB507 /* ClassicRibbonWakes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassicRibbonWakes.swift; sourceTree = "<group>"; };
 		4BC6A7CB1F9AB22DDD03BA3C /* DotTrailField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotTrailField.swift; sourceTree = "<group>"; };
 		D11C8938F3E181C834518A1E /* EmberHullTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberHullTexture.swift; sourceTree = "<group>"; };
 		A72236B59DF3D6E4C9BD6DAC /* FilamentWake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilamentWake.swift; sourceTree = "<group>"; };
@@ -358,6 +364,9 @@
 			isa = PBXGroup;
 			children = (
 				AC91D803627C8826BAD1FB84,
+				A4E9BDB4F10C5E20D5CB87DB,
+				C79E1E492D2D66EEDAA3D0C5,
+				326BAA025A09833C954AB507,
 				4BC6A7CB1F9AB22DDD03BA3C,
 				D11C8938F3E181C834518A1E,
 				A72236B59DF3D6E4C9BD6DAC,
@@ -601,6 +610,9 @@
 				D573C8A863FDFE1BF358F8FE /* SkinCatalog.swift in Sources */,
 				74A8A627E67F859E9B14028C /* InputService.swift in Sources */,
 				C05DAB3B91F8482E9BC52541 /* BakePipeline.swift in Sources */,
+				92E79CE004698D4DA2B5BC83 /* ClassicHullPaint.swift in Sources */,
+				2A9DBDAF543C0FF583B54C7F /* ClassicMarkWakes.swift in Sources */,
+				92720FF7303BB172088EC616 /* ClassicRibbonWakes.swift in Sources */,
 				1951A766F47C28770063B167 /* DotTrailField.swift in Sources */,
 				3644335780904EE6C2565370 /* EmberHullTexture.swift in Sources */,
 				67F3A2A2369239049433ED8C /* FilamentWake.swift in Sources */,
@@ -681,7 +693,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
@@ -703,7 +715,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;

@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: trailTailOffset for the 16 live ships (Android attach).
+// Changes: Nyan/Halo/Orbit live; Fletch 0.32 / Nyan 0 tail offsets.
 
 import Foundation
 import CoreGraphics
@@ -140,13 +140,13 @@ enum SkinCatalog {
           pad: 3.2, half: 0.85, jelly: .standard, iap: true, pts: longPts, fade: longFade,
           width: 0.55, alpha: 0.85, smudge: false, signal: true),
         s(.fletch, "Fletch", "A smooth arrow. Dawn on the wake.", H.fletch, .spring, .fletch, .horizon,
-          pad: 3.2, half: 0.85, jelly: .standard, iap: true, pts: longPts, fade: longFade, width: 0.58, alpha: 0.9),
+          pad: 3.2, half: 0.85, jelly: .standard, iap: true, pts: longPts, fade: longFade, width: 0.58, alpha: 0.9, tail: 0.32),
         s(.nyan, "Nyan", "A long rainbow line of travel.", H.crescent, .spring, .nyan, .rainbow,
-          pad: 3.4, half: 0.85, jelly: .standard, iap: true, pts: midPts, fade: midFade, width: 0.85, alpha: 0.9),
+          pad: 3.4, half: 0.85, jelly: .standard, iap: true, pts: midPts, fade: midFade, live: true, width: 0.85, alpha: 0.9, tail: 0),
         s(.shard, "Shard", "Faceted. A hard wake.", H.shard, .shatter, .shard, .chevron,
           pad: 3.2, half: 0.85, jelly: .shard, iap: true, pts: longPts, fade: longFade),
         s(.halo, "Halo", "Orbital. Rings the path.", H.halo, .pile, .halo, .rings,
-          pad: 2.6, half: 0.9, jelly: .halo, iap: true),
+          pad: 2.6, half: 0.9, jelly: .halo, iap: true, live: true),
         s(.needle, "Needle", "Linear. One thin thread.", H.needle, .whip, .needle, .hairline,
           pad: 3.6, half: 0.55, jelly: .needle, iap: true),
         s(.echo, "Echo", "Paired. Leaves a twin.", H.crescent, .desync, .crescent, .twin,
@@ -168,7 +168,7 @@ enum SkinCatalog {
         s(.spine, "Spine", "Upright. A ladder wake.", H.spine, .ladder, .spine, .ladder,
           pad: 3.6, half: 0.55, jelly: .spine, iap: true, pts: longPts, fade: longFade),
         s(.orbit, "Orbit", "Planetoid. A lagging orbit wake.", H.orbit, .lag, .orbit, .lag,
-          pad: 3.2, half: 0.75, jelly: .orbit, iap: true),
+          pad: 3.2, half: 0.75, jelly: .orbit, iap: true, live: true),
         s(.ink, "Ink", "Calligraphic. Tip reverses on boop.", H.tear, .script, .tear, .ribbon,
           pad: 3.2, half: 0.85, jelly: .standard, iap: true, pts: longPts, fade: longFade,
           width: 0.62, alpha: 0.9, smudge: true, reverse: true),

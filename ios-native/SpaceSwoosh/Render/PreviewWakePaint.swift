@@ -1,5 +1,5 @@
 // PreviewWakePaint.swift
-// Changes: Android previewWake stills for hangar tiles (short curve, family trail).
+// Changes: Dusk hangar cloud uses saber violet; family stills match play drawers.
 
 import CoreGraphics
 import UIKit
@@ -50,7 +50,11 @@ enum PreviewWakePaint {
         case .crease:
             crease(cg, pts, radius)
         case .cloud:
-            cloud(cg, pts, radius, colors: [BrandColors.UI.ink], density: 3)
+            if skin.id == .dusk {
+                cloud(cg, pts, radius, colors: [BrandColors.UI.saber], density: 5)
+            } else {
+                cloud(cg, pts, radius, colors: [BrandColors.UI.ink], density: 3)
+            }
         case .ladder:
             ladder(cg, pts, radius)
         case .lag:

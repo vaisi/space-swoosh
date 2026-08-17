@@ -1,5 +1,5 @@
 // LiveHullPaint.swift
-// Changes: Android drawLanternHull…drawChimeHull — same numbers, two canvases.
+// Changes: Nyan / Halo / Orbit dispatch to ClassicHullPaint.
 
 import CoreGraphics
 import UIKit
@@ -23,6 +23,8 @@ enum LiveHullPaint {
         case .puff: puff(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .argus: argus(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .chime: chime(canvas, radius, turn, nowMs, jellyLive, alpha)
+        case .nyan, .halo, .orbit:
+            ClassicHullPaint.draw(id, onto: canvas, radius: radius, turn: turn, nowMs: nowMs, jellyLive: jellyLive, shake: shake, alpha: alpha)
         default: break
         }
     }

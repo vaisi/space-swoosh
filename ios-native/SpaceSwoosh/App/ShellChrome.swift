@@ -1,5 +1,5 @@
 // ShellChrome.swift
-// Changes: Hangar preview bakes short Android wake under the banked hull.
+// Changes: Hangar hulls use ClassicHullPaint / LiveHullPaint after the short wake.
 
 import SwiftUI
 import UIKit
@@ -148,7 +148,11 @@ enum ShipArt {
                     jellyLive: false, shake: 0, alpha: 1
                 )
             } else {
-                HullBake.draw(def.hullKind, onto: cg, cx: 0, cy: 0, r: r)
+                ClassicHullPaint.draw(
+                    id, onto: CGLiveCanvas(cg), radius: r,
+                    turn: PreviewWakePaint.turn, nowMs: ClassicHullPaint.previewTimeMs,
+                    jellyLive: false, shake: 0, alpha: 1
+                )
             }
             cg.restoreGState()
         }

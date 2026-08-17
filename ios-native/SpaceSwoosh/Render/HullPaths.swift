@@ -1,5 +1,5 @@
 // HullPaths.swift
-// Changes: HullBake.draw for banked hangar stills (wake + hull).
+// Changes: Path recipes for ClassicHullPaint / LiveHullPaint (hangar + play).
 
 import CoreGraphics
 import SpriteKit

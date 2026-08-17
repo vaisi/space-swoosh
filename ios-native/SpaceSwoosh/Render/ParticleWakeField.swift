@@ -1,5 +1,5 @@
 // ParticleWakeField.swift
-// Changes: Pooled sprite wakes for remaining trail families (cloud / rings / motes / …).
+// Changes: Last-resort pooled sprite wake — unused on the 41-ship roster.
 
 import SpriteKit
 

@@ -1,5 +1,5 @@
 // SkinTrail.swift
-// Changes: 16 live ships use dedicated wakes (filaments / rings / aurora / …).
+// Changes: Classic wakes (Wisp–Cinder) leave ParticleWakeField.
 
 import SpriteKit
 
@@ -71,6 +71,37 @@ enum SkinTrailFactory {
             return ArgusWake(ring: bake.ring, disc: disc, slots: slots)
         case .chime:
             return ChimeWake(disc: disc, slots: slots)
+        case .wisp:
+            return WispTrailNode(disc: disc, maxPoints: slots + 2)
+        case .chevron:
+            return ChevronTrailNode(maxPoints: slots)
+        case .rings:
+            return RingTrailField(ring: bake.ring, disc: disc, maxPoints: slots, bubble: skin.id == .halo)
+        case .cloud:
+            if skin.id == .dusk {
+                return CloudTrailField(
+                    disc: disc, skin: skin, color: BrandColors.UI.saber,
+                    density: 2, rippleScale: 0.4, scatterDust: true, scatterWidth: 1.4
+                )
+            }
+            return CloudTrailField(
+                disc: disc, skin: skin, color: BrandColors.UI.ink,
+                density: 1, rippleScale: 0.55, scatterDust: false, scatterWidth: 1
+            )
+        case .stamp:
+            return StampTrailField(maxPoints: slots)
+        case .tick:
+            return TickTrailNode(maxPoints: slots, stretch: true)
+        case .crease:
+            return CreaseTrailNode(maxPoints: slots + 2)
+        case .ladder:
+            return LadderTrailNode(maxPoints: slots)
+        case .lag:
+            return LagTrailNode(maxPoints: slots + 2)
+        case .dash:
+            return DashTrailNode(maxPoints: slots)
+        case .cinder:
+            return CinderTrailNode(disc: disc, maxPoints: slots + 2)
         default:
             return ParticleWakeField(texture: disc, ring: bake.ring, sparkle: bake.sparkle, slots: min(400, slots * 3), skin: skin)
         }
