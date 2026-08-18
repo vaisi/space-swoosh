@@ -1,5 +1,5 @@
 // GameConfig.swift
-// Changes: trailDotSize 0.2 (Android spacecraft.trailDotSize).
+// Changes: Fuel.voiceLowThreshold 0.20 for NAV low-fuel lines (HUD stays 0.28).
 
 import Foundation
 import CoreGraphics
@@ -62,6 +62,7 @@ enum GameConfig {
         static let refillPerCollectible: CGFloat = 0.45
         static let dyingDurationMs: CGFloat = 900
         static let lowThreshold: CGFloat = 0.28
+        static let voiceLowThreshold: CGFloat = 0.20
         static let magnetRadiusScale: CGFloat = 4.25
         static let magnetPull: CGFloat = 0.15
     }

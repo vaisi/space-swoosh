@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: One equipped SkinRenderer (hull + wake) instead of four trail nodes.
+// Changes: consume sfxFuelLow → VoicePlayer.playFuelLow(); retry if NAV is busy.
 
 import SpriteKit
 import QuartzCore
@@ -228,6 +228,10 @@ final class PlayScene: SKScene {
             run.sfxSwoosh = false
             SfxPlayer.shared.playSwoosh()
         }
+        if run.sfxFuelOut {
+            run.sfxFuelOut = false
+            SfxPlayer.shared.playFuelOut()
+        }
         if run.sfxFirstBoop {
             run.sfxFirstBoop = false
             VoicePlayer.shared.playFirstBoop()
@@ -236,6 +240,14 @@ final class PlayScene: SKScene {
         if run.sfxSwooshVoice {
             run.sfxSwooshVoice = false
             VoicePlayer.shared.playSwoosh()
+        }
+        if run.sfxFuelLow {
+            if run.fuelDying || run.isOver {
+                run.sfxFuelLow = false
+            } else if VoicePlayer.shared.playFuelLow() {
+                run.sfxFuelLow = false
+                run.fuelLowVoiceLatched = true
+            }
         }
         if run.isOver, run.completed {
             MusicPlayer.shared.stop()

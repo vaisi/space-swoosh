@@ -1,13 +1,7 @@
 // LogbookManager.js
 // Journey-only façade: maps gameplay events → logbook progress + toast.
 // Changes:
-// - isActive also during Hazard Lab so Phase / Sweep Gate can catalog there.
-// - Level start now fully unlocks the level entry (interact): the navigator
-//   line is already heard, so the Logbook shows the real transmission instead
-//   of an OBSERVED placeholder until clear.
-// - Wall boost pickups: observe by kind on-screen; interact on collect.
-// - Created file: observe / interact / instant, same-frame toast debounce,
-//   on-screen visibility helpers for obstacles and pickups.
+// - Space Travel Boost no longer writes a logbook entry.
 
 import {
     OBSTACLE_CLASS_TO_ID,
@@ -199,10 +193,6 @@ export class LogbookManager {
 
     onFinishGateCrossed() {
         this.interact('finishGate');
-    }
-
-    onSpaceTravelBoost() {
-        this.revealInstant('spaceTravelBoost');
     }
 
     onLevelStarted(level) {

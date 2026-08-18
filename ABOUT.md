@@ -2,10 +2,9 @@
   ABOUT.md
   SPACE SWOOSH — Project reference (single source of truth for "what is this / how does it work").
   Changes:
-  - Created file: full project overview — concept, tech stack, run/build/deploy,
-    file map, architecture & game loop, gameplay mechanics, UI/screens, audio,
-    data & backend, brand system, config knobs, known issues / tech debt, and a
-    roadmap-to-market. Reflects the current codebase (flat-paper UI, no math grid).
+  - Supabase: URL + anon/publishable key come from VITE_* env (not hard-coded);
+    removed stale "secrets in source" warnings. Anon key is public by design;
+    RLS guards the leaderboard. See techdoc.md + .env.example.
   Keep this updated whenever behavior, structure, or config changes.
 -->
 
@@ -65,7 +64,7 @@ space-swoosh-main/
     ├── main.js             # Entry point: prompt name, preload fonts, boot Game
     ├── config/
     │   ├── GameConfig.js    # Tunable gameplay constants (speeds, obstacle types, milestones)
-    │   └── supabase.js      # Supabase client (⚠ URL + anon key hard-coded here)
+    │   └── supabase.js      # Supabase client (VITE_SUPABASE_URL + anon/publishable key)
     ├── core/
     │   ├── Camera.js        # Velocity-smoothed vertical camera; tracks total distance
     │   └── InputHandler.js  # Keyboard (arrows/space) + touch (tap left/right half)
@@ -181,6 +180,11 @@ Loads from `public/sounds/`: `background.mp3` (looping BGM, vol 0.4), plus SFX f
 ## 8. Data & backend
 
 **Supabase** (`config/supabase.js`, `services/ScoreService.js`): a single Postgres table.
+Credentials are `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` from `.env` (see
+`.env.example`). The anon / publishable key ships in the client bundle by design;
+Row Level Security limits it to public SELECT + INSERT on `high_scores` (no
+UPDATE/DELETE). Never put the `service_role` / secret key in the game or any
+`VITE_*` variable. Full key walkthrough: [`techdoc.md`](./techdoc.md) §2.
 
 **`high_scores`**
 | Column | Type | Notes |
@@ -221,7 +225,7 @@ Tune gameplay here without touching logic:
 ## 11. Roadmap to market (suggested)
 
 1. **Correctness pass** — resolve the scoring/win inconsistencies (§12) so the "win" state and difficulty curve are intentional.
-2. **Security** — move Supabase URL/key out of source into env vars; add Row‑Level Security / rate limiting so the leaderboard can't be spammed.
+2. **Leaderboard hardening** — URL/anon key + RLS are in place; optional next step is rate limiting / Edge Function submit to reduce spam.
 3. **Onboarding** — replace the blocking `prompt()` name entry with an in‑canvas start screen.
 4. **Polish** — finish the on‑brand screens (done for game‑over/high‑scores/modal), align milestone copy to the Spock voice.
 5. **QA** — cross‑device testing (touch, small screens), add a smoke test.
@@ -233,7 +237,6 @@ Tune gameplay here without touching logic:
 
 > Fix these before (or as part of) launch. Listed so the doc stays honest.
 
-- **⚠ Secrets in source:** `config/supabase.js` hard‑codes the Supabase URL + anon key. Move to environment variables and enable RLS.
 - **Scoring model is contradictory:** live play *increments* `this.score` (distance up), but `updateScore()` (defines score as `TOTAL_DISTANCE − distance`, counting *down* to a `victory()` at 0) **is never called** — so the win/"Mission Complete" path is effectively vestigial. Decide on one model.
 - ~~**`PhaseManager` is dead code**~~ — deleted. Its Troposphere→Exosphere names are now Journey's chapters (`config/JourneyConfig.js`).
 - **Debug artifact:** `Game` constructor runs `localStorage.removeItem('highScores')` on every load ("remove after testing") — clears the local cache each session.

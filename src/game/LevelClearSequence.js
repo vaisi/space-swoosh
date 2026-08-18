@@ -5,23 +5,7 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
-// - streamWorld also ticks CollectibleManager so sparkles grabbed during the
-//   flyout award sparkles / fuel refill (and the sparkles star) before screenIn
-//   locks results.
-// - Entering screenIn finalizes the Journey result (finalScore + finishJourneyLevel)
-//   so shield smashes during hold/boost/fadeOut count toward the outcome.
-// - Flyout keeps the ship's lean (zigzag sign / captured arc heading) instead of
-//   easing to centre — hyperspeed exit via cinematicFlight.
-// - Journey Logbook: Space Travel Boost unlocks when the boost phase begins.
-// - Flyout is no longer skippable — tap / key / back are swallowed until the
-//   outcome screen finishes fading in.
-// - Timings tightened ~30% after the slower pass felt a touch long; boost target
-//   scaled up with them so the ship still clears the top inside the shorter window.
-// - Hold beat before the boost; motion integrated with real `deltaTime` so a
-//   120 Hz display no longer makes the exit feel twice as fast as a 60 Hz one.
-// - Created file. Owns four phases (hold / boost / fadeOut / screenIn) and drives
-//   `game.gameOverAlpha` itself in the last one, so Game's existing fade-in
-//   render path and its `gameOverAlpha < 0.6` click guard keep working unchanged.
+// - Space Travel Boost no longer unlocks a Space Log entry on the boost phase.
 
 import { clamp01, lerp } from '../utils/math.js';
 import {
@@ -169,7 +153,6 @@ export class LevelClearSequence {
         this.phaseStart = performance.now();
 
         if (phase === 'boost') {
-            this.game.logbook?.onSpaceTravelBoost?.();
             this.game.logbook?.flushToast?.();
         }
 

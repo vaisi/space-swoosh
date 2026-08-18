@@ -1,5 +1,5 @@
 // CinemaSimulator.swift
-// Changes: Clear flyout grants shield via RunState.grantShield / extendShield.
+// Changes: Clear flyout no longer marks Space Travel Boost in the Space Log.
 
 import Foundation
 import CoreGraphics
@@ -217,7 +217,6 @@ enum CinemaSimulator {
             if run.cinemaT >= CinematicFlight.clearHold {
                 run.cinema = .clearBoost
                 run.cinemaT = 0
-                run.logbookMarks.append(.instant("spaceTravelBoost"))
             }
         case .clearBoost:
             let rampT = CinematicFlight.easeOut(run.cinemaT / CinematicFlight.clearRamp)

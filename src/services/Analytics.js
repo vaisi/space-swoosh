@@ -2,11 +2,10 @@
 // One place to record a game event, whatever the platform underneath.
 // Changes:
 // - Web: Google Analytics via gtag (measurement ID G-SMEY63Z40C).
-// - Native (Capacitor Android / Cap iOS): Firebase Analytics via
-//   @capacitor-firebase/analytics once google-services.json /
-//   GoogleService-Info.plist are present. Failures never break a run.
-// - Shipping SpriteKit iOS (`ios-native/`) is a separate binary and is not
-//   covered by this module until Firebase is added there.
+// - Native (Capacitor Android): Firebase Analytics via
+//   @capacitor-firebase/analytics once google-services.json is present.
+// - Shipping SpriteKit iOS (`ios-native/`) uses Swift AnalyticsService.swift
+//   + FirebaseAnalyticsWithoutAdIdSupport (same event names / sanitizing).
 // - Run-end / equip events carry ship_id so Firebase can rank most-played ships.
 // - Pref events: set_theme, set_sound (master), set_sound_channel (music/sfx/voice).
 // - Sanitize params for Firebase (string | number only). Booleans like

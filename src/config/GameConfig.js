@@ -3,6 +3,7 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - fuel.voiceLowThreshold 0.20: NAV low-fuel line (HUD pulse stays at 0.28).
 // - Camera reseat knobs (Android native + Hazard Lab): after 5s below the
 //   ideal seat, an 8s ease-in-out creeps the ship back.
 // - Soft sparkle magnet: radius 4.25× ship + magnetPull 0.15 so near-miss
@@ -37,6 +38,7 @@ export const GameConfig = {
         refillPerCollectible: 0.45, // clamp to max; no overfill (~half a tank)
         dyingDurationMs: 900,
         lowThreshold: 0.28,
+        voiceLowThreshold: 0.20, // NAV warning; HUD pulse stays on lowThreshold
         // Soft magnet assist — sparkles ease toward the ship when close; collect
         // still needs circle overlap. Radius is × spacecraft.radius.
         magnetRadiusScale: 4.25,

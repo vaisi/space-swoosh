@@ -1,8 +1,9 @@
+<!-- userdoc.md — Changes: low-fuel NAV keeps background music at full volume. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
 >
-> **Privacy (Android store):** The game may send anonymous gameplay analytics
+> **Privacy (Android + iOS store):** The game may send anonymous gameplay analytics
 > (for example which ship you flew). It does **not** use the device Advertising
 > ID for ads or tracking. Open Space scores use a public project key with
 > server-side row limits (read + submit only; no player accounts). Call signs
@@ -199,7 +200,7 @@ Entries unlock in two steps:
    by a black hole, cross the finish gate, and so on). Then the definition unlocks.
 
 A few events unlock both at once — Space BOOP on a sidewall, a Style Swoosh
-through a tight gap, a Deflector Smash, and the clear-flight boost after a level.
+through a tight gap, and a Deflector Smash.
 
 During a Journey run, a short **Space Log updated** notice appears at the top center
 when something new is catalogued, with a soft bridge chirp — like a quiet console
@@ -210,7 +211,7 @@ Categories:
 | Tab | What it holds |
 | --- | --- |
 | Obstacles | Asteroids, barriers, square blooms, sweeps, repulsors, drift currents, wormholes, black holes, Space BOOP, … |
-| Boosts | Shield, wall boost, fuel sparkles, style swoosh, finish gate, clear boost, … |
+| Boosts | Shield, wall boost, fuel sparkles, style swoosh, finish gate, … |
 | Journey | Day 1…Day 40 navigator transmissions (plus The Call) |
 | From the Void | Reserved for future transmissions — empty for now |
 
@@ -275,8 +276,8 @@ Under **Options → Sound** you can isolate each channel:
 | Channel | What it controls |
 | --- | --- |
 | **Music** | Background music loop. |
-| **Sound FX** | Crashes, boops, shields, points, turns, portals, and other game sounds. |
-| **Voice** | Navigator lines (Journey intros) and session voice cues (first BOOP, Style Swoosh). On-screen captions still appear when Voice is off. |
+| **Sound FX** | Crashes, boops, shields, points, turns, portals, empty-tank sputter, and other game sounds. |
+| **Voice** | Navigator lines (Journey intros), session cues (first BOOP, Style Swoosh), and a low-fuel warning. On-screen captions still appear when Voice is off. |
 
 Pause → **Sound** mutes everything at once without changing these three toggles.
 
@@ -441,8 +442,12 @@ shows how much is left.
 - **Collect a diamond → refill fuel.** A glowing **Signal-Blue four-point
   sparkle** drifts down the corridor. Fly close and it gently slides toward your
   ship; you still need to touch it to collect — you'll hear a short chime and
-  see **+FUEL**. The tank does not overfill. Miss several in a row and the bar
-  bottoms out: engines coast briefly, then the run fails (**Out of fuel**).
+  see **+FUEL**. The tank does not overfill. When the bar gets low (below a
+  fifth), NAV may say one line (Journey and Open Space; follows **Voice**,
+  not Sound FX). Background music keeps playing under it. Miss several
+  diamonds in a row and the bar bottoms out: you'll hear the engine sputter
+  three times, each a bit lower, then engines coast and the run fails
+  (**Out of fuel**). The sputter follows **Sound FX** (and the pause Sound mute).
 - Diamonds are always safe to touch — blue means "good" here (same family as
   the shield).
 

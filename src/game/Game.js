@@ -18,8 +18,10 @@
 // - Fuel drain also pauses while wall-boost speedBoostTimer is active (free
 //   flight during the blue-edge rush; KM still accrues).
 // - Fuel meter: depleting Signal-Blue bar once collectibles are live; diamonds
-//   refill (no overfill); empty → short engine-dying coast → gameOver(fuel).
-//   Sparkles count toward Journey star 2; style points stay smash/swoosh only.
+//   refill (no overfill); empty → playFuelOut sputter + short engine-dying
+//   coast → gameOver(fuel). NAV playFuelLowVoice once per dip below 20%
+//   (Journey + Open Space; Voice channel). Sparkles count toward Journey
+//   star 2; style points stay smash/swoosh only.
 // - Hazard Lab: beginHazardLab() → PLAY_MODE.hazardLab; finish/crash skips
 //   journeyProgress; outcome uses LevelOutcomeScreen; exit/back → Journey map.
 //   isLevelRun() covers Journey + Hazard Lab for flyout / outcome UI.
@@ -305,6 +307,7 @@ export class Game {
         this.fuelDying = false;
         this.fuelDyingStart = null;
         this.fuelPauseTeleportUntil = 0; // hop + camera catch-up: no fuel drain
+        this.fuelLowVoiceLatched = false;
         this.cameraReseatEnabled = isAndroidNative();
         this.failReason = null; // 'crash' | 'fuel' | null
         this.sparklesCollected = 0;
@@ -767,6 +770,7 @@ export class Game {
                 const kmDelta = Math.abs(this.camera.y - prevCameraY) * (100 / 60);
                 this.score += kmDelta;
                 this.drainFuel(kmDelta);
+                this.maybeSpeakFuelLow();
             }
 
             // Engines-out coast finished → fail (distinct from crash).
@@ -833,6 +837,30 @@ export class Game {
         this.fuel = 0;
         this.fuelDying = true;
         this.fuelDyingStart = performance.now();
+        this.soundManager?.playFuelOut?.();
+    }
+
+    /** Once per dip below 20% in Journey / Open Space. Re-arms after a refill. */
+    maybeSpeakFuelLow() {
+        if (this.playMode !== PLAY_MODE.journey && this.playMode !== PLAY_MODE.openWorld) {
+            return;
+        }
+        if (this.fuelDying || this.isGameOver || !this.isFuelLive()) return;
+
+        const max = this.config.fuel?.max ?? 1;
+        const frac = Math.max(0, (this.fuel ?? 0) / max);
+        const threshold = this.config.fuel?.voiceLowThreshold ?? 0.2;
+        if (frac > threshold) {
+            this.fuelLowVoiceLatched = false;
+            return;
+        }
+        if (this.fuelLowVoiceLatched) return;
+        if (this.hudRevealPhase === 'title') return;
+        if (this.introNarration?.active) return;
+        if (this.soundManager?.isLevelVoicePlaying?.()) return;
+
+        this.soundManager?.playFuelLowVoice?.();
+        this.fuelLowVoiceLatched = true;
     }
 
     // Title alone → as soon as it clears, open the belt and start chip fades.
@@ -2530,6 +2558,7 @@ export class Game {
         this.fuelDying = false;
         this.fuelDyingStart = null;
         this.fuelPauseTeleportUntil = 0;
+        this.fuelLowVoiceLatched = false;
         this.failReason = null;
         this.sparklesCollected = 0;
         this.isGameOver = false;

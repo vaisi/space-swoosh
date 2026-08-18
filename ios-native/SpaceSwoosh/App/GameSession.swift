@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Open Space rank lookup fields for Supabase submit prompt.
+// Changes: Firebase Analytics run-end events matching Android game_over / journey / lab.
 
 import Foundation
 import Combine
@@ -127,8 +127,10 @@ final class GameSession: ObservableObject {
                 )
                 personalBest = recorded.best
                 isNewBest = recorded.isNew
+                trackOpenSpaceEnd(run)
             } else {
                 outcome = makeOutcome(run: run)
+                trackLevelEnd(run, outcome: outcome)
             }
         }
     }
@@ -251,5 +253,56 @@ final class GameSession: ObservableObject {
             values: Array(values.prefix(slots)),
             goalKm: Int(run.profile.goalKm)
         )
+    }
+
+    private func trackOpenSpaceEnd(_ run: RunState) {
+        AnalyticsService.track("game_over", [
+            "score": Int(run.scoreKm),
+            "obstacles_destroyed": run.obstaclesDestroyed,
+            "points": run.points,
+            "sparkles": run.sparklesCollected,
+            "fail_reason": failReasonLabel(run),
+            "distance": Int(run.scoreKm),
+            "flight_style": run.flightStyle.rawValue,
+            "ship_id": SettingsStore.shared.shipSkinId.rawValue,
+        ])
+    }
+
+    private func trackLevelEnd(_ run: RunState, outcome: LevelOutcome?) {
+        let shipId = SettingsStore.shared.shipSkinId.rawValue
+        let fail = failReasonLabel(run)
+        if run.profile.mode == .hazardLab {
+            AnalyticsService.track("hazard_lab_end", [
+                "completed": run.completed ? 1 : 0,
+                "points": run.points,
+                "sparkles": run.sparklesCollected,
+                "fail_reason": fail,
+                "distance": Int(run.scoreKm),
+                "ship_id": shipId,
+            ])
+            return
+        }
+        let spec = run.profile.descriptor
+        let slots = spec?.starSlots ?? run.profile.starSlots
+        let starCount = (outcome?.stars ?? []).prefix(slots).filter { $0 }.count
+        AnalyticsService.track("journey_level_end", [
+            "level": spec?.level ?? run.profile.level,
+            "chapter": spec?.chapterId ?? "",
+            "completed": run.completed ? 1 : 0,
+            "stars": starCount,
+            "points": run.points,
+            "sparkles": run.sparklesCollected,
+            "fail_reason": fail,
+            "distance": Int(run.scoreKm),
+            "ship_id": shipId,
+        ])
+    }
+
+    private func failReasonLabel(_ run: RunState) -> String {
+        if run.completed { return "none" }
+        switch run.failReason {
+        case .fuel: return "fuel"
+        case .crash, .none: return "crash"
+        }
     }
 }

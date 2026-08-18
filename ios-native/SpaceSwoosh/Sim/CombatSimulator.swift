@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: Open Space unlocks and asteroid-warning milestones stay silent.
+// Changes: sfxFuelLow once per dip below 20% in Journey / Open Space.
 
 import Foundation
 import CoreGraphics
@@ -14,6 +14,8 @@ struct RunState {
     var fuel: CGFloat = GameConfig.Fuel.start
     var fuelDying: Bool = false
     var fuelDyingT: CGFloat = 0
+    var fuelLowVoiceLatched: Bool = false
+    var sfxFuelLow: Bool = false
     var shieldTimer: CGFloat = 0
     var shieldPulse: CGFloat = 0
     var shieldWarningStarted: Bool = false
@@ -51,6 +53,7 @@ struct RunState {
     var sfxPortalIn: Bool = false
     var sfxPortalOut: Bool = false
     var sfxSwoosh: Bool = false
+    var sfxFuelOut: Bool = false
     var announcedMask: UInt16 = 1
     var milestoneMask: UInt16 = 0
     var taughtSteer: Bool = false
@@ -219,6 +222,7 @@ enum CombatSimulator {
             if run.fuel <= 0 {
                 run.fuelDying = true
                 run.fuelDyingT = 0
+                run.sfxFuelOut = true
             }
         }
 
@@ -243,6 +247,7 @@ enum CombatSimulator {
         recycleBehind(world: &world)
         magnetSparkles(world: &world, run: run, dt: dt)
         collectPickups(world: &world, run: &run)
+        noteFuelLowVoice(run: &run)
         detectSwoosh(world: world, run: &run)
         HazardCollision.tryTeleport(world: &world, run: &run)
         collide(world: &world, run: &run)
@@ -907,6 +912,26 @@ enum CombatSimulator {
                 world.pickups[i].x += dx * t
                 world.pickups[i].y += dy * t
             }
+        }
+    }
+
+    /// Once per dip below 20% in Journey / Open Space. PlayScene latches after it speaks.
+    private static func noteFuelLowVoice(run: inout RunState) {
+        let mode = run.profile.mode
+        guard mode == .openSpace || mode == .journey else { return }
+        guard run.sparklesLive else { return }
+        if run.fuelDying || run.isOver {
+            run.sfxFuelLow = false
+            return
+        }
+        let frac = run.fuel / GameConfig.Fuel.max
+        if frac > GameConfig.Fuel.voiceLowThreshold {
+            run.fuelLowVoiceLatched = false
+            run.sfxFuelLow = false
+            return
+        }
+        if !run.fuelLowVoiceLatched {
+            run.sfxFuelLow = true
         }
     }
 

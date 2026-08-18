@@ -1,8 +1,13 @@
 // SoundManager.js
 // Loads looping BGM + SFX from public/sounds/, and synthesizes short Web Audio
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
-// and wormhole portal hops.
+// wormhole portal hops, and empty-tank engine sputter.
 // Changes:
+// - playFuelLowVoice does not duck BGM (music stays at full volume under the
+//   line). Other NAV clips still duck.
+// - playFuelOut(): three descending sputters (pitch 1.0 / 0.78 / 0.61, ~0.32s
+//   apart) when the tank hits 0 so the dying coast has a clear tell. Gated by
+//   canPlaySfx().
 // - first-boop / swoosh-voice decode at init into Web Audio buffers (same as
 //   turn.mp3) so the first wall BOOP / style swoosh does not hitch or glitch
 //   the synth SFX. Swoosh noise puff is reused, not allocated per hit.
@@ -98,7 +103,16 @@ export class SoundManager {
 
         this.turnVolume = TURN_VOLUME;
         this.moveVolume = MOVE_VOLUME;
-        this.sfxBuffers = { turn: null, move: null, firstBoop: null, swooshVoice: null };
+        this.sfxBuffers = {
+            turn: null,
+            move: null,
+            firstBoop: null,
+            swooshVoice: null,
+            fuelLow1: null,
+            fuelLow2: null,
+            fuelLow3: null,
+        };
+        this.lastFuelLowVoice = -1;
 
         this.initialized = false;
         this.bgmPlaying = false;
@@ -117,6 +131,7 @@ export class SoundManager {
         /** True when game pause froze a clip mid-play (resume continues it). */
         this.levelVoicePaused = false;
         this.bgmDucked = false;
+        this.voiceDucksBgm = true;
         this.onLevelVoiceEnded = null;
         this.applyMute();
 
@@ -169,16 +184,22 @@ export class SoundManager {
     }
 
     async loadSfxBuffers() {
-        const [turn, move, firstBoop, swooshVoice] = await Promise.all([
+        const [turn, move, firstBoop, swooshVoice, fuelLow1, fuelLow2, fuelLow3] = await Promise.all([
             this.decodeSfxBuffer('/sounds/turn.mp3'),
             this.decodeSfxBuffer('/sounds/move.mp3'),
             this.decodeSfxBuffer('/sounds/voice/first-boop.mp3'),
             this.decodeSfxBuffer('/sounds/voice/swoosh-voice.mp3'),
+            this.decodeSfxBuffer('/sounds/voice/fuel-low-1.mp3'),
+            this.decodeSfxBuffer('/sounds/voice/fuel-low-2.mp3'),
+            this.decodeSfxBuffer('/sounds/voice/fuel-low-3.mp3'),
         ]);
         this.sfxBuffers.turn = turn;
         this.sfxBuffers.move = move;
         this.sfxBuffers.firstBoop = firstBoop;
         this.sfxBuffers.swooshVoice = swooshVoice;
+        this.sfxBuffers.fuelLow1 = fuelLow1;
+        this.sfxBuffers.fuelLow2 = fuelLow2;
+        this.sfxBuffers.fuelLow3 = fuelLow3;
     }
 
     /** Fire-and-forget buffer source — no seek, safe to retrigger every tap. */
@@ -310,9 +331,9 @@ export class SoundManager {
 
     /**
      * Play a navigator MP3 under /sounds/voice/. Replaces any current clip
-     * without firing its onEnded. Ducks BGM; no-op when muted / uninitialized.
+     * without firing its onEnded. Ducks BGM unless opts.duckBgm is false.
      * @param {string} fileName e.g. 'level-1.mp3' or 'first-boop.mp3'
-     * @param {{ onEnded?: () => void }} [opts]
+     * @param {{ onEnded?: () => void, duckBgm?: boolean }} [opts]
      */
     playCueVoice(fileName, opts = {}) {
         const name = String(fileName || '').replace(/^\/+/, '');
@@ -325,6 +346,29 @@ export class SoundManager {
 
     playSwooshVoice(opts = {}) {
         this.playCueVoice('swoosh-voice.mp3', opts);
+    }
+
+    /** Random low-fuel NAV line. No-op if Voice is off / muted / missing clips. */
+    playFuelLowVoice(opts = {}) {
+        const clips = [
+            { name: 'fuel-low-1.mp3', buffer: this.sfxBuffers.fuelLow1 },
+            { name: 'fuel-low-2.mp3', buffer: this.sfxBuffers.fuelLow2 },
+            { name: 'fuel-low-3.mp3', buffer: this.sfxBuffers.fuelLow3 },
+        ];
+        const available = clips
+            .map((c, i) => ({ ...c, i }))
+            .filter((c) => c.buffer);
+        if (available.length === 0) {
+            this.playCueVoice('fuel-low-1.mp3', { ...opts, duckBgm: false });
+            return;
+        }
+        let pick = available[Math.floor(Math.random() * available.length)];
+        if (available.length > 1 && pick.i === this.lastFuelLowVoice) {
+            const rest = available.filter((c) => c.i !== this.lastFuelLowVoice);
+            pick = rest[Math.floor(Math.random() * rest.length)] ?? pick;
+        }
+        this.lastFuelLowVoice = pick.i;
+        this.playCueVoice(pick.name, { ...opts, duckBgm: false });
     }
 
     /**
@@ -346,13 +390,14 @@ export class SoundManager {
 
     /**
      * @param {string} url
-     * @param {{ onEnded?: () => void }} [opts]
+     * @param {{ onEnded?: () => void, duckBgm?: boolean }} [opts]
      * @param {string} [label] for warn logs
      */
     playVoiceUrl(url, opts = {}, label = 'voice') {
         // Replace without firing the previous clip's onEnded.
         this.stopLevelVoice({ notify: false });
         this.onLevelVoiceEnded = typeof opts.onEnded === 'function' ? opts.onEnded : null;
+        const duckBgm = opts.duckBgm !== false;
 
         // Master mute, voice channel off, or not ready — still notify so
         // IntroNarration / captions can advance without audio.
@@ -364,7 +409,7 @@ export class SoundManager {
         try {
             const buffer = this.cueVoiceBuffer(label);
             if (buffer) {
-                this.playDecodedCue(buffer);
+                this.playDecodedCue(buffer, duckBgm);
                 return;
             }
 
@@ -373,7 +418,8 @@ export class SoundManager {
             voice.muted = !this.canPlayVoice();
             this.levelVoice = voice;
             this.levelVoicePlaying = true;
-            this.duckBgmForVoice();
+            this.voiceDucksBgm = duckBgm;
+            if (duckBgm) this.duckBgmForVoice();
 
             const finish = () => {
                 if (this.levelVoice !== voice) return;
@@ -407,11 +453,14 @@ export class SoundManager {
     cueVoiceBuffer(label) {
         if (label === 'first-boop.mp3') return this.sfxBuffers.firstBoop;
         if (label === 'swoosh-voice.mp3') return this.sfxBuffers.swooshVoice;
+        if (label === 'fuel-low-1.mp3') return this.sfxBuffers.fuelLow1;
+        if (label === 'fuel-low-2.mp3') return this.sfxBuffers.fuelLow2;
+        if (label === 'fuel-low-3.mp3') return this.sfxBuffers.fuelLow3;
         return null;
     }
 
     /** Pre-decoded first-boop / swoosh-voice — same Web Audio path as turn SFX. */
-    playDecodedCue(buffer) {
+    playDecodedCue(buffer, duckBgm = true) {
         const ctx = this.ensureAudioContext();
         if (!ctx || !buffer) {
             this.notifyLevelVoiceEnded();
@@ -428,7 +477,8 @@ export class SoundManager {
 
         this.cueVoiceSource = src;
         this.levelVoicePlaying = true;
-        this.duckBgmForVoice();
+        this.voiceDucksBgm = duckBgm;
+        if (duckBgm) this.duckBgmForVoice();
 
         const finish = () => {
             if (this.cueVoiceSource !== src) return;
@@ -528,7 +578,7 @@ export class SoundManager {
         try {
             voice.muted = !this.canPlayVoice();
             this.levelVoicePlaying = true;
-            this.duckBgmForVoice();
+            if (this.voiceDucksBgm) this.duckBgmForVoice();
             const playPromise = voice.play();
             if (playPromise !== undefined) {
                 playPromise.catch((error) => {
@@ -838,6 +888,84 @@ export class SoundManager {
         } catch (error) {
             console.error('Error in playSwoosh:', error);
         }
+    }
+
+    // Three descending engine sputters when the tank hits 0 (dying-coast tell).
+    // Same body/cough/noise recipe, pitched and a little quieter each time.
+    playFuelOut() {
+        if (!this.initialized || !this.canPlaySfx()) return;
+
+        try {
+            const ctx = this.ensureAudioContext();
+            if (!ctx) return;
+
+            const now = ctx.currentTime;
+            const repeats = [
+                { delay: 0, pitch: 1, amp: 1 },
+                { delay: 0.32, pitch: 0.78, amp: 0.88 },
+                { delay: 0.64, pitch: 0.61, amp: 0.76 },
+            ];
+            for (const r of repeats) {
+                this.scheduleFuelSputter(ctx, now + r.delay, r.pitch, r.amp);
+            }
+        } catch (error) {
+            console.error('Error in playFuelOut:', error);
+        }
+    }
+
+    scheduleFuelSputter(ctx, tStart, pitch, amp) {
+        const duration = 0.45;
+
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220 * pitch, tStart);
+        osc.frequency.exponentialRampToValueAtTime(70 * pitch, tStart + 0.38);
+        oscGain.gain.setValueAtTime(0.0001, tStart);
+        oscGain.gain.exponentialRampToValueAtTime(0.26 * amp, tStart + 0.012);
+        oscGain.gain.exponentialRampToValueAtTime(0.0001, tStart + 0.42);
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(tStart);
+        osc.stop(tStart + duration);
+
+        const ticks = [
+            { t0: 0.05, freq: 380, peak: 0.10, dur: 0.045 },
+            { t0: 0.16, freq: 290, peak: 0.08, dur: 0.055 },
+            { t0: 0.30, freq: 210, peak: 0.06, dur: 0.06 },
+        ];
+        for (const tick of ticks) {
+            const tOsc = ctx.createOscillator();
+            const tGain = ctx.createGain();
+            const t0 = tStart + tick.t0;
+            tOsc.type = 'sine';
+            tOsc.frequency.setValueAtTime(tick.freq * pitch, t0);
+            tGain.gain.setValueAtTime(0.0001, t0);
+            tGain.gain.exponentialRampToValueAtTime(tick.peak * amp, t0 + 0.008);
+            tGain.gain.exponentialRampToValueAtTime(0.0001, t0 + tick.dur);
+            tOsc.connect(tGain);
+            tGain.connect(ctx.destination);
+            tOsc.start(t0);
+            tOsc.stop(t0 + tick.dur + 0.01);
+        }
+
+        if (!this.boopNoiseBuffer) return;
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = this.boopNoiseBuffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(480 * pitch, tStart);
+        filter.Q.value = 0.7;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.0001, tStart);
+        noiseGain.gain.exponentialRampToValueAtTime(0.09 * amp, tStart + 0.01);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, tStart + 0.14);
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(tStart);
+        noise.stop(tStart + 0.14);
     }
 
     playMove() {

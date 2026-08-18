@@ -1,9 +1,9 @@
 # codemagic.yaml
 # Changes:
+# - Native iOS writes GoogleService-Info.plist from GOOGLE_SERVICE_INFO_PLIST.
 # - Add ios-native-simulator: unsigned iPhone simulator .app for App Preview.
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
 # - Inject VITE_SUPABASE_* into native Info.plist for SPACE BOARD.
-# - Floor build number at 3 for C.5 TestFlight.
 # - Floor build number at 3 for C.5 TestFlight.
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
@@ -61,6 +61,20 @@ workflows:
             -v
           echo "=== Export options (if generated) ==="
           cat /Users/builder/export_options.plist 2>/dev/null || true
+      - name: Install Firebase config
+        script: |
+          set -euo pipefail
+          PLIST="ios-native/SpaceSwoosh/GoogleService-Info.plist"
+          if [ -n "${GOOGLE_SERVICE_INFO_PLIST:-}" ]; then
+            printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > "$PLIST"
+            echo "Wrote GoogleService-Info.plist from GOOGLE_SERVICE_INFO_PLIST"
+          elif [ -f "$PLIST" ]; then
+            echo "GoogleService-Info.plist already present"
+          else
+            echo "ERROR: GoogleService-Info.plist missing."
+            echo "Paste the Firebase iOS plist XML into secret GOOGLE_SERVICE_INFO_PLIST in group spaceswoosh."
+            exit 1
+          fi
       - name: Increment build number
         script: |
           set -euo pipefail
@@ -136,6 +150,19 @@ workflows:
         XCODE_SCHEME: SpaceSwoosh
       xcode: latest
     scripts:
+      - name: Install Firebase config
+        script: |
+          set -euo pipefail
+          PLIST="ios-native/SpaceSwoosh/GoogleService-Info.plist"
+          if [ -n "${GOOGLE_SERVICE_INFO_PLIST:-}" ]; then
+            printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > "$PLIST"
+            echo "Wrote GoogleService-Info.plist from GOOGLE_SERVICE_INFO_PLIST"
+          elif [ -f "$PLIST" ]; then
+            echo "GoogleService-Info.plist already present"
+          else
+            echo "ERROR: GoogleService-Info.plist missing — Analytics App Preview needs GOOGLE_SERVICE_INFO_PLIST."
+            exit 1
+          fi
       - name: Inject leaderboard credentials
         script: |
           set -euo pipefail

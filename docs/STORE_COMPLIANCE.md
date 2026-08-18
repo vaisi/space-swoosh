@@ -1,8 +1,7 @@
 <!--
   docs/STORE_COMPLIANCE.md
-  Changes: Firebase Analytics on Capacitor Android — declare gameplay analytics
-  in Data Safety / App Privacy; Ad ID collection disabled and AD_ID permission
-  stripped from merged manifest (Play Advertising ID declaration = No).
+  Changes: Native iOS Firebase Analytics (same project as Android; no IDFA).
+  Android: declare gameplay analytics in Data Safety; Ad ID collection disabled.
 -->
 
 # Store compliance checklist
@@ -28,7 +27,7 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 ## App Store Connect
 
 - [ ] Privacy Policy URL set on the app record.
-- [ ] App Privacy (nutrition labels): Name (optional, leaderboard), Gameplay content, Purchase history — not used for tracking.
+- [ ] App Privacy (nutrition labels): Name (optional, leaderboard), Gameplay content, Product Interaction / analytics (Firebase) — not used for tracking. Advertising Identifier is **not** collected (`FirebaseAnalyticsWithoutAdIdSupport`).
 - [ ] Age rating questionnaire (no unrestricted web, no chat, cartoon violence against geometric shapes).
 - [ ] Paid Apps agreement + tax/banking (required before IAP sandbox works).
 
@@ -38,6 +37,14 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 - [ ] Data safety form: Name (optional, leaderboard), Gameplay content, Purchase history, **App activity / analytics** (Firebase); data encrypted in transit; users can request deletion via support email. Advertising ID is **not** collected (`google_analytics_adid_collection_enabled=false` + `AD_ID` `tools:node="remove"`). Play **App content → Advertising ID** = **No**.
 - [ ] IARC content rating questionnaire.
 - [ ] If the developer account is personal and created after Nov 2023: start a closed test with 12 testers for 14 days before production.
+
+## Firebase (iOS native)
+
+- Same project: `spaceswoosh-faa9c` (bundle `com.orbi.spaceswoosh`).
+- Place `GoogleService-Info.plist` at `ios-native/SpaceSwoosh/GoogleService-Info.plist` (gitignored). Codemagic writes it from `GOOGLE_SERVICE_INFO_PLIST`.
+- Events flow through `ios-native/SpaceSwoosh/Services/Analytics.swift` (`FirebaseAnalyticsWithoutAdIdSupport`). Same names as Android `Analytics.js`.
+- Advertising Identifier: not linked (WithoutAdIdSupport) + `GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS=false`.
+- Debug: enable Analytics DebugView for the device, then play a run and watch `game_over` / `journey_level_end` in Firebase Console.
 
 ## Firebase (Android)
 
@@ -55,4 +62,4 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 
 ## PrivacyInfo.xcprivacy
 
-Shipped in the iOS target (`ios/App/App/PrivacyInfo.xcprivacy`). Declares UserDefaults use and collected data types. RevenueCat’s SDK brings its own manifest when linked.
+Native iOS: `ios-native/SpaceSwoosh/PrivacyInfo.xcprivacy` (UserDefaults + Firebase gameplay analytics; tracking false). Capacitor iOS tree still has `ios/App/App/PrivacyInfo.xcprivacy` but is not shipped. RevenueCat’s SDK brings its own manifest when linked.

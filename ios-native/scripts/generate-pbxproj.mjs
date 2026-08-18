@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: CFBundleVersion 13; pack fonts; inject-leaderboard-secrets build phase.
+// Changes: pack fuel-low-N.mp3 with other Voice clips.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -28,11 +28,15 @@ const swiftFiles = walk(appRoot).filter((f) => f.endsWith('.swift'));
 const voiceFiles = walk(appRoot).filter((f) => {
   const name = path.basename(f);
   if (name.includes('ElevenLabs')) return false;
-  return /^(level-\d+|first-boop|swoosh-voice|background|crash|crash_with_shield|shield|turn)\.(mp3|m4a)$/.test(name);
+  return /^(level-\d+|first-boop|swoosh-voice|fuel-low-\d+|background|crash|crash_with_shield|shield|turn)\.(mp3|m4a)$/.test(name);
 });
 const fontFiles = walk(appRoot).filter((f) => /\.(ttf|otf)$/i.test(f));
 const infoPlist = path.join(appRoot, 'Info.plist');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');
+const googleServicePlist = path.join(appRoot, 'GoogleService-Info.plist');
+const firebasePackage = id('spm:firebase-ios-sdk');
+const firebaseAnalytics = id('spm:FirebaseAnalyticsWithoutAdIdSupport');
+const firebaseAnalyticsBuild = id('build:FirebaseAnalyticsWithoutAdIdSupport');
 
 const projectId = id('project');
 const targetId = id('target');
@@ -77,6 +81,7 @@ for (const f of fontFiles) {
 }
 ensureFile(infoPlist, 'text.plist.xml');
 ensureFile(privacyPlist, 'text.plist.xml');
+ensureFile(googleServicePlist, 'text.plist.xml');
 
 // Asset catalog as a single resource folder reference
 const assetsPath = path.join(appRoot, 'Assets.xcassets');
@@ -96,7 +101,7 @@ function groupFor(dirRel) {
 }
 
 groupFor('SpaceSwoosh');
-for (const f of [...swiftFiles, ...voiceFiles, ...fontFiles, infoPlist, privacyPlist]) {
+for (const f of [...swiftFiles, ...voiceFiles, ...fontFiles, infoPlist, privacyPlist, googleServicePlist]) {
   const rel = path.relative(root, f).replace(/\\/g, '/');
   const dir = path.posix.dirname(rel);
   const parts = dir.split('/');
@@ -133,8 +138,11 @@ for (const f of swiftFiles) {
   pbx += `\t\t${meta.build} /* ${meta.name} in Sources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
 }
 pbx += `\t\t${assets.build} /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ${assets.ref} /* Assets.xcassets */; };\n`;
-const privacy = ensureFile(path.join(appRoot, 'PrivacyInfo.xcprivacy'));
+const privacy = ensureFile(privacyPlist);
 pbx += `\t\t${privacy.build} /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ${privacy.ref} /* PrivacyInfo.xcprivacy */; };\n`;
+const googleService = ensureFile(googleServicePlist);
+pbx += `\t\t${googleService.build} /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ${googleService.ref} /* GoogleService-Info.plist */; };\n`;
+pbx += `\t\t${firebaseAnalyticsBuild} /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = ${firebaseAnalytics} /* FirebaseAnalyticsWithoutAdIdSupport */; };\n`;
 for (const f of voiceFiles) {
   const meta = ensureFile(f);
   pbx += `\t\t${meta.build} /* ${meta.name} in Resources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
@@ -162,6 +170,7 @@ pbx += `/* End PBXFileReference section */
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				${firebaseAnalyticsBuild} /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +225,9 @@ pbx += `/* End PBXGroup section */
 			dependencies = (
 			);
 			name = SpaceSwoosh;
+			packageProductDependencies = (
+				${firebaseAnalytics} /* FirebaseAnalyticsWithoutAdIdSupport */,
+			);
 			productName = SpaceSwoosh;
 			productReference = ${productRef} /* SpaceSwoosh.app */;
 			productType = "com.apple.product-type.application";
@@ -239,6 +251,9 @@ pbx += `/* End PBXGroup section */
 				Base,
 			);
 			mainGroup = ${mainGroup};
+			packageReferences = (
+				${firebasePackage} /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = ${productsGroup} /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -255,6 +270,7 @@ pbx += `/* End PBXGroup section */
 			files = (
 				${assets.build} /* Assets.xcassets in Resources */,
 				${privacy.build} /* PrivacyInfo.xcprivacy in Resources */,
+				${googleService.build} /* GoogleService-Info.plist in Resources */,
 ${voiceFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}${fontFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}\t\t\t);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +353,10 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.orbi.spaceswoosh;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -359,6 +379,10 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.orbi.spaceswoosh;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -389,6 +413,25 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		${firebasePackage} /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.17.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		${firebaseAnalytics} /* FirebaseAnalyticsWithoutAdIdSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ${firebasePackage} /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsWithoutAdIdSupport;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = ${projectId} /* Project object */;
 }

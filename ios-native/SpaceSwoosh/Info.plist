@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: CFBundleVersion 13 — SPACE BOARD reads/writes vaisi's Project high_scores. -->
+	<!-- Changes: CFBundleVersion 13 — SPACE BOARD reads/writes vaisi's Project high_scores. Firebase Analytics IDFA off. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -45,6 +45,9 @@
 	<true/>
 	<!-- Skip App Encryption questionnaire on every upload (HTTPS / OS crypto only). -->
 	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- Gameplay analytics only — no Advertising Identifier (matches Android AD_ID off). -->
+	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
 	<false/>
 	<!-- Public anon/publishable key only. Injected at build from VITE_SUPABASE_*. -->
 	<key>SUPABASE_URL</key>

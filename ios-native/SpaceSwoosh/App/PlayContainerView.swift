@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: Open Space Submit Score + auto-prompt; SPACE BOARD overlays game over.
+// Changes: Pass board rank into Submit Signal for Firebase submit_highscore.
 
 import SwiftUI
 import SpriteKit
@@ -103,6 +103,7 @@ struct PlayContainerView: View {
                         score: session.scoreKm,
                         destroyed: session.destroyed,
                         rank: session.rankLabel,
+                        rankNumber: session.boardRank,
                         shipId: settings.shipSkinId,
                         style: settings.flightStyle,
                         onDone: {

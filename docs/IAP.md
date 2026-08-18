@@ -1,6 +1,8 @@
 <!--
   docs/IAP.md
   Changes:
+  - Added store Display Name + Description for every premium skin (in-game
+    blurbs; four shortened to App Store's 45-character Description limit).
   - Added Darner (dragonfly), Puff (dandelion), Argus (peacock), Chime (temple bells).
   - Added Luna (lunar moth) and Wish (constellation comet).
   - Added Lantern (jellyfish bell + plankton) and Bloom (soap-film + prism motes).
@@ -21,43 +23,57 @@ separate non-consumable IAP.
 
 Type: **non-consumable** on both App Store Connect and Google Play Console.
 
-| Skin | Store product ID | RevenueCat entitlement |
-| --- | --- | --- |
-| Wisp | `com.orbi.spaceswoosh.skin.wisp` | `skin_wisp` |
-| Pulse | `com.orbi.spaceswoosh.skin.pulse` | `skin_pulse` |
-| Quill | `com.orbi.spaceswoosh.skin.quill` | `skin_quill` |
-| Fletch | `com.orbi.spaceswoosh.skin.fletch` | `skin_fletch` |
-| Nyan | `com.orbi.spaceswoosh.skin.nyan` | `skin_nyan` |
-| Shard | `com.orbi.spaceswoosh.skin.shard` | `skin_shard` |
-| Halo | `com.orbi.spaceswoosh.skin.halo` | `skin_halo` |
-| Needle | `com.orbi.spaceswoosh.skin.needle` | `skin_needle` |
-| Echo | `com.orbi.spaceswoosh.skin.echo` | `skin_echo` |
-| Dusk | `com.orbi.spaceswoosh.skin.dusk` | `skin_dusk` |
-| Seal | `com.orbi.spaceswoosh.skin.seal` | `skin_seal` |
-| Hatch | `com.orbi.spaceswoosh.skin.hatch` | `skin_hatch` |
-| Trace | `com.orbi.spaceswoosh.skin.trace` | `skin_trace` |
-| Ring | `com.orbi.spaceswoosh.skin.ring` | `skin_ring` |
-| Fold | `com.orbi.spaceswoosh.skin.fold` | `skin_fold` |
-| Mote | `com.orbi.spaceswoosh.skin.mote` | `skin_mote` |
-| Spine | `com.orbi.spaceswoosh.skin.spine` | `skin_spine` |
-| Orbit | `com.orbi.spaceswoosh.skin.orbit` | `skin_orbit` |
-| Ink | `com.orbi.spaceswoosh.skin.ink` | `skin_ink` |
-| Flux | `com.orbi.spaceswoosh.skin.flux` | `skin_flux` |
-| Cinder | `com.orbi.spaceswoosh.skin.cinder` | `skin_cinder` |
-| Lantern | `com.orbi.spaceswoosh.skin.lantern` | `skin_lantern` |
-| Bloom | `com.orbi.spaceswoosh.skin.bloom` | `skin_bloom` |
-| Lyra | `com.orbi.spaceswoosh.skin.lyra` | `skin_lyra` |
-| Sprout | `com.orbi.spaceswoosh.skin.sprout` | `skin_sprout` |
-| Plume | `com.orbi.spaceswoosh.skin.plume` | `skin_plume` |
-| Koi | `com.orbi.spaceswoosh.skin.koi` | `skin_koi` |
-| Spore | `com.orbi.spaceswoosh.skin.spore` | `skin_spore` |
-| Boreal | `com.orbi.spaceswoosh.skin.boreal` | `skin_boreal` |
-| Luna | `com.orbi.spaceswoosh.skin.luna` | `skin_luna` |
-| Wish | `com.orbi.spaceswoosh.skin.wish` | `skin_wish` |
-| Darner | `com.orbi.spaceswoosh.skin.darner` | `skin_darner` |
-| Puff | `com.orbi.spaceswoosh.skin.puff` | `skin_puff` |
-| Argus | `com.orbi.spaceswoosh.skin.argus` | `skin_argus` |
-| Chime | `com.orbi.spaceswoosh.skin.chime` | `skin_chime` |
+Paste **Display Name** = the Skin column, **Description** = the Description
+column. App Store Connect Description is max **45 characters**; Play Console
+allows longer, so the same string works on both. Copy matches the in-game
+blurb except four marked `*` (trimmed to fit Apple).
+
+| Skin | Store product ID | RevenueCat entitlement | Description |
+| --- | --- | --- | --- |
+| Wisp | `com.orbi.spaceswoosh.skin.wisp` | `skin_wisp` | Weightless. Sheds sparks. |
+| Pulse | `com.orbi.spaceswoosh.skin.pulse` | `skin_pulse` | Signal wake. Instrumental, lit. |
+| Quill | `com.orbi.spaceswoosh.skin.quill` | `skin_quill` | A fine blue line of travel. |
+| Fletch | `com.orbi.spaceswoosh.skin.fletch` | `skin_fletch` | A smooth arrow. Dawn on the wake. |
+| Nyan | `com.orbi.spaceswoosh.skin.nyan` | `skin_nyan` | A long rainbow line of travel. |
+| Shard | `com.orbi.spaceswoosh.skin.shard` | `skin_shard` | Faceted. A hard wake. |
+| Halo | `com.orbi.spaceswoosh.skin.halo` | `skin_halo` | Orbital. Rings the path. |
+| Needle | `com.orbi.spaceswoosh.skin.needle` | `skin_needle` | Linear. One thin thread. |
+| Echo | `com.orbi.spaceswoosh.skin.echo` | `skin_echo` | Paired. Leaves a twin. |
+| Dusk | `com.orbi.spaceswoosh.skin.dusk` | `skin_dusk` | Crescent. A violet cloud. |
+| Seal | `com.orbi.spaceswoosh.skin.seal` | `skin_seal` | Pressed tiles. Peels at the wall. |
+| Hatch | `com.orbi.spaceswoosh.skin.hatch` | `skin_hatch` | Lateral marks. Stretches on impact. |
+| Trace | `com.orbi.spaceswoosh.skin.trace` | `skin_trace` | One thin line. Springs on a bounce. |
+| Ring | `com.orbi.spaceswoosh.skin.ring` | `skin_ring` | Blooming rings. Squash, no pop. |
+| Fold | `com.orbi.spaceswoosh.skin.fold` | `skin_fold` | Origami. A dashed crease. |
+| Mote | `com.orbi.spaceswoosh.skin.mote` | `skin_mote` | Soft ink. A drifting cloud. |
+| Spine | `com.orbi.spaceswoosh.skin.spine` | `skin_spine` | Upright. A ladder wake. |
+| Orbit | `com.orbi.spaceswoosh.skin.orbit` | `skin_orbit` | Planetoid. A lagging orbit wake. |
+| Ink | `com.orbi.spaceswoosh.skin.ink` | `skin_ink` | Calligraphic. Tip reverses on boop. |
+| Flux | `com.orbi.spaceswoosh.skin.flux` | `skin_flux` | Hex crystal. Ink and signal dashes. |
+| Cinder | `com.orbi.spaceswoosh.skin.cinder` | `skin_cinder` | Warm petal. Ember ribbon, cool ash. |
+| Lantern * | `com.orbi.spaceswoosh.skin.lantern` | `skin_lantern` | A living bell. Gold heart. Plankton trail. |
+| Bloom * | `com.orbi.spaceswoosh.skin.bloom` | `skin_bloom` | Soap-film spheres. Prism motes that pop. |
+| Lyra | `com.orbi.spaceswoosh.skin.lyra` | `skin_lyra` | A star-forged craft. Aurora in its wake. |
+| Sprout | `com.orbi.spaceswoosh.skin.sprout` | `skin_sprout` | A living seed. Pollen on the wind. |
+| Plume | `com.orbi.spaceswoosh.skin.plume` | `skin_plume` | A firebird. Embers rise, then cool. |
+| Koi | `com.orbi.spaceswoosh.skin.koi` | `skin_koi` | A river spirit. Scales in the current. |
+| Spore * | `com.orbi.spaceswoosh.skin.spore` | `skin_spore` | A living cap. Amber heart. Spores trail. |
+| Boreal * | `com.orbi.spaceswoosh.skin.boreal` | `skin_boreal` | A northern-light ribbon. Waves on the wall. |
+| Luna | `com.orbi.spaceswoosh.skin.luna` | `skin_luna` | A lunar moth. Moon heart. Dust on the wind. |
+| Wish | `com.orbi.spaceswoosh.skin.wish` | `skin_wish` | A bottled comet. Stars fall from its wake. |
+| Darner | `com.orbi.spaceswoosh.skin.darner` | `skin_darner` | A needle of light. Mosaic scales in its wake. |
+| Puff | `com.orbi.spaceswoosh.skin.puff` | `skin_puff` | A dandelion clock. Seeds drift from its wake. |
+| Argus | `com.orbi.spaceswoosh.skin.argus` | `skin_argus` | A peacock fan. Eyespots stamp the path. |
+| Chime | `com.orbi.spaceswoosh.skin.chime` | `skin_chime` | Temple bells. Sound rings down the wake. |
+
+In-game blurbs that were trimmed for Apple (`*`):
+
+| Skin | In-game blurb |
+| --- | --- |
+| Lantern | A living bell. Gold heart. Plankton in the dark. |
+| Bloom | Soap-film spheres. Prism motes. They pop on the wall. |
+| Spore | A living cap. Amber heart. Spores in the dark. |
+| Boreal | A ribbon of northern light. It waves on the wall. |
 
 Suggested price tier: the cheapest meaningful cosmetic tier in your market
 (e.g. $0.99 / €0.99) — tune per SKU later.

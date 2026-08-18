@@ -3,6 +3,7 @@
 // gameplay, updates them, and on pickup refills fuel + counts sparkles with a
 // floating "+FUEL" popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
+// - Collect refills clamped fuel, then maybeSpeakFuelLow() (re-arm / dip).
 // - Collect refills clamped fuel and increments sparklesCollected (no points).
 // - Popup text is "+FUEL"; no salvage once fuelDying has started.
 // - Spawn also respects obstacleManager.pauseSpawning so the level-clear flyout
@@ -83,6 +84,7 @@ export class CollectibleManager {
         this.game.fuel = Math.min(max, (this.game.fuel ?? 0) + refill);
         this.game.sparklesCollected = (this.game.sparklesCollected ?? 0) + 1;
         this.game.soundManager?.playCollect?.();
+        this.game.maybeSpeakFuelLow?.();
         this.game.logbook?.onSparkleCollected?.();
         this.popups.push({
             x: collectible.x,

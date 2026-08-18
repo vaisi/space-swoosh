@@ -1,5 +1,7 @@
 # Space Swoosh — Technical Documentation
 
+<!-- Changes: low-fuel NAV does not duck BGM. -->
+
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
 >
@@ -131,7 +133,9 @@ There are **two play modes**, chosen from Play:
   Capacitor 8 for **Android** (and legacy Cap iOS reference tree), **native
   SpriteKit/SwiftUI** for shipping iOS under `ios-native/`, Supabase for the
   online leaderboard, Google Analytics (`gtag`) on web, Firebase Analytics on
-  Capacitor Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`).
+  Capacitor Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`)
+  and native iOS (`ios-native/` `FirebaseAnalyticsWithoutAdIdSupport` + gitignored
+  `GoogleService-Info.plist`).
 - **Entry:** `index.html` → `src/main.js` → `new Game(GameConfig)` → boots to
   the **main menu** (`appScreen = 'menu'`). On native, `initNative()` then wires
   hardware back, lifecycle pause, keep-awake, status bar and splash dismissal.
@@ -228,7 +232,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
 | `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics, Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
-| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor native (`logEvent`). Params sanitized to string/number (booleans → 0/1) so Android does not drop custom events. Config: `android/app/google-services.json` (gitignored). Cap iOS / SpriteKit `ios-native/` not wired yet. Android: AD ID collection off + `AD_ID` permission stripped in `AndroidManifest.xml` for Play declaration **No**. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
+| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor Android (`logEvent`). Params sanitized to string/number (booleans → 0/1). Config: `android/app/google-services.json` (gitignored). Native iOS uses `ios-native/.../Analytics.swift` (same event names). Android: AD ID collection off + `AD_ID` permission stripped. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is true for playtest** (home picker + Play equip the full roster, no IAP). Flip **false** before a store build. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
@@ -274,7 +278,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` decode at init into the same buffer pool so the first wall BOOP / style swoosh do not hitch or glitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` (shared slot; ducks BGM; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
+| `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playFuelLowVoice`; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -332,8 +336,8 @@ while the menu is up since the menu carries its own Resume.
 `SoundManager` audio gates:
 - **Master mute** (`soundMuted`, pause Sound): silences everything.
 - **Music** (`soundMusicEnabled`): looping BGM (`background.mp3`).
-- **Sound FX** (`soundSfxEnabled`): crashes, shield, turn/move, boop/swoosh SFX, collect, portal, logbook chirp (HTMLAudio + Web Audio synths).
-- **Voice** (`soundVoiceEnabled`): `level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`. Voice-off still fires `onEnded` so Journey intro captions continue; first-boop on-screen beats still show.
+- **Sound FX** (`soundSfxEnabled`): crashes, shield, turn/move, boop/swoosh SFX, collect, portal, logbook chirp, empty-tank engine sputter (three descending repeats; HTMLAudio + Web Audio synths).
+- **Voice** (`soundVoiceEnabled`): `level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `fuel-low-1.mp3`–`fuel-low-3.mp3`. Voice-off still fires `onEnded` so Journey intro captions continue; first-boop on-screen beats still show. Low-fuel NAV is once per dip below `fuel.voiceLowThreshold` (0.20) in Journey / Open Space; does not cut a clip already speaking.
 
 `applyMute()` sets `.muted` per HTMLAudio channel; Web Audio one-shots early-return via `canPlaySfx()`. Channel keys default ON (`'0'` = off). Turn/move fire throwaway `AudioBufferSourceNode`s from buffers decoded once in `initialize()`.
 
@@ -550,9 +554,9 @@ run starts. Open Space never updates the logbook. Menu item is always available.
 | `managers/LogbookToastManager.js` | Top-center chip, independent of MilestoneManager. |
 | `SoundManager.playLogbook()` | Soft Enterprise-style bridge chirp (two quiet filtered sines) on update. |
 
-**State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`signalCall`, `spaceBoop`, `styleSwoosh`, `deflectorSmash`, `spaceTravelBoost`) jump straight to `known`.
+**State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`signalCall`, `spaceBoop`, `styleSwoosh`, `deflectorSmash`) jump straight to `known`.
 
-**Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash / clear-boost phase → instant. Lore Continue → instant `signalCall`.
+**Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash → instant. Lore Continue → instant `signalCall`.
 
 **Future:** From the Void will hold beta-tester messages picked up around 11 km in endless Journey — category shell only for now. Levels 6–40 spawn beats still follow the difficulty stair; story lines are already wired for intros.
 
@@ -1032,9 +1036,19 @@ UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly
    (`size + ship.radius`). No pull / no salvage after engines die.
 4. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
    clamped to `fuel.max` (1). Popup `+FUEL`. No salvage after `fuelDying`.
-5. **Empty:** `beginFuelDying()` → ship `forwardSpeedScale` eases to 0 over
+   Refill above `voiceLowThreshold` re-arms the low-fuel NAV latch.
+5. **Low-fuel NAV:** Journey / Open Space only. When fuel first crosses to
+   `<= voiceLowThreshold` (0.20), `maybeSpeakFuelLow()` / iOS `sfxFuelLow`
+   plays a random `fuel-low-N.mp3` (Voice channel; does **not** duck BGM). HUD pulse stays on
+   `lowThreshold` 0.28. Skips Hazard Lab; waits if NAV is already speaking;
+   skipped once `fuelDying`. iOS: `VoicePlayer.playFuelLow()`.
+6. **Empty:** `beginFuelDying()` plays `playFuelOut()` once (SFX channel;
+   three descending sputters ~0.32s apart, pitch 1.0 / 0.78 / 0.61, ~1.09s
+   total; not a crash boom) → ship `forwardSpeedScale` eases to 0 over
    `dyingDurationMs` (900) → `gameOver({ reason: 'fuel' })` (no explosion;
-   CopyBank `fuelOut`). Crash path unchanged (`reason: 'crash'`).
+   CopyBank `fuelOut`). Crash path unchanged (`reason: 'crash'`). iOS:
+   `RunState.sfxFuelOut` → `SfxPlayer.playFuelOut()` (baked PCM;
+   `muted || !sfxEnabled`).
 
 ### Style points + pickups (data flow)
 
@@ -1111,7 +1125,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | Path | Role |
 | --- | --- |
 | `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards, Lab on map. Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). |
-| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`getTopScores` 100 / `saveScore` / rank count). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY` (CI injects `VITE_SUPABASE_*`). |
+| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsWithoutAdIdSupport`, `GoogleService-Info.plist`) with Android event parity. |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
@@ -1119,7 +1133,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
-| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. `CURRENT_PROJECT_VERSION` 13. |
+| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`). `CURRENT_PROJECT_VERSION` 13. |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
@@ -1135,7 +1149,9 @@ Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
 the tear. Wall jelly applies the skin’s `wallTrailDeform` mode (ripple / spring /
 pile / whip / …); Flicker still uses `springNudge` with seed 0…1.
 Turn / crash / shield / shield-crash decode into `AVAudioPCMBuffer`s (no
-`AVAudioPlayer` seek hitch). Clear-flyout smash SFX is gated to 120 ms.
+`AVAudioPlayer` seek hitch). Empty-tank sputter is a baked synth
+(`makeFuelOut`, three descending sputters) fired once when `fuelDying` starts. Clear-flyout smash SFX
+is gated to 120 ms.
 Cruise travel is `snappyHz * feelSpeed` (0.90). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,

@@ -1,11 +1,15 @@
 // SpaceSwooshApp.swift
-// Changes: Activate playback audio session at launch so TestFlight is not silent.
+// Changes: Configure Firebase Analytics at launch (before any gameplay events).
 
 import SwiftUI
 
 @main
 struct SpaceSwooshApp: App {
     @ObservedObject private var settings = SettingsStore.shared
+
+    init() {
+        AnalyticsService.configure()
+    }
 
     var body: some Scene {
         WindowGroup {

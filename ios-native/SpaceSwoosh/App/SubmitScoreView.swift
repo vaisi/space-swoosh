@@ -1,5 +1,5 @@
 // SubmitScoreView.swift
-// Changes: Android Submit Signal card — call sign, rank, insert into high_scores.
+// Changes: Firebase submit_highscore after a successful SPACE BOARD insert.
 
 import SwiftUI
 
@@ -7,6 +7,7 @@ struct SubmitScoreView: View {
     var score: Int
     var destroyed: Int
     var rank: String
+    var rankNumber: Int?
     var shipId: SkinId
     var style: FlightStyle
     var onDone: () -> Void
@@ -82,6 +83,15 @@ struct SubmitScoreView: View {
                 shipId: shipId,
                 style: style
             )
+            var params: [String: Any] = [
+                "score": score,
+                "player_name": name,
+                "obstacles_destroyed": destroyed,
+                "ship_id": shipId.rawValue,
+                "flight_style": style.rawValue,
+            ]
+            if let rankNumber { params["rank"] = rankNumber }
+            AnalyticsService.track("submit_highscore", params)
             onDone()
         } catch {
             self.error = (error as? LocalizedError)?.errorDescription ?? "Could not submit. Try again."

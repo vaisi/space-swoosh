@@ -1,5 +1,5 @@
 // SettingsStore.swift
-// Changes: Music/SFX channels + smash PBs; applyAudio gates like Android SoundManager.
+// Changes: Firebase Analytics for theme / sound / equip_ship (Android parity).
 
 import Foundation
 import Combine
@@ -39,19 +39,25 @@ final class SettingsStore: ObservableObject {
 
     func setShipSkin(_ id: SkinId) {
         guard SkinCatalog.isOwned(id) else { return }
+        let previous = shipSkinId
         shipSkinId = id
         UserDefaults.standard.set(id.rawValue, forKey: "shipSkinId")
+        if previous != id {
+            AnalyticsService.track("equip_ship", ["ship_id": id.rawValue])
+        }
     }
 
     func toggleTheme() {
         isDark.toggle()
         UserDefaults.standard.set(isDark ? "dark" : "light", forKey: "ssTheme")
+        AnalyticsService.track("set_theme", ["theme": isDark ? "dark" : "light"])
     }
 
     func toggleMute() {
         muted.toggle()
         UserDefaults.standard.set(muted, forKey: "soundMuted")
         applyAudio()
+        AnalyticsService.track("set_sound", ["sound": muted ? "off" : "on"])
         if muted {
             VoicePlayer.shared.stop()
         } else {
@@ -63,18 +69,30 @@ final class SettingsStore: ObservableObject {
         musicEnabled.toggle()
         UserDefaults.standard.set(musicEnabled, forKey: "soundMusicEnabled")
         applyAudio()
+        AnalyticsService.track("set_sound_channel", [
+            "channel": "music",
+            "enabled": musicEnabled ? "on" : "off",
+        ])
     }
 
     func toggleSfx() {
         sfxEnabled.toggle()
         UserDefaults.standard.set(sfxEnabled, forKey: "soundSfxEnabled")
         applyAudio()
+        AnalyticsService.track("set_sound_channel", [
+            "channel": "sfx",
+            "enabled": sfxEnabled ? "on" : "off",
+        ])
     }
 
     func toggleVoice() {
         voiceEnabled.toggle()
         UserDefaults.standard.set(voiceEnabled, forKey: "soundVoiceEnabled")
         applyAudio()
+        AnalyticsService.track("set_sound_channel", [
+            "channel": "voice",
+            "enabled": voiceEnabled ? "on" : "off",
+        ])
         if !voiceEnabled { VoicePlayer.shared.stop() }
     }
 

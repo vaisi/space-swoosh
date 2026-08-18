@@ -1,6 +1,5 @@
 // VoicePlayer.swift
-// Changes: first-boop / swoosh-voice play from pre-decoded engine buffers so
-// the first hit no longer freezes the frame or glitches the synth BOOP/swoosh.
+// Changes: playFuelLow does not duck BGM; other NAV clips still do.
 
 import AVFoundation
 import Foundation
@@ -13,6 +12,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     private var ended: (() -> Void)?
     private var frozen = false
     private var engineCue = false
+    private var cueDucks = false
     private(set) var playedFirstBoop = false
 
     var isSpeaking: Bool {
@@ -33,11 +33,20 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         playEngineCue { SfxPlayer.shared.playSwooshVoice(onEnded: $0) }
     }
 
+    /// Random low-fuel NAV line. False if another clip already owns the slot.
+    @discardableResult
+    func playFuelLow() -> Bool {
+        guard !isSpeaking else { return false }
+        playEngineCue(duck: false) { SfxPlayer.shared.playFuelLowVoice(onEnded: $0) }
+        return true
+    }
+
     func stop() {
         SfxPlayer.shared.stopVoice()
         player?.stop()
         player = nil
         engineCue = false
+        cueDucks = false
         frozen = false
         MusicPlayer.shared.unduck()
         let done = ended
@@ -51,6 +60,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         player = nil
         ended = nil
         engineCue = false
+        cueDucks = false
         frozen = false
         MusicPlayer.shared.unduck()
     }
@@ -70,7 +80,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         guard frozen else { return }
         frozen = false
         guard enabled, !SettingsStore.shared.muted else { return }
-        MusicPlayer.shared.duck()
+        if cueDucks { MusicPlayer.shared.duck() }
         if engineCue {
             SfxPlayer.shared.resumeVoice()
             return
@@ -87,18 +97,19 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         done?()
     }
 
-    private func playEngineCue(_ start: (@escaping () -> Void) -> Void) {
+    private func playEngineCue(duck: Bool = true, _ start: (@escaping () -> Void) -> Void) {
         stopWithoutNotify()
         ended = nil
         guard enabled, !SettingsStore.shared.muted else { return }
         GameAudioSession.activate()
         engineCue = true
-        MusicPlayer.shared.duck()
+        cueDucks = duck
+        if duck { MusicPlayer.shared.duck() }
         start { [weak self] in
             guard let self, self.engineCue else { return }
             self.engineCue = false
             self.frozen = false
-            MusicPlayer.shared.unduck()
+            if duck { MusicPlayer.shared.unduck() }
         }
     }
 
@@ -123,6 +134,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
             next.prepareToPlay()
             next.play()
             player = next
+            cueDucks = true
             MusicPlayer.shared.duck()
         } catch {
             finishImmediately()
@@ -135,6 +147,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         player = nil
         ended = nil
         engineCue = false
+        cueDucks = false
         frozen = false
         MusicPlayer.shared.unduck()
     }
