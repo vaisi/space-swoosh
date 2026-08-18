@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: low-fuel NAV keeps background music at full volume. -->
+<!-- userdoc.md — Changes: shielded smash has a lighter phone tick than wall BOOP. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -468,10 +468,11 @@ Optional flair — not fuel, not the sparkles star:
 
 Blue shield pickups (the pulsing **plus**) give you a temporary shield. While
 it's up you can plow through asteroids (destroying them for points) instead of
-crashing. On a big asteroid with orbiting debris moons — or a star that fires
-shots — you only smash what you hit: clip a moon or a shot and the main rock
-stays; ram the body and the whole thing goes. The shield pulses faster right
-before it runs out — pick your moment.
+crashing. Each smash also gives a lighter phone tick than a wall **BOOP** on
+devices that support haptics (not in the browser App Preview). On a big asteroid
+with orbiting debris moons — or a star that fires shots — you only smash what you
+hit: clip a moon or a shot and the main rock stays; ram the body and the whole
+thing goes. The shield pulses faster right before it runs out — pick your moment.
 
 A rare **wall boost** appears only after **12000 KM**: a thin blue slab on a
 random left or right edge. Fly into it and it presses into the wall like a

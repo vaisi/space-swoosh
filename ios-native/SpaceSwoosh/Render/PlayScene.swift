@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: consume sfxFuelLow → VoicePlayer.playFuelLow(); retry if NAV is busy.
+// Changes: sfxShieldCrash also fires HapticsService.shieldSmash() (selection tick).
 
 import SpriteKit
 import QuartzCore
@@ -215,6 +215,7 @@ final class PlayScene: SKScene {
         if run.sfxShieldCrash {
             run.sfxShieldCrash = false
             SfxPlayer.shared.playShieldCrash()
+            HapticsService.shieldSmash()
         }
         if run.sfxPortalIn {
             run.sfxPortalIn = false

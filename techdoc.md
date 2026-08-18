@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: low-fuel NAV does not duck BGM. -->
+<!-- Changes: shielded smash haptic is a selection tick, lighter than wall BOOP. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -41,7 +41,7 @@
 > under the hull center and tapers the smudge at the join; wall BOOP is a
 > spring path wiggle only. Drift lanes are thin scrolling dashes.
 > Cruise uses `snappyHz * feelSpeed` (`feelSpeed` 0.90). Clear-flyout smash SFX
-> is throttled to 120 ms.
+> + smash haptic are throttled to 120 ms.
 > Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`).
 > `turn.mp3` is pre-decoded into the SFX engine. Captions still run if a voice
 > file is missing. Synth boop/collect/portal/swoosh do not need MP3s. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
@@ -230,7 +230,7 @@ game build env. Journey progress and Open Space personal best stay in
 | Path | Responsibility |
 | --- | --- |
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
-| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, soft wall-boop haptics, Keyboard IME height → `game.softKeyboardHeight`. |
+| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, wall-boop Light haptic + lighter smash `selectionChanged` haptic, Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor Android (`logEvent`). Params sanitized to string/number (booleans → 0/1). Config: `android/app/google-services.json` (gitignored). Native iOS uses `ios-native/.../Analytics.swift` (same event names). Android: AD ID collection off + `AD_ID` permission stripped. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
@@ -272,7 +272,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
 | `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision + soft magnet pull). |
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
-| `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. |
+| `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. Shield smash: `playSmashCrashFeedback()` (crash SFX + `hapticShieldSmash`), 120 ms flyout gate. |
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Fuel diamonds: spawn cadence, collect → clamped fuel refill + `sparklesCollected`, `+FUEL` popup + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
@@ -1128,7 +1128,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsWithoutAdIdSupport`, `GoogleService-Info.plist`) with Android event parity. |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
-| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice |
+| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice. `HapticsService`: Light impact on wall BOOP, selection tick on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
@@ -1151,7 +1151,7 @@ pile / whip / …); Flicker still uses `springNudge` with seed 0…1.
 Turn / crash / shield / shield-crash decode into `AVAudioPCMBuffer`s (no
 `AVAudioPlayer` seek hitch). Empty-tank sputter is a baked synth
 (`makeFuelOut`, three descending sputters) fired once when `fuelDying` starts. Clear-flyout smash SFX
-is gated to 120 ms.
+and smash haptic are gated to 120 ms.
 Cruise travel is `snappyHz * feelSpeed` (0.90). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,

@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Shield smash plays crash_with_shield plus a lighter-than-BOOP haptic
+//   (hapticShieldSmash), sharing the 120 ms cinematic flyout SFX gate.
 // - DriftCurrent: keep the light dash look; only lineDashOffset flips so some
 //   bands flow left and some right (no chevrons / heavy dashes).
 // - SweepGate: thinner blade; travels across screen L→R or R→L while slowly
@@ -73,6 +75,7 @@
 
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
 import { color } from '../brand/tokens.js';
+import { hapticShieldSmash } from '../native/index.js';
 import { drawBlackHoleGlowSprite } from '../utils/GlowSprites.js';
 import { isKilled } from '../core/perfFlags.js';
 
@@ -1805,7 +1808,7 @@ export class ObstacleManager {
                             || smash?.kind === 'projectiles'
                         ) {
                             if (!cinematic || this.canPlayCinematicCrash()) {
-                                this.game.soundManager.playShieldCrash();
+                                this.playSmashCrashFeedback();
                             }
                             for (const part of smash.removed) {
                                 const particles = smash.kind === 'satellites'
@@ -1827,7 +1830,7 @@ export class ObstacleManager {
                     }
 
                     if (!cinematic || this.canPlayCinematicCrash()) {
-                        this.game.soundManager.playShieldCrash();
+                        this.playSmashCrashFeedback();
                     }
 
                     // Create destruction particles
@@ -2345,6 +2348,13 @@ export class ObstacleManager {
             text,
             isScorePopup: true
         });
+    }
+
+    // Crash SFX + lighter-than-BOOP haptic. Callers already gate this through
+    // canPlayCinematicCrash() during the level-clear flyout.
+    playSmashCrashFeedback() {
+        this.game.soundManager.playShieldCrash();
+        hapticShieldSmash();
     }
 
     // One crash sound per CINEMATIC_CRASH_MS at most, so a row of asteroids taken

@@ -1,6 +1,8 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
+// - hapticShieldSmash(): Cap selectionChanged (lighter than Light impact) /
+//   web vibrate 6ms. Shielded obstacle smash tick; never Haptics.vibrate().
 // - Keyboard plugin: wireKeyboard() tracks soft-keyboard height on the game
 //   (game.softKeyboardHeight) so Submit Signal can sit above the IME. Config
 //   uses resizeOnFullScreen so Android edge-to-edge actually resizes the WebView.
@@ -57,6 +59,31 @@ export function hapticWallBoop() {
         try {
             const { Haptics, ImpactStyle } = await loadHaptics();
             await Haptics.impact({ style: ImpactStyle.Light });
+        } catch {
+            /* missing plugin / no vibrator */
+        }
+    })();
+}
+
+/**
+ * Lighter tick when a shielded smash destroys a rock (or clips a moon/shot).
+ * Selection feedback is weaker than Light impact; web uses a shorter vibrate
+ * than wall BOOP. Never awaited from the game loop.
+ */
+export function hapticShieldSmash() {
+    if (!isNative()) {
+        try {
+            navigator.vibrate?.(6);
+        } catch {
+            /* no vibrator */
+        }
+        return;
+    }
+
+    void (async () => {
+        try {
+            const { Haptics } = await loadHaptics();
+            await Haptics.selectionChanged();
         } catch {
             /* missing plugin / no vibrator */
         }
