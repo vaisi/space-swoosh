@@ -3,6 +3,8 @@
 // points banked per level. Local only — the Supabase leaderboard stays purely
 // Open World, so this needs no schema anywhere.
 // Changes:
+// - Playtest `UNLOCK_ALL_LEVELS` (plus `?unlocklevels=1|0`) opens every Journey
+//   tile without rewriting saved `unlocked`. Flip the constant false for store.
 // - starCount / totalStars only count slots a level actually exposes (1/2/3).
 // - Persists `loreSeen` so the pre-Journey Signal Story lore screen shows once.
 // - Created file. Reads/writes are guarded the same way ships/skins.js guards
@@ -18,6 +20,33 @@ import {
 
 export const JOURNEY_STORAGE_KEY = 'journeyProgress';
 const VERSION = 1;
+
+/** Playtest unlock — true so the Journey map can fly every level. Flip false for store. */
+export const UNLOCK_ALL_LEVELS = true;
+
+/**
+ * Query override for web testers: `?unlocklevels=1` forces on, `=0`/`false` forces
+ * off even when the constant is true. Missing query falls through to the constant.
+ * @returns {boolean|null}
+ */
+function unlockAllLevelsFromQuery() {
+    try {
+        if (typeof location === 'undefined') return null;
+        const params = new URLSearchParams(location.search);
+        if (!params.has('unlocklevels')) return null;
+        const value = params.get('unlocklevels');
+        return value === '0' || value === 'false' ? false : true;
+    } catch {
+        return null;
+    }
+}
+
+/** True when every Journey tile should be playable (constant or URL override). */
+export function unlockAllLevelsEnabled() {
+    const fromQuery = unlockAllLevelsFromQuery();
+    if (fromQuery !== null) return fromQuery;
+    return UNLOCK_ALL_LEVELS;
+}
 
 function emptyProgress() {
     return { version: VERSION, unlocked: 1, loreSeen: false, levels: {} };
@@ -87,6 +116,7 @@ export function starCount(progress, level) {
 }
 
 export function isLevelUnlocked(progress, level) {
+    if (unlockAllLevelsEnabled()) return true;
     return level <= progress.unlocked;
 }
 

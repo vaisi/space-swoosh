@@ -2,6 +2,7 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - tryBeginJourneyLevel respects isLevelUnlocked (UNLOCK_ALL_LEVELS / URL).
 // - Menu stamp reads BUILD_NUMBER from core/buildStamp.js (Vite +1 per
 //   production build) so a device install can be verified vs an old APK.
 // - cameraReseatEnabled: Android native (all modes) + Hazard Lab everywhere,
@@ -230,6 +231,7 @@ import {
     TOTAL_LEVELS,
 } from '../config/JourneyConfig.js';
 import {
+    isLevelUnlocked,
     loadJourneyProgress,
     nextPlayableLevel,
     recordLevelResult,
@@ -2398,6 +2400,7 @@ export class Game {
 
     /** Empty lives → Pro paywall; otherwise start a Journey level. */
     tryBeginJourneyLevel(level) {
+        if (!isLevelUnlocked(this.journeyProgress, level)) return false;
         ensureRegen();
         if (!canStartRun()) {
             this.showProPaywall('journeyMap', {
