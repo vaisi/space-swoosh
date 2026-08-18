@@ -5,7 +5,7 @@
 // - Native (Capacitor Android): Firebase Analytics via
 //   @capacitor-firebase/analytics once google-services.json is present.
 // - Shipping SpriteKit iOS (`ios-native/`) uses Swift AnalyticsService.swift
-//   + FirebaseAnalyticsWithoutAdIdSupport (same event names / sanitizing).
+//   + FirebaseAnalyticsCore (same event names / sanitizing; no IDFA).
 // - Run-end / equip events carry ship_id so Firebase can rank most-played ships.
 // - Pref events: set_theme, set_sound (master), set_sound_channel (music/sfx/voice).
 // - Sanitize params for Firebase (string | number only). Booleans like

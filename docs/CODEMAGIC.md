@@ -1,7 +1,7 @@
 <!--
   docs/CODEMAGIC.md
   Changes:
-  - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret (gitignored plist).
+  - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret; SPM product is FirebaseAnalyticsCore.
   - TestFlight uses .playback so Silent switch no longer mutes SFX.
   - iOS CI stamps CFBundleVersion ≥ 2 (ASC already has 1.0.0 (1)).
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
@@ -162,6 +162,7 @@ HUD is locked at **16.7 ms / 60 Hz**. Audio (`AVAudioEngine` synth +
 ## iOS project note
 
 Native app: `ios-native/SpaceSwoosh.xcodeproj`, scheme **SpaceSwoosh**, bundle `com.orbi.spaceswoosh`.
+Firebase SPM product is **`FirebaseAnalyticsCore`** (SDK 12 removed `FirebaseAnalyticsWithoutAdIdSupport`; that missing product was a Codemagic archive 65). CI resolves packages, then archives with `-destination generic/platform=iOS`.
 
 Apple treats **version + build** as unique. Marketing version can stay `1.0.0`;
 **CFBundleVersion** (the number in parentheses) must go up every upload.

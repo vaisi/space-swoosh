@@ -1,5 +1,6 @@
 # codemagic.yaml
 # Changes:
+# - Resolve SPM + archive for generic iOS (Firebase 12 dropped WithoutAdIdSupport).
 # - Native iOS writes GoogleService-Info.plist from GOOGLE_SERVICE_INFO_PLIST.
 # - Add ios-native-simulator: unsigned iPhone simulator .app for App Preview.
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
@@ -109,6 +110,12 @@ workflows:
           else
             echo "WARN: VITE_SUPABASE_* missing — SPACE BOARD will be offline in this IPA"
           fi
+      - name: Resolve Swift packages
+        script: |
+          set -euo pipefail
+          xcodebuild -resolvePackageDependencies \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME"
       - name: Build native IPA
         script: |
           EXPORT_PLIST=/Users/builder/export_options.plist
@@ -119,12 +126,14 @@ workflows:
               --project "$XCODE_PROJECT" \
               --scheme "$XCODE_SCHEME" \
               --archive-xcargs "$XCARGS" \
+              --archive-flags="-destination 'generic/platform=iOS'" \
               --export-options-plist "$EXPORT_PLIST"
           else
             xcode-project build-ipa \
               --project "$XCODE_PROJECT" \
               --scheme "$XCODE_SCHEME" \
-              --archive-xcargs "$XCARGS"
+              --archive-xcargs "$XCARGS" \
+              --archive-flags="-destination 'generic/platform=iOS'"
           fi
     artifacts:
       - build/ios/ipa/*.ipa

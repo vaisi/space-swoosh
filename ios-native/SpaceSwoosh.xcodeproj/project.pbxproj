@@ -86,7 +86,7 @@
 		630079499D908838C6A12464 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 32BB636196F91ED59D7A4919 /* Assets.xcassets */; };
 		C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */; };
 		E6F11AD28494E4EC3AE48B05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4A8052E7A4903C84E5D39FF9 /* GoogleService-Info.plist */; };
-		D394EA9CF61472467E5BBB2B /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 939A688E2826165CEE753B1E /* FirebaseAnalyticsWithoutAdIdSupport */; };
+		BB1FBCF08E1C0B36B6CF2759 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = CC7632EDC963539FCCE2CC86 /* FirebaseAnalyticsCore */; };
 		4C7EEAAAAF9364D664F23B74 /* background.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 04E4CF0498F47FCE691777EF /* background.mp3 */; };
 		B08AA9A9A4E896C9C5B0AD12 /* crash.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 0FE5527F72ADEF15677E5651 /* crash.mp3 */; };
 		43500B02C66488807B05B133 /* crash_with_shield.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 51B5D45C50CE884B69EF2732 /* crash_with_shield.mp3 */; };
@@ -127,7 +127,6 @@
 		A3453DF7373808F2E5E2132D /* level-37.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 63A5BC5452B7F8AE9CDCA0ED /* level-37.mp3 */; };
 		85B879562D87109E46AEA2BE /* level-38.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A8C3984D48E10B1B7C38C9B0 /* level-38.mp3 */; };
 		98622AB758F50351C64A631D /* level-39.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 58AD0D64EF663A62F8668D0B /* level-39.mp3 */; };
-		67BDB80250A354E1685306F8 /* level-4.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = EC7EE5E0DDB6BD0A00E740CC /* level-4.mp3 */; };
 		AD43C66036B56B40C608A017 /* level-40.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = F1D386D3803B549CF94F95A5 /* level-40.mp3 */; };
 		DB72D88A6ADF7FF6C6D37030 /* level-5.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = EC7CE0EC5CC2044066CBAFA2 /* level-5.mp3 */; };
 		67E597DBE4843260455D659F /* level-6.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 5D7F1E729AE239430900248C /* level-6.mp3 */; };
@@ -261,7 +260,6 @@
 		63A5BC5452B7F8AE9CDCA0ED /* level-37.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-37.mp3; sourceTree = "<group>"; };
 		A8C3984D48E10B1B7C38C9B0 /* level-38.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-38.mp3; sourceTree = "<group>"; };
 		58AD0D64EF663A62F8668D0B /* level-39.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-39.mp3; sourceTree = "<group>"; };
-		EC7EE5E0DDB6BD0A00E740CC /* level-4.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-4.mp3; sourceTree = "<group>"; };
 		F1D386D3803B549CF94F95A5 /* level-40.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-40.mp3; sourceTree = "<group>"; };
 		EC7CE0EC5CC2044066CBAFA2 /* level-5.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-5.mp3; sourceTree = "<group>"; };
 		5D7F1E729AE239430900248C /* level-6.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = level-6.mp3; sourceTree = "<group>"; };
@@ -286,7 +284,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D394EA9CF61472467E5BBB2B /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
+				BB1FBCF08E1C0B36B6CF2759 /* FirebaseAnalyticsCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -516,7 +514,6 @@
 				63A5BC5452B7F8AE9CDCA0ED,
 				A8C3984D48E10B1B7C38C9B0,
 				58AD0D64EF663A62F8668D0B,
-				EC7EE5E0DDB6BD0A00E740CC,
 				F1D386D3803B549CF94F95A5,
 				EC7CE0EC5CC2044066CBAFA2,
 				5D7F1E729AE239430900248C,
@@ -548,7 +545,7 @@
 			);
 			name = SpaceSwoosh;
 			packageProductDependencies = (
-				939A688E2826165CEE753B1E /* FirebaseAnalyticsWithoutAdIdSupport */,
+				CC7632EDC963539FCCE2CC86 /* FirebaseAnalyticsCore */,
 			);
 			productName = SpaceSwoosh;
 			productReference = 71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */;
@@ -633,7 +630,6 @@
 				A3453DF7373808F2E5E2132D /* level-37.mp3 in Resources */,
 				85B879562D87109E46AEA2BE /* level-38.mp3 in Resources */,
 				98622AB758F50351C64A631D /* level-39.mp3 in Resources */,
-				67BDB80250A354E1685306F8 /* level-4.mp3 in Resources */,
 				AD43C66036B56B40C608A017 /* level-40.mp3 in Resources */,
 				DB72D88A6ADF7FF6C6D37030 /* level-5.mp3 in Resources */,
 				67E597DBE4843260455D659F /* level-6.mp3 in Resources */,
@@ -798,6 +794,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -824,6 +821,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -878,10 +876,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		939A688E2826165CEE753B1E /* FirebaseAnalyticsWithoutAdIdSupport */ = {
+		CC7632EDC963539FCCE2CC86 /* FirebaseAnalyticsCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A35CE04F947432E3D46B59CB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalyticsWithoutAdIdSupport;
+			productName = FirebaseAnalyticsCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

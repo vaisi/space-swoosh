@@ -1,6 +1,6 @@
 <!--
   docs/STORE_COMPLIANCE.md
-  Changes: Native iOS Firebase Analytics (same project as Android; no IDFA).
+  Changes: Native iOS Firebase uses FirebaseAnalyticsCore (SDK 12; no IDFA).
   Android: declare gameplay analytics in Data Safety; Ad ID collection disabled.
 -->
 
@@ -27,7 +27,7 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 ## App Store Connect
 
 - [ ] Privacy Policy URL set on the app record.
-- [ ] App Privacy (nutrition labels): Name (optional, leaderboard), Gameplay content, Product Interaction / analytics (Firebase) — not used for tracking. Advertising Identifier is **not** collected (`FirebaseAnalyticsWithoutAdIdSupport`).
+- [ ] App Privacy (nutrition labels): Name (optional, leaderboard), Gameplay content, Product Interaction / analytics (Firebase) — not used for tracking. Advertising Identifier is **not** collected (`FirebaseAnalyticsCore`).
 - [ ] Age rating questionnaire (no unrestricted web, no chat, cartoon violence against geometric shapes).
 - [ ] Paid Apps agreement + tax/banking (required before IAP sandbox works).
 
@@ -42,8 +42,8 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 
 - Same project: `spaceswoosh-faa9c` (bundle `com.orbi.spaceswoosh`).
 - Place `GoogleService-Info.plist` at `ios-native/SpaceSwoosh/GoogleService-Info.plist` (gitignored). Codemagic writes it from `GOOGLE_SERVICE_INFO_PLIST`.
-- Events flow through `ios-native/SpaceSwoosh/Services/Analytics.swift` (`FirebaseAnalyticsWithoutAdIdSupport`). Same names as Android `Analytics.js`.
-- Advertising Identifier: not linked (WithoutAdIdSupport) + `GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS=false`.
+- Events flow through `ios-native/SpaceSwoosh/Services/Analytics.swift` (`FirebaseAnalyticsCore`). Same names as Android `Analytics.js`.
+- Advertising Identifier: not linked (`FirebaseAnalyticsCore`) + `GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS=false`.
 - Debug: enable Analytics DebugView for the device, then play a run and watch `game_over` / `journey_level_end` in Firebase Console.
 
 ## Firebase (Android)

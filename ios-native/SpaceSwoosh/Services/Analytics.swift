@@ -1,5 +1,6 @@
 // Analytics.swift
-// Changes: Native iOS Firebase Analytics — same events / param sanitizing as Android Analytics.js.
+// Changes: Native iOS Firebase Analytics via FirebaseAnalyticsCore (IDFA-free).
+// Same events / param sanitizing as Android Analytics.js.
 
 import Foundation
 import FirebaseAnalytics

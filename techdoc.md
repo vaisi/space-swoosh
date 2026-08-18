@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: dark-mode signal is ice blue `#5CC8FF` (was vivid mint). -->
+<!-- Changes: Native iOS links FirebaseAnalyticsCore (SDK 12 dropped WithoutAdIdSupport). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -134,7 +134,7 @@ There are **two play modes**, chosen from Play:
   SpriteKit/SwiftUI** for shipping iOS under `ios-native/`, Supabase for the
   online leaderboard, Google Analytics (`gtag`) on web, Firebase Analytics on
   Capacitor Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`)
-  and native iOS (`ios-native/` `FirebaseAnalyticsWithoutAdIdSupport` + gitignored
+  and native iOS (`ios-native/` `FirebaseAnalyticsCore` + gitignored
   `GoogleService-Info.plist`).
 - **Entry:** `index.html` → `src/main.js` → `new Game(GameConfig)` → boots to
   the **main menu** (`appScreen = 'menu'`). On native, `initNative()` then wires
@@ -1125,7 +1125,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | Path | Role |
 | --- | --- |
 | `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards, Lab on map. Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). |
-| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsWithoutAdIdSupport`, `GoogleService-Info.plist`) with Android event parity. |
+| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity. |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn/crash/shield/crash_with_shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice. `HapticsService`: Light impact on wall BOOP, selection tick on shield smash. |

@@ -1,5 +1,6 @@
 // generate-pbxproj.mjs
-// Changes: pack fuel-low-N.mp3 with other Voice clips.
+// Changes: Link FirebaseAnalyticsCore (IDFA-free). WithoutAdIdSupport was
+// removed in firebase-ios-sdk 12 and Codemagic archive 65'd on the missing product.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -35,8 +36,8 @@ const infoPlist = path.join(appRoot, 'Info.plist');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');
 const googleServicePlist = path.join(appRoot, 'GoogleService-Info.plist');
 const firebasePackage = id('spm:firebase-ios-sdk');
-const firebaseAnalytics = id('spm:FirebaseAnalyticsWithoutAdIdSupport');
-const firebaseAnalyticsBuild = id('build:FirebaseAnalyticsWithoutAdIdSupport');
+const firebaseAnalytics = id('spm:FirebaseAnalyticsCore');
+const firebaseAnalyticsBuild = id('build:FirebaseAnalyticsCore');
 
 const projectId = id('project');
 const targetId = id('target');
@@ -142,7 +143,7 @@ const privacy = ensureFile(privacyPlist);
 pbx += `\t\t${privacy.build} /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ${privacy.ref} /* PrivacyInfo.xcprivacy */; };\n`;
 const googleService = ensureFile(googleServicePlist);
 pbx += `\t\t${googleService.build} /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ${googleService.ref} /* GoogleService-Info.plist */; };\n`;
-pbx += `\t\t${firebaseAnalyticsBuild} /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = ${firebaseAnalytics} /* FirebaseAnalyticsWithoutAdIdSupport */; };\n`;
+pbx += `\t\t${firebaseAnalyticsBuild} /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = ${firebaseAnalytics} /* FirebaseAnalyticsCore */; };\n`;
 for (const f of voiceFiles) {
   const meta = ensureFile(f);
   pbx += `\t\t${meta.build} /* ${meta.name} in Resources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
@@ -170,7 +171,7 @@ pbx += `/* End PBXFileReference section */
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				${firebaseAnalyticsBuild} /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
+				${firebaseAnalyticsBuild} /* FirebaseAnalyticsCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,7 +227,7 @@ pbx += `/* End PBXGroup section */
 			);
 			name = SpaceSwoosh;
 			packageProductDependencies = (
-				${firebaseAnalytics} /* FirebaseAnalyticsWithoutAdIdSupport */,
+				${firebaseAnalytics} /* FirebaseAnalyticsCore */,
 			);
 			productName = SpaceSwoosh;
 			productReference = ${productRef} /* SpaceSwoosh.app */;
@@ -346,6 +347,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -372,6 +374,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 13;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SpaceSwoosh/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -426,10 +429,10 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		${firebaseAnalytics} /* FirebaseAnalyticsWithoutAdIdSupport */ = {
+		${firebaseAnalytics} /* FirebaseAnalyticsCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ${firebasePackage} /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalyticsWithoutAdIdSupport;
+			productName = FirebaseAnalyticsCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
