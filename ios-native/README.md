@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Pack level-4 / turn1 / PerfectSwoosh into the native Voice bundle.
+  Changes: Turn cue is original turn.mp3; L4 + PerfectSwoosh still packed.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -48,7 +48,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick
 - Zigzag path flips instantly; hull lean eases (`bankSmoothing` 0.34). Stretch follows `|tangent|`
 
-Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3` / `turn1.mp3`). Gameplay file cues (including first-boop and swoosh-voice) decode once into engine buffers. If a clip is missing, turn/crash/shield fall back to synth. Boop / collect / portal / swoosh stay synthesized on both platforms. Journey `level-N` intros still use `AVAudioPlayer` (they play during the title beat, not mid-combat). The packer matches those names case-insensitively so a Windows `Level-4.mp3` cannot drop out of the IPA.
+Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`). Gameplay file cues (including first-boop and swoosh-voice) decode once into engine buffers. If a clip is missing, turn/crash/shield fall back to synth. Boop / collect / portal / swoosh stay synthesized on both platforms. Journey `level-N` intros still use `AVAudioPlayer` (they play during the title beat, not mid-combat). The packer matches those names case-insensitively so a Windows `Level-4.mp3` cannot drop out of the IPA.
 
 The audio session is **`.playback`**, so TestFlight plays with the Silent switch on. Options → SOUND OFF still mutes. Codemagic **App Preview** may still forward no audio; that is the stream, not the IPA.
 
