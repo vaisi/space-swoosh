@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: dark mode accents are shiny ice blue, not mint. -->
+<!-- userdoc.md — Changes: shielded asteroid smash now ticks the phone on Android and iOS. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.

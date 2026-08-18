@@ -1,8 +1,10 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
-// - hapticShieldSmash(): Cap selectionChanged (lighter than Light impact) /
-//   web vibrate 6ms. Shielded obstacle smash tick; never Haptics.vibrate().
+// - hapticShieldSmash(): Cap selectionStart then selectionChanged. Capacitor's
+//   Android + iOS plugins no-op selectionChanged until a session is open, so a
+//   bare selectionChanged never vibrated. Still lighter than Light wall-BOOP.
+//   Web vibrate 6ms. Never Haptics.vibrate().
 // - Keyboard plugin: wireKeyboard() tracks soft-keyboard height on the game
 //   (game.softKeyboardHeight) so Submit Signal can sit above the IME. Config
 //   uses resizeOnFullScreen so Android edge-to-edge actually resizes the WebView.
@@ -33,11 +35,30 @@ let statusBarApi = null;
 /** @type {typeof import('@capacitor/haptics') | null} */
 let hapticsApi = null;
 
+/** Resolves to Haptics after selectionStart(); null until first arm. */
+let selectionHapticsReady = null;
+
 async function loadHaptics() {
     if (!hapticsApi) {
         hapticsApi = await import('@capacitor/haptics');
     }
     return hapticsApi;
+}
+
+/**
+ * Capacitor Android + iOS ignore selectionChanged until selectionStart.
+ * One session for the process; first smash waits on this, later smashes reuse it.
+ */
+async function ensureSelectionHaptics() {
+    const { Haptics } = await loadHaptics();
+    selectionHapticsReady ??= Haptics.selectionStart().then(
+        () => Haptics,
+        (err) => {
+            selectionHapticsReady = null;
+            throw err;
+        }
+    );
+    return selectionHapticsReady;
 }
 
 /**
@@ -82,7 +103,7 @@ export function hapticShieldSmash() {
 
     void (async () => {
         try {
-            const { Haptics } = await loadHaptics();
+            const Haptics = await ensureSelectionHaptics();
             await Haptics.selectionChanged();
         } catch {
             /* missing plugin / no vibrator */
@@ -251,6 +272,7 @@ export async function initNative(game) {
     await wireLifecycle(game, App);
     await wireKeyboard(game);
     await syncKeepAwake(game);
+    void ensureSelectionHaptics();
 
     // Held until here so the first painted frame is the real menu, not a blank
     // canvas waiting on fonts.

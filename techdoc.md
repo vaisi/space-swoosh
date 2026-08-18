@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS links FirebaseAnalyticsCore (SDK 12 dropped WithoutAdIdSupport). -->
+<!-- Changes: smash haptic arms Capacitor selectionStart so Android/iOS actually tick. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -230,7 +230,7 @@ game build env. Journey progress and Open Space personal best stay in
 | Path | Responsibility |
 | --- | --- |
 | `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
-| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, wall-boop Light haptic + lighter smash `selectionChanged` haptic, Keyboard IME height → `game.softKeyboardHeight`. |
+| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, wall-boop Light haptic + lighter smash haptic (`selectionStart` then `selectionChanged`; a bare `selectionChanged` is a no-op on Cap Android/iOS), Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor Android (`logEvent`). Params sanitized to string/number (booleans → 0/1). Config: `android/app/google-services.json` (gitignored). Native iOS uses `ios-native/.../Analytics.swift` (same event names). Android: AD ID collection off + `AD_ID` permission stripped. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
