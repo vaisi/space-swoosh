@@ -1,6 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: Link FirebaseAnalyticsCore (IDFA-free). WithoutAdIdSupport was
-// removed in firebase-ios-sdk 12 and Codemagic archive 65'd on the missing product.
+// Changes: Case-insensitive Voice pack + turn1.mp3 (Windows Level-4.mp3 was dropped).
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -28,8 +27,8 @@ function walk(dir, out = []) {
 const swiftFiles = walk(appRoot).filter((f) => f.endsWith('.swift'));
 const voiceFiles = walk(appRoot).filter((f) => {
   const name = path.basename(f);
-  if (name.includes('ElevenLabs')) return false;
-  return /^(level-\d+|first-boop|swoosh-voice|fuel-low-\d+|background|crash|crash_with_shield|shield|turn)\.(mp3|m4a)$/.test(name);
+  if (/elevenlabs/i.test(name)) return false;
+  return /^(level-\d+|first-boop|swoosh-voice|fuel-low-\d+|background|crash|crash_with_shield|shield|turn\d*)\.(mp3|m4a)$/i.test(name);
 });
 const fontFiles = walk(appRoot).filter((f) => /\.(ttf|otf)$/i.test(f));
 const infoPlist = path.join(appRoot, 'Info.plist');
@@ -445,3 +444,5 @@ fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'project.pbxproj'), pbx);
 console.log(`Wrote ${path.join(outDir, 'project.pbxproj')}`);
 console.log(`Swift sources: ${swiftFiles.length}`);
+console.log(`Voice clips: ${voiceFiles.length}`);
+console.log(voiceFiles.map((f) => path.basename(f)).sort().join(', '));

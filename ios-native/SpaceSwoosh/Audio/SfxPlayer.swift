@@ -1,5 +1,5 @@
 // SfxPlayer.swift
-// Changes: decode fuel-low-1/2/3 voice clips; playFuelLowVoice picks at random.
+// Changes: Prefer turn1.mp3 (new take) over turn.mp3 when both are bundled.
 
 import AVFoundation
 import Foundation
@@ -38,7 +38,8 @@ final class SfxPlayer {
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
         boop = Self.makeBoop(format: format)
         collect = Self.makeCollect(format: format)
-        if let decoded = Self.decodeNamed("turn", into: format) {
+        if let decoded = Self.decodeNamed("turn1", into: format)
+            ?? Self.decodeNamed("turn", into: format) {
             turnFile = Self.scaled(decoded, volume: 0.3)
         }
         turnSynth = Self.makeTurn(format: format)
