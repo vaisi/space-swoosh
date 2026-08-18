@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Restore original turn.mp3 as the native turn cue. -->
+<!-- Changes: Android/Capacitor L4 NAV clip now matches the native iOS take. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
