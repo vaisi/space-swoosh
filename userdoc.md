@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: shielded smash has a lighter phone tick than wall BOOP. -->
+<!-- userdoc.md — Changes: dark mode accents are shiny ice blue, not mint. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -72,7 +72,7 @@
 >
 > **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
-> night paper — charcoal ground, light ink, vivid mint accents.
+> night paper — charcoal ground, light ink, shiny ice-blue accents.
 >
 > **Lives:** Not active in this build. Journey and Open Space can be retried
 > as often as you like after a crash or empty tank. (A lives pool and Pro

@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: shielded smash haptic is a selection tick, lighter than wall BOOP. -->
+<!-- Changes: dark-mode signal is ice blue `#5CC8FF` (was vivid mint). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -81,7 +81,7 @@
 >
 > **Themes:** Dual theme via Options → **Light Mode / Dark Mode**
 > (`brand/theme.js`, key `ssTheme`). **Default is light** (cream + Signal Blue)
-> when nothing is stored. Dark: charcoal paper, bone ink, vivid mint (`#3DFF9A`).
+> when nothing is stored. Dark: charcoal paper, bone ink, ice blue (`#5CC8FF`).
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
 > **BUILD 28 (Android store):** Firebase Analytics on Capacitor Android
@@ -1068,7 +1068,7 @@ Tune values in `config/GameConfig.js → fuel`, `points`, and `styleSwoosh`.
 
 `brand/tokens.js` holds the live `color` object (light defaults); `brand/theme.js`
 switches **light** (cream, near-black ink, Signal Blue) vs **dark** (charcoal
-`#1C1A16`, bone ink, vivid mint `#3DFF9A`). Default with no `ssTheme` is light.
+`#1C1A16`, bone ink, ice blue `#5CC8FF`). Default with no `ssTheme` is light.
 Options hub toggles and persists. Trail wakes / shields read tokens at draw time;
 milestone toasts use a paper-rgb plate so ink text stays readable on both themes. Canvas code draws through
 `utils/BrandDraw.js` helpers so every surface matches. Obstacles and VFX must use

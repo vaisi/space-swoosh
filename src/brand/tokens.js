@@ -3,6 +3,7 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Night-paper signal in theme.js is ice blue `#5CC8FF` (not mint).
 // - Added `argusTeal` / `argusTealRgb` — theme-aware peacock rim for the
 //   Argus wake (deep on cream, electric on night paper). Never HUD.
 // - Motif `repulsor` (push node) and `drift` (lateral current band).
@@ -12,7 +13,7 @@
 // - Motif `wallBoost`: thin Signal-Blue edge slab (shield + speed pickup).
 // - Theme toggle: `color` is mutated in place by brand/theme.js (light cream /
 //   dark night-paper). Defaults below are light until initTheme() runs.
-// - Night paper (feat/night-paper): dark palette + vivid mint live in theme.js;
+// - Night paper (feat/night-paper): dark palette + ice-blue signal live in theme.js;
 //   light keeps cream paper, near-black ink, Signal Blue. Added `paperRgb`.
 // - Added `ember` / `emberRgb` — warm trail-only accent for special ship wakes
 //   (Cinder). Not a second UI accent.

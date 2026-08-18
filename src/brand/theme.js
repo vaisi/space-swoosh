@@ -3,6 +3,7 @@
 // SPACE SWOOSH — Light / dark (night paper) theme switching.
 //
 // Changes:
+// - Dark signal is ice blue `#5CC8FF` (was vivid mint `#3DFF9A`).
 // - Argus peacock rim lifts on night paper (deep teal → electric mint).
 // - Luna mothLavender lifts on night paper.
 // - Spore amber/violet + Sprout green lift on night paper (same as Lantern).
@@ -25,7 +26,7 @@ const STORAGE_KEY = 'ssTheme';
 
 /** @typedef {'dark' | 'light'} ThemeId */
 
-/** Night paper — charcoal ground, bone ink, vivid mint signal. */
+/** Night paper — charcoal ground, bone ink, ice-blue signal. */
 const DARK = {
     paper:        '#1C1A16',
     paperTint:    '#2A2620',
@@ -38,9 +39,9 @@ const DARK = {
     ink12:        'rgba(225, 217, 193, 0.12)',
     ink06:        'rgba(225, 217, 193, 0.06)',
     inkRgb:       '225, 217, 193',
-    signal:       '#3DFF9A',
-    signalSoft:   'rgba(61, 255, 154, 0.32)',
-    signalRgb:    '61, 255, 154',
+    signal:       '#5CC8FF',
+    signalSoft:   'rgba(92, 200, 255, 0.32)',
+    signalRgb:    '92, 200, 255',
     ember:        '#C47855',
     emberSoft:    'rgba(196, 120, 85, 0.22)',
     emberRgb:     '196, 120, 85',
