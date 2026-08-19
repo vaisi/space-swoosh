@@ -1,5 +1,8 @@
 // PlayContainerView.swift
-// Changes: Pass board rank into Submit Signal for Firebase submit_highscore.
+// Changes: L42 written epilogue — dark hold, bottom-docked prompt, smaller lights.
+// Skip captions are two beats (one phrase each), matching the skip voice.
+// First ending: Arc unlock card, then Controls with Arc on.
+// One epilogue reply per device — replay skips the prompt.
 
 import SwiftUI
 import SpriteKit
@@ -9,6 +12,7 @@ struct PlayContainerView: View {
     var launch: PlayLaunch
     var onMenu: () -> Void
     var onMap: () -> Void
+    var onUnlockArc: () -> Void
 
     @ObservedObject private var settings = SettingsStore.shared
     @StateObject private var pacing = FramePacingMonitor()
@@ -20,10 +24,16 @@ struct PlayContainerView: View {
     @State private var didAutoPrompt = false
     @State private var currentLaunch: PlayLaunch
 
-    init(launch: PlayLaunch, onMenu: @escaping () -> Void, onMap: @escaping () -> Void) {
+    init(
+        launch: PlayLaunch,
+        onMenu: @escaping () -> Void,
+        onMap: @escaping () -> Void,
+        onUnlockArc: @escaping () -> Void
+    ) {
         self.launch = launch
         self.onMenu = onMenu
         self.onMap = onMap
+        self.onUnlockArc = onUnlockArc
         _currentLaunch = State(initialValue: launch)
     }
 
@@ -88,7 +98,9 @@ struct PlayContainerView: View {
                     pauseOverlay
                 }
 
-                if session.isOver {
+                if session.showEpilogue {
+                    JourneyEpilogueView(onDone: onMenu, onUnlockArc: onUnlockArc)
+                } else if session.isOver {
                     if let outcome = session.outcome {
                         levelOutcomeCard(outcome)
                             .opacity(Double(session.overlayAlpha))
@@ -392,3 +404,377 @@ struct FramePacingHUD: View {
     }
 }
 #endif
+
+struct JourneyEpilogueView: View {
+    var onDone: () -> Void
+    var onUnlockArc: () -> Void
+
+    @State private var phase = "hold"
+    @State private var caption = ""
+    @State private var reply = ""
+    @State private var error = ""
+    @State private var busy = false
+    @State private var ordinal: Int?
+    @State private var lights: [EpilogueLight] = []
+    @State private var beatIndex = 0
+    @State private var openVoiceDone = false
+    @State private var openBeatsDone = false
+    @State private var skipVoiceDone = false
+    @State private var skipBeatsDone = false
+    @State private var drift: CGFloat = 0
+    @State private var driftAlpha: Double = 1
+    @State private var lightsAt = Date()
+    @State private var generation = UUID()
+
+    private let openBeats = GeneratedJourneyData.epilogueOpen
+    private let skipBeats = GeneratedJourneyData.epilogueSkip
+    private let bone = Color(red: 225 / 255, green: 217 / 255, blue: 193 / 255)
+    private let darkHold: Double = 1.6
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            VStack(spacing: 20) {
+                if phase != "prompt" {
+                    Spacer()
+                }
+                if !caption.isEmpty {
+                    Text(caption)
+                        .font(BrandType.display(22))
+                        .tracking(BrandType.displayTracking(22))
+                        .foregroundStyle(bone.opacity(0.92))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 28)
+                }
+                if phase == "prompt" {
+                    Text(GeneratedJourneyData.epiloguePrompt.uppercased())
+                        .font(BrandType.label(12))
+                        .tracking(BrandType.labelTracking(12))
+                        .foregroundStyle(bone.opacity(0.62))
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 72)
+                        .padding(.horizontal, 28)
+                    TextField(GeneratedJourneyData.epiloguePromptPlaceholder, text: $reply, axis: .vertical)
+                        .lineLimit(3...5)
+                        .font(BrandType.display(22))
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(bone)
+                        .tint(bone)
+                        .padding(.vertical, 12)
+                        .overlay(alignment: .bottom) {
+                            Rectangle().fill(bone).frame(height: 2)
+                        }
+                        .padding(.horizontal, 28)
+                        .padding(.top, 32)
+                        .disabled(busy)
+                        .onChange(of: reply) { _, next in
+                            if next.count > ReplyFilter.maxLength {
+                                reply = String(next.prefix(ReplyFilter.maxLength))
+                            }
+                        }
+                    if !error.isEmpty {
+                        Text(error)
+                            .font(BrandType.mono(12))
+                            .foregroundStyle(.red.opacity(0.85))
+                    }
+                    Spacer()
+                    Button {
+                        Task { await submit(skipped: false) }
+                    } label: {
+                        Text(GeneratedJourneyData.epilogueSubmitLabel.uppercased())
+                            .font(BrandType.label(12))
+                            .tracking(BrandType.labelTracking(12))
+                            .foregroundStyle(bone.opacity(0.95))
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: 56)
+                            .overlay(Rectangle().stroke(bone.opacity(0.9), lineWidth: 1.5))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 28)
+                    .disabled(busy)
+                    Button {
+                        Task { await submit(skipped: true) }
+                    } label: {
+                        Text(GeneratedJourneyData.epilogueSkipLabel.uppercased())
+                            .font(BrandType.label(12))
+                            .tracking(BrandType.labelTracking(12))
+                            .foregroundStyle(bone.opacity(0.78))
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: 56)
+                            .overlay(Rectangle().stroke(bone.opacity(0.35), lineWidth: 1.5))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, 28)
+                    .disabled(busy)
+                }
+                if phase == "lights" {
+                    ZStack {
+                        TimelineView(.animation) { timeline in
+                            let elapsed = timeline.date.timeIntervalSince(lightsAt)
+                            Canvas { context, size in
+                                for light in lights {
+                                    let age = elapsed - light.delay
+                                    guard age > 0 else { continue }
+                                    let alpha = min(1, age / 0.9)
+                                    let cx = light.x * size.width
+                                    let cy = light.y * size.height
+                                    let halo = CGRect(x: cx - light.r * 3.2, y: cy - light.r * 3.2, width: light.r * 6.4, height: light.r * 6.4)
+                                    let core = CGRect(x: cx - light.r, y: cy - light.r, width: light.r * 2, height: light.r * 2)
+                                    context.opacity = alpha * 0.45
+                                    context.fill(Path(ellipseIn: halo), with: .color(Color(red: 1, green: 0.98, blue: 0.92)))
+                                    context.opacity = alpha
+                                    context.fill(Path(ellipseIn: core), with: .color(.white))
+                                }
+                            }
+                        }
+                        if !reply.isEmpty {
+                            Text(reply)
+                                .font(BrandType.display(18))
+                                .foregroundStyle(bone.opacity(0.9))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 28)
+                                .offset(y: drift)
+                                .opacity(driftAlpha)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 280)
+                }
+                if phase == "counter" {
+                    Text(counterLine)
+                        .font(BrandType.display(24))
+                        .foregroundStyle(bone.opacity(0.95))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 28)
+                }
+                if phase == "footer" {
+                    Text(GeneratedJourneyData.epilogueFooterCard)
+                        .font(BrandType.display(20))
+                        .foregroundStyle(bone.opacity(0.95))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 28)
+                        .onTapGesture { openFollow() }
+                    ShellChrome.brandButton("Open Instagram", tag: "@", primary: true) {
+                        openFollow()
+                    }
+                    .padding(.horizontal, 28)
+                }
+                if phase == "arcUnlock" {
+                    VStack(spacing: 16) {
+                        ForEach(GeneratedJourneyData.epilogueArcUnlockLines, id: \.self) { line in
+                            Text(line)
+                                .font(BrandType.display(24))
+                                .foregroundStyle(bone.opacity(0.95))
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .padding(.horizontal, 28)
+                    Button {
+                        onUnlockArc()
+                    } label: {
+                        Text(GeneratedJourneyData.epilogueArcUnlockLabel.uppercased())
+                            .font(BrandType.label(12))
+                            .tracking(BrandType.labelTracking(12))
+                            .foregroundStyle(bone.opacity(0.95))
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: 56)
+                            .overlay(Rectangle().stroke(bone.opacity(0.9), lineWidth: 1.5))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, 28)
+                }
+                if phase != "prompt" {
+                    Spacer()
+                }
+            }
+        }
+        .onAppear { startOpen() }
+        .onDisappear {
+            generation = UUID()
+            VoicePlayer.shared.stop()
+        }
+    }
+
+    private var counterLine: String {
+        if let ordinal {
+            return GeneratedJourneyData.epilogueCounterCard.replacingOccurrences(
+                of: "{N}",
+                with: ReplyFilter.formatOrdinal(ordinal)
+            )
+        }
+        return GeneratedJourneyData.epilogueOfflineCard
+    }
+
+    private func startOpen() {
+        phase = "hold"
+        caption = ""
+        openVoiceDone = false
+        openBeatsDone = false
+        beatIndex = 0
+        let stamp = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + darkHold) {
+            guard stamp == generation, phase == "hold" else { return }
+            phase = "open"
+            VoicePlayer.shared.playEpilogueOpen {
+                DispatchQueue.main.async {
+                    openVoiceDone = true
+                    tryEnterPrompt()
+                }
+            }
+            playOpenBeat()
+        }
+    }
+
+    private func playOpenBeat() {
+        guard beatIndex < openBeats.count else {
+            caption = ""
+            openBeatsDone = true
+            tryEnterPrompt()
+            return
+        }
+        let beat = openBeats[beatIndex]
+        caption = beat.text
+        let hold = max(0.9, min(2.8, Double(beat.text.count) * 0.055))
+        let gap = Double(beat.gapAfterMs) / 1000
+        let stamp = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + hold + gap) {
+            guard stamp == generation, phase == "open" else { return }
+            beatIndex += 1
+            playOpenBeat()
+        }
+    }
+
+    private func tryEnterPrompt() {
+        guard phase == "open", openBeatsDone, openVoiceDone else { return }
+        caption = ""
+        if JourneyProgress.hasEpilogueReply(JourneyStore.shared.snapshot) {
+            ordinal = JourneyStore.shared.snapshot.epilogueOrdinal
+            reply = ""
+            bloomLights()
+            return
+        }
+        phase = "prompt"
+    }
+
+    private func playSkipBeat() {
+        guard beatIndex < skipBeats.count else {
+            caption = ""
+            skipBeatsDone = true
+            tryEnterLights()
+            return
+        }
+        let beat = skipBeats[beatIndex]
+        caption = beat.text
+        let hold = max(0.9, min(2.8, Double(beat.text.count) * 0.055))
+        let gap = Double(beat.gapAfterMs) / 1000
+        let stamp = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + hold + gap) {
+            guard stamp == generation, phase == "skip" else { return }
+            beatIndex += 1
+            playSkipBeat()
+        }
+    }
+
+    private func tryEnterLights() {
+        guard phase == "skip", skipBeatsDone, skipVoiceDone else { return }
+        bloomLights()
+    }
+
+    private func submit(skipped: Bool) async {
+        if busy || phase != "prompt" { return }
+        if !skipped {
+            let check = ReplyFilter.validate(reply)
+            if !check.ok {
+                error = check.message
+                return
+            }
+            reply = check.text
+        } else {
+            reply = ""
+        }
+        busy = true
+        error = ""
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        let result = await ReplyService.submit(text: reply, skipped: skipped)
+        ordinal = result
+        JourneyStore.shared.markEpilogueReply(ordinal: result)
+        busy = false
+        if skipped {
+            caption = ""
+            phase = "skipHold"
+            skipVoiceDone = false
+            skipBeatsDone = false
+            beatIndex = 0
+            let stamp = generation
+            DispatchQueue.main.asyncAfter(deadline: .now() + darkHold) {
+                guard stamp == generation, phase == "skipHold" else { return }
+                phase = "skip"
+                VoicePlayer.shared.playEpilogueSkip {
+                    DispatchQueue.main.async {
+                        skipVoiceDone = true
+                        tryEnterLights()
+                    }
+                }
+                playSkipBeat()
+            }
+        } else {
+            bloomLights()
+        }
+    }
+
+    private func bloomLights() {
+        caption = ""
+        lightsAt = Date()
+        lights = (0..<48).map { _ in
+            EpilogueLight(
+                x: CGFloat.random(in: 0.12...0.88),
+                y: CGFloat.random(in: 0.12...0.78),
+                r: CGFloat.random(in: 0.5...1.2),
+                delay: Double.random(in: 0.4...2.6)
+            )
+        }
+        drift = 80
+        driftAlpha = 1
+        phase = "lights"
+        withAnimation(.easeIn(duration: 1.6)) {
+            drift = -40
+            driftAlpha = 0.12
+        }
+        let stamp = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.2) {
+            guard stamp == generation else { return }
+            phase = "counter"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
+                guard stamp == generation else { return }
+                phase = "footer"
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) {
+                    guard stamp == generation, phase == "footer" else { return }
+                    leaveFooter()
+                }
+            }
+        }
+    }
+
+    private func leaveFooter() {
+        if JourneyProgress.hasSeenArcUnlock(JourneyStore.shared.snapshot) {
+            onDone()
+        } else {
+            caption = ""
+            phase = "arcUnlock"
+        }
+    }
+
+    private func openFollow() {
+        if let url = URL(string: GeneratedJourneyData.epilogueInstagramUrl) {
+            UIApplication.shared.open(url)
+        }
+    }
+}
+
+private struct EpilogueLight {
+    var x: CGFloat
+    var y: CGFloat
+    var r: CGFloat
+    var delay: Double
+}

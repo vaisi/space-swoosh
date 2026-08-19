@@ -5,16 +5,19 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - 42 flown levels: final plateau d:1.00 is 9 levels (L34–42); hazard unlock
+//   numbers for L1–40 stay put. Chapters follow THE REPLY bands (First Light
+//   1–6 … Arrival 41–42). Milestone KM also on 42.
 // - Sparkles star targets eased by 1 (floor 2; scaled levels −1) so the
 //   pre-finish sparkle that often can't be reached no longer blocks the star.
 // - Star 2 is sparkle *count* (`sparklesTarget`), not style points — fuel
 //   diamonds are the collectible; label "Collect sparkles".
 // - STEPS unlocks: driftCurrent L15, phase L20, repulsor L25, sweepGate L31
-//   (carved from longer plateaus; total still 40). Soft→sharp after shooting.
+//   (carved from longer plateaus; L1–40 unlocks unchanged). Soft→sharp after shooting.
 // - CHAPTERS are Signal Story bands by level count (First Light → Arrival),
 //   not atmosphere names / difficulty-step counts.
 // - Star slots scale with the teach band: L1–3 → 1 star, L4 → 2, L5+ → 3.
-// - Goal KM after L5: +500 each level; L10/15/20/25/30/35/40 also +1000 extra.
+// - Goal KM after L5: +500 each level; L10/15/20/25/30/35/40/42 also +1000 extra.
 // - Teach-band goals: L1 1250 → L2 2000 → L3 3000 → L4 4000 → L5 7500.
 // - Levels 1–5 Signal Story tutorial: empty → simple → moving → sparkles →
 //   shields. `moving` at L3; sideBarrier/complex later.
@@ -43,19 +46,19 @@ const STEPS = [
     { d: 0.84, levels: 2, unlock: 'repulsor' },     // L25–26
     { d: 0.90, levels: 4, unlock: 'blackhole' },    // L27–30
     { d: 0.95, levels: 3, unlock: 'sweepGate' },     // L31–33
-    { d: 1.00, levels: 7, unlock: null },           // L34–40
+    { d: 1.00, levels: 9, unlock: null },           // L34–42
 ];
 
-// Story chapters: `steps` = number of levels in the band (sums to 40).
+// Story chapters: `steps` = number of levels in the band (sums to 42).
 // Independent of difficulty STEPS plateaus.
 const CHAPTERS = [
-    { id: 'learning', name: 'First Light', steps: 5, blurb: 'Learn the path. Listen to NAV.' },
+    { id: 'learning', name: 'First Light', steps: 6, blurb: 'Learn the path. Listen to NAV.' },
     { id: 'journey', name: 'The Long Way', steps: 7, blurb: 'Follow the signal back to its source.' },
-    { id: 'message', name: 'Fragments', steps: 7, blurb: 'The message begins to take shape.' },
+    { id: 'message', name: 'Fragments', steps: 10, blurb: 'The message begins to take shape.' },
     { id: 'tooold', name: 'Deep Static', steps: 7, blurb: 'The signal is older than it should be.' },
     { id: 'whowerethey', name: 'The Senders', steps: 6, blurb: 'Piece by piece, they come into focus.' },
     { id: 'earth', name: 'The Source', steps: 4, blurb: 'The trail ends at a single world.' },
-    { id: 'homecoming', name: 'Arrival', steps: 4, blurb: 'Whatever waits, you are almost there.' },
+    { id: 'homecoming', name: 'Arrival', steps: 2, blurb: 'Whatever waits, you are almost there.' },
 ];
 
 /** Fixed goal KM for the First Light teach band (levels 1–5). */
@@ -71,7 +74,7 @@ const TEACH_GOAL_KM = {
 const GOAL_KM_STEP = 500;
 /** Milestone levels also add this many KM on top of the regular step. */
 const GOAL_KM_MILESTONE_BONUS = 1000;
-const GOAL_KM_MILESTONE_LEVELS = new Set([10, 15, 20, 25, 30, 35, 40]);
+const GOAL_KM_MILESTONE_LEVELS = new Set([10, 15, 20, 25, 30, 35, 40, 42]);
 
 // Sparkles needed for the second star, per 1000 KM (levels with sparkles).
 // Targets are 1 below the raw curve so a sparkle stranded past the finish gate

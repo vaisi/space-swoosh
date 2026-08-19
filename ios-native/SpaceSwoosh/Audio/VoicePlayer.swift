@@ -1,5 +1,6 @@
 // VoicePlayer.swift
-// Changes: playFuelLow does not duck BGM; other NAV clips still do.
+// Changes: playEpilogueOpen / playEpilogueSkip for the written ending; missing
+// clips finish immediately so captions can still run. Level clips 1–42.
 
 import AVFoundation
 import Foundation
@@ -21,6 +22,14 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
 
     func playLevel(_ level: Int, onEnded: (() -> Void)? = nil) {
         playNamed("level-\(level)", onEnded: onEnded)
+    }
+
+    func playEpilogueOpen(onEnded: (() -> Void)? = nil) {
+        playNamed("epilogue-open", onEnded: onEnded)
+    }
+
+    func playEpilogueSkip(onEnded: (() -> Void)? = nil) {
+        playNamed("epilogue-skip", onEnded: onEnded)
     }
 
     func playFirstBoop() {

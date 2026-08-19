@@ -1,7 +1,7 @@
 // LevelIntroSequence.js
 // Short run-start cinematic for Journey and Open World.
 // Changes:
-// - Handoff starts IntroNarration (sentence beats + level 1–40 voice) instead of
+// - Handoff starts IntroNarration (sentence beats + level 1–42 voice) instead of
 //   a single showMessage call.
 // - Title hold stretched (~1.1s) so Signal Story two-sentence lines can be read.
 // - Title fade-out shortened to 900ms (was 3s). Game unpauses the belt as soon
@@ -15,6 +15,7 @@
 
 import { clamp01, lerp } from '../utils/math.js';
 import { REF_FPS } from './cinematicFlight.js';
+import { TOTAL_LEVELS } from '../config/JourneyConfig.js';
 import { IntroNarration } from './IntroNarration.js';
 
 // Wall-clock timings — keep these the single source of "how the intro feels".
@@ -201,7 +202,7 @@ export class LevelIntroSequence {
             game.hudRevealStart = null;
             game.hudRevealWaitStart = null;
             const level = game.isJourney?.() ? game.journeyLevel : null;
-            const voiceLevel = level != null && level >= 1 && level <= 40 ? level : null;
+            const voiceLevel = level != null && level >= 1 && level <= TOTAL_LEVELS ? level : null;
             const narration = new IntroNarration(game, beats, voiceLevel);
             narration.start();
         } else {

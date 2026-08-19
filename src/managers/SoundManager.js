@@ -20,7 +20,10 @@
 // - playCueVoice / playFirstBoopVoice / playSwooshVoice for session cues
 //   (first-boop.mp3, swoosh-voice.mp3) in Journey + Open Space; shares the
 //   level-voice slot (duck, mute, replace, leave/crash stop via stopLevelVoice).
-// - playLevelVoice / stopLevelVoice for Journey levels 1–40 navigator MP3s
+// - playLevelVoice / stopLevelVoice for Journey levels 1–42 navigator MP3s
+//   plus epilogue-open / epilogue-skip cues. Missing files fail soft.
+//   Open/skip decode into buffers and wait for AudioContext.resume before
+//   start so the 1.6s dark hold does not lose the open line to autoplay.
 //   under /sounds/voice/; ducks BGM while speaking; honors mute + voice channel.
 // - playTurn / playMove use pre-decoded Web Audio buffer sources (no HTMLAudio
 //   seek on tap). Removes direction-change micro-freeze; move.mp3 optional.
@@ -49,7 +52,9 @@ const BGM_VOLUME = 0.4;
 const BGM_DUCK_VOLUME = 0.14;
 const VOICE_VOLUME = 0.85;
 const VOICE_LEVEL_MIN = 1;
-const VOICE_LEVEL_MAX = 40;
+const VOICE_LEVEL_MAX = 42;
+const EPILOGUE_OPEN_CUE = 'epilogue-open.mp3';
+const EPILOGUE_SKIP_CUE = 'epilogue-skip.mp3';
 
 function loadMuted() {
     try {
@@ -111,6 +116,8 @@ export class SoundManager {
             fuelLow1: null,
             fuelLow2: null,
             fuelLow3: null,
+            epilogueOpen: null,
+            epilogueSkip: null,
         };
         this.lastFuelLowVoice = -1;
 
@@ -184,7 +191,10 @@ export class SoundManager {
     }
 
     async loadSfxBuffers() {
-        const [turn, move, firstBoop, swooshVoice, fuelLow1, fuelLow2, fuelLow3] = await Promise.all([
+        const [
+            turn, move, firstBoop, swooshVoice, fuelLow1, fuelLow2, fuelLow3,
+            epilogueOpen, epilogueSkip,
+        ] = await Promise.all([
             this.decodeSfxBuffer('/sounds/turn.mp3'),
             this.decodeSfxBuffer('/sounds/move.mp3'),
             this.decodeSfxBuffer('/sounds/voice/first-boop.mp3'),
@@ -192,6 +202,8 @@ export class SoundManager {
             this.decodeSfxBuffer('/sounds/voice/fuel-low-1.mp3'),
             this.decodeSfxBuffer('/sounds/voice/fuel-low-2.mp3'),
             this.decodeSfxBuffer('/sounds/voice/fuel-low-3.mp3'),
+            this.decodeSfxBuffer('/sounds/voice/epilogue-open.mp3'),
+            this.decodeSfxBuffer('/sounds/voice/epilogue-skip.mp3'),
         ]);
         this.sfxBuffers.turn = turn;
         this.sfxBuffers.move = move;
@@ -200,6 +212,8 @@ export class SoundManager {
         this.sfxBuffers.fuelLow1 = fuelLow1;
         this.sfxBuffers.fuelLow2 = fuelLow2;
         this.sfxBuffers.fuelLow3 = fuelLow3;
+        this.sfxBuffers.epilogueOpen = epilogueOpen;
+        this.sfxBuffers.epilogueSkip = epilogueSkip;
     }
 
     /** Fire-and-forget buffer source — no seek, safe to retrigger every tap. */
@@ -372,7 +386,7 @@ export class SoundManager {
     }
 
     /**
-     * Play navigator line for Journey levels 1–40. No-op outside that range,
+     * Play navigator line for Journey levels 1–42. No-op outside that range,
      * when muted, or when the clip fails to load.
      * @param {number} level
      * @param {{ onEnded?: () => void }} [opts]
@@ -386,6 +400,14 @@ export class SoundManager {
             return;
         }
         this.playCueVoice(`level-${n}.mp3`, opts);
+    }
+
+    playEpilogueOpenVoice(opts = {}) {
+        this.playCueVoice(EPILOGUE_OPEN_CUE, opts);
+    }
+
+    playEpilogueSkipVoice(opts = {}) {
+        this.playCueVoice(EPILOGUE_SKIP_CUE, opts);
     }
 
     /**
@@ -407,6 +429,8 @@ export class SoundManager {
         }
 
         try {
+            const ctx = this.ensureAudioContext();
+            void ctx?.resume?.();
             const buffer = this.cueVoiceBuffer(label);
             if (buffer) {
                 this.playDecodedCue(buffer, duckBgm);
@@ -456,7 +480,18 @@ export class SoundManager {
         if (label === 'fuel-low-1.mp3') return this.sfxBuffers.fuelLow1;
         if (label === 'fuel-low-2.mp3') return this.sfxBuffers.fuelLow2;
         if (label === 'fuel-low-3.mp3') return this.sfxBuffers.fuelLow3;
+        if (label === 'epilogue-open.mp3') return this.sfxBuffers.epilogueOpen;
+        if (label === 'epilogue-skip.mp3') return this.sfxBuffers.epilogueSkip;
         return null;
+    }
+
+    /** Keep looping music under the L42 written ending (HTMLAudio, not Web Audio). */
+    keepEpilogueMusic() {
+        void this.ensureAudioContext()?.resume?.();
+        if (!this.canPlayMusic()) return;
+        if (this.bgmPlaying) return;
+        if (this.bgmPaused) this.resumeBGM();
+        else this.playBGM();
     }
 
     /** Pre-decoded first-boop / swoosh-voice — same Web Audio path as turn SFX. */
@@ -467,6 +502,29 @@ export class SoundManager {
             return;
         }
 
+        const start = () => this.startDecodedCue(ctx, buffer, duckBgm);
+        if (ctx.state === 'running') {
+            start();
+            return;
+        }
+        const resumed = ctx.resume?.();
+        if (resumed && typeof resumed.then === 'function') {
+            resumed
+                .then(() => {
+                    if (ctx.state === 'running') start();
+                    else this.notifyLevelVoiceEnded();
+                })
+                .catch(() => this.notifyLevelVoiceEnded());
+            return;
+        }
+        start();
+    }
+
+    startDecodedCue(ctx, buffer, duckBgm = true) {
+        if (!ctx || !buffer) {
+            this.notifyLevelVoiceEnded();
+            return;
+        }
         this.stopCueSource();
         const src = ctx.createBufferSource();
         const gain = ctx.createGain();

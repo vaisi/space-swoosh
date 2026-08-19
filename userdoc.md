@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: shielded asteroid smash now ticks the phone on Android and iOS. -->
+<!-- userdoc.md — Changes: one written ending per device; Arc unlocks after Journey. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -28,7 +28,9 @@
 > family, not a column of dots. The
 > four free ships are **Focus**, **Flicker**, **Ember**, and **Saber** — the
 > rest are unlocked for this playtest build. Journey tiles are also all open
-> (`UNLOCK_ALL_LEVELS`) so you can tap any level. Zigzag or Arc (Options), wall BOOP (the word
+> (`UNLOCK_ALL_LEVELS`) so you can tap any level. Zigzag from the start; Arc
+> sits under Options → Controls as out of service until the Journey is finished.
+> Wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,
 > flowing wind dashes, a pulsing two-ring shield (about four seconds),
 > the same four-point sparkle as Android with a soft blue disc behind it, blue `+FUEL`,
@@ -97,9 +99,9 @@ distances show. Styles you haven't tried don't appear.
 
 ### Journey
 
-Deep space exploration starting from Day 1. **40 numbered levels**, each with a
-distance goal to reach. A calm navigator speaks at the start of each level (no
-chatter mid-flight). Words appear **one sentence at a time** so you can read
+Deep space exploration starting from Day 1. **42 numbered days** (119 stars),
+each with a distance goal to reach. A calm navigator speaks at the start of each
+level (no chatter mid-flight). Words appear **one sentence at a time** so you can read
 along, and you hear the spoken line on every Journey level.
 
 **Levels 1–5 teach the basics**, in order:
@@ -118,7 +120,9 @@ later without turning into a grind.
 
 Flying Journey is also how you **unlock Space Log entries** — observe and interact
 with hazards and boosts to fill your field manual. The opening Signal brief is
-the first Journey entry.
+the first Journey entry. After the last relay, you can write one thing into the
+dark — or leave it unsaid. That choice is once per device; later visits still
+play the ending, without another prompt.
 
 ### Open Space
 
@@ -212,7 +216,7 @@ Categories:
 | --- | --- |
 | Obstacles | Asteroids, barriers, square blooms, sweeps, repulsors, drift currents, wormholes, black holes, Space BOOP, … |
 | Boosts | Shield, wall boost, fuel sparkles, style swoosh, finish gate, … |
-| Journey | Day 1…Day 40 navigator transmissions (plus The Call) |
+| Journey | Day 1 onward navigator transmissions (plus The Call). After the last relay you may write one thing into the dark — once. |
 | From the Void | Reserved for future transmissions — empty for now |
 
 Entries are tall cards: the real obstacle silhouette on the left, name and notes
@@ -263,7 +267,7 @@ Options opens a short list:
 | Item | Status |
 | --- | --- |
 | **Ship** | Browse the full roster; owned ships equip, locked show a price (tap to buy on the apps). |
-| **Controls** | Flight style (Zigzag or Arc) and how steering works. |
+| **Controls** | Flight style (Zigzag now; Arc shows as out of service until you finish the Journey). |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
 | **Restore Purchases** | Re-sync ship unlocks and Pro after reinstall (iOS / Android). Native TestFlight omits this row until IAP. |
@@ -468,8 +472,8 @@ Optional flair — not fuel, not the sparkles star:
 
 Blue shield pickups (the pulsing **plus**) give you a temporary shield. While
 it's up you can plow through asteroids (destroying them for points) instead of
-crashing. Each smash also gives a lighter phone tick than a wall **BOOP** on
-devices that support haptics (not in the browser App Preview). On a big asteroid
+crashing. Each smash also gives a quieter version of the wall **BOOP** phone
+tick on devices that support haptics (not in the browser App Preview). On a big asteroid
 with orbiting debris moons — or a star that fires shots — you only smash what you
 hit: clip a moon or a shot and the main rock stays; ram the body and the whole
 thing goes. The shield pulses faster right before it runs out — pick your moment.
@@ -488,7 +492,10 @@ crash you if you miss the ring itself — aim for the blue.
 
 ## Flight style
 
-Under **Options → Controls** you can pick how the ship steers. Open Space high
+Under **Options → Controls** you can pick how the ship steers. **Zigzag** is
+available from the start. **Arc** is listed there the whole time but stays out
+of service until you finish the Journey; the first time you do, you land on that
+Controls screen with Arc already on. Open Space high
 scores and your on-device personal best are tracked **separately** for each style.
 
 - **Zigzag** (default) — the ship always flies straight at a flatter fixed

@@ -1,5 +1,8 @@
 // JourneyProgress.swift
-// Changes: UNLOCK_ALL_LEVELS playtest flag (map tiles only; saved unlocked stays).
+// Changes: v2 migrate — v1 saves are kept. Completing old Day 40 unlocks 41.
+// Arc unlocks only when Day 42 is cleared; `arcUnlockSeen` is the once-only
+// ending card flag (no version bump). One epilogue reply per device
+// (`epilogueReplyDone` + optional `epilogueOrdinal`).
 
 import Foundation
 import Combine
@@ -13,27 +16,38 @@ struct JourneySnapshot: Equatable {
     var version: Int
     var unlocked: Int
     var loreSeen: Bool
+    var arcUnlockSeen: Bool
+    var epilogueReplyDone: Bool
+    var epilogueOrdinal: Int?
     var levels: [Int: JourneyLevelRecord]
 }
 
 enum JourneyProgress {
     static let storageKey = "journeyProgress"
-    private static let version = 1
+    private static let version = 2
+    private static let previousFinale = 40
     /// Playtest unlock — true so the Journey map can fly every level. Flip false for store.
     static let UNLOCK_ALL_LEVELS = true
 
     static func empty() -> JourneySnapshot {
-        JourneySnapshot(version: version, unlocked: 1, loreSeen: false, levels: [:])
+        JourneySnapshot(
+            version: version,
+            unlocked: 1,
+            loreSeen: false,
+            arcUnlockSeen: false,
+            epilogueReplyDone: false,
+            epilogueOrdinal: nil,
+            levels: [:]
+        )
     }
 
     static func load() -> JourneySnapshot {
-        guard let raw = UserDefaults.standard.dictionary(forKey: storageKey),
-              let storedVersion = raw["version"] as? Int,
-              storedVersion == version
-        else { return empty() }
+        guard let raw = UserDefaults.standard.dictionary(forKey: storageKey) else {
+            return empty()
+        }
+        let storedVersion = raw["version"] as? Int ?? 0
+        if storedVersion > version { return empty() }
 
-        let unlocked = JourneyConfig.clampLevel(raw["unlocked"] as? Int ?? 1)
-        let loreSeen = raw["loreSeen"] as? Bool ?? false
         var levels: [Int: JourneyLevelRecord] = [:]
         if let map = raw["levels"] as? [String: Any] {
             for (key, value) in map {
@@ -45,7 +59,34 @@ enum JourneyProgress {
                 levels[n] = JourneyLevelRecord(stars: stars, bestPoints: best)
             }
         }
-        return JourneySnapshot(version: version, unlocked: unlocked, loreSeen: loreSeen, levels: levels)
+
+        var unlocked = raw["unlocked"] as? Int ?? 1
+        let finishedOldFinale = (raw["levels"] as? [String: Any]).flatMap { map in
+            let entry = map["\(previousFinale)"] as? [String: Any]
+            let stars = entry?["stars"] as? [Bool] ?? []
+            return stars.first == true
+        } ?? false
+        if storedVersion < 2, finishedOldFinale, unlocked <= previousFinale {
+            unlocked = previousFinale + 1
+        }
+
+        let snapshot = JourneySnapshot(
+            version: version,
+            unlocked: JourneyConfig.clampLevel(unlocked),
+            loreSeen: raw["loreSeen"] as? Bool ?? false,
+            arcUnlockSeen: raw["arcUnlockSeen"] as? Bool ?? false,
+            epilogueReplyDone: raw["epilogueReplyDone"] as? Bool ?? false,
+            epilogueOrdinal: {
+                if let n = raw["epilogueOrdinal"] as? Int, n > 0 { return n }
+                if let n = raw["epilogueOrdinal"] as? NSNumber, n.intValue > 0 { return n.intValue }
+                return nil
+            }(),
+            levels: levels
+        )
+        if storedVersion != version || snapshot.unlocked != (raw["unlocked"] as? Int ?? 1) {
+            save(snapshot)
+        }
+        return snapshot
     }
 
     static func save(_ snapshot: JourneySnapshot) {
@@ -53,12 +94,18 @@ enum JourneyProgress {
         for (key, entry) in snapshot.levels {
             levels[String(key)] = ["stars": entry.stars, "bestPoints": entry.bestPoints]
         }
-        UserDefaults.standard.set([
+        var payload: [String: Any] = [
             "version": version,
             "unlocked": snapshot.unlocked,
             "loreSeen": snapshot.loreSeen,
+            "arcUnlockSeen": snapshot.arcUnlockSeen,
+            "epilogueReplyDone": snapshot.epilogueReplyDone,
             "levels": levels
-        ], forKey: storageKey)
+        ]
+        if let ordinal = snapshot.epilogueOrdinal, ordinal > 0 {
+            payload["epilogueOrdinal"] = ordinal
+        }
+        UserDefaults.standard.set(payload, forKey: storageKey)
     }
 
     static func entry(_ snapshot: JourneySnapshot, level: Int) -> JourneyLevelRecord {
@@ -72,6 +119,42 @@ enum JourneyProgress {
 
     static func totalStars(_ snapshot: JourneySnapshot) -> Int {
         snapshot.levels.keys.reduce(0) { $0 + starCount(snapshot, level: $1) }
+    }
+
+    static func isCleared(_ snapshot: JourneySnapshot, level: Int) -> Bool {
+        entry(snapshot, level: level).stars.first == true
+    }
+
+    /// Arc is flyable only after Day 42 is actually cleared. Playtest map unlock does not count.
+    static func isArcUnlocked(_ snapshot: JourneySnapshot) -> Bool {
+        isCleared(snapshot, level: JourneyConfig.totalLevels)
+    }
+
+    static func hasSeenArcUnlock(_ snapshot: JourneySnapshot) -> Bool {
+        snapshot.arcUnlockSeen
+    }
+
+    static func markArcUnlockSeen(_ snapshot: JourneySnapshot) -> JourneySnapshot {
+        var next = snapshot
+        next.version = version
+        next.arcUnlockSeen = true
+        save(next)
+        return next
+    }
+
+    static func hasEpilogueReply(_ snapshot: JourneySnapshot) -> Bool {
+        snapshot.epilogueReplyDone
+    }
+
+    static func markEpilogueReply(_ snapshot: JourneySnapshot, ordinal: Int?) -> JourneySnapshot {
+        var next = snapshot
+        next.version = version
+        next.epilogueReplyDone = true
+        if let ordinal, ordinal > 0 {
+            next.epilogueOrdinal = ordinal
+        }
+        save(next)
+        return next
     }
 
     static func isUnlocked(_ snapshot: JourneySnapshot, level: Int) -> Bool {
@@ -133,6 +216,14 @@ final class JourneyStore: ObservableObject {
 
     func markLoreSeen() {
         snapshot = JourneyProgress.markLoreSeen(snapshot)
+    }
+
+    func markArcUnlockSeen() {
+        snapshot = JourneyProgress.markArcUnlockSeen(snapshot)
+    }
+
+    func markEpilogueReply(ordinal: Int?) {
+        snapshot = JourneyProgress.markEpilogueReply(snapshot, ordinal: ordinal)
     }
 
     func record(level: Int, stars: [Bool], points: Int, completed: Bool) -> (stars: [Bool], newStars: [Bool], unlockedNext: Bool) {

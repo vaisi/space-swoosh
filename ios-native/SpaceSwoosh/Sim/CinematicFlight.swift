@@ -1,5 +1,6 @@
 // CinematicFlight.swift
 // Changes: Trail samples use the equipped skin's trailTailOffset + trailFade.
+// L42 uses clearFadeFinale (1.4s) into the written epilogue.
 
 import Foundation
 import CoreGraphics
@@ -18,6 +19,8 @@ enum CinematicFlight {
     static let clearBoostMin: CGFloat = 1.260
     static let clearBoostCap: CGFloat = 2.240
     static let clearFade: CGFloat = 0.385
+    /// L42 only — slower dissolve into the written epilogue.
+    static let clearFadeFinale: CGFloat = 1.4
     static let screenIn: CGFloat = 0.420
     static let boostTarget: CGFloat = 7.2
     static let cameraBoost: CGFloat = 1.25

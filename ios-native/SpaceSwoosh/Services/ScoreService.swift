@@ -1,5 +1,5 @@
 // ScoreService.swift
-// Changes: Same high_scores PostgREST contract as Android ScoreService.js.
+// Changes: ReplyService RPC submit_journey_reply beside high_scores.
 
 import Foundation
 
@@ -168,5 +168,48 @@ enum ScoreService {
             throw ScoreServiceError.network(method)
         }
         return data
+    }
+}
+
+enum ReplyService {
+    static func submit(text: String, skipped: Bool) async -> Int? {
+        guard ScoreService.isAvailable else { return nil }
+        var body: [String: Any] = ["p_skipped": skipped]
+        body["p_body"] = skipped ? NSNull() : text
+        let payload: Data
+        do {
+            payload = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            return nil
+        }
+        let urlString = (Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let key = (Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !urlString.isEmpty, !key.isEmpty,
+              let url = URL(string: "\(urlString)/rest/v1/rpc/submit_journey_reply") else {
+            return nil
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 15
+        request.setValue(key, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.httpBody = payload
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+                return nil
+            }
+            if let value = try? JSONDecoder().decode(Int.self, from: data) {
+                return value > 0 ? value : nil
+            }
+            return nil
+        } catch {
+            return nil
+        }
     }
 }

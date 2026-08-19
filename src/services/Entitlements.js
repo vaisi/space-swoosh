@@ -2,6 +2,9 @@
 // Ship ownership + Pro subscription state. Free skins (no productId) are always
 // owned; premium skins unlock via RevenueCat, annual Pro picks, or IAP.
 // Changes:
+// - initEntitlements() is fired after game.start() (not awaited on boot) so a
+//   RevenueCat / Play Billing hang cannot pin the native splash. Cache +
+//   UNLOCK_ALL_SKINS cover the first hangar frame.
 // - UNLOCK_ALL_SKINS true for playtest hangar (must flip false before store).
 // - Pro weekly/yearly: `pro` entitlement, offline cache, yearly ship-pick claim.
 // - Annual picks (any 3 premium skins) merge into isSkinOwned and stay after lapse.

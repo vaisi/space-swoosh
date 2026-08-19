@@ -5,7 +5,8 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
-// - Space Travel Boost no longer unlocks a Space Log entry on the boost phase.
+// - L42 fade-to-black is slower (~1400 ms); other clears keep 385 ms.
+// - L42 clear hands off to the written epilogue instead of fading in JOURNEY COMPLETE.
 
 import { clamp01, lerp } from '../utils/math.js';
 import {
@@ -13,6 +14,7 @@ import {
     streamCinematicFlight,
     REF_FPS,
 } from './cinematicFlight.js';
+import { TOTAL_LEVELS } from '../config/JourneyConfig.js';
 
 // Wall-clock timings. Keep these the single source of "how the exit feels".
 const HOLD_MS = 315;        // shield snap + beat of recognition before the boost
@@ -20,6 +22,7 @@ const RAMP_MS = 770;        // how long the ship takes to reach full boost
 const BOOST_MIN_MS = 1260;  // never cut the boost short of this, even if already off-screen
 const BOOST_CAP_MS = 2240;  // hard stop, so the phase can never hang
 const FADE_OUT_MS = 385;
+const FINALE_FADE_OUT_MS = 1400;
 const SCREEN_IN_MS = 420;
 
 // Scaled with the shorter window so the ship still clears the top in time.
@@ -102,8 +105,12 @@ export class LevelClearSequence {
         }
     }
 
+    fadeOutMs() {
+        return this.game.journeyLevel >= TOTAL_LEVELS ? FINALE_FADE_OUT_MS : FADE_OUT_MS;
+    }
+
     updateFadeOut(elapsed, dt) {
-        const t = clamp01(elapsed / FADE_OUT_MS);
+        const t = clamp01(elapsed / this.fadeOutMs());
         this.worldAlpha = 1 - t;
         // The readout fades first so the exit reads as the ship leaving the HUD.
         this.hudAlpha = clamp01(1 - t * 1.6);
@@ -115,6 +122,10 @@ export class LevelClearSequence {
     updateScreenIn(elapsed) {
         this.worldAlpha = 0;
         this.hudAlpha = 0;
+        if (this.game.journeyEpilogue?.active) {
+            this.finish();
+            return;
+        }
         this.game.gameOverAlpha = clamp01(elapsed / SCREEN_IN_MS);
 
         if (this.game.gameOverAlpha >= 1) this.finish();
@@ -163,6 +174,12 @@ export class LevelClearSequence {
             // World no longer streams — lock score / stars / outcome for the fade-in.
             this.game.finalScore = Math.floor(this.game.score);
             this.game.finishJourneyLevel(true);
+            if (this.game.journeyLevel >= TOTAL_LEVELS) {
+                this.game.startJourneyEpilogue();
+                // Finish the flyout now. Game.update prefers the epilogue and
+                // would otherwise leave this sequence `active`, which swallows taps.
+                this.finish();
+            }
         }
     }
 

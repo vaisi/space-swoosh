@@ -1,5 +1,6 @@
 // RootView.swift
 // Changes: Android menu map — 4 home buttons, nested Options, PLAY cards, SPACE BOARD.
+// First L42 ending lands on Controls with Arc on.
 
 import SwiftUI
 
@@ -72,7 +73,12 @@ struct RootView: View {
                         screen = .modeSelect
                         menuFlavor = CopyBank.pick(.menu)
                     },
-                    onMap: { screen = .journeyMap }
+                    onMap: { screen = .journeyMap },
+                    onUnlockArc: {
+                        journey.markArcUnlockSeen()
+                        settings.setFlightStyle(.arc)
+                        screen = .optionsControls
+                    }
                 )
                 .transition(.opacity)
             }
@@ -164,25 +170,28 @@ struct RootView: View {
     }
 
     private var optionsControls: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let arcUnlocked = JourneyProgress.isArcUnlocked(journey.snapshot)
+        let zigzag = !arcUnlocked || settings.flightStyle == .zigzag
+        return VStack(alignment: .leading, spacing: 12) {
             ShellChrome.header("CONTROLS", back: { screen = .options })
             ShellChrome.screenBlurb("How the ship steers.")
             ShellChrome.brandButton(
                 "Zigzag",
-                tag: settings.flightStyle == .zigzag ? "ON" : nil,
-                primary: settings.flightStyle == .zigzag
+                tag: zigzag ? "ON" : nil,
+                primary: zigzag
             ) {
                 settings.setFlightStyle(.zigzag)
             }
             ShellChrome.footnote("TAP OR SPACE · STRAIGHT ±52°")
             ShellChrome.brandButton(
                 "Arc",
-                tag: settings.flightStyle == .arc ? "ON" : nil,
-                primary: settings.flightStyle == .arc
+                tag: arcUnlocked ? (zigzag ? nil : "ON") : "OUT",
+                primary: arcUnlocked && !zigzag,
+                disabled: !arcUnlocked
             ) {
                 settings.setFlightStyle(.arc)
             }
-            ShellChrome.footnote("CLASSIC SWOOSH ARCS")
+            ShellChrome.footnote(arcUnlocked ? "CLASSIC SWOOSH ARCS" : "FINISH THE JOURNEY")
             Spacer()
         }
         .padding(.horizontal, 24)

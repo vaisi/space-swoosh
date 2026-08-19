@@ -1,5 +1,6 @@
 // generate-pbxproj.mjs
-// Changes: Case-insensitive Voice pack + turn1.mp3 (Windows Level-4.mp3 was dropped).
+// Changes: Packs level-1..42 plus epilogue-open / epilogue-skip when those
+// files are present. Case-insensitive Voice pack + turn1.mp3.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -28,7 +29,7 @@ const swiftFiles = walk(appRoot).filter((f) => f.endsWith('.swift'));
 const voiceFiles = walk(appRoot).filter((f) => {
   const name = path.basename(f);
   if (/elevenlabs/i.test(name)) return false;
-  return /^(level-\d+|first-boop|swoosh-voice|fuel-low-\d+|background|crash|crash_with_shield|shield|turn\d*)\.(mp3|m4a)$/i.test(name);
+  return /^(level-\d+|epilogue-open|epilogue-skip|first-boop|swoosh-voice|fuel-low-\d+|background|crash|crash_with_shield|shield|turn\d*)\.(mp3|m4a)$/i.test(name);
 });
 const fontFiles = walk(appRoot).filter((f) => /\.(ttf|otf)$/i.test(f));
 const infoPlist = path.join(appRoot, 'Info.plist');

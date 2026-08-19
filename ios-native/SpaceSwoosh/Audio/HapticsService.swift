@@ -1,15 +1,13 @@
 // HapticsService.swift
-// Changes: Selection tick on shield smash (lighter than Light wall-BOOP impact).
+// Changes: Shield smash uses the same Light impact as wall BOOP at 0.55 intensity.
 
 import UIKit
 
 enum HapticsService {
     private static let light = UIImpactFeedbackGenerator(style: .light)
-    private static let selection = UISelectionFeedbackGenerator()
 
     static func prepare() {
         light.prepare()
-        selection.prepare()
     }
 
     static func wallBoop() {
@@ -18,7 +16,7 @@ enum HapticsService {
     }
 
     static func shieldSmash() {
-        selection.selectionChanged()
-        selection.prepare()
+        light.impactOccurred(intensity: 0.55)
+        light.prepare()
     }
 }

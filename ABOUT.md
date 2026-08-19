@@ -2,6 +2,10 @@
   ABOUT.md
   SPACE SWOOSH — Project reference (single source of truth for "what is this / how does it work").
   Changes:
+  - Journey: 42 flown levels + player-written epilogue (`journey_replies`).
+    NAV 11/19/21/22/40 keep old clips as placeholders until new MP3s drop in.
+  - Boot: time-capped fonts, menu first, entitlements + splash hide after start
+    (no name prompt on launch).
   - Supabase: URL + anon/publishable key come from VITE_* env (not hard-coded);
     removed stale "secrets in source" warnings. Anon key is public by design;
     RLS guards the leaderboard. See techdoc.md + .env.example.
@@ -98,7 +102,7 @@ space-swoosh-main/
 
 `Game` (in `src/game/Game.js`) is the orchestrator. It owns the canvas, the shared `baseUnit` (the responsive sizing module), all managers/entities, and every render state.
 
-**Boot sequence** (`main.js`): prompt for name → `ensureBrandFonts()` (preload Space Grotesk/Mono so text never reflows) → `new Game(config)` → `game.start()`.
+**Boot sequence** (`main.js`): `ensureBrandFonts()` (1.5s cap) → `new Game(config)` → `game.start()` (menu). Entitlements and native plugins run after start; splash hide is first on native.
 
 **Loop** (`gameLoop()` via `requestAnimationFrame`):
 1. If tab hidden → skip (auto‑pauses).

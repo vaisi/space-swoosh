@@ -4,10 +4,15 @@
 // (src/brand/tokens.js) to the <canvas> game surface.
 //
 // Changes:
+// - ensureBrandFonts() races loads against 1.5s and never awaits
+//   document.fonts.ready (Android WebView can hang forever on a missing
+//   @font-face). Missing files fall back to the system stack instead of
+//   pinning the native splash.
 // - Night paper: drawPaper is flat night ground; primary button hairline uses
 //   paperRgb so dividers read on bone-ink primary fills.
 // - drawFramedButton insets the label with horizontal padding and shrinks the
 //   type to fit, so short tags like BACK no longer hug the left frame edge.
+// - drawFramedButton `disabled` paints a decommissioned row (dim ink, no fill).
 // - Created file: geometric-minimalism drawing primitives shared by the HUD and
 //   the end screens so every canvas surface reads from the same brand tokens as
 //   the DOM/CSS. Retires the hand-drawn Comic Sans + Arial look:
@@ -30,7 +35,10 @@ import { color, font } from '../brand/tokens.js';
 // --- Fonts -------------------------------------------------------------------
 // Load the brand families (and the weights we actually paint) before the first
 // canvas frame, otherwise the HUD/titles fall back to a system font until the
-// webfont arrives and then visibly reflow.
+// webfont arrives and then visibly reflow. Cap the wait: a 404 or a hung
+// WebView font request must not block the menu / native splash hide.
+const FONT_LOAD_MS = 1500;
+
 export async function ensureBrandFonts() {
     if (!document.fonts || !document.fonts.load) return;
     const faces = [
@@ -40,8 +48,11 @@ export async function ensureBrandFonts() {
         `700 24px 'Space Mono'`,
     ];
     try {
-        await Promise.all(faces.map(f => document.fonts.load(f)));
-        await document.fonts.ready;
+        const loads = Promise.all(faces.map(f => document.fonts.load(f)));
+        const timeout = new Promise((resolve) => setTimeout(resolve, FONT_LOAD_MS));
+        await Promise.race([loads, timeout]);
+        // Do not await document.fonts.ready — on Android WebView a missing
+        // @font-face (font-display: block) can leave that promise pending.
     } catch (_) {
         // Non-fatal: fall back to the stack declared in tokens if loading fails.
     }
@@ -98,14 +109,16 @@ export function drawFramedTile(ctx, x, y, w, h, { surface = color.paperTint, str
 // Space Mono micro-tag, split by a hairline. Primary = ink fill / paper label;
 // secondary = outline only; signal = blue border (reserved for shield/active).
 // Returns the hit-box rect used for click detection.
-export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary = false, signal = false, baseUnit = 16, labelPx }) {
+export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary = false, signal = false, disabled = false, baseUnit = 16, labelPx }) {
     ctx.save();
     ctx.lineJoin = 'miter';
 
+    const lit = primary && !disabled;
+
     // Surface + border.
-    ctx.fillStyle = primary ? color.ink : color.paperTint;
+    ctx.fillStyle = lit ? color.ink : color.paperTint;
     ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = signal ? color.signal : color.ink;
+    ctx.strokeStyle = disabled ? color.ink12 : (signal ? color.signal : color.ink);
     ctx.lineWidth = 1.5;
     ctx.strokeRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5);
 
@@ -114,14 +127,14 @@ export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary =
 
     if (tag) {
         // Hairline divider between label and micro-tag.
-        ctx.strokeStyle = primary ? `rgba(${color.paperRgb}, 0.25)` : color.ink12;
+        ctx.strokeStyle = lit ? `rgba(${color.paperRgb}, 0.25)` : color.ink12;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(Math.round(x + labelAreaW) + 0.5, y + h * 0.16);
         ctx.lineTo(Math.round(x + labelAreaW) + 0.5, y + h * 0.84);
         ctx.stroke();
 
-        ctx.fillStyle = primary ? color.paperDeep : color.ink55;
+        ctx.fillStyle = disabled ? color.ink30 : (lit ? color.paperDeep : color.ink55);
         setMonoType(ctx, Math.min(baseUnit * 1.25, h * 0.4));
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -135,7 +148,7 @@ export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary =
     let size = labelPx ?? Math.min(baseUnit * 1.5, h * 0.42);
     const minPx = Math.max(9, Math.min(size, h * 0.28));
 
-    ctx.fillStyle = primary ? color.paper : color.ink;
+    ctx.fillStyle = disabled ? color.ink30 : (lit ? color.paper : color.ink);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const applyLabelFont = (px) => {

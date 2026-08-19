@@ -1,5 +1,5 @@
 // JourneyConfig.swift
-// Changes: Slice E — 40-level Journey descriptors, star eval, Hazard Lab tile.
+// Changes: 42-level Journey descriptors; epilogue copy lives on GeneratedJourneyData.
 
 import Foundation
 import CoreGraphics

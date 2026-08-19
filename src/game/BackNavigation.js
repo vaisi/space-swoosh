@@ -2,6 +2,8 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Written L42 epilogue consumes back (skip / dismiss cards) instead of
+//   dumping to the Journey map.
 // - Pro paywall retreats to mode select (or stored return via leave path).
 // - Hazard Lab game-over retreats to the Journey map (same as Journey).
 // - Lore screen retreats to mode select (without marking loreSeen).
@@ -39,6 +41,10 @@ const PARENT_SCREEN = {
  *   decides what that means (on Android, exiting the app).
  */
 export function goBack(game) {
+    if (game.journeyEpilogue?.active) {
+        return game.journeyEpilogue.handleBack();
+    }
+
     // Flyout is not skippable — consume back so it cannot leave the run early.
     if (game.levelClear?.active) {
         return true;

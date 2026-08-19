@@ -1,22 +1,36 @@
 // JourneyNarrative.js
+// Changes: skip captions are two beats (one phrase each); skipLine is the joined string.
+// First L42 ending adds an Arc unlock card after Follow @spacewoosh.
 // THE REPLY — Signal Story copy for Journey: pre-Level-1 lore, first-BOOP cue,
-// and per-level NAV voice lines (1-40). Runtime imports this directly.
+// per-level NAV voice lines (1–42), and the player-written ending epilogue.
+// Runtime imports this directly.
 //
-// Locked decisions (THE REPLY, recovery framing):
-// - Lore: "Reach them. Answer them." (duty planted, payload unwritten).
-// - No "answer/reply" carried as cargo. You recover the message toward its
-//   source; the answer is composed only at the end.
-// - L26 two beats ("Nothing." / "There's nothing.").
-// - L38 "The ones who called are not." L39 pivot. L40 "Let them hear us."
-// - Ending payload: WE HEARD YOU. NAV: "I'm sorry they never knew." Then the
-//   lights, then "We weren't the only ones who answered."
-// Changes: L16 three-beat encoding line; L38 "are not."; L34 archive; L23;
-// recovery-frame lore + L18–19, L26, L35, L39–40, ENDING_BEATS.
+// ============================================================================
+// CHANGELOG — 40 -> 42 levels (read AUDIO_MIGRATION.md before touching clips)
+// ----------------------------------------------------------------------------
+// - Journey expanded from 40 to 42 flown levels.
+// - INSERTED 4 new "fond" story beats in chapters 2-3 (build affection for the
+//   senders before the tragedy). New level numbers: 11, 19, 21, 22.
+// - REMOVED old L39 ("...let's answer them anyway") and old L40 ("...let them
+//   hear us"). The ending is now a PLAYER-WRITTEN EPILOGUE that begins after
+//   the final flown level (new L42) fades to black. See ENDING_EPILOGUE below.
+// - Retired ENDING_BEATS (WE HEARD YOU / NAV apology / lights captions).
+// - Because of the inserts, every recorded clip from old L11 onward shifts.
+//   The old->new audio map is in AUDIO_MIGRATION.md. DO NOT renumber clips
+//   without it. Old L36 ("We weren't the first to search") is retired — do
+//   not copy it onto new L40 (sun line); record L40 new.
+// - L4 text is the "fuel" line (blue = fuel). L23 concept moved to new L27.
+// - 42 is intentional (hidden nod; never surfaced in UI).
+// ============================================================================
 
 /** @typedef {{ text: string, gapAfterMs?: number }} IntroBeat */
 
 /** Default gap between string beats when no gapAfterMs is set. */
 export const DEFAULT_BEAT_GAP_MS = 400;
+
+/** Instagram handle on the epilogue footer card (doc spelling). */
+export const EPILOGUE_INSTAGRAM_HANDLE = 'spacewoosh';
+export const EPILOGUE_INSTAGRAM_URL = 'https://instagram.com/spacewoosh';
 
 /** On-screen beats for the first Journey wall BOOP of an app session. */
 export const FIRST_BOOP_BEATS = [
@@ -34,7 +48,7 @@ export const PRE_LEVEL_1_LORE =
 export const PRE_LEVEL_1_LORE_TITLE = 'The Call';
 
 /**
- * NAV voice line at the start of each Journey level (1-indexed).
+ * NAV voice line at the start of each Journey level (1-indexed, 1..42).
  * Clean display / logbook copy (SSML and stage directions stripped).
  * @type {Record<number, string>}
  */
@@ -42,55 +56,61 @@ export const LEVEL_MESSAGES = {
     1: 'There you are. Tap once. Let me see you turn.',
     2: 'Rocks ahead. Don\'t look at them. Look at the room between them.',
     3: 'That one is moving. Learn its path before you choose yours.',
-    4: 'See the blue light? Take it. It will help us hold the signal together.',
+    4: 'See the blue light? Take it. Blue is fuel out here. It keeps you moving.',
     5: 'Take the shield. For a few seconds... you can survive what should stop you.',
     6: 'Good. You can fly. Now let\'s find whoever called us.',
     7: 'We\'re retracing the signal\'s path. The old relay lanes fold the distance for us.',
     8: 'The transmission crossed thousands of systems. Most of it didn\'t survive.',
     9: 'There\'s an old relay ahead. Pass close. It may still remember part of the signal.',
     10: 'It does. A sequence of prime numbers. Someone wanted us to know this wasn\'t noise.',
-    11: 'They were trying very hard... not to be missed.',
-    12: 'I like them already. Keep going.',
-    13: 'Another relay. This fragment describes their star. Yellow. Ordinary. Stable.',
-    14: 'Eight planets. They lived on the third.',
-    15: 'Mostly ocean. One moon. A thin little atmosphere.',
-    16: 'They sent pictures too. The encoding is damaged... but I\'m working on it.',
-    17: 'There are buildings. Machines. Faces, I think.',
-    18: 'And music. They put music in a message to strangers. That may be my favourite thing about them.',
-    19: 'They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.',
-    20: 'I\'ve finished dating the transmission. There\'s a problem.',
-    21: 'It was already more than a million years old... when we received it.',
-    22: 'Don\'t stop. Old doesn\'t mean gone. Not necessarily.',
-    23: 'No later transmissions appear anywhere along the route. One message, and then silence.',
-    24: 'A civilization loud enough to send this... should have left something else behind.',
-    25: 'I\'m searching. Keep flying.',
-    26: 'Nothing. There\'s nothing.',
-    27: 'I recovered part of their anatomy. Two arms. Two legs. Upright.',
-    28: 'Five digits on each hand. Rather useful design, actually.',
-    29: 'Another image cleared. Blue sky. Green vegetation. White clouds.',
-    30: 'Fascinating. I found their name for the planet. Translation is still resolving.',
-    31: 'Their star has a name too. One syllable.',
-    32: 'Sol. They called it Sol.',
-    33: 'The planet was called Earth.',
-    34: 'I found their entry in the old archive... Their entire entry is one word. Unremarkable.',
-    35: 'Unremarkable. They sang into the dark, and we filed them under "unremarkable."',
-    36: 'We weren\'t the first to search. They were.',
-    37: 'Sol is ahead. No artificial signals. No active structures.',
-    38: 'Earth is still there. The ones who called... are not.',
-    39: 'We came a million years too late. Let\'s answer them anyway.',
-    40: 'There it is. Let them hear us.',
+    // NEW (insert A): counting
+    11: 'They began with counting. One, two, three, all the way to ten. As if to say: we think, too.',
+    12: 'They were trying very hard... not to be missed.',
+    13: 'I like them already. Keep going.',
+    14: 'Another relay. This fragment describes their star. Yellow. Ordinary. Stable.',
+    15: 'Eight planets. They lived on the third.',
+    16: 'Mostly ocean. One moon. A thin little atmosphere.',
+    17: 'They sent pictures too. The encoding is damaged... but I\'m working on it.',
+    18: 'There are buildings. Machines. Faces, I think.',
+    // NEW (insert B): chemistry / DNA
+    19: 'They drew the shape they\'re built from. A twist of it, over and over. Their own chemistry, handed to strangers.',
+    20: 'And music. They put music in a message to strangers. That may be my favourite thing about them.',
+    // NEW (insert C): sounds
+    21: 'Not only music. Sounds. Rain. A heartbeat. Someone, somewhere, laughing.',
+    // NEW (insert D): the map / come find us
+    22: 'They even drew a map. Here is our star, here is our world. Come find us. So trusting.',
+    23: 'They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.',
+    24: 'I\'ve finished dating the transmission. There\'s a problem.',
+    25: 'It was already more than a million years old... when we received it.',
+    26: 'Don\'t stop. Old doesn\'t mean gone. Not necessarily.',
+    27: 'No later transmissions appear anywhere along the route. One message, and then silence.',
+    28: 'A civilization loud enough to send this... should have left something else behind.',
+    29: 'I\'m searching. Keep flying.',
+    30: 'Nothing. There\'s nothing.',
+    31: 'I recovered part of their anatomy. Two arms. Two legs. Upright.',
+    32: 'Five digits on each hand. Rather useful design, actually.',
+    33: 'Another image cleared. Blue sky. Green vegetation. White clouds.',
+    34: 'Fascinating. I found their name for the planet. Translation is still resolving.',
+    35: 'Their star has a name too. One syllable.',
+    36: 'Sol. They called it Sol.',
+    37: 'The planet was called Earth.',
+    38: 'I found them in the old archive... Their entire entry is one word. Unremarkable.',
+    39: 'Unremarkable. They sang into the dark, and we filed them under "unremarkable."',
+    40: 'I can see their sun from here. Yellow. Ordinary. Just as they said.',
+    41: 'Sol is ahead. No artificial signals. No active structures.',
+    42: 'Earth is still there. The ones who called... are not.',
 };
 
 /**
- * On-screen intro beats (1-indexed). L1-5: string arrays (default gap).
- * L6-40: { text, gapAfterMs } from ElevenLabs <break> after that sentence.
+ * On-screen intro beats (1-indexed, 1..42). L1-5 string arrays (default gap).
+ * L6+ { text, gapAfterMs } from ElevenLabs <break> after that sentence.
  * @type {Record<number, Array<string | IntroBeat>>}
  */
 export const LEVEL_INTRO_BEATS = {
     1: ['There you are.', 'Tap once.', 'Let me see you turn.'],
     2: ['Rocks ahead.', 'Don\'t look at them.', 'Look at the room between them.'],
     3: ['That one is moving.', 'Learn its path before you choose yours.'],
-    4: ['See the blue light?', 'Take it.', 'It will help us hold the signal together.'],
+    4: ['See the blue light?', 'Take it.', 'Blue is fuel out here.', 'It keeps you moving.'],
     5: ['Take the shield.', 'For a few seconds... you can survive what should stop you.'],
     6: [
         { text: 'Good.', gapAfterMs: 600 },
@@ -115,155 +135,199 @@ export const LEVEL_INTRO_BEATS = {
         { text: 'A sequence of prime numbers.', gapAfterMs: 500 },
         { text: 'Someone wanted us to know this wasn\'t noise.' },
     ],
+    // NEW A
     11: [
+        { text: 'They began with counting.', gapAfterMs: 500 },
+        { text: 'One, two, three, all the way to ten.', gapAfterMs: 600 },
+        { text: 'As if to say: we think, too.' },
+    ],
+    12: [
         { text: 'They were trying very hard...', gapAfterMs: 500 },
         { text: 'not to be missed.' },
     ],
-    12: [
+    13: [
         { text: 'I like them already.', gapAfterMs: 500 },
         { text: 'Keep going.' },
     ],
-    13: [
+    14: [
         { text: 'Another relay.', gapAfterMs: 500 },
         { text: 'This fragment describes their star.', gapAfterMs: 500 },
         { text: 'Yellow.', gapAfterMs: 400 },
         { text: 'Ordinary.', gapAfterMs: 400 },
         { text: 'Stable.' },
     ],
-    14: [
+    15: [
         { text: 'Eight planets.', gapAfterMs: 600 },
         { text: 'They lived on the third.' },
     ],
-    15: [
+    16: [
         { text: 'Mostly ocean.', gapAfterMs: 500 },
         { text: 'One moon.', gapAfterMs: 500 },
         { text: 'A thin little atmosphere.' },
     ],
-    16: [
-        { text: 'They sent pictures too.', gapAfterMs: 500 },
-        { text: 'The encoding is damaged', gapAfterMs: 350 },
-        { text: '...but I\'m working on it.' },
-    ],
     17: [
+        { text: 'They sent pictures too.', gapAfterMs: 500 },
+        { text: 'The encoding is damaged... but I\'m working on it.' },
+    ],
+    18: [
         { text: 'There are buildings.', gapAfterMs: 400 },
         { text: 'Machines.', gapAfterMs: 500 },
         { text: 'Faces, I think.' },
     ],
-    18: [
+    // NEW B
+    19: [
+        { text: 'They drew the shape they\'re built from.', gapAfterMs: 500 },
+        { text: 'A twist of it, over and over.', gapAfterMs: 600 },
+        { text: 'Their own chemistry, handed to strangers.' },
+    ],
+    20: [
         { text: 'And music.', gapAfterMs: 600 },
         { text: 'They put music in a message to strangers.', gapAfterMs: 600 },
         { text: 'That may be my favourite thing about them.' },
     ],
-    19: [
+    // NEW C
+    21: [
+        { text: 'Not only music.', gapAfterMs: 500 },
+        { text: 'Sounds.', gapAfterMs: 400 },
+        { text: 'Rain.', gapAfterMs: 400 },
+        { text: 'A heartbeat.', gapAfterMs: 500 },
+        { text: 'Someone, somewhere, laughing.' },
+    ],
+    // NEW D
+    22: [
+        { text: 'They even drew a map.', gapAfterMs: 500 },
+        { text: 'Here is our star, here is our world.', gapAfterMs: 500 },
+        { text: 'Come find us.', gapAfterMs: 600 },
+        { text: 'So trusting.' },
+    ],
+    23: [
         { text: 'They only sent it once.', gapAfterMs: 600 },
-        { text: 'A hello into the dark, with no hope of an answer.', gapAfterMs: 700 },
+        { text: 'A hello into the dark, with no hope of an answer.', gapAfterMs: 800 },
         { text: 'And they sent it anyway.' },
     ],
-    20: [
+    24: [
         { text: 'I\'ve finished dating the transmission.', gapAfterMs: 700 },
         { text: 'There\'s a problem.' },
     ],
-    21: [
+    25: [
         { text: 'It was already more than a million years old...', gapAfterMs: 600 },
         { text: 'when we received it.' },
     ],
-    22: [
+    26: [
         { text: 'Don\'t stop.', gapAfterMs: 500 },
         { text: 'Old doesn\'t mean gone.', gapAfterMs: 600 },
         { text: 'Not necessarily.' },
     ],
-    23: [
+    27: [
         { text: 'No later transmissions appear anywhere along the route.', gapAfterMs: 800 },
-        { text: 'One message,', gapAfterMs: 500 },
-        { text: 'and then silence.' },
+        { text: 'One message, and then silence.' },
     ],
-    24: [
+    28: [
         { text: 'A civilization loud enough to send this...', gapAfterMs: 500 },
         { text: 'should have left something else behind.' },
     ],
-    25: [
+    29: [
         { text: 'I\'m searching.', gapAfterMs: 500 },
         { text: 'Keep flying.' },
     ],
-    26: [
+    30: [
         { text: 'Nothing.', gapAfterMs: 2000 },
         { text: 'There\'s nothing.' },
     ],
-    27: [
+    31: [
         { text: 'I recovered part of their anatomy.', gapAfterMs: 500 },
         { text: 'Two arms.', gapAfterMs: 400 },
         { text: 'Two legs.', gapAfterMs: 400 },
         { text: 'Upright.' },
     ],
-    28: [
+    32: [
         { text: 'Five digits on each hand.', gapAfterMs: 500 },
         { text: 'Rather useful design, actually.' },
     ],
-    29: [
+    33: [
         { text: 'Another image cleared.', gapAfterMs: 500 },
         { text: 'Blue sky.', gapAfterMs: 400 },
         { text: 'Green vegetation.', gapAfterMs: 400 },
         { text: 'White clouds.' },
     ],
-    30: [
+    34: [
         { text: 'Fascinating.' },
         { text: 'I found their name for the planet.', gapAfterMs: 500 },
         { text: 'Translation is still resolving.' },
     ],
-    31: [
+    35: [
         { text: 'Their star has a name too.', gapAfterMs: 600 },
         { text: 'One syllable.' },
     ],
-    32: [
+    36: [
         { text: 'Sol.', gapAfterMs: 800 },
         { text: 'They called it Sol.' },
     ],
-    33: [{ text: 'The planet was called Earth.' }],
-    34: [
-        { text: 'I found their entry in the old archive...', gapAfterMs: 700 },
+    37: [{ text: 'The planet was called Earth.' }],
+    38: [
+        { text: 'I found them in the old archive...', gapAfterMs: 700 },
         { text: 'Their entire entry is one word.', gapAfterMs: 600 },
         { text: 'Unremarkable.' },
     ],
-    35: [
-        { text: 'Unremarkable.', gapAfterMs: 800 },
+    39: [
+        { text: 'Unremarkable.', gapAfterMs: 900 },
         { text: 'They sang into the dark, and we filed them under "unremarkable."' },
     ],
-    36: [
-        { text: 'We weren\'t the first to search.', gapAfterMs: 700 },
-        { text: 'They were.' },
+    40: [
+        { text: 'I can see their sun from here.', gapAfterMs: 600 },
+        { text: 'Yellow.', gapAfterMs: 400 },
+        { text: 'Ordinary.', gapAfterMs: 400 },
+        { text: 'Just as they said.' },
     ],
-    37: [
+    41: [
         { text: 'Sol is ahead.', gapAfterMs: 600 },
         { text: 'No artificial signals.', gapAfterMs: 500 },
         { text: 'No active structures.' },
     ],
-    38: [
+    42: [
         { text: 'Earth is still there.', gapAfterMs: 1000 },
         { text: 'The ones who called...', gapAfterMs: 600 },
         { text: 'are not.' },
     ],
-    39: [
-        { text: 'We came a million years too late.', gapAfterMs: 800 },
-        { text: 'Let\'s answer them anyway.' },
-    ],
-    40: [
-        { text: 'There it is.', gapAfterMs: 800 },
-        { text: 'Let them hear us.' },
-    ],
 };
 
-/** Ending sequence, played after the final relay is touched. */
-export const ENDING_BEATS = {
-    payload: 'WE HEARD YOU.',
-    afterPayload: [
-        { text: 'I\'m sorry they never knew.', gapAfterMs: 1200 },
+/**
+ * ENDING EPILOGUE — begins AFTER the final flown level (L42) fades to black.
+ * This replaces the old spoken L39/L40 and ENDING_BEATS. Flow:
+ *   1. L42 cleared -> full fade to black, HUD gone.
+ *   2. Full fade to black, HUD gone, ~1.6s silent hold, then NAV `open` beats.
+ *   3. Prompt + text field appear. NAV goes SILENT (no waiting pressure).
+ *   4. Player writes and submits, OR skips (two skip beats, one phrase each).
+ *   5. Their words drift up into a single point of light. More lights bloom
+ *      around it (implied: every other answer). NO further NAV voice.
+ *   6. Counter card (live from DB). Footer follow card. First time only: Arc
+ *      unlock card, then Options → Controls with Arc on. Later endings → title.
+ * @type {object}
+ */
+export const ENDING_EPILOGUE = {
+    open: [
+        { text: 'They can\'t hear us anymore.', gapAfterMs: 900 },
+        { text: 'But we can still answer.' },
     ],
-    onLightsAppear: [
-        { text: 'Oh.', gapAfterMs: 900 },
+    prompt: 'If you could say one thing to them, what would it be?',
+    promptPlaceholder: 'Write it here.',
+    submitLabel: 'Send it into the dark',
+    skipLabel: 'Leave it unsaid',
+    skip: [
+        { text: 'Some things don\'t need words.', gapAfterMs: 700 },
+        { text: 'A light appears for you either way.' },
     ],
-    final: [
-        { text: 'We weren\'t the only ones who answered.' },
+    skipLine: 'Some things don\'t need words. A light appears for you either way.',
+    offlineCounterCard: 'You answered the call.',
+    // After submit/skip: NO NAV voice. Lights speak alone.
+    counterCard: 'You are the {N} to answer the call.', // {N} = ordinal from DB, e.g. "4,102nd"
+    footerCard: 'Follow @spacewoosh to see what the others said.',
+    arcUnlockLines: [
+        'You\'ve unlocked Arc mode.',
+        'Everybody hates it.',
+        'Enjoy.',
     ],
+    arcUnlockLabel: 'Take the controls',
 };
 
 /** @param {number} level */

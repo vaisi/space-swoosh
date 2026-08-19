@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Android/Capacitor L4 NAV clip now matches the native iOS take. -->
+<!-- Changes: Arc gated on L42; one epilogue reply per device. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -25,9 +25,9 @@
 > Other ink hulls bake Android wash + highlight + crease. Native hangar tiles bake Android’s
 > short `previewWake` (12 pts, span 3.4r) under a banked hull. Dedicated wakes (filaments, soap rings,
 > aurora strata, peacock stamps, …) — not a generic particle dump. Hitboxes are JS circle
-> packs; jelly does not deform the hitbox. Plus **Journey** (40 levels / 113 stars),
+> packs; jelly does not deform the hitbox. Plus **Journey** (42 levels / 119 stars),
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
-> lean-preserving clear flyout, L40 `ENDING_BEATS` captions (no lights show).
+> lean-preserving clear flyout, L42 written epilogue (prompt, lights, ordinal).
 > `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV)
 > plus `crash` / `crash_with_shield` / `shield` / `turn`. Those four plus turn
 > play as pre-decoded engine buffers (no `AVAudioPlayer` hitch). Synth fallback
@@ -55,13 +55,14 @@
 > copy in `config/JourneyNarrative.js`. First Journey visit shows `ui/screens/LoreScreen.js`
 > once (`journeyProgress.loreSeen`); Continue unlocks Logbook `signalCall` and
 > opens the map. Lore: recover scattered message pieces toward the callers —
-> answer is composed only at the end (`ENDING_BEATS`: WE HEARD YOU → NAV apology →
-> lights → "We weren't the only ones who answered."). Levels 1–5 are a staged
+> answer is composed only at the end (written epilogue after L42: prompt, lights,
+> live ordinal from `journey_replies`). Levels 1–5 are a staged
 > teach band (empty → simple → moving → sparkles → shields). Per-level intro
 > lines come from `LEVEL_MESSAGES`; all levels use `LEVEL_INTRO_BEATS` (one
 > sentence at a time; L6+ carry `gapAfterMs` from ElevenLabs breaks). Navigator
-> MP3s for levels **1–40** in `public/sounds/voice/level-N.mp3` via
-> `SoundManager.playLevelVoice`. Journey session cues (Journey + Open Space):
+> MP3s for levels **1–42** in `public/sounds/voice/level-N.mp3` via
+> `SoundManager.playLevelVoice` (11/19/21/22/40 currently use old clips as
+> placeholders — replace in place; old L36 is not the final L40 sun line).
 > `first-boop.mp3` (first sidewall hit per app session + milestone beats from
 > `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3` (every style swoosh, voice only).
 > App icon source: `assets/store/app-icon-512.png` (`npm run assets:sync` →
@@ -127,7 +128,7 @@ There are **two play modes**, chosen from Play:
 | Mode | Shape | Leaderboard |
 | --- | --- | --- |
 | **Open Space** | Endless. Difficulty ramps off distance, forever. | Yes (Supabase) |
-| **Journey** | 40 finite levels, each with a distance goal and three stars. | No — progress is local |
+| **Journey** | 42 finite levels, each with a distance goal and three stars. After L42, a written epilogue. | No — progress is local; replies go to `journey_replies` |
 
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
   Capacitor 8 for **Android** (and legacy Cap iOS reference tree), **native
@@ -136,9 +137,13 @@ There are **two play modes**, chosen from Play:
   Capacitor Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`)
   and native iOS (`ios-native/` `FirebaseAnalyticsCore` + gitignored
   `GoogleService-Info.plist`).
-- **Entry:** `index.html` → `src/main.js` → `new Game(GameConfig)` → boots to
-  the **main menu** (`appScreen = 'menu'`). On native, `initNative()` then wires
-  hardware back, lifecycle pause, keep-awake, status bar and splash dismissal.
+- **Entry:** `index.html` → `src/main.js` → time-capped `ensureBrandFonts()`
+  (1.5s, never `document.fonts.ready`) → `new Game(GameConfig)` → **main menu**.
+  `initEntitlements()` (RevenueCat) runs in the background after `start()` so a
+  Play Billing hang cannot block the menu. On native, `initNative()` hides the
+  Capacitor splash **first** (`launchAutoHide: false`; 3s failsafe hide) then
+  wires hardware back, lifecycle pause, keep-awake, and status bar. Brand
+  woff2s live in `public/fonts/` (latin subset).
 - **Rendering:** everything is drawn to `#gameCanvas` each frame; there is no DOM
   UI except the pause button and the name-input field.
 - **Native app id:** `com.orbi.spaceswoosh` (see `capacitor.config.json`).
@@ -229,8 +234,8 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Path | Responsibility |
 | --- | --- |
-| `main.js` | Bootstraps: preloads brand fonts, starts the game (menu), wires native shell. |
-| `native/index.js` | Capacitor shell: hardware back, lifecycle pause, keep-awake, status bar, splash, wall-boop Light haptic + lighter smash haptic (`selectionStart` then `selectionChanged`; a bare `selectionChanged` is a no-op on Cap Android/iOS), Keyboard IME height → `game.softKeyboardHeight`. |
+| `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. |
+| `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, status bar; wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor Android (`logEvent`). Params sanitized to string/number (booleans → 0/1). Config: `android/app/google-services.json` (gitignored). Native iOS uses `ios-native/.../Analytics.swift` (same event names). Android: AD ID collection off + `AD_ID` permission stripped. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
@@ -243,11 +248,14 @@ game build env. Journey progress and Open Space personal best stay in
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
-| `config/JourneyNarrative.js` | THE REPLY story (recovery framing): `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..40]`, `LEVEL_INTRO_BEATS[1..40]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_BEATS`. |
+| `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. |
+| `game/JourneyEpilogueSequence.js` | L42 written ending: slower fade, ~1.6s dark hold, NAV open, prompt/skip (same hold), small bright lights, ordinal, Follow @spacewoosh, first-time Arc card → Controls. Replay skips the prompt (one reply per device). |
+| `services/ReplyService.js` | RPC `submit_journey_reply` → ordinal. Called once per device; replay does not insert again. Offline falls back to a local card. |
+| `services/ReplyFilter.js` | 140-char UGC filter for epilogue text (same blocklist as call signs). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
-| `services/JourneyProgress.js` | `localStorage` progress: unlocked level, stars, best points, `loreSeen`. Playtest **`UNLOCK_ALL_LEVELS`** (true) + web `?unlocklevels=1\|0` make `isLevelUnlocked` return true for every tile without rewriting saved `unlocked`. Flip the constant **false** before store. |
+| `services/JourneyProgress.js` | `localStorage` progress v2: unlocked level, stars, best points, `loreSeen`, `arcUnlockSeen`, `epilogueReplyDone` / `epilogueOrdinal`. Completing old Day 40 migrates `unlocked` to 41. Playtest **`UNLOCK_ALL_LEVELS`** (true) + web `?unlocklevels=1\|0`. Web epilogue skip: **`?level=42&nearend=1`**. Flip the constant **false** before store. |
 | `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance per flight style (`bestByStyle`; v1 `bestScore` migrates to zigzag). |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
 | `config/HazardLabConfig.js` | Sandbox descriptor for Phase + Sweep Gate (no Journey progress). |
@@ -265,7 +273,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `ui/LivesChip.js` | Compact lives / ∞ + regen countdown. Hidden while `LIVES_ENABLED` is false. |
 | `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost off the top, fade world, fade screen in. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
-| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–40 voice; holds belt until done. |
+| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–42 voice; holds belt until done. |
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
@@ -424,7 +432,7 @@ rises — the "harder, then a plateau, then harder, then a longer plateau" shape
 
 ```
 d       0.16 0.22 0.28 0.30 0.32 0.42 0.50 0.58 0.62 0.68 0.72 0.78 0.84 0.90 0.95 1.00
-levels    1    1    1    1    1    3    3    3    2    3    2    3    2    4    3    7  = 40
+levels    1    1    1    1    1    3    3    3    2    3    2    3    2    4    3    9  = 42
 unlock  —  simple moving  —    —  barrier complex shoot drift pulse phase worm  push  BH  sweep  —
 ```
 
@@ -449,7 +457,12 @@ navigator line is the teach beat. Full intro copy comes from
 on-screen beats come from `LEVEL_INTRO_BEATS` (sentence-at-a-time for all
 levels; L6+ include ElevenLabs `gapAfterMs`). Copy matches THE REPLY narrator
 script (SSML/stage directions stripped). Voice clips:
-`public/sounds/voice/level-1.mp3` … `level-40.mp3`. Session cues:
+`public/sounds/voice/level-1.mp3` … `level-42.mp3` including new fond-beat / sun-line
+clips at **11 / 19 / 21 / 22 / 40**. L42 fade is **~1400 ms** then a **~1.6 s** black
+hold before `epilogue-open.mp3` (Web Audio buffer, after `AudioContext.resume`; BGM
+stays running). Skip uses the same hold then `epilogue-skip.mp3` with **two caption
+beats** (one per phrase). Prompt placeholder
+is **Write it here.** Session cues:
 `first-boop.mp3`, `swoosh-voice.mp3` (sources under `assets/voice/`).
 
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
@@ -458,14 +471,14 @@ Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 `maxClusterCount` 3→5), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42.
 Teach band goals are fixed: **L1 1250 / L2 2000 / L3 3000 / L4 4000 /
 L5 7500**. From L6 onward each level adds **+500 KM**; levels **10 / 15 / 20 /
-25 / 30 / 35 / 40** also add **+1000 KM**. From L2 onward the belt opens at
+25 / 30 / 35 / 40 / 42** also add **+1000 KM**. From L2 onward the belt opens at
 **0 HUD KM** when the centre title clears. Spawn cursor arms at `camera.y`.
 Each step may introduce one obstacle type (rosters cumulative); each level
 picks a `focusType`.
 
 Story chapters (by level count, independent of difficulty STEPS): First Light
-1–5, The Long Way 6–12, Fragments 13–19, Deep Static 20–26, The Senders 27–32,
-The Source 33–36, Arrival 37–40.
+1–6, The Long Way 7–13, Fragments 14–23, Deep Static 24–30, The Senders 31–36,
+The Source 37–40, Arrival 41–42.
 
 ### Stars and progress
 
@@ -487,7 +500,8 @@ tile so you can jump to any level. Saved `unlocked` is unchanged — turning the
 flag off restores the real lock cursor. Web override: `?unlocklevels=1` forces
 on, `?unlocklevels=0` forces the real lock even when the constant is true. The
 Journey map shows a **TEST** chip while the flag is on. iOS has the constant
-only (no URL).
+only (no URL). Localhost epilogue skip: **`?level=42&nearend=1`** boots Day 42
+~350 KM before the gate (`nearend=500` sets remaining KM). Intro still plays.
 
 ### Open Space unlock ladder (`OPEN_WORLD_UNLOCKS`)
 
@@ -582,7 +596,7 @@ live; pause button and spawning stay off until chips):
 
 | Phase | What happens |
 | --- | --- |
-| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Levels 1–40 also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
+| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Journey levels also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
 | `wait` | Short calm beat when there is no intro line (e.g. Open Space). |
 | `chips` | Timed 1s fades: distance HUD → **pause last**. Icon-meter stack: route + ink goal bar (Journey) or route + KM (Open Space); sparkle + Signal fuel bar once collectibles are live; target + smash dots (Journey `smashTarget`) or small ink count (Open Space) after first smash. |
 
@@ -955,7 +969,12 @@ with a linear gradient along the wake's chord for the length-wise fade.
   `Style.Dark` + charcoal background. Menu stamp: `BUILD N · NATIVE` / `WEB`
   from `core/buildStamp.js` (auto-incremented on each `vite build`).
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
-  Default is **zigzag** when unset; saved preferences are respected. Zigzag
+  Default is **zigzag** when unset. **Arc is locked until Day 42 is actually
+  cleared** (`isArcUnlocked`; playtest `UNLOCK_ALL_LEVELS` does not unlock it).
+  Controls still shows the Arc row as `OUT` / Finish the Journey. First L42
+  ending: after Follow @spacewoosh, a once-only card (`arcUnlockSeen`) then
+  Options → Controls with Arc selected. Saved `arc` values coerce to zigzag
+  while locked. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
   `zigzagSpeedScale` × cruise; **touch flips on `touchstart`** (move/end ignored
   for that gesture), plus **Space** / arrows; Escape pauses. Arc uses swipe +
@@ -963,7 +982,8 @@ with a linear gradient along the wake's chord for the length-wise fade.
   swooshes (`arcDuration` 820 ms — see §5). The intro tutorial hint
   matches the active style (`{space}` renders as a bold SPACE keycap).
   Persisted in localStorage. Open Space online scores and local personal bests
-  key off this value (`flight_style` / `bestByStyle`).
+  key off this value (`flight_style` / `bestByStyle`). Space Board's Zigzag/Arc
+  toggle stays viewable either way.
 
 ## 7. Scoring model
 
@@ -1128,7 +1148,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity. |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
-| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn (`turn.mp3`) / crash/shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice including L4 NAV. `HapticsService`: Light impact on wall BOOP, selection tick on shield smash. |
+| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn (`turn.mp3`) / crash/shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice including L4 NAV. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |

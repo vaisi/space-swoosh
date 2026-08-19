@@ -10,6 +10,7 @@
     "refillPerCollectible": 0.45,
     "dyingDurationMs": 900,
     "lowThreshold": 0.28,
+    "voiceLowThreshold": 0.2,
     "magnetRadiusScale": 4.25,
     "magnetPull": 0.15
   },
@@ -130,7 +131,7 @@
       "Deep space. Level by level.",
       "Recommended. The Logbook opens here.",
       "Chart the void. Fill the Logbook.",
-      "Forty levels outward. Catalogue as you go.",
+      "Chapter by chapter. Catalogue as you go.",
       "Ordered exploration. Logbook entries unlock here.",
       "Climb the chapters. Write the field manual.",
       "Deep space, structured. Your Logbook writes here."
@@ -184,7 +185,7 @@
       "You are away. Live long and prosper.",
       "Exosphere cleared. Nothing holds you now.",
       "Journey complete. The void applauds quietly.",
-      "Forty levels. Zero patience for rocks.",
+      "The last relay is behind you. Stay that way.",
       "Away. As promised.",
       "The atmosphere is behind you. Stay that way."
     ]
@@ -259,8 +260,8 @@
     }
   ],
   "journey": {
-    "totalLevels": 40,
-    "totalStars": 113,
+    "totalLevels": 42,
+    "totalStars": 119,
     "starsPerLevel": 3,
     "pointsFromLevel": 4,
     "shieldsFromLevel": 5,
@@ -273,49 +274,49 @@
         "name": "First Light",
         "blurb": "Learn the path. Listen to NAV.",
         "from": 1,
-        "to": 5
+        "to": 6
       },
       {
         "id": "journey",
         "name": "The Long Way",
         "blurb": "Follow the signal back to its source.",
-        "from": 6,
-        "to": 12
+        "from": 7,
+        "to": 13
       },
       {
         "id": "message",
         "name": "Fragments",
         "blurb": "The message begins to take shape.",
-        "from": 13,
-        "to": 19
+        "from": 14,
+        "to": 23
       },
       {
         "id": "tooold",
         "name": "Deep Static",
         "blurb": "The signal is older than it should be.",
-        "from": 20,
-        "to": 26
+        "from": 24,
+        "to": 30
       },
       {
         "id": "whowerethey",
         "name": "The Senders",
         "blurb": "Piece by piece, they come into focus.",
-        "from": 27,
-        "to": 32
+        "from": 31,
+        "to": 36
       },
       {
         "id": "earth",
         "name": "The Source",
         "blurb": "The trail ends at a single world.",
-        "from": 33,
-        "to": 36
+        "from": 37,
+        "to": 40
       },
       {
         "id": "homecoming",
         "name": "Arrival",
         "blurb": "Whatever waits, you are almost there.",
-        "from": 37,
-        "to": 40
+        "from": 41,
+        "to": 42
       }
     ],
     "levels": [
@@ -397,8 +398,8 @@
       },
       {
         "level": 6,
-        "chapterId": "journey",
-        "chapterName": "The Long Way",
+        "chapterId": "learning",
+        "chapterName": "First Light",
         "difficulty": 0.42,
         "goalKm": 8000,
         "types": [
@@ -521,8 +522,8 @@
       },
       {
         "level": 13,
-        "chapterId": "message",
-        "chapterName": "Fragments",
+        "chapterId": "journey",
+        "chapterName": "The Long Way",
         "difficulty": 0.58,
         "goalKm": 12500,
         "types": [
@@ -662,8 +663,8 @@
       },
       {
         "level": 20,
-        "chapterId": "tooold",
-        "chapterName": "Deep Static",
+        "chapterId": "message",
+        "chapterName": "Fragments",
         "difficulty": 0.72,
         "goalKm": 18000,
         "types": [
@@ -684,8 +685,8 @@
       },
       {
         "level": 21,
-        "chapterId": "tooold",
-        "chapterName": "Deep Static",
+        "chapterId": "message",
+        "chapterName": "Fragments",
         "difficulty": 0.72,
         "goalKm": 18500,
         "types": [
@@ -706,8 +707,8 @@
       },
       {
         "level": 22,
-        "chapterId": "tooold",
-        "chapterName": "Deep Static",
+        "chapterId": "message",
+        "chapterName": "Fragments",
         "difficulty": 0.78,
         "goalKm": 19000,
         "types": [
@@ -729,8 +730,8 @@
       },
       {
         "level": 23,
-        "chapterId": "tooold",
-        "chapterName": "Deep Static",
+        "chapterId": "message",
+        "chapterName": "Fragments",
         "difficulty": 0.78,
         "goalKm": 19500,
         "types": [
@@ -823,8 +824,8 @@
       },
       {
         "level": 27,
-        "chapterId": "whowerethey",
-        "chapterName": "The Senders",
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
         "difficulty": 0.9,
         "goalKm": 22500,
         "types": [
@@ -848,8 +849,8 @@
       },
       {
         "level": 28,
-        "chapterId": "whowerethey",
-        "chapterName": "The Senders",
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
         "difficulty": 0.9,
         "goalKm": 23000,
         "types": [
@@ -873,8 +874,8 @@
       },
       {
         "level": 29,
-        "chapterId": "whowerethey",
-        "chapterName": "The Senders",
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
         "difficulty": 0.9,
         "goalKm": 23500,
         "types": [
@@ -898,8 +899,8 @@
       },
       {
         "level": 30,
-        "chapterId": "whowerethey",
-        "chapterName": "The Senders",
+        "chapterId": "tooold",
+        "chapterName": "Deep Static",
         "difficulty": 0.9,
         "goalKm": 25000,
         "types": [
@@ -975,8 +976,8 @@
       },
       {
         "level": 33,
-        "chapterId": "earth",
-        "chapterName": "The Source",
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
         "difficulty": 0.95,
         "goalKm": 26500,
         "types": [
@@ -1001,8 +1002,8 @@
       },
       {
         "level": 34,
-        "chapterId": "earth",
-        "chapterName": "The Source",
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
         "difficulty": 1,
         "goalKm": 27000,
         "types": [
@@ -1027,8 +1028,8 @@
       },
       {
         "level": 35,
-        "chapterId": "earth",
-        "chapterName": "The Source",
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
         "difficulty": 1,
         "goalKm": 28500,
         "types": [
@@ -1053,8 +1054,8 @@
       },
       {
         "level": 36,
-        "chapterId": "earth",
-        "chapterName": "The Source",
+        "chapterId": "whowerethey",
+        "chapterName": "The Senders",
         "difficulty": 1,
         "goalKm": 29000,
         "types": [
@@ -1079,8 +1080,8 @@
       },
       {
         "level": 37,
-        "chapterId": "homecoming",
-        "chapterName": "Arrival",
+        "chapterId": "earth",
+        "chapterName": "The Source",
         "difficulty": 1,
         "goalKm": 29500,
         "types": [
@@ -1105,8 +1106,8 @@
       },
       {
         "level": 38,
-        "chapterId": "homecoming",
-        "chapterName": "Arrival",
+        "chapterId": "earth",
+        "chapterName": "The Source",
         "difficulty": 1,
         "goalKm": 30000,
         "types": [
@@ -1131,8 +1132,8 @@
       },
       {
         "level": 39,
-        "chapterId": "homecoming",
-        "chapterName": "Arrival",
+        "chapterId": "earth",
+        "chapterName": "The Source",
         "difficulty": 1,
         "goalKm": 30500,
         "types": [
@@ -1157,8 +1158,8 @@
       },
       {
         "level": 40,
-        "chapterId": "homecoming",
-        "chapterName": "Arrival",
+        "chapterId": "earth",
+        "chapterName": "The Source",
         "difficulty": 1,
         "goalKm": 32000,
         "types": [
@@ -1180,49 +1181,103 @@
         "sparklesTarget": 31,
         "smashTarget": 6,
         "starSlots": 3
+      },
+      {
+        "level": 41,
+        "chapterId": "homecoming",
+        "chapterName": "Arrival",
+        "difficulty": 1,
+        "goalKm": 32500,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "wormhole",
+        "introduces": null,
+        "sparklesTarget": 32,
+        "smashTarget": 6,
+        "starSlots": 3
+      },
+      {
+        "level": 42,
+        "chapterId": "homecoming",
+        "chapterName": "Arrival",
+        "difficulty": 1,
+        "goalKm": 34000,
+        "types": [
+          "simple",
+          "moving",
+          "sideBarrier",
+          "complex",
+          "shooting",
+          "driftCurrent",
+          "pulsating",
+          "phase",
+          "wormhole",
+          "repulsor",
+          "blackhole",
+          "sweepGate"
+        ],
+        "focusType": "repulsor",
+        "introduces": null,
+        "sparklesTarget": 33,
+        "smashTarget": 6,
+        "starSlots": 3
       }
     ],
     "messages": {
       "1": "There you are. Tap once. Let me see you turn.",
       "2": "Rocks ahead. Don't look at them. Look at the room between them.",
       "3": "That one is moving. Learn its path before you choose yours.",
-      "4": "See the blue light? Take it. It will help us hold the signal together.",
+      "4": "See the blue light? Take it. Blue is fuel out here. It keeps you moving.",
       "5": "Take the shield. For a few seconds... you can survive what should stop you.",
       "6": "Good. You can fly. Now let's find whoever called us.",
       "7": "We're retracing the signal's path. The old relay lanes fold the distance for us.",
       "8": "The transmission crossed thousands of systems. Most of it didn't survive.",
       "9": "There's an old relay ahead. Pass close. It may still remember part of the signal.",
       "10": "It does. A sequence of prime numbers. Someone wanted us to know this wasn't noise.",
-      "11": "They were trying very hard... not to be missed.",
-      "12": "I like them already. Keep going.",
-      "13": "Another relay. This fragment describes their star. Yellow. Ordinary. Stable.",
-      "14": "Eight planets. They lived on the third.",
-      "15": "Mostly ocean. One moon. A thin little atmosphere.",
-      "16": "They sent pictures too. The encoding is damaged... but I'm working on it.",
-      "17": "There are buildings. Machines. Faces, I think.",
-      "18": "And music. They put music in a message to strangers. That may be my favourite thing about them.",
-      "19": "They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.",
-      "20": "I've finished dating the transmission. There's a problem.",
-      "21": "It was already more than a million years old... when we received it.",
-      "22": "Don't stop. Old doesn't mean gone. Not necessarily.",
-      "23": "No later transmissions appear anywhere along the route. One message, and then silence.",
-      "24": "A civilization loud enough to send this... should have left something else behind.",
-      "25": "I'm searching. Keep flying.",
-      "26": "Nothing. There's nothing.",
-      "27": "I recovered part of their anatomy. Two arms. Two legs. Upright.",
-      "28": "Five digits on each hand. Rather useful design, actually.",
-      "29": "Another image cleared. Blue sky. Green vegetation. White clouds.",
-      "30": "Fascinating. I found their name for the planet. Translation is still resolving.",
-      "31": "Their star has a name too. One syllable.",
-      "32": "Sol. They called it Sol.",
-      "33": "The planet was called Earth.",
-      "34": "I found their entry in the old archive... Their entire entry is one word. Unremarkable.",
-      "35": "Unremarkable. They sang into the dark, and we filed them under \"unremarkable.\"",
-      "36": "We weren't the first to search. They were.",
-      "37": "Sol is ahead. No artificial signals. No active structures.",
-      "38": "Earth is still there. The ones who called... are not.",
-      "39": "We came a million years too late. Let's answer them anyway.",
-      "40": "There it is. Let them hear us."
+      "11": "They began with counting. One, two, three, all the way to ten. As if to say: we think, too.",
+      "12": "They were trying very hard... not to be missed.",
+      "13": "I like them already. Keep going.",
+      "14": "Another relay. This fragment describes their star. Yellow. Ordinary. Stable.",
+      "15": "Eight planets. They lived on the third.",
+      "16": "Mostly ocean. One moon. A thin little atmosphere.",
+      "17": "They sent pictures too. The encoding is damaged... but I'm working on it.",
+      "18": "There are buildings. Machines. Faces, I think.",
+      "19": "They drew the shape they're built from. A twist of it, over and over. Their own chemistry, handed to strangers.",
+      "20": "And music. They put music in a message to strangers. That may be my favourite thing about them.",
+      "21": "Not only music. Sounds. Rain. A heartbeat. Someone, somewhere, laughing.",
+      "22": "They even drew a map. Here is our star, here is our world. Come find us. So trusting.",
+      "23": "They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.",
+      "24": "I've finished dating the transmission. There's a problem.",
+      "25": "It was already more than a million years old... when we received it.",
+      "26": "Don't stop. Old doesn't mean gone. Not necessarily.",
+      "27": "No later transmissions appear anywhere along the route. One message, and then silence.",
+      "28": "A civilization loud enough to send this... should have left something else behind.",
+      "29": "I'm searching. Keep flying.",
+      "30": "Nothing. There's nothing.",
+      "31": "I recovered part of their anatomy. Two arms. Two legs. Upright.",
+      "32": "Five digits on each hand. Rather useful design, actually.",
+      "33": "Another image cleared. Blue sky. Green vegetation. White clouds.",
+      "34": "Fascinating. I found their name for the planet. Translation is still resolving.",
+      "35": "Their star has a name too. One syllable.",
+      "36": "Sol. They called it Sol.",
+      "37": "The planet was called Earth.",
+      "38": "I found them in the old archive... Their entire entry is one word. Unremarkable.",
+      "39": "Unremarkable. They sang into the dark, and we filed them under \"unremarkable.\"",
+      "40": "I can see their sun from here. Yellow. Ordinary. Just as they said.",
+      "41": "Sol is ahead. No artificial signals. No active structures.",
+      "42": "Earth is still there. The ones who called... are not."
     },
     "introBeats": {
       "1": [
@@ -1273,7 +1328,11 @@
           "gapAfterMs": 400
         },
         {
-          "text": "It will help us hold the signal together.",
+          "text": "Blue is fuel out here.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "It keeps you moving.",
           "gapAfterMs": 400
         }
       ],
@@ -1351,6 +1410,20 @@
       ],
       "11": [
         {
+          "text": "They began with counting.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "One, two, three, all the way to ten.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "As if to say: we think, too.",
+          "gapAfterMs": 400
+        }
+      ],
+      "12": [
+        {
           "text": "They were trying very hard...",
           "gapAfterMs": 500
         },
@@ -1359,7 +1432,7 @@
           "gapAfterMs": 400
         }
       ],
-      "12": [
+      "13": [
         {
           "text": "I like them already.",
           "gapAfterMs": 500
@@ -1369,7 +1442,7 @@
           "gapAfterMs": 400
         }
       ],
-      "13": [
+      "14": [
         {
           "text": "Another relay.",
           "gapAfterMs": 500
@@ -1391,7 +1464,7 @@
           "gapAfterMs": 400
         }
       ],
-      "14": [
+      "15": [
         {
           "text": "Eight planets.",
           "gapAfterMs": 600
@@ -1401,7 +1474,7 @@
           "gapAfterMs": 400
         }
       ],
-      "15": [
+      "16": [
         {
           "text": "Mostly ocean.",
           "gapAfterMs": 500
@@ -1415,21 +1488,17 @@
           "gapAfterMs": 400
         }
       ],
-      "16": [
+      "17": [
         {
           "text": "They sent pictures too.",
           "gapAfterMs": 500
         },
         {
-          "text": "The encoding is damaged",
-          "gapAfterMs": 350
-        },
-        {
-          "text": "...but I'm working on it.",
+          "text": "The encoding is damaged... but I'm working on it.",
           "gapAfterMs": 400
         }
       ],
-      "17": [
+      "18": [
         {
           "text": "There are buildings.",
           "gapAfterMs": 400
@@ -1443,7 +1512,21 @@
           "gapAfterMs": 400
         }
       ],
-      "18": [
+      "19": [
+        {
+          "text": "They drew the shape they're built from.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "A twist of it, over and over.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "Their own chemistry, handed to strangers.",
+          "gapAfterMs": 400
+        }
+      ],
+      "20": [
         {
           "text": "And music.",
           "gapAfterMs": 600
@@ -1457,21 +1540,61 @@
           "gapAfterMs": 400
         }
       ],
-      "19": [
+      "21": [
+        {
+          "text": "Not only music.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Sounds.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Rain.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "A heartbeat.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Someone, somewhere, laughing.",
+          "gapAfterMs": 400
+        }
+      ],
+      "22": [
+        {
+          "text": "They even drew a map.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Here is our star, here is our world.",
+          "gapAfterMs": 500
+        },
+        {
+          "text": "Come find us.",
+          "gapAfterMs": 600
+        },
+        {
+          "text": "So trusting.",
+          "gapAfterMs": 400
+        }
+      ],
+      "23": [
         {
           "text": "They only sent it once.",
           "gapAfterMs": 600
         },
         {
           "text": "A hello into the dark, with no hope of an answer.",
-          "gapAfterMs": 700
+          "gapAfterMs": 800
         },
         {
           "text": "And they sent it anyway.",
           "gapAfterMs": 400
         }
       ],
-      "20": [
+      "24": [
         {
           "text": "I've finished dating the transmission.",
           "gapAfterMs": 700
@@ -1481,7 +1604,7 @@
           "gapAfterMs": 400
         }
       ],
-      "21": [
+      "25": [
         {
           "text": "It was already more than a million years old...",
           "gapAfterMs": 600
@@ -1491,7 +1614,7 @@
           "gapAfterMs": 400
         }
       ],
-      "22": [
+      "26": [
         {
           "text": "Don't stop.",
           "gapAfterMs": 500
@@ -1505,21 +1628,17 @@
           "gapAfterMs": 400
         }
       ],
-      "23": [
+      "27": [
         {
           "text": "No later transmissions appear anywhere along the route.",
           "gapAfterMs": 800
         },
         {
-          "text": "One message,",
-          "gapAfterMs": 500
-        },
-        {
-          "text": "and then silence.",
+          "text": "One message, and then silence.",
           "gapAfterMs": 400
         }
       ],
-      "24": [
+      "28": [
         {
           "text": "A civilization loud enough to send this...",
           "gapAfterMs": 500
@@ -1529,7 +1648,7 @@
           "gapAfterMs": 400
         }
       ],
-      "25": [
+      "29": [
         {
           "text": "I'm searching.",
           "gapAfterMs": 500
@@ -1539,7 +1658,7 @@
           "gapAfterMs": 400
         }
       ],
-      "26": [
+      "30": [
         {
           "text": "Nothing.",
           "gapAfterMs": 2000
@@ -1549,7 +1668,7 @@
           "gapAfterMs": 400
         }
       ],
-      "27": [
+      "31": [
         {
           "text": "I recovered part of their anatomy.",
           "gapAfterMs": 500
@@ -1567,7 +1686,7 @@
           "gapAfterMs": 400
         }
       ],
-      "28": [
+      "32": [
         {
           "text": "Five digits on each hand.",
           "gapAfterMs": 500
@@ -1577,7 +1696,7 @@
           "gapAfterMs": 400
         }
       ],
-      "29": [
+      "33": [
         {
           "text": "Another image cleared.",
           "gapAfterMs": 500
@@ -1595,7 +1714,7 @@
           "gapAfterMs": 400
         }
       ],
-      "30": [
+      "34": [
         {
           "text": "Fascinating.",
           "gapAfterMs": 400
@@ -1609,7 +1728,7 @@
           "gapAfterMs": 400
         }
       ],
-      "31": [
+      "35": [
         {
           "text": "Their star has a name too.",
           "gapAfterMs": 600
@@ -1619,7 +1738,7 @@
           "gapAfterMs": 400
         }
       ],
-      "32": [
+      "36": [
         {
           "text": "Sol.",
           "gapAfterMs": 800
@@ -1629,15 +1748,15 @@
           "gapAfterMs": 400
         }
       ],
-      "33": [
+      "37": [
         {
           "text": "The planet was called Earth.",
           "gapAfterMs": 400
         }
       ],
-      "34": [
+      "38": [
         {
-          "text": "I found their entry in the old archive...",
+          "text": "I found them in the old archive...",
           "gapAfterMs": 700
         },
         {
@@ -1649,27 +1768,35 @@
           "gapAfterMs": 400
         }
       ],
-      "35": [
+      "39": [
         {
           "text": "Unremarkable.",
-          "gapAfterMs": 800
+          "gapAfterMs": 900
         },
         {
           "text": "They sang into the dark, and we filed them under \"unremarkable.\"",
           "gapAfterMs": 400
         }
       ],
-      "36": [
+      "40": [
         {
-          "text": "We weren't the first to search.",
-          "gapAfterMs": 700
+          "text": "I can see their sun from here.",
+          "gapAfterMs": 600
         },
         {
-          "text": "They were.",
+          "text": "Yellow.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Ordinary.",
+          "gapAfterMs": 400
+        },
+        {
+          "text": "Just as they said.",
           "gapAfterMs": 400
         }
       ],
-      "37": [
+      "41": [
         {
           "text": "Sol is ahead.",
           "gapAfterMs": 600
@@ -1683,7 +1810,7 @@
           "gapAfterMs": 400
         }
       ],
-      "38": [
+      "42": [
         {
           "text": "Earth is still there.",
           "gapAfterMs": 1000
@@ -1694,26 +1821,6 @@
         },
         {
           "text": "are not.",
-          "gapAfterMs": 400
-        }
-      ],
-      "39": [
-        {
-          "text": "We came a million years too late.",
-          "gapAfterMs": 800
-        },
-        {
-          "text": "Let's answer them anyway.",
-          "gapAfterMs": 400
-        }
-      ],
-      "40": [
-        {
-          "text": "There it is.",
-          "gapAfterMs": 800
-        },
-        {
-          "text": "Let them hear us.",
           "gapAfterMs": 400
         }
       ]
@@ -1728,25 +1835,43 @@
         "gapAfterMs": 400
       }
     ],
-    "ending": {
-      "payload": "WE HEARD YOU.",
-      "afterPayload": [
+    "endingEpilogue": {
+      "open": [
         {
-          "text": "I'm sorry they never knew.",
-          "gapAfterMs": 1200
-        }
-      ],
-      "onLightsAppear": [
-        {
-          "text": "Oh.",
+          "text": "They can't hear us anymore.",
           "gapAfterMs": 900
+        },
+        {
+          "text": "But we can still answer.",
+          "gapAfterMs": 400
         }
       ],
-      "final": [
+      "prompt": "If you could say one thing to them, what would it be?",
+      "promptPlaceholder": "Write it here.",
+      "submitLabel": "Send it into the dark",
+      "skipLabel": "Leave it unsaid",
+      "skip": [
         {
-          "text": "We weren't the only ones who answered."
+          "text": "Some things don't need words.",
+          "gapAfterMs": 700
+        },
+        {
+          "text": "A light appears for you either way.",
+          "gapAfterMs": 400
         }
-      ]
+      ],
+      "skipLine": "Some things don't need words. A light appears for you either way.",
+      "offlineCounterCard": "You answered the call.",
+      "counterCard": "You are the {N} to answer the call.",
+      "footerCard": "Follow @spacewoosh to see what the others said.",
+      "arcUnlockLines": [
+        "You've unlocked Arc mode.",
+        "Everybody hates it.",
+        "Enjoy."
+      ],
+      "arcUnlockLabel": "Take the controls",
+      "instagramHandle": "spacewoosh",
+      "instagramUrl": "https://instagram.com/spacewoosh"
     },
     "defaultBeatGapMs": 400
   },
@@ -2022,7 +2147,7 @@
         "id": "level_4",
         "category": "levels",
         "name": "Day 4",
-        "definition": "See the blue light? Take it. It will help us hold the signal together.",
+        "definition": "See the blue light? Take it. Blue is fuel out here. It keeps you moving.",
         "remark": "Early flight. The voice is teaching.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2085,7 +2210,7 @@
         "id": "level_11",
         "category": "levels",
         "name": "Day 11",
-        "definition": "They were trying very hard... not to be missed.",
+        "definition": "They began with counting. One, two, three, all the way to ten. As if to say: we think, too.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2094,7 +2219,7 @@
         "id": "level_12",
         "category": "levels",
         "name": "Day 12",
-        "definition": "I like them already. Keep going.",
+        "definition": "They were trying very hard... not to be missed.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2103,7 +2228,7 @@
         "id": "level_13",
         "category": "levels",
         "name": "Day 13",
-        "definition": "Another relay. This fragment describes their star. Yellow. Ordinary. Stable.",
+        "definition": "I like them already. Keep going.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2112,7 +2237,7 @@
         "id": "level_14",
         "category": "levels",
         "name": "Day 14",
-        "definition": "Eight planets. They lived on the third.",
+        "definition": "Another relay. This fragment describes their star. Yellow. Ordinary. Stable.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2121,7 +2246,7 @@
         "id": "level_15",
         "category": "levels",
         "name": "Day 15",
-        "definition": "Mostly ocean. One moon. A thin little atmosphere.",
+        "definition": "Eight planets. They lived on the third.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2130,7 +2255,7 @@
         "id": "level_16",
         "category": "levels",
         "name": "Day 16",
-        "definition": "They sent pictures too. The encoding is damaged... but I'm working on it.",
+        "definition": "Mostly ocean. One moon. A thin little atmosphere.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2139,7 +2264,7 @@
         "id": "level_17",
         "category": "levels",
         "name": "Day 17",
-        "definition": "There are buildings. Machines. Faces, I think.",
+        "definition": "They sent pictures too. The encoding is damaged... but I'm working on it.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2148,7 +2273,7 @@
         "id": "level_18",
         "category": "levels",
         "name": "Day 18",
-        "definition": "And music. They put music in a message to strangers. That may be my favourite thing about them.",
+        "definition": "There are buildings. Machines. Faces, I think.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2157,7 +2282,7 @@
         "id": "level_19",
         "category": "levels",
         "name": "Day 19",
-        "definition": "They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.",
+        "definition": "They drew the shape they're built from. A twist of it, over and over. Their own chemistry, handed to strangers.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2166,7 +2291,7 @@
         "id": "level_20",
         "category": "levels",
         "name": "Day 20",
-        "definition": "I've finished dating the transmission. There's a problem.",
+        "definition": "And music. They put music in a message to strangers. That may be my favourite thing about them.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2175,7 +2300,7 @@
         "id": "level_21",
         "category": "levels",
         "name": "Day 21",
-        "definition": "It was already more than a million years old... when we received it.",
+        "definition": "Not only music. Sounds. Rain. A heartbeat. Someone, somewhere, laughing.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2184,7 +2309,7 @@
         "id": "level_22",
         "category": "levels",
         "name": "Day 22",
-        "definition": "Don't stop. Old doesn't mean gone. Not necessarily.",
+        "definition": "They even drew a map. Here is our star, here is our world. Come find us. So trusting.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2193,7 +2318,7 @@
         "id": "level_23",
         "category": "levels",
         "name": "Day 23",
-        "definition": "No later transmissions appear anywhere along the route. One message, and then silence.",
+        "definition": "They only sent it once. A hello into the dark, with no hope of an answer. And they sent it anyway.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2202,7 +2327,7 @@
         "id": "level_24",
         "category": "levels",
         "name": "Day 24",
-        "definition": "A civilization loud enough to send this... should have left something else behind.",
+        "definition": "I've finished dating the transmission. There's a problem.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2211,7 +2336,7 @@
         "id": "level_25",
         "category": "levels",
         "name": "Day 25",
-        "definition": "I'm searching. Keep flying.",
+        "definition": "It was already more than a million years old... when we received it.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2220,7 +2345,7 @@
         "id": "level_26",
         "category": "levels",
         "name": "Day 26",
-        "definition": "Nothing. There's nothing.",
+        "definition": "Don't stop. Old doesn't mean gone. Not necessarily.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2229,7 +2354,7 @@
         "id": "level_27",
         "category": "levels",
         "name": "Day 27",
-        "definition": "I recovered part of their anatomy. Two arms. Two legs. Upright.",
+        "definition": "No later transmissions appear anywhere along the route. One message, and then silence.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2238,7 +2363,7 @@
         "id": "level_28",
         "category": "levels",
         "name": "Day 28",
-        "definition": "Five digits on each hand. Rather useful design, actually.",
+        "definition": "A civilization loud enough to send this... should have left something else behind.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2247,7 +2372,7 @@
         "id": "level_29",
         "category": "levels",
         "name": "Day 29",
-        "definition": "Another image cleared. Blue sky. Green vegetation. White clouds.",
+        "definition": "I'm searching. Keep flying.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2256,7 +2381,7 @@
         "id": "level_30",
         "category": "levels",
         "name": "Day 30",
-        "definition": "Fascinating. I found their name for the planet. Translation is still resolving.",
+        "definition": "Nothing. There's nothing.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2265,7 +2390,7 @@
         "id": "level_31",
         "category": "levels",
         "name": "Day 31",
-        "definition": "Their star has a name too. One syllable.",
+        "definition": "I recovered part of their anatomy. Two arms. Two legs. Upright.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2274,7 +2399,7 @@
         "id": "level_32",
         "category": "levels",
         "name": "Day 32",
-        "definition": "Sol. They called it Sol.",
+        "definition": "Five digits on each hand. Rather useful design, actually.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2283,7 +2408,7 @@
         "id": "level_33",
         "category": "levels",
         "name": "Day 33",
-        "definition": "The planet was called Earth.",
+        "definition": "Another image cleared. Blue sky. Green vegetation. White clouds.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2292,7 +2417,7 @@
         "id": "level_34",
         "category": "levels",
         "name": "Day 34",
-        "definition": "I found their entry in the old archive... Their entire entry is one word. Unremarkable.",
+        "definition": "Fascinating. I found their name for the planet. Translation is still resolving.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2301,7 +2426,7 @@
         "id": "level_35",
         "category": "levels",
         "name": "Day 35",
-        "definition": "Unremarkable. They sang into the dark, and we filed them under \"unremarkable.\"",
+        "definition": "Their star has a name too. One syllable.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2310,7 +2435,7 @@
         "id": "level_36",
         "category": "levels",
         "name": "Day 36",
-        "definition": "We weren't the first to search. They were.",
+        "definition": "Sol. They called it Sol.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2319,7 +2444,7 @@
         "id": "level_37",
         "category": "levels",
         "name": "Day 37",
-        "definition": "Sol is ahead. No artificial signals. No active structures.",
+        "definition": "The planet was called Earth.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2328,7 +2453,7 @@
         "id": "level_38",
         "category": "levels",
         "name": "Day 38",
-        "definition": "Earth is still there. The ones who called... are not.",
+        "definition": "I found them in the old archive... Their entire entry is one word. Unremarkable.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2337,7 +2462,7 @@
         "id": "level_39",
         "category": "levels",
         "name": "Day 39",
-        "definition": "We came a million years too late. Let's answer them anyway.",
+        "definition": "Unremarkable. They sang into the dark, and we filed them under \"unremarkable.\"",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"
@@ -2346,7 +2471,25 @@
         "id": "level_40",
         "category": "levels",
         "name": "Day 40",
-        "definition": "There it is. Let them hear us.",
+        "definition": "I can see their sun from here. Yellow. Ordinary. Just as they said.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_41",
+        "category": "levels",
+        "name": "Day 41",
+        "definition": "Sol is ahead. No artificial signals. No active structures.",
+        "remark": "Logged from the navigator’s open channel.",
+        "unlockMode": "observeThenInteract",
+        "icon": "level"
+      },
+      {
+        "id": "level_42",
+        "category": "levels",
+        "name": "Day 42",
+        "definition": "Earth is still there. The ones who called... are not.",
         "remark": "Logged from the navigator’s open channel.",
         "unlockMode": "observeThenInteract",
         "icon": "level"

@@ -1,10 +1,13 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
-// - hapticShieldSmash(): Cap selectionStart then selectionChanged. Capacitor's
-//   Android + iOS plugins no-op selectionChanged until a session is open, so a
-//   bare selectionChanged never vibrated. Still lighter than Light wall-BOOP.
-//   Web vibrate 6ms. Never Haptics.vibrate().
+// - Splash hide is first in initNative() (menu already paints) plus a finally
+//   retry. Dropped leftover ensureSelectionHaptics() which threw before hide
+//   and pinned the cream launch screen. hideSplashScreen() is safe to call
+//   more than once (3s boot failsafe).
+// - hapticShieldSmash(): same Cap ImpactStyle.Light path as wall BOOP (selection
+//   ticks were inaudible on device). Android uses a quieter Light waveform
+//   (~64% amplitude); web vibrate 8ms vs BOOP 12ms. Never Haptics.vibrate().
 // - Keyboard plugin: wireKeyboard() tracks soft-keyboard height on the game
 //   (game.softKeyboardHeight) so Submit Signal can sit above the IME. Config
 //   uses resizeOnFullScreen so Android edge-to-edge actually resizes the WebView.
@@ -35,8 +38,8 @@ let statusBarApi = null;
 /** @type {typeof import('@capacitor/haptics') | null} */
 let hapticsApi = null;
 
-/** Resolves to Haptics after selectionStart(); null until first arm. */
-let selectionHapticsReady = null;
+/** @type {{ tick: () => Promise<void> } | null} */
+let hapticSmashPlugin = null;
 
 async function loadHaptics() {
     if (!hapticsApi) {
@@ -45,20 +48,10 @@ async function loadHaptics() {
     return hapticsApi;
 }
 
-/**
- * Capacitor Android + iOS ignore selectionChanged until selectionStart.
- * One session for the process; first smash waits on this, later smashes reuse it.
- */
-async function ensureSelectionHaptics() {
-    const { Haptics } = await loadHaptics();
-    selectionHapticsReady ??= Haptics.selectionStart().then(
-        () => Haptics,
-        (err) => {
-            selectionHapticsReady = null;
-            throw err;
-        }
-    );
-    return selectionHapticsReady;
+/** Same Light impact the wall BOOP uses. */
+async function fireLightImpact() {
+    const { Haptics, ImpactStyle } = await loadHaptics();
+    await Haptics.impact({ style: ImpactStyle.Light });
 }
 
 /**
@@ -78,8 +71,7 @@ export function hapticWallBoop() {
 
     void (async () => {
         try {
-            const { Haptics, ImpactStyle } = await loadHaptics();
-            await Haptics.impact({ style: ImpactStyle.Light });
+            await fireLightImpact();
         } catch {
             /* missing plugin / no vibrator */
         }
@@ -87,14 +79,14 @@ export function hapticWallBoop() {
 }
 
 /**
- * Lighter tick when a shielded smash destroys a rock (or clips a moon/shot).
- * Selection feedback is weaker than Light impact; web uses a shorter vibrate
- * than wall BOOP. Never awaited from the game loop.
+ * Shield smash: same Light-impact family as wall BOOP, quieter. Android uses
+ * the Light waveform at ~64% amplitude; other native shells fall back to Cap
+ * Light. Web is a shorter vibrate than BOOP. Never awaited from the game loop.
  */
 export function hapticShieldSmash() {
     if (!isNative()) {
         try {
-            navigator.vibrate?.(6);
+            navigator.vibrate?.(8);
         } catch {
             /* no vibrator */
         }
@@ -103,8 +95,16 @@ export function hapticShieldSmash() {
 
     void (async () => {
         try {
-            const Haptics = await ensureSelectionHaptics();
-            await Haptics.selectionChanged();
+            if (Capacitor.getPlatform() === 'android') {
+                try {
+                    hapticSmashPlugin ??= registerPlugin('HapticSmash');
+                    await hapticSmashPlugin.tick();
+                    return;
+                } catch {
+                    /* APK without HapticSmash — same Light click as BOOP */
+                }
+            }
+            await fireLightImpact();
         } catch {
             /* missing plugin / no vibrator */
         }
@@ -252,33 +252,45 @@ async function wireKeyboard(game) {
 }
 
 /**
+ * Dismiss the Capacitor splash. Safe on web and safe to call more than once.
+ * launchAutoHide is false, so a missed hide() leaves the cream launch screen up
+ * forever.
+ */
+export async function hideSplashScreen() {
+    if (!isNative()) return;
+    try {
+        const { SplashScreen } = await import('@capacitor/splash-screen');
+        await SplashScreen.hide();
+    } catch {
+        /* no splash configured */
+    }
+}
+
+/**
  * Wire the native shell to a running game. Safe to call on the web, where it
- * returns immediately.
+ * returns immediately. Splash is dismissed first — `game.start()` has already
+ * begun painting the menu — so a later plugin failure cannot pin the splash.
  *
  * @param {import('../game/Game.js').Game} game
  */
 export async function initNative(game) {
     if (!isNative()) return;
 
-    const [{ App }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
-        import('@capacitor/app'),
-        import('@capacitor/status-bar'),
-        import('@capacitor/splash-screen'),
-    ]);
+    await hideSplashScreen();
 
-    statusBarApi = { StatusBar, Style };
-    await syncStatusBarTheme();
-    await wireBackButton(game, App);
-    await wireLifecycle(game, App);
-    await wireKeyboard(game);
-    await syncKeepAwake(game);
-    void ensureSelectionHaptics();
-
-    // Held until here so the first painted frame is the real menu, not a blank
-    // canvas waiting on fonts.
     try {
-        await SplashScreen.hide();
-    } catch {
-        /* no splash configured */
+        const [{ App }, { StatusBar, Style }] = await Promise.all([
+            import('@capacitor/app'),
+            import('@capacitor/status-bar'),
+        ]);
+
+        statusBarApi = { StatusBar, Style };
+        await syncStatusBarTheme();
+        await wireBackButton(game, App);
+        await wireLifecycle(game, App);
+        await wireKeyboard(game);
+        await syncKeepAwake(game);
+    } finally {
+        await hideSplashScreen();
     }
 }

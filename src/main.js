@@ -1,9 +1,15 @@
 // main.js
 // Entry point: bootstraps the game.
 // Changes:
+// - Do not await RevenueCat / entitlements before the menu: localStorage cache
+//   (and playtest UNLOCK_ALL_SKINS) is enough for the first hangar paint. A
+//   Play Billing hang must not pin the native splash.
+// - 3s splash failsafe plus initNative hide-first so launchAutoHide:false can
+//   never leave the cream launch screen up.
+// - Font preload is time-capped in ensureBrandFonts(); splash hide does not
+//   wait on webfonts.
 // - initTheme() before first paint so light/dark preference paints tokens + shell.
-// - Boots straight into the main menu (no blocking name prompt). Name is
-//   collected when submitting a score.
+// - Playtest `?level=42&nearend=1` starts that Journey day near the finish.
 // - Preload the brand webfonts (Space Grotesk / Space Mono) before the first
 //   canvas paint so the on-brand HUD and end screens render correctly from
 //   frame one instead of flashing a system fallback.
@@ -16,27 +22,41 @@ import { Game } from './game/Game.js';
 import { GameConfig } from './config/GameConfig.js';
 import { ensureBrandFonts } from './utils/BrandDraw.js';
 import { initTheme } from './brand/theme.js';
-import { initNative } from './native/index.js';
+import { hideSplashScreen, initNative } from './native/index.js';
 import { initAnalytics } from './services/Analytics.js';
 import { initEntitlements } from './services/Entitlements.js';
+import { playtestLevelFromQuery } from './services/JourneyProgress.js';
+
+const SPLASH_FAILSAFE_MS = 3000;
 
 window.addEventListener('load', async () => {
+    const splashFailsafe = setTimeout(() => {
+        hideSplashScreen().catch(() => {});
+    }, SPLASH_FAILSAFE_MS);
+
     initAnalytics();
 
     // Tokens + page shell before fonts/canvas so the first frame matches preference.
     initTheme();
 
-    // Make sure the geometric brand type is ready before we draw anything.
+    // Time-capped: a hung WebView font request must not block the menu.
     await ensureBrandFonts();
-
-    // Hydrate owned skins (and configure RevenueCat on native) before Game
-    // reads the selected skin from localStorage.
-    await initEntitlements();
 
     const game = new Game(GameConfig);
     game.start();
+    const playtestLevel = playtestLevelFromQuery();
+    if (playtestLevel != null) game.tryBeginJourneyLevel(playtestLevel);
 
-    initNative(game).catch((error) => {
-        console.error('Native shell failed to initialize:', error);
+    initEntitlements().catch((error) => {
+        console.error('Entitlements failed to initialize:', error);
     });
+
+    try {
+        await initNative(game);
+    } catch (error) {
+        console.error('Native shell failed to initialize:', error);
+        await hideSplashScreen();
+    } finally {
+        clearTimeout(splashFailsafe);
+    }
 });

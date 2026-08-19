@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: sfxFuelLow once per dip below 20% in Journey / Open Space.
+// Changes: playEpilogue flag for the L42 written ending.
 
 import Foundation
 import CoreGraphics
@@ -88,6 +88,7 @@ struct RunState {
     var logbookMarks: [LogbookMark] = []
     var sfxFirstBoop: Bool = false
     var sfxSwooshVoice: Bool = false
+    var playEpilogue: Bool = false
     var hudLive: Bool = true
     var hudRevealT: CGFloat = 0
     var hudDistance: CGFloat = 0

@@ -1,5 +1,5 @@
 // CopyBank.swift
-// Changes: Slice E — Journey fail / partial / flawless / complete pools.
+// Changes: Journey complete / mode-select copy no longer says “Forty levels”.
 
 import Foundation
 
@@ -81,7 +81,7 @@ enum CopyBank {
         "Deep space. Level by level.",
         "Recommended. The Logbook opens here.",
         "Chart the void. Fill the Logbook.",
-        "Forty levels outward. Catalogue as you go.",
+        "Chapter by chapter. Catalogue as you go.",
         "Ordered exploration. Logbook entries unlock here.",
         "Climb the chapters. Write the field manual.",
         "Deep space, structured. Your Logbook writes here.",
@@ -140,7 +140,7 @@ enum CopyBank {
         "You are away. Live long and prosper.",
         "Exosphere cleared. Nothing holds you now.",
         "Journey complete. The void applauds quietly.",
-        "Forty levels. Zero patience for rocks.",
+        "The last relay is behind you. Stay that way.",
         "Away. As promised.",
         "The atmosphere is behind you. Stay that way.",
     ]

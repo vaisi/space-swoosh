@@ -1,5 +1,6 @@
 // ShellChrome.swift
 // Changes: Android BrandDraw chrome — Grotesk/Mono, ← Back, dotted rules, signal tiles.
+// brandButton `disabled` is the decommissioned Arc row (dim ink, tag OUT).
 
 import SwiftUI
 import UIKit
@@ -76,33 +77,39 @@ enum ShellChrome {
         tag: String? = nil,
         primary: Bool = false,
         signal: Bool = false,
+        disabled: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        let lit = primary && !disabled
+        Button(action: { if !disabled { action() } }) {
             HStack(spacing: 0) {
                 Text(title.uppercased())
                     .font(BrandType.ui(17))
                     .tracking(BrandType.uiTracking(17))
-                    .foregroundStyle(primary ? BrandColors.paper : BrandColors.ink)
+                    .foregroundStyle(disabled ? BrandColors.ink30 : (lit ? BrandColors.paper : BrandColors.ink))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                 if let tag {
                     Rectangle()
-                        .fill(primary ? BrandColors.paper.opacity(0.25) : BrandColors.ink.opacity(0.12))
+                        .fill(lit ? BrandColors.paper.opacity(0.25) : BrandColors.ink.opacity(0.12))
                         .frame(width: 1, height: 28)
                     Text(tag)
                         .font(BrandType.mono(14))
-                        .foregroundStyle(primary ? BrandColors.paper.opacity(0.85) : BrandColors.ink55)
+                        .foregroundStyle(disabled ? BrandColors.ink30 : (lit ? BrandColors.paper.opacity(0.85) : BrandColors.ink55))
                         .frame(width: 52)
                 }
             }
-            .background(primary ? BrandColors.ink : BrandColors.paperTint)
+            .background(lit ? BrandColors.ink : BrandColors.paperTint)
             .overlay(
                 Rectangle()
-                    .stroke(signal ? BrandColors.signal : BrandColors.ink, lineWidth: 1.5)
+                    .stroke(
+                        disabled ? BrandColors.ink.opacity(0.12) : (signal ? BrandColors.signal : BrandColors.ink),
+                        lineWidth: 1.5
+                    )
             )
         }
         .buttonStyle(.plain)
+        .disabled(disabled)
     }
 
     static func ghostButton(_ title: String, action: @escaping () -> Void) -> some View {

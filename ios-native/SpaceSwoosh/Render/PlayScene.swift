@@ -1,5 +1,6 @@
 // PlayScene.swift
-// Changes: sfxShieldCrash also fires HapticsService.shieldSmash() (selection tick).
+// Changes: sfxShieldCrash fires HapticsService.shieldSmash() (Light impact at 0.55).
+// L42 written epilogue keeps MusicPlayer running (do not stop on completed).
 
 import SpriteKit
 import QuartzCore
@@ -46,7 +47,10 @@ final class PlayScene: SKScene {
 
         let skinId = SettingsStore.shared.shipSkinId
         var world = WorldState.initial(width: size.width, height: size.height, skinId: skinId)
-        run.flightStyle = SettingsStore.shared.flightStyle
+        run.flightStyle = SettingsStore.resolved(SettingsStore.shared.flightStyle)
+        if run.flightStyle != SettingsStore.shared.flightStyle {
+            SettingsStore.shared.setFlightStyle(run.flightStyle)
+        }
         run.profile = launch.profile
         CinemaSimulator.beginLevelRun(world: &world, run: &run)
         previousWorld = world
@@ -250,7 +254,7 @@ final class PlayScene: SKScene {
                 run.fuelLowVoiceLatched = true
             }
         }
-        if run.isOver, run.completed {
+        if run.isOver, run.completed, !run.playEpilogue {
             MusicPlayer.shared.stop()
         }
         if run.cinema == .introTitle, !run.introVoiceStarted {

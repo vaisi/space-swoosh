@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Playtest `?level=42&nearend=1` warps Journey KM near the gate after boot.
+// - L42 completeRun leaves BGM running so the written epilogue still has music.
+// - Arc is locked until Day 42 is cleared; Controls shows it as OUT until then.
 // - tryBeginJourneyLevel respects isLevelUnlocked (UNLOCK_ALL_LEVELS / URL).
 // - Menu stamp reads BUILD_NUMBER from core/buildStamp.js (Vite +1 per
 //   production build) so a device install can be verified vs an old APK.
@@ -76,8 +79,9 @@
 //   Reveal: distance → pause; smash row unlocks on first smash.
 //   KM accrues once the title clears (wait/chips) — belt opens at that same
 //   moment so rocks arrive with the first readable distance, not a second later.
-// - Journey levels 1–40: IntroNarration chains one-sentence beats with
+// - Journey levels 1–42: IntroNarration chains one-sentence beats with
 //   /sounds/voice/level-N.mp3 at intro handoff; belt waits for beats + voice.
+//   L42 clear hands off to the written epilogue (not JOURNEY COMPLETE).
 // - Run-start LevelIntroSequence (~1s fly-in + fade) for Journey and Open World;
 //   steering locked until it finishes; intro milestone deferred to handoff.
 // - Play mode-select blurbs pick once on enter from CopyBank modeJourney /
@@ -96,8 +100,9 @@
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
 // - Options → Controls: Arc vs Zigzag flight style (persisted). Zigzag is the
-//   default; straight ±52° lean (flatter/faster), tap/Space/arrow flips (no
-//   swipe). Escape pauses in Zigzag; Space still pauses in Arc.
+//   default; Arc stays visible but OUT until Day 42 is cleared. Straight ±52°
+//   lean (flatter/faster), tap/Space/arrow flips (no swipe). Escape pauses in
+//   Zigzag; Space still pauses in Arc.
 
 // - Native shell hooks: updatePauseButtonVisibility() also syncs the keep-awake
 //   lock; closeNameInputModal() is shared by the modal close button and Android
@@ -233,9 +238,11 @@ import {
     TOTAL_LEVELS,
 } from '../config/JourneyConfig.js';
 import {
+    isArcUnlocked,
     isLevelUnlocked,
     loadJourneyProgress,
     nextPlayableLevel,
+    playtestNearEndRemainingKm,
     recordLevelResult,
 } from '../services/JourneyProgress.js';
 import {
@@ -274,11 +281,13 @@ import {
 } from '../ui/screens/AnnualShipPickScreen.js';
 import { LevelClearSequence } from './LevelClearSequence.js';
 import { LevelIntroSequence } from './LevelIntroSequence.js';
+import { JourneyEpilogueSequence } from './JourneyEpilogueSequence.js';
 import { clamp01 } from '../utils/math.js';
 import { pickCopy, journeyFlavorPool } from '../brand/CopyBank.js';
 import {
     FLIGHT_STYLE,
     loadFlightStyle,
+    resolveFlightStyle,
     saveFlightStyle,
 } from '../config/flightStyle.js';
 import {
@@ -391,6 +400,7 @@ export class Game {
 
         // Journey state. Progress is local-only; the leaderboard stays Open World.
         this.journeyProgress = loadJourneyProgress();
+        this.flightStyle = resolveFlightStyle(this.flightStyle, this.journeyProgress);
         this.journeyLevel = nextPlayableLevel(this.journeyProgress);
         this.openWorldProgress = loadOpenWorldProgress();
         this.journeyMapScroll = 0;
@@ -401,6 +411,7 @@ export class Game {
         this.levelOutcome = null;
         this.runOutcome = null; // 'crashed' | 'completed' while on the end screen
         this.levelClear = null; // the flyout cinematic, while it's running
+        this.journeyEpilogue = null; // written ending after L42
         this.levelIntro = null; // short run-start fly-in, while it's running
         this.pendingIntroMessage = null; // legacy single-line handoff
         this.pendingIntroBeats = null; // string[] shown when intro hands off
@@ -720,6 +731,10 @@ export class Game {
         const currentTime = performance.now();
 
         if (this.appScreen === 'gameover' && this.isGameOver) {
+            if (this.journeyEpilogue?.active) {
+                this.journeyEpilogue.update(deltaTime);
+                return;
+            }
             // A cleared level flies out instead of exploding, and the sequence
             // owns everything that moves — including the screen's fade-in.
             if (this.levelClear) {
@@ -986,6 +1001,10 @@ export class Game {
         }
 
         if (this.appScreen === 'gameover' || this.isGameOver) {
+            if (this.journeyEpilogue?.active) {
+                this.journeyEpilogue.render(this.ctx);
+                return;
+            }
             const timeSinceGameOver = performance.now() - this.gameOverStartTime;
             const deceleration = this.config.camera.deceleration;
 
@@ -1650,6 +1669,7 @@ export class Game {
         signal = false,
         tag = null,
         labelPx = null,
+        disabled = false,
     } = {}) {
         const isMobile = window.innerWidth <= 768;
         const defaultPx = isMobile
@@ -1661,6 +1681,7 @@ export class Game {
             tag,
             primary,
             signal,
+            disabled,
             baseUnit: this.baseUnit,
             labelPx: labelPx ?? defaultPx,
         });
@@ -2170,7 +2191,7 @@ export class Game {
         ctx.restore();
     }
 
-    // Controls: pick Arc (classic swoosh) or Zigzag (straight ±52°, any tap flips).
+    // Controls: Zigzag now; Arc stays listed but OUT until Day 42 is cleared.
     renderOptionsControls() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -2183,7 +2204,8 @@ export class Game {
         const buttonWidth = Math.min(unit * 30, L.width);
         const buttonHeight = L.isMobile ? unit * 6 : unit * 5.4;
         const footnotePx = Math.max(9, unit * 0.9);
-        const zigzag = this.flightStyle === FLIGHT_STYLE.zigzag;
+        const arcUnlocked = isArcUnlocked(this.journeyProgress);
+        const zigzag = !arcUnlocked || this.flightStyle === FLIGHT_STYLE.zigzag;
 
         const blockH = descPx * 2.2 + L.section + buttonHeight * 2 + L.block;
         const available = L.bottom - header.contentTop - footnotePx - L.block;
@@ -2207,7 +2229,11 @@ export class Game {
 
         this.optionsButtons.flightArc = this.drawBrandButton(
             L.centerX - buttonWidth / 2, y, buttonWidth, buttonHeight, 'Arc',
-            { primary: !zigzag, tag: zigzag ? '' : 'ON' }
+            {
+                primary: arcUnlocked && !zigzag,
+                tag: arcUnlocked ? (zigzag ? '' : 'ON') : 'OUT',
+                disabled: !arcUnlocked,
+            }
         );
 
         ctx.save();
@@ -2216,7 +2242,9 @@ export class Game {
         setLabelType(ctx, footnotePx);
         ctx.fillStyle = color.ink30;
         ctx.fillText(
-            zigzag ? 'TAP OR SPACE · STRAIGHT ±52°' : 'CLASSIC SWOOSH ARCS',
+            !arcUnlocked
+                ? 'FINISH THE JOURNEY'
+                : (zigzag ? 'TAP OR SPACE · STRAIGHT ±52°' : 'CLASSIC SWOOSH ARCS'),
             L.centerX,
             L.bottom - footnotePx / 2
         );
@@ -2475,8 +2503,16 @@ export class Game {
         this.playMode = mode;
         if (mode === PLAY_MODE.journey) this.journeyLevel = clampLevel(level);
         this.profile = createRunProfile(this, this.playMode, this.journeyLevel);
+        this.flightStyle = resolveFlightStyle(this.flightStyle, this.journeyProgress);
 
         this.resetRunState();
+        if (mode === PLAY_MODE.journey) {
+            const remaining = playtestNearEndRemainingKm();
+            if (remaining != null) {
+                const goal = this.profile.goalScore;
+                this.score = Math.max(0, Math.min(goal - 1, goal - remaining));
+            }
+        }
         this.appScreen = 'playing';
         this.isPaused = false;
 
@@ -2516,6 +2552,8 @@ export class Game {
         this.levelOutcome = null;
         this.levelOutcomeButtons = null;
         this.levelClear = null;
+        this.journeyEpilogue?.dispose?.();
+        this.journeyEpilogue = null;
         this.levelIntro = null;
         this.introNarration?.dispose?.();
         this.introNarration = null;
@@ -2569,6 +2607,8 @@ export class Game {
         this.runOutcome = null;
         this.levelOutcome = null;
         this.levelClear = null;
+        this.journeyEpilogue?.dispose?.();
+        this.journeyEpilogue = null;
         this.levelIntro = null;
         this.introNarration?.dispose?.();
         this.introNarration = null;
@@ -3032,7 +3072,10 @@ export class Game {
         this.introNarration?.dispose?.();
         this.introNarration = null;
         this.soundManager?.stopLevelVoice?.({ notify: false });
-        this.soundManager?.stopBGM?.();
+        // Keep BGM through the L42 written epilogue (open voice has no tap).
+        if (!(this.isJourney?.() && this.journeyLevel >= TOTAL_LEVELS)) {
+            this.soundManager?.stopBGM?.();
+        }
         // Lock the finish line here so the ship can fly through a fixed mark.
         // Journey results finalize when the flyout enters screenIn — smashes and
         // sparkles during hold/boost/fadeOut still count toward points /
@@ -3129,8 +3172,13 @@ export class Game {
         });
     }
 
+    startJourneyEpilogue() {
+        this.journeyEpilogue?.dispose?.();
+        this.journeyEpilogue = new JourneyEpilogueSequence(this);
+    }
+
     // Open the map roughly at the level the player is on, rather than at the top
-    // of a forty-level list.
+    // of a 42-level list.
     scrollJourneyMapToLevel() {
         const metrics = this.journeyMapButtons?.metrics;
         const tile = this.journeyMapButtons?.levels
@@ -3538,7 +3586,9 @@ export class Game {
                 if (this.isClickInButton(x, y, this.optionsButtons.back)) {
                     this.appScreen = 'options';
                 } else if (this.isClickInButton(x, y, this.optionsButtons.flightArc)) {
-                    this.setFlightStyle(FLIGHT_STYLE.arc);
+                    if (isArcUnlocked(this.journeyProgress)) {
+                        this.setFlightStyle(FLIGHT_STYLE.arc);
+                    }
                 } else if (this.isClickInButton(x, y, this.optionsButtons.flightZigzag)) {
                     this.setFlightStyle(FLIGHT_STYLE.zigzag);
                 }
@@ -3585,6 +3635,11 @@ export class Game {
 
             // Mid-flyout: eat the tap so it cannot press outcome buttons early.
             if (this.levelClear?.active) {
+                return;
+            }
+
+            if (this.journeyEpilogue?.active) {
+                this.journeyEpilogue.handleClick(x, y);
                 return;
             }
 

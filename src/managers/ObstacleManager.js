@@ -1,8 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
-// - Shield smash plays crash_with_shield plus a lighter-than-BOOP haptic
-//   (hapticShieldSmash), sharing the 120 ms cinematic flyout SFX gate.
+// - Shield smash plays crash_with_shield plus the same Light-impact haptic as
+//   wall BOOP at reduced strength (Android quieter waveform / iOS intensity 0.55).
 // - DriftCurrent: keep the light dash look; only lineDashOffset flips so some
 //   bands flow left and some right (no chevrons / heavy dashes).
 // - SweepGate: thinner blade; travels across screen L→R or R→L while slowly
@@ -2350,8 +2350,8 @@ export class ObstacleManager {
         });
     }
 
-    // Crash SFX + lighter-than-BOOP haptic. Callers already gate this through
-    // canPlayCinematicCrash() during the level-clear flyout.
+    // Crash SFX + Light-impact haptic at reduced strength. Callers already gate
+    // this through canPlayCinematicCrash() during the level-clear flyout.
     playSmashCrashFeedback() {
         this.game.soundManager.playShieldCrash();
         hapticShieldSmash();

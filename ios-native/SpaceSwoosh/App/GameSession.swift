@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Firebase Analytics run-end events matching Android game_over / journey / lab.
+// Changes: showEpilogue after L42; Firebase Analytics run-end events matching Android.
 
 import Foundation
 import Combine
@@ -53,6 +53,7 @@ final class GameSession: ObservableObject {
     @Published var boardRank: Int?
     @Published var rankLookupFailed = false
     @Published var scoreSubmitted = false
+    @Published var showEpilogue = false
 
     private var flavorPicked = false
 
@@ -130,6 +131,7 @@ final class GameSession: ObservableObject {
                 trackOpenSpaceEnd(run)
             } else {
                 outcome = makeOutcome(run: run)
+                showEpilogue = run.playEpilogue && run.completed
                 trackLevelEnd(run, outcome: outcome)
             }
         }
@@ -169,6 +171,7 @@ final class GameSession: ObservableObject {
         boardRank = nil
         rankLookupFailed = false
         scoreSubmitted = false
+        showEpilogue = false
         flavorPicked = false
         LogbookStore.shared.clearToast()
     }

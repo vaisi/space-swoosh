@@ -1,5 +1,6 @@
 // SettingsStore.swift
 // Changes: Firebase Analytics for theme / sound / equip_ship (Android parity).
+// Arc writes are ignored until Day 42 is cleared.
 
 import Foundation
 import Combine
@@ -22,7 +23,11 @@ final class SettingsStore: ObservableObject {
 
     private init() {
         let style = UserDefaults.standard.string(forKey: "spaceswoosh.flightStyle")
-        flightStyle = style == FlightStyle.arc.rawValue ? .arc : .zigzag
+        let requested = style == FlightStyle.arc.rawValue ? FlightStyle.arc : .zigzag
+        flightStyle = Self.resolved(requested)
+        if flightStyle != requested {
+            UserDefaults.standard.set(flightStyle.rawValue, forKey: "spaceswoosh.flightStyle")
+        }
         shipSkinId = SkinCatalog.resolve(UserDefaults.standard.string(forKey: "shipSkinId"))
         isDark = UserDefaults.standard.string(forKey: "ssTheme") == "dark"
         muted = UserDefaults.standard.bool(forKey: "soundMuted")
@@ -32,9 +37,17 @@ final class SettingsStore: ObservableObject {
         applyAudio()
     }
 
+    static func resolved(_ style: FlightStyle) -> FlightStyle {
+        if style == .arc, JourneyProgress.isArcUnlocked(JourneyStore.shared.snapshot) {
+            return .arc
+        }
+        return .zigzag
+    }
+
     func setFlightStyle(_ style: FlightStyle) {
-        flightStyle = style
-        UserDefaults.standard.set(style.rawValue, forKey: "spaceswoosh.flightStyle")
+        let next = Self.resolved(style)
+        flightStyle = next
+        UserDefaults.standard.set(next.rawValue, forKey: "spaceswoosh.flightStyle")
     }
 
     func setShipSkin(_ id: SkinId) {

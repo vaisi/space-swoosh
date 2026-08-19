@@ -1,5 +1,5 @@
 // CinemaSimulator.swift
-// Changes: Clear flyout no longer marks Space Travel Boost in the Space Log.
+// Changes: L42 fade hands off to the written epilogue overlay (no ENDING_BEATS).
 
 import Foundation
 import CoreGraphics
@@ -233,8 +233,12 @@ enum CinemaSimulator {
         case .clearFade:
             boost = CinematicFlight.boostTarget
             camFactor = CinematicFlight.cameraBoost
-            run.worldAlpha = max(0, 1 - run.cinemaT / CinematicFlight.clearFade)
-            if run.cinemaT >= CinematicFlight.clearFade {
+            let fade: CGFloat = run.profile.mode == .journey
+                && run.profile.level >= JourneyConfig.totalLevels
+                ? CinematicFlight.clearFadeFinale
+                : CinematicFlight.clearFade
+            run.worldAlpha = max(0, 1 - run.cinemaT / fade)
+            if run.cinemaT >= fade {
                 beginAfterFade(run: &run)
             }
         default:
@@ -265,26 +269,9 @@ enum CinemaSimulator {
     private static func beginAfterFade(run: inout RunState) {
         run.worldAlpha = 0
         if run.profile.mode == .journey, run.profile.level >= JourneyConfig.totalLevels {
-            run.cinema = .endingCaptions
-            run.cinemaT = 0
-            run.pendingBeats = endingBeats()
-            run.captionText = ""
-            if run.captionText.isEmpty {
-                showQueuedBeat(run: &run)
-            }
-        } else {
-            finishClear(run: &run)
+            run.playEpilogue = true
         }
-    }
-
-    private static func endingBeats() -> [IntroBeat] {
-        var beats: [IntroBeat] = [
-            IntroBeat(text: GeneratedJourneyData.endingPayload, gapAfterMs: 800)
-        ]
-        beats.append(contentsOf: GeneratedJourneyData.endingAfterPayload)
-        beats.append(contentsOf: GeneratedJourneyData.endingLights)
-        beats.append(contentsOf: GeneratedJourneyData.endingFinal)
-        return beats.filter { !$0.text.isEmpty }
+        finishClear(run: &run)
     }
 
     private static func finishClear(run: inout RunState) {
