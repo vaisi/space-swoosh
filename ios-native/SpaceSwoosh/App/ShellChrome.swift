@@ -1,6 +1,7 @@
 // ShellChrome.swift
 // Changes: Android BrandDraw chrome — Grotesk/Mono, ← Back, dotted rules, signal tiles.
 // brandButton `disabled` is the decommissioned Arc row (dim ink, tag OUT).
+// @ViewBuilder so the disabled modifier is part of the returned view (Xcode 26).
 
 import SwiftUI
 import UIKit
@@ -72,6 +73,7 @@ enum ShellChrome {
             .frame(height: 4)
     }
 
+    @ViewBuilder
     static func brandButton(
         _ title: String,
         tag: String? = nil,
