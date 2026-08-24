@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: ending sky lights are smaller Signal-Blue sparkles. -->
+<!-- userdoc.md — Changes: finishing the Journey also stores the ship with the reply. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -7,7 +7,9 @@
 > (for example which ship you flew). It does **not** use the device Advertising
 > ID for ads or tracking. Open Space scores use a public project key with
 > server-side row limits (read + submit only; no player accounts). Call signs
-> you submit are stored on the online board; Journey progress and Open Space
+> you submit are stored on the online board. If you finish the Journey, the
+> words you send (or that you left it unsaid) and the ship you flew are stored
+> privately — not on the public board. Journey progress and Open Space
 > personal bests stay on your device.
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
@@ -126,7 +128,8 @@ Flying Journey is also how you **unlock Space Log entries** — observe and inte
 with hazards and boosts to fill your field manual. The opening Signal brief is
 the first Journey entry. After the last relay, you can write one thing into the
 dark — or leave it unsaid. That choice is once per device; later visits still
-play the ending, without another prompt. The lights that bloom there are the same
+play the ending, without another prompt. The ship you flew is saved with that
+reply. The lights that bloom there are the same
 Signal Blue as the fuel sparkles, kept small so the field stays dark.
 
 ### Open Space

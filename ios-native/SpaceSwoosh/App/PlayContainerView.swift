@@ -4,6 +4,7 @@
 // Skip captions are two beats (one phrase each), matching the skip voice.
 // First ending: Arc unlock card, then Controls with Arc on.
 // One epilogue reply per device — replay skips the prompt.
+// Submit also records the equipped ship next to the reply.
 // Epilogue lights: reply fades to 0, your-star crossfades in with a birth
 // sparkle. Sky lights are Signal-Blue cores + tight halos + short spikes.
 
@@ -837,7 +838,11 @@ struct JourneyEpilogueView: View {
         busy = true
         error = ""
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        let result = await ReplyService.submit(text: reply, skipped: skipped)
+        let result = await ReplyService.submit(
+            text: reply,
+            skipped: skipped,
+            shipId: settings.shipSkinId
+        )
         ordinal = result
         JourneyStore.shared.markEpilogueReply(ordinal: result)
         busy = false

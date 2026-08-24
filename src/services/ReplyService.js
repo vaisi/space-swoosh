@@ -6,10 +6,17 @@
 // this service still inserts whenever called, so the epilogue must not call it
 // again on replay.
 // Changes:
-// - Created file: submitJourneyReply({ text, skipped }) → { ordinal } | null.
+// - submitJourneyReply also sends shipId (roster skin) as p_ship_id.
 
 import { supabase, isLeaderboardConfigured } from '../config/supabase.js';
+import { skins } from '../ships/skins.js';
 import { validateReply } from './ReplyFilter.js';
+
+/** Only known roster ids are stored — never free-form ship text. */
+function sanitizeShipId(shipId) {
+    if (!shipId || typeof shipId !== 'string') return null;
+    return skins[shipId] ? shipId : null;
+}
 
 export class ReplyRejectedError extends Error {
     constructor(message) {
@@ -24,10 +31,10 @@ export class ReplyService {
     }
 
     /**
-     * @param {{ text?: string, skipped?: boolean }} payload
+     * @param {{ text?: string, skipped?: boolean, shipId?: string }} payload
      * @returns {Promise<number | null>} ordinal, or null if offline / error
      */
-    static async submitJourneyReply({ text = '', skipped = false } = {}) {
+    static async submitJourneyReply({ text = '', skipped = false, shipId = null } = {}) {
         let body = null;
         if (!skipped) {
             const check = validateReply(text);
@@ -41,6 +48,7 @@ export class ReplyService {
             const { data, error } = await supabase.rpc('submit_journey_reply', {
                 p_body: body,
                 p_skipped: Boolean(skipped),
+                p_ship_id: sanitizeShipId(shipId),
             });
             if (error) {
                 console.warn('[replies] submit failed:', error.message);

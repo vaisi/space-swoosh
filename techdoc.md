@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: L42 epilogue sky lights are smaller Signal-Blue sparkles, not huge warm glows. -->
+<!-- Changes: journey_replies now stores ship_id next to the L42 ending message. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -131,7 +131,7 @@ There are **two play modes**, chosen from Play:
 | Mode | Shape | Leaderboard |
 | --- | --- | --- |
 | **Open Space** | Endless. Difficulty ramps off distance, forever. | Yes (Supabase) |
-| **Journey** | 42 finite levels, each with a distance goal and three stars. After L42, a written epilogue. | No — progress is local; replies go to `journey_replies` |
+| **Journey** | 42 finite levels, each with a distance goal and three stars. After L42, a written epilogue. | No — progress is local; replies go to `journey_replies` (`body`, `skipped`, `ship_id`) |
 
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
   Capacitor 8 for **Android** (and legacy Cap iOS reference tree), **native
@@ -228,6 +228,15 @@ RLS behavior stays the same.
 | UI | **Space Board** screen: header title + quiet **← Back**; theme-style Zigzag/Arc toggle button on the right (`Zigzag`+`Z` / `Arc`+`S`); **DISTANCE / OBSTACLES** metric tabs below. Opens on the player's current flight style. |
 | Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: idle layout stacks distance → asteroids → rank above the call-sign field (no auto-focus). Soft keyboard: `@capacitor/keyboard` (`resizeOnFullScreen`) + `game.softKeyboardHeight`; real IME inset pins the card to the top with call sign + Submit first and a single horizontal stats row. DOM input on `#gameContainer`, repositioned every frame. |
 
+### Journey replies (Supabase)
+
+| Piece | Role |
+| --- | --- |
+| Table | `public.journey_replies` (`body`, `skipped`, `ship_id`, `created_at`) |
+| Access | No public SELECT. Anon inserts only through `submit_journey_reply` (`p_body`, `p_skipped`, `p_ship_id`). |
+| `ship_id` | Roster skin flown on the L42 ending (same id format as `high_scores`). Null on legacy rows and on invalid ids. |
+| Migrations | `…_create_journey_replies.sql`, `…_journey_replies_add_ship_id.sql` |
+
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
 game build env. Journey progress and Open Space personal best stay in
@@ -253,7 +262,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
 | `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. |
 | `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spacewoosh, first-time Arc card. Replay skips the prompt (one reply per device). Sky lights and the player star use Signal Blue with tight halos (same accent as fuel sparkles). |
-| `services/ReplyService.js` | RPC `submit_journey_reply` → ordinal. Called once per device; replay does not insert again. Offline falls back to a local card. |
+| `services/ReplyService.js` | RPC `submit_journey_reply(p_body, p_skipped, p_ship_id)` → ordinal. Roster `ship_id` is stored next to the message. Called once per device; replay does not insert again. Offline falls back to a local card. |
 | `services/ReplyFilter.js` | 140-char UGC filter for epilogue text (same blocklist as call signs). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |

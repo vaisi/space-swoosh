@@ -1,5 +1,5 @@
 // ScoreService.swift
-// Changes: ReplyService RPC submit_journey_reply beside high_scores.
+// Changes: ReplyService submit_journey_reply now also sends p_ship_id.
 
 import Foundation
 
@@ -172,10 +172,13 @@ enum ScoreService {
 }
 
 enum ReplyService {
-    static func submit(text: String, skipped: Bool) async -> Int? {
+    static func submit(text: String, skipped: Bool, shipId: SkinId? = nil) async -> Int? {
         guard ScoreService.isAvailable else { return nil }
         var body: [String: Any] = ["p_skipped": skipped]
         body["p_body"] = skipped ? NSNull() : text
+        if let shipId {
+            body["p_ship_id"] = shipId.rawValue
+        }
         let payload: Data
         do {
             payload = try JSONSerialization.data(withJSONObject: body)

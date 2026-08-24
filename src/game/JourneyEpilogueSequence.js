@@ -13,6 +13,7 @@
 // - Keep BGM through the hold; skip captions are two beats (one per phrase).
 // - First-time Arc unlock card after Follow @spacewoosh.
 // - One reply per device: replay skips the prompt and does not submit again.
+// - Submit also records the equipped ship (game.shipSkinId) next to the reply.
 
 import {
     ENDING_EPILOGUE,
@@ -288,6 +289,7 @@ export class JourneyEpilogueSequence {
             this.ordinal = await ReplyService.submitJourneyReply({
                 text: this.replyText,
                 skipped,
+                shipId: this.game.shipSkinId,
             });
         } catch (err) {
             if (err instanceof ReplyRejectedError) {
