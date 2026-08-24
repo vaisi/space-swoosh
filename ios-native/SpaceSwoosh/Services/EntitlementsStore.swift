@@ -1,5 +1,5 @@
 // EntitlementsStore.swift
-// Changes: Skin ownership cache + purchase/restore (Android Entitlements.js, skins only).
+// Changes: prefetchPrices copies prices onto MainActor without capturing a var.
 
 import Foundation
 import Combine
@@ -129,7 +129,8 @@ final class EntitlementsStore: ObservableObject {
                 next[productId] = price
             }
         }
-        await MainActor.run { prices = next }
+        let fetched = next
+        await MainActor.run { prices = fetched }
     }
 
     private func persist() {
