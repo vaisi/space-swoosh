@@ -1,6 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: Packs level-1..42 plus epilogue-open / epilogue-skip when those
-// files are present. Case-insensitive Voice pack + turn1.mp3.
+// Changes: Link RevenueCat SPM (purchases-ios) next to Firebase Analytics.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -38,6 +37,9 @@ const googleServicePlist = path.join(appRoot, 'GoogleService-Info.plist');
 const firebasePackage = id('spm:firebase-ios-sdk');
 const firebaseAnalytics = id('spm:FirebaseAnalyticsCore');
 const firebaseAnalyticsBuild = id('build:FirebaseAnalyticsCore');
+const revenueCatPackage = id('spm:purchases-ios');
+const revenueCatProduct = id('spm:RevenueCat');
+const revenueCatBuild = id('build:RevenueCat');
 
 const projectId = id('project');
 const targetId = id('target');
@@ -144,6 +146,7 @@ pbx += `\t\t${privacy.build} /* PrivacyInfo.xcprivacy in Resources */ = {isa = P
 const googleService = ensureFile(googleServicePlist);
 pbx += `\t\t${googleService.build} /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ${googleService.ref} /* GoogleService-Info.plist */; };\n`;
 pbx += `\t\t${firebaseAnalyticsBuild} /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = ${firebaseAnalytics} /* FirebaseAnalyticsCore */; };\n`;
+pbx += `\t\t${revenueCatBuild} /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ${revenueCatProduct} /* RevenueCat */; };\n`;
 for (const f of voiceFiles) {
   const meta = ensureFile(f);
   pbx += `\t\t${meta.build} /* ${meta.name} in Resources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
@@ -172,6 +175,7 @@ pbx += `/* End PBXFileReference section */
 			buildActionMask = 2147483647;
 			files = (
 				${firebaseAnalyticsBuild} /* FirebaseAnalyticsCore in Frameworks */,
+				${revenueCatBuild} /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,6 +232,7 @@ pbx += `/* End PBXGroup section */
 			name = SpaceSwoosh;
 			packageProductDependencies = (
 				${firebaseAnalytics} /* FirebaseAnalyticsCore */,
+				${revenueCatProduct} /* RevenueCat */,
 			);
 			productName = SpaceSwoosh;
 			productReference = ${productRef} /* SpaceSwoosh.app */;
@@ -254,6 +259,7 @@ pbx += `/* End PBXGroup section */
 			mainGroup = ${mainGroup};
 			packageReferences = (
 				${firebasePackage} /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				${revenueCatPackage} /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			productRefGroup = ${productsGroup} /* Products */;
 			projectDirPath = "";
@@ -426,6 +432,14 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				minimumVersion = 12.17.0;
 			};
 		};
+		${revenueCatPackage} /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.32.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -433,6 +447,11 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			isa = XCSwiftPackageProductDependency;
 			package = ${firebasePackage} /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalyticsCore;
+		};
+		${revenueCatProduct} /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ${revenueCatPackage} /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

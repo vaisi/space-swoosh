@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: L42 written epilogue — dark hold, bottom-docked prompt, smaller lights.
+// Changes: L42 written epilogue — dark hold, Day 42 voice+captions, 3s gap, then open.
 // Skip captions are two beats (one phrase each), matching the skip voice.
 // First ending: Arc unlock card, then Controls with Arc on.
 // One epilogue reply per device — replay skips the prompt.
@@ -419,6 +419,8 @@ struct JourneyEpilogueView: View {
     @State private var beatIndex = 0
     @State private var openVoiceDone = false
     @State private var openBeatsDone = false
+    @State private var arrivalVoiceDone = false
+    @State private var arrivalBeatsDone = false
     @State private var skipVoiceDone = false
     @State private var skipBeatsDone = false
     @State private var drift: CGFloat = 0
@@ -428,8 +430,10 @@ struct JourneyEpilogueView: View {
 
     private let openBeats = GeneratedJourneyData.epilogueOpen
     private let skipBeats = GeneratedJourneyData.epilogueSkip
+    private let arrivalBeats = JourneyConfig.introBeats(for: JourneyConfig.totalLevels)
     private let bone = Color(red: 225 / 255, green: 217 / 255, blue: 193 / 255)
     private let darkHold: Double = 1.6
+    private let arrivalGap: Double = 3.0
 
     var body: some View {
         ZStack {
@@ -609,13 +613,56 @@ struct JourneyEpilogueView: View {
     private func startOpen() {
         phase = "hold"
         caption = ""
+        arrivalVoiceDone = false
+        arrivalBeatsDone = false
         openVoiceDone = false
         openBeatsDone = false
         beatIndex = 0
         let stamp = generation
         DispatchQueue.main.asyncAfter(deadline: .now() + darkHold) {
             guard stamp == generation, phase == "hold" else { return }
+            phase = "arrival"
+            VoicePlayer.shared.playLevel(JourneyConfig.totalLevels) {
+                DispatchQueue.main.async {
+                    arrivalVoiceDone = true
+                    tryEnterOpen()
+                }
+            }
+            playArrivalBeat()
+        }
+    }
+
+    private func playArrivalBeat() {
+        guard beatIndex < arrivalBeats.count else {
+            caption = ""
+            arrivalBeatsDone = true
+            tryEnterOpen()
+            return
+        }
+        let beat = arrivalBeats[beatIndex]
+        caption = beat.text
+        let hold = max(0.9, min(2.8, Double(beat.text.count) * 0.055))
+        let gap = Double(beat.gapAfterMs) / 1000
+        let stamp = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + hold + gap) {
+            guard stamp == generation, phase == "arrival" else { return }
+            beatIndex += 1
+            playArrivalBeat()
+        }
+    }
+
+    private func tryEnterOpen() {
+        guard phase == "arrival", arrivalBeatsDone, arrivalVoiceDone else { return }
+        caption = ""
+        phase = "arrivalHold"
+        VoicePlayer.shared.stop()
+        let stamp = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + arrivalGap) {
+            guard stamp == generation, phase == "arrivalHold" else { return }
             phase = "open"
+            beatIndex = 0
+            openVoiceDone = false
+            openBeatsDone = false
             VoicePlayer.shared.playEpilogueOpen {
                 DispatchQueue.main.async {
                     openVoiceDone = true

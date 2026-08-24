@@ -238,3 +238,4 @@ export function drawSparkle(ctx, cx, cy, r, {
     }
     ctx.restore();
 }
+

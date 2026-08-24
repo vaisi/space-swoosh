@@ -68,7 +68,9 @@
 		0D874E47B27BCE72D6FFB126 /* WakeCollect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100BA74C1B5068784167B2C7 /* WakeCollect.swift */; };
 		15D94F104AC4143594E1512C /* WhimsicalWakes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DEFEAF0418D32247A35E79 /* WhimsicalWakes.swift */; };
 		69BFA1F2CE13B96E27EEB212 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663AB0D637752E2E501C054E /* Analytics.swift */; };
+		A3D97FE6B04CAEFC32B58E25 /* EntitlementsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B15B277C40D0EC5078BDCD /* EntitlementsStore.swift */; };
 		43365925BDAC80BF14F25256 /* NameFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE02F61DEB13889396A5CF40 /* NameFilter.swift */; };
+		230D2DCD2DDBF556DF3C7051 /* PurchasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B870B63A5500CD037A521023 /* PurchasesService.swift */; };
 		88C1215844106C8E02B6C338 /* ScoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF2A213E6AE42A2E237F47E /* ScoreService.swift */; };
 		87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */; };
 		5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECBDDDE316344C763EADABE /* CinematicFlight.swift */; };
@@ -87,6 +89,7 @@
 		C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */; };
 		E6F11AD28494E4EC3AE48B05 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4A8052E7A4903C84E5D39FF9 /* GoogleService-Info.plist */; };
 		BB1FBCF08E1C0B36B6CF2759 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = CC7632EDC963539FCCE2CC86 /* FirebaseAnalyticsCore */; };
+		96F23104C1A3B3748F6C5C42 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3AAA3AE4CF36A6DA8894CFDC /* RevenueCat */; };
 		4C7EEAAAAF9364D664F23B74 /* background.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 04E4CF0498F47FCE691777EF /* background.mp3 */; };
 		B08AA9A9A4E896C9C5B0AD12 /* crash.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 0FE5527F72ADEF15677E5651 /* crash.mp3 */; };
 		43500B02C66488807B05B133 /* crash_with_shield.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 51B5D45C50CE884B69EF2732 /* crash_with_shield.mp3 */; };
@@ -211,7 +214,9 @@
 		100BA74C1B5068784167B2C7 /* WakeCollect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WakeCollect.swift; sourceTree = "<group>"; };
 		D0DEFEAF0418D32247A35E79 /* WhimsicalWakes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhimsicalWakes.swift; sourceTree = "<group>"; };
 		663AB0D637752E2E501C054E /* Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
+		23B15B277C40D0EC5078BDCD /* EntitlementsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementsStore.swift; sourceTree = "<group>"; };
 		EE02F61DEB13889396A5CF40 /* NameFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameFilter.swift; sourceTree = "<group>"; };
+		B870B63A5500CD037A521023 /* PurchasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesService.swift; sourceTree = "<group>"; };
 		4CF2A213E6AE42A2E237F47E /* ScoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreService.swift; sourceTree = "<group>"; };
 		5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinemaSimulator.swift; sourceTree = "<group>"; };
 		DECBDDDE316344C763EADABE /* CinematicFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicFlight.swift; sourceTree = "<group>"; };
@@ -297,6 +302,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB1FBCF08E1C0B36B6CF2759 /* FirebaseAnalyticsCore in Frameworks */,
+				96F23104C1A3B3748F6C5C42 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -458,7 +464,9 @@
 			isa = PBXGroup;
 			children = (
 				663AB0D637752E2E501C054E,
+				23B15B277C40D0EC5078BDCD,
 				EE02F61DEB13889396A5CF40,
+				B870B63A5500CD037A521023,
 				4CF2A213E6AE42A2E237F47E,
 			);
 			path = Services;
@@ -564,6 +572,7 @@
 			name = SpaceSwoosh;
 			packageProductDependencies = (
 				CC7632EDC963539FCCE2CC86 /* FirebaseAnalyticsCore */,
+				3AAA3AE4CF36A6DA8894CFDC /* RevenueCat */,
 			);
 			productName = SpaceSwoosh;
 			productReference = 71CCD365E3A654DA84DBA191 /* SpaceSwoosh.app */;
@@ -590,6 +599,7 @@
 			mainGroup = 8D3FC6DB5D0827F168A73277;
 			packageReferences = (
 				A35CE04F947432E3D46B59CB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				842969776E76F465C0B2F7BB /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			productRefGroup = 1BADDC1D73C1A20F347483E1 /* Products */;
 			projectDirPath = "";
@@ -760,7 +770,9 @@
 				0D874E47B27BCE72D6FFB126 /* WakeCollect.swift in Sources */,
 				15D94F104AC4143594E1512C /* WhimsicalWakes.swift in Sources */,
 				69BFA1F2CE13B96E27EEB212 /* Analytics.swift in Sources */,
+				A3D97FE6B04CAEFC32B58E25 /* EntitlementsStore.swift in Sources */,
 				43365925BDAC80BF14F25256 /* NameFilter.swift in Sources */,
+				230D2DCD2DDBF556DF3C7051 /* PurchasesService.swift in Sources */,
 				88C1215844106C8E02B6C338 /* ScoreService.swift in Sources */,
 				87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */,
 				5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */,
@@ -897,6 +909,14 @@
 				minimumVersion = 12.17.0;
 			};
 		};
+		842969776E76F465C0B2F7BB /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.32.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -904,6 +924,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A35CE04F947432E3D46B59CB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalyticsCore;
+		};
+		3AAA3AE4CF36A6DA8894CFDC /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 842969776E76F465C0B2F7BB /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,5 +1,5 @@
 // SpaceSwooshApp.swift
-// Changes: Configure Firebase Analytics at launch (before any gameplay events).
+// Changes: Configure RevenueCat after Firebase; entitlements refresh does not block the menu.
 
 import SwiftUI
 
@@ -9,6 +9,8 @@ struct SpaceSwooshApp: App {
 
     init() {
         AnalyticsService.configure()
+        PurchasesService.configure()
+        EntitlementsStore.shared.bootstrap()
     }
 
     var body: some Scene {

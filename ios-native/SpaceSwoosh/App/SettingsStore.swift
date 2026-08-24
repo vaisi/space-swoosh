@@ -1,6 +1,5 @@
 // SettingsStore.swift
-// Changes: Firebase Analytics for theme / sound / equip_ship (Android parity).
-// Arc writes are ignored until Day 42 is cleared.
+// Changes: Snap equipped ship to Flicker when IAP ownership drops.
 
 import Foundation
 import Combine
@@ -29,6 +28,10 @@ final class SettingsStore: ObservableObject {
             UserDefaults.standard.set(flightStyle.rawValue, forKey: "spaceswoosh.flightStyle")
         }
         shipSkinId = SkinCatalog.resolve(UserDefaults.standard.string(forKey: "shipSkinId"))
+        if !SkinCatalog.isOwned(shipSkinId) {
+            shipSkinId = .flicker
+            UserDefaults.standard.set(SkinId.flicker.rawValue, forKey: "shipSkinId")
+        }
         isDark = UserDefaults.standard.string(forKey: "ssTheme") == "dark"
         muted = UserDefaults.standard.bool(forKey: "soundMuted")
         musicEnabled = Self.flag("soundMusicEnabled", default: true)
@@ -57,6 +60,12 @@ final class SettingsStore: ObservableObject {
         UserDefaults.standard.set(id.rawValue, forKey: "shipSkinId")
         if previous != id {
             AnalyticsService.track("equip_ship", ["ship_id": id.rawValue])
+        }
+    }
+
+    func ensureEquippedOwned() {
+        if !SkinCatalog.isOwned(shipSkinId) {
+            setShipSkin(.flicker)
         }
     }
 

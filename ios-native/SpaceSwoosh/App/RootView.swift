@@ -1,6 +1,5 @@
 // RootView.swift
-// Changes: Android menu map — 4 home buttons, nested Options, PLAY cards, SPACE BOARD.
-// First L42 ending lands on Controls with Arc on.
+// Changes: Options hub Restore Purchases row (Android IAP parity).
 
 import SwiftUI
 
@@ -21,6 +20,7 @@ enum ShellScreen {
 struct RootView: View {
     @ObservedObject private var settings = SettingsStore.shared
     @ObservedObject private var journey = JourneyStore.shared
+    @ObservedObject private var entitlements = EntitlementsStore.shared
     @State private var screen: ShellScreen = .menu
     @State private var launch: PlayLaunch = .openSpace
     @State private var logbookReturn: ShellScreen = .menu
@@ -162,6 +162,15 @@ struct RootView: View {
                 tag: "◐"
             ) {
                 settings.toggleTheme()
+            }
+            ShellChrome.brandButton("Restore Purchases", tag: "↻") {
+                Task { await entitlements.restore() }
+            }
+            if let status = entitlements.statusMessage {
+                Text(status.uppercased())
+                    .font(BrandType.mono(11))
+                    .foregroundStyle(BrandColors.signal)
+                    .frame(maxWidth: .infinity)
             }
             Spacer()
         }

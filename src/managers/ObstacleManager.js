@@ -1,6 +1,7 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Day 42: skip new rows at/past the finish gate so Arrival flyout is empty.
 // - Shield smash plays crash_with_shield plus the same Light-impact haptic as
 //   wall BOOP at reduced strength (Android quieter waveform / iOS intensity 0.55).
 // - DriftCurrent: keep the light dash look; only lineDashOffset flips so some
@@ -1753,7 +1754,9 @@ export class ObstacleManager {
         if (beltOpen) {
             while (this.nextSpawnY > this.game.camera.y - this.game.height) {
                 const spacing = this.minVerticalGap + Math.random() * (this.maxVerticalGap - this.minVerticalGap);
-                this.nextSpawnY -= spacing;
+                const candidate = this.nextSpawnY - spacing;
+                if (this.game.isAtOrPastFinaleGate?.(candidate)) break;
+                this.nextSpawnY = candidate;
                 if (!this.pauseSpawning && this.countAhead() < this.game.profile.maxOnScreen) {
                     this.spawnObstacleRow();
                 }
@@ -1880,7 +1883,8 @@ export class ObstacleManager {
 
         // Spawn new obstacles (same belt gate as the row cursor above).
         if (beltOpen && !this.inCutscene && !this.pauseSpawning
-            && this.countAhead() < this.game.profile.maxOnScreen) {
+            && this.countAhead() < this.game.profile.maxOnScreen
+            && !this.game.isAtOrPastFinaleGate?.(this.nextSpawnY)) {
             const minSpawnInterval = this.game.height * 0.35; // Reduced from 0.4
             
             if (!this.lastSpawnY || 

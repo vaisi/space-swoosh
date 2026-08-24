@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: Journey 42 levels / 119 stars; L42 written epilogue overlay.
+  Changes: Ship IAP + Restore Purchases via RevenueCat; UNLOCK_ALL_SKINS false.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -9,14 +9,14 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 
 ## Hangar (current)
 
-- **41 ships** in Android `SKIN_DEFS` order. Playtest flag `UNLOCK_ALL_SKINS = true` (flip false before store). No prices / locked tiles / RevenueCat in this build
+- **41 ships** in Android `SKIN_DEFS` order. `UNLOCK_ALL_SKINS = false` — premium tiles show store price (or LOCKED) and tap-to-buy via RevenueCat. Free forever: Focus, Flicker, Ember, Saber
 - Playtest flag `UNLOCK_ALL_LEVELS = true` (flip false before store) opens every Journey map tile without rewriting saved `unlocked`
-- Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for later IAP
+- Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for RevenueCat
 - Home: **SPACE SWOOSH** + flavor + ◀ hull ▶, then Play / Space Log / Options / High Scores (Android tags ▶ □ ⚙ #)
 - Play: **PLAY** header, Journey (RECOMMENDED) then Open Space (ENDLESS). Hazard Lab is the Journey-map **LAB** tile only
-- Options hub: Ship ●, Controls ↔, Sound ♪, Light/Dark Mode ◐. Controls = Zigzag/Arc. Sound = Music / Sound FX / Voice (`soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`). Pause Sound stays master mute
+- Options hub: Ship ●, Controls ↔, Sound ♪, Light/Dark Mode ◐, Restore Purchases ↻. Controls = Zigzag/Arc. Sound = Music / Sound FX / Voice (`soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`). Pause Sound stays master mute
 - **SPACE BOARD**: same `high_scores` table as Android (Zigzag/Arc, DISTANCE/OBSTACLES, 10×10 pages). Submit Score + top-10 auto-prompt. Local PBs still back the PLAY card.
-- **Firebase Analytics**: same project as Android (`spaceswoosh-faa9c`). Events: `game_over`, `journey_level_end`, `hazard_lab_end`, `equip_ship`, `set_theme`, `set_sound`, `set_sound_channel`, `submit_highscore`. Plist is gitignored; Codemagic uses `GOOGLE_SERVICE_INFO_PLIST`. No Advertising Identifier (`FirebaseAnalyticsCore`).
+- **Firebase Analytics**: same project as Android (`spaceswoosh-faa9c`). Events: `game_over`, `journey_level_end`, `hazard_lab_end`, `equip_ship`, `purchase_skin`, `set_theme`, `set_sound`, `set_sound_channel`, `submit_highscore`. Plist is gitignored; Codemagic uses `GOOGLE_SERVICE_INFO_PLIST`. No Advertising Identifier (`FirebaseAnalyticsCore`).
 - Type: bundled Space Grotesk + Space Mono (`BrandType`). Framed ink tiles, 0 radius, dotted rules, **← Back**
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
 - Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
@@ -34,8 +34,8 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Clear: Android hold / ramp / min / cap / fade; lean preserved; hull leaves the top
 - L42 clear: written epilogue (NAV open → prompt/skip → lights → ordinal → Follow @spacewoosh → title)
 - **Logbook** observe / interact / known
-- Options: nested hub (ship, controls, sound channels, night paper). No Restore in this build
-- Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId`, `soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`, `playerName` (same keys as Android)
+- Options: nested hub (ship, controls, sound channels, night paper, Restore Purchases)
+- Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId`, `ownedSkinIds`, `soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`, `playerName` (same keys as Android)
 - Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash / **first-boop** / **swoosh-voice** on the engine pool (synth fallback for turn/crash/shield); baked boop/collect/portal/swoosh. First wall BOOP and first style swoosh no longer open a fresh `AVAudioPlayer` (that hitch glitched the synth SFX). Clear-flyout smash SFX throttled to 120 ms
 - HUD: Android mockup C (pause glyph + route / fuel / smash icon rows). Stagger: KM+fuel at 2s, pause at 3s, smash after first event
 - Shield: two Signal stroke rings; **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
@@ -52,7 +52,7 @@ Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `epi
 
 The audio session is **`.playback`**, so TestFlight plays with the Silent switch on. Options → SOUND OFF still mutes. Codemagic **App Preview** may still forward no audio; that is the stream, not the IPA.
 
-Not yet: IAP / Lives / Pro / RevenueCat restore.
+Not yet: Lives / Pro (skins IAP + Restore ship in this build).
 
 ### Gate
 

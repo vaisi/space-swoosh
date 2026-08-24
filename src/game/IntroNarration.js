@@ -3,10 +3,12 @@
 // matching navigator voice clip. Keeps hudRevealPhase on 'title' until every
 // beat has cleared and the voice has ended (or failed / been muted).
 // Changes:
+// - Day 42 skips intro voice; the clip plays with its captions after the gate.
 // - Beats accept `{ text, gapAfterMs }` (ElevenLabs <break> pacing) or strings.
 // - Voice clips supported for Journey levels 1–42.
 
 import { DEFAULT_BEAT_GAP_MS } from '../config/JourneyNarrative.js';
+import { TOTAL_LEVELS } from '../config/JourneyConfig.js';
 
 const BEAT_FADE_IN = 350;
 const BEAT_FADE_OUT = 350;
@@ -65,7 +67,8 @@ export class IntroNarration {
         this.started = true;
 
         const level = this.voiceLevel;
-        if (level != null) {
+        // Arrival (L42) speaks after the gate with the written ending, not here.
+        if (level != null && level < TOTAL_LEVELS) {
             this.game.soundManager?.playLevelVoice?.(level, {
                 onEnded: () => {
                     this.voiceDone = true;

@@ -5,7 +5,7 @@
 // then Controls with Arc on. Later endings return to title. No NAV after
 // the prompt. Offline still plays the lights with a local card.
 // Changes:
-// - Dark hold before open/skip voice; L42 fade is slower in LevelClearSequence.
+// - After the dark hold: L42 arrival voice + captions, 3s black gap, then open.
 // - Prompt: “Write it here.” placeholder, larger type, bottom-docked tall buttons.
 // - Lights are smaller with a bright core + faint halo.
 // - Keep BGM through the hold; skip captions are two beats (one per phrase).
@@ -16,7 +16,9 @@ import {
     ENDING_EPILOGUE,
     EPILOGUE_INSTAGRAM_URL,
     DEFAULT_BEAT_GAP_MS,
+    LEVEL_INTRO_BEATS,
 } from '../config/JourneyNarrative.js';
+import { TOTAL_LEVELS } from '../config/JourneyConfig.js';
 import { FLIGHT_STYLE } from '../config/flightStyle.js';
 import { hasSeenArcUnlock, markArcUnlockSeen, hasEpilogueReply, markEpilogueReply } from '../services/JourneyProgress.js';
 import {
@@ -43,6 +45,7 @@ const LIGHTS_MS = 4200;
 const MAX_LIGHTS = 72;
 const DRIFT_MS = 1600;
 const DARK_HOLD_MS = 1600;
+const ARRIVAL_GAP_MS = 3000;
 const INPUT_FONT_PX = 22;
 
 function holdForBeat(text) {
@@ -55,6 +58,13 @@ function counterText(ordinal) {
     return ENDING_EPILOGUE.counterCard.replace('{N}', formatOrdinal(ordinal));
 }
 
+function mapBeats(raw) {
+    return (raw || []).map((beat) => ({
+        text: String(beat.text || beat || '').trim(),
+        gapAfterMs: beat.gapAfterMs ?? DEFAULT_BEAT_GAP_MS,
+    })).filter((b) => b.text);
+}
+
 export class JourneyEpilogueSequence {
     /**
      * @param {import('./Game.js').Game} game
@@ -64,10 +74,9 @@ export class JourneyEpilogueSequence {
         this.active = true;
         this.phase = 'hold';
         this.phaseStart = performance.now();
-        this.beats = (ENDING_EPILOGUE.open || []).map((beat) => ({
-            text: String(beat.text || '').trim(),
-            gapAfterMs: beat.gapAfterMs ?? DEFAULT_BEAT_GAP_MS,
-        })).filter((b) => b.text);
+        this.arrivalBeats = mapBeats(LEVEL_INTRO_BEATS[TOTAL_LEVELS]);
+        this.openBeats = mapBeats(ENDING_EPILOGUE.open);
+        this.beats = this.arrivalBeats;
         this.beatIndex = 0;
         this.caption = '';
         this.captionAlpha = 0;
@@ -124,6 +133,8 @@ export class JourneyEpilogueSequence {
         const dt = Math.max(0, Math.min(deltaTime, 0.1));
 
         if (this.phase === 'hold') this.updateHold(now);
+        else if (this.phase === 'arrival') this.updateArrival(now);
+        else if (this.phase === 'arrivalHold') this.updateArrivalHold(now);
         else if (this.phase === 'open') this.updateOpen(now);
         else if (this.phase === 'prompt') this.layoutInput();
         else if (this.phase === 'skipHold') this.updateSkipHold(now);
@@ -137,13 +148,55 @@ export class JourneyEpilogueSequence {
     }
 
     updateHold(now) {
-        if (now - this.phaseStart >= DARK_HOLD_MS) this.enterOpen();
+        if (now - this.phaseStart >= DARK_HOLD_MS) this.enterArrival();
+    }
+
+    enterArrival() {
+        this.phase = 'arrival';
+        this.phaseStart = performance.now();
+        this.beats = this.arrivalBeats;
+        this.beatIndex = 0;
+        this.voiceDone = false;
+        this.caption = '';
+        this.captionAlpha = 0;
+        this.captionMode = 'done';
+        this.game.soundManager?.keepEpilogueMusic?.();
+        this.game.soundManager?.playLevelVoice?.(TOTAL_LEVELS, {
+            onEnded: () => {
+                this.voiceDone = true;
+            },
+        });
+        this.showBeat(0);
+    }
+
+    updateArrival(now) {
+        if (this.captionMode !== 'done') this.tickCaption(now);
+        if (this.captionMode === 'done' && this.voiceDone) this.enterArrivalHold();
+    }
+
+    enterArrivalHold() {
+        this.phase = 'arrivalHold';
+        this.phaseStart = performance.now();
+        this.caption = '';
+        this.captionAlpha = 0;
+        this.captionMode = 'done';
+        this.game.soundManager?.stopLevelVoice?.({ notify: false });
+        this.game.soundManager?.keepEpilogueMusic?.();
+    }
+
+    updateArrivalHold(now) {
+        if (now - this.phaseStart >= ARRIVAL_GAP_MS) this.enterOpen();
     }
 
     enterOpen() {
         this.phase = 'open';
         this.phaseStart = performance.now();
+        this.beats = this.openBeats;
+        this.beatIndex = 0;
         this.voiceDone = false;
+        this.caption = '';
+        this.captionAlpha = 0;
+        this.captionMode = 'done';
         this.startOpenVoice();
         this.showBeat(0);
     }
@@ -379,7 +432,7 @@ export class JourneyEpilogueSequence {
 
     handleClick(x, y) {
         if (!this.active) return false;
-        if (this.phase === 'hold' || this.phase === 'open') {
+        if (this.phase === 'hold' || this.phase === 'arrival' || this.phase === 'arrivalHold' || this.phase === 'open') {
             this.game.soundManager?.keepEpilogueMusic?.();
             if (this.phase === 'open' && !this.game.soundManager?.isLevelVoicePlaying?.()) {
                 this.startOpenVoice();

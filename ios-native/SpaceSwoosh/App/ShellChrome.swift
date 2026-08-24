@@ -1,7 +1,5 @@
 // ShellChrome.swift
-// Changes: Android BrandDraw chrome — Grotesk/Mono, ← Back, dotted rules, signal tiles.
-// brandButton `disabled` is the decommissioned Arc row (dim ink, tag OUT).
-// @ViewBuilder so the disabled modifier is part of the returned view (Xcode 26).
+// Changes: Home ship cycle browses the full roster; locked hulls show price and tap-to-buy.
 
 import SwiftUI
 import UIKit
@@ -264,28 +262,32 @@ enum ShipArt {
 
 struct ShipPreview: View {
     @ObservedObject private var settings = SettingsStore.shared
+    @ObservedObject private var entitlements = EntitlementsStore.shared
+    @State private var browseId: SkinId = SettingsStore.shared.shipSkinId
 
     var body: some View {
-        let skin = SkinCatalog.def(settings.shipSkinId)
+        let skin = SkinCatalog.def(browseId)
+        let owned = entitlements.owns(browseId)
         VStack(spacing: 6) {
             HStack(spacing: 18) {
-                Button {
-                    settings.setShipSkin(SkinCatalog.prev(before: settings.shipSkinId))
-                } label: {
+                Button { cycle(-1) } label: {
                     Text("◀")
                         .font(BrandType.mono(22))
                         .foregroundStyle(BrandColors.ink)
                         .frame(width: 36, height: 44)
                 }
                 .buttonStyle(.plain)
-                Image(uiImage: ShipArt.preview(settings.shipSkinId))
-                    .resizable()
-                    .interpolation(.high)
-                    .scaledToFit()
-                    .frame(width: 88, height: 150)
                 Button {
-                    settings.setShipSkin(SkinCatalog.next(after: settings.shipSkinId))
+                    Task { await tapHull(owned: owned) }
                 } label: {
+                    Image(uiImage: ShipArt.preview(browseId))
+                        .resizable()
+                        .interpolation(.high)
+                        .scaledToFit()
+                        .frame(width: 88, height: 150)
+                }
+                .buttonStyle(.plain)
+                Button { cycle(1) } label: {
                     Text("▶")
                         .font(BrandType.mono(22))
                         .foregroundStyle(BrandColors.ink)
@@ -296,7 +298,39 @@ struct ShipPreview: View {
             Text(skin.name.uppercased())
                 .font(BrandType.label(11))
                 .tracking(BrandType.labelTracking(11))
-                .foregroundStyle(BrandColors.ink80)
+                .foregroundStyle(owned ? BrandColors.ink80 : BrandColors.ink)
+            if !owned {
+                Text((entitlements.statusMessage
+                      ?? entitlements.priceLabel(for: browseId)
+                      ?? "LOCKED · TAP TO UNLOCK").uppercased())
+                    .font(BrandType.mono(10))
+                    .foregroundStyle(BrandColors.signal)
+            } else if let status = entitlements.statusMessage {
+                Text(status.uppercased())
+                    .font(BrandType.mono(10))
+                    .foregroundStyle(BrandColors.signal)
+            }
+        }
+        .onAppear { browseId = settings.shipSkinId }
+        .onChange(of: settings.shipSkinId) { _, next in browseId = next }
+    }
+
+    private func cycle(_ delta: Int) {
+        browseId = SkinCatalog.adjacent(after: browseId, delta: delta)
+        if entitlements.owns(browseId) {
+            settings.setShipSkin(browseId)
+        }
+        entitlements.setStatus(nil)
+    }
+
+    private func tapHull(owned: Bool) async {
+        if owned {
+            settings.setShipSkin(browseId)
+        } else {
+            await entitlements.purchase(browseId)
+            if entitlements.owns(browseId) {
+                browseId = settings.shipSkinId
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 // PowerUpManager.js
 // Spawns/updates shield power-ups (floating plus + wall boost slab).
 // Changes:
+// - Day 42: skip plus / wall-boost spawns past the finish gate.
 // - Wall boost on collect: button-press retract into the edge + wall BOOP,
 //   then remove once the press anim finishes (buffs still grant on contact).
 // - Wall boost unlocks at 12000 KM (separate from plus); spawn ~22s; much rarer.
@@ -212,12 +213,14 @@ export class PowerUpManager {
         }
 
         const currentTime = performance.now();
+        const spawnY = this.game.camera.y - this.game.height;
+        const pastGate = this.game.isAtOrPastFinaleGate?.(spawnY);
         if (this.shieldsEnabled && currentTime - this.lastSpawnTime > this.spawnInterval) {
-            this.spawnPowerUp();
+            if (!pastGate) this.spawnPowerUp();
             this.lastSpawnTime = currentTime;
         }
         if (this.wallBoostsEnabled && currentTime - this.lastWallSpawnTime > this.wallSpawnInterval) {
-            this.spawnWallBoost();
+            if (!pastGate) this.spawnWallBoost();
             this.lastWallSpawnTime = currentTime;
         }
 

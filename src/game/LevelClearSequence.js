@@ -5,7 +5,8 @@
 // the top of the screen, the world fades out behind it, and the outcome screen
 // fades in.
 // Changes:
-// - L42 fade-to-black is slower (~1400 ms); other clears keep 385 ms.
+// - L42 fade-to-black is slower (~1400 ms), then the written epilogue.
+//   Day 42 voice + captions play in JourneyEpilogueSequence after the dark hold.
 // - L42 clear hands off to the written epilogue instead of fading in JOURNEY COMPLETE.
 
 import { clamp01, lerp } from '../utils/math.js';
@@ -106,7 +107,11 @@ export class LevelClearSequence {
     }
 
     fadeOutMs() {
-        return this.game.journeyLevel >= TOTAL_LEVELS ? FINALE_FADE_OUT_MS : FADE_OUT_MS;
+        return this.isFinale() ? FINALE_FADE_OUT_MS : FADE_OUT_MS;
+    }
+
+    isFinale() {
+        return this.game.isJourney?.() && this.game.journeyLevel >= TOTAL_LEVELS;
     }
 
     updateFadeOut(elapsed, dt) {

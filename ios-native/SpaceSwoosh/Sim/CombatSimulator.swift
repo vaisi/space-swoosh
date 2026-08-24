@@ -1,5 +1,5 @@
 // CombatSimulator.swift
-// Changes: playEpilogue flag for the L42 written ending.
+// Changes: L42 empty space past the gate; playEpilogue flag for the written ending.
 
 import Foundation
 import CoreGraphics
@@ -132,7 +132,7 @@ struct RunState {
 
     /// Score/popup every smash; throttle crash SFX in clear flyout (Android 120ms).
     mutating func requestShieldCrashSfx() {
-        let cinematic = cinema == .clearHold || cinema == .clearBoost || cinema == .clearFade
+        let cinematic = cinema.isClearFlyout
         if cinematic {
             let now = CFAbsoluteTimeGetCurrent()
             if lastShieldCrashAt >= 0, now - lastShieldCrashAt < 0.12 { return }
@@ -253,7 +253,7 @@ enum CombatSimulator {
         HazardCollision.tryTeleport(world: &world, run: &run)
         collide(world: &world, run: &run)
         if !run.profile.isEndless, run.scoreKm >= run.profile.goalKm, !run.isOver {
-            CinemaSimulator.beginClear(world: world, run: &run)
+            CinemaSimulator.beginClear(world: &world, run: &run)
         }
         tickMilestones(run: &run, dt: dt)
         FloatPopupBuffer.tick(&run.popups, dt: dt)
@@ -284,11 +284,14 @@ enum CombatSimulator {
         var guardCount = 0
         while run.nextSpawnY < world.ship.y + world.height && guardCount < 4 {
             guardCount += 1
-            run.nextSpawnY += gap.min + rand01(&run.rng) * (gap.max - gap.min)
+            let nextY = run.nextSpawnY + gap.min + rand01(&run.rng) * (gap.max - gap.min)
+            if isAtOrPastFinaleGate(y: nextY, world: world, run: run) { break }
+            run.nextSpawnY = nextY
             spawnRow(world: &world, run: &run, atY: run.nextSpawnY)
         }
 
         let ahead = world.ship.y + world.height
+        let skipAhead = isAtOrPastFinaleGate(y: ahead, world: world, run: run)
         if run.scoreKm >= run.profile.collectiblesFromKm {
             if !run.sparklesLive {
                 run.sparklesLive = true
@@ -296,7 +299,9 @@ enum CombatSimulator {
             }
             run.sparkleCooldown -= GameConfig.simDt
             if run.sparkleCooldown <= 0 {
-                spawnPickup(world: &world, kind: .sparkle, y: ahead, run: &run)
+                if !skipAhead {
+                    spawnPickup(world: &world, kind: .sparkle, y: ahead, run: &run)
+                }
                 run.sparkleCooldown = GameConfig.Profile.sparkleMin
                     + rand01(&run.rng) * GameConfig.Profile.sparkleSpan
             }
@@ -308,7 +313,9 @@ enum CombatSimulator {
             }
             run.shieldCooldown -= GameConfig.simDt
             if run.shieldCooldown <= 0 {
-                spawnPickup(world: &world, kind: .shield, y: ahead, run: &run)
+                if !skipAhead {
+                    spawnPickup(world: &world, kind: .shield, y: ahead, run: &run)
+                }
                 run.shieldCooldown = GameConfig.Profile.shieldInterval
             }
         }
@@ -319,8 +326,43 @@ enum CombatSimulator {
             }
             run.wallBoostCooldown -= GameConfig.simDt
             if run.wallBoostCooldown <= 0 {
-                spawnPickup(world: &world, kind: .wallBoost, y: ahead, run: &run)
+                if !skipAhead {
+                    spawnPickup(world: &world, kind: .wallBoost, y: ahead, run: &run)
+                }
                 run.wallBoostCooldown = GameConfig.Profile.wallBoostInterval
+            }
+        }
+    }
+
+    static func isJourneyFinale(_ run: RunState) -> Bool {
+        run.profile.mode == .journey && run.profile.level >= JourneyConfig.totalLevels
+    }
+
+    static func finaleGateY(world: WorldState, run: RunState) -> CGFloat? {
+        guard isJourneyFinale(run) else { return nil }
+        if run.finishLineY > 0 { return run.finishLineY }
+        let remaining = max(0, run.profile.goalKm - run.scoreKm)
+        let scale = GameConfig.kmReferenceHeight / max(world.height, 1)
+        let remainingWorld = remaining / max(scale * GameConfig.kmPerPixel, 0.0001)
+        return world.ship.y + remainingWorld
+    }
+
+    static func isAtOrPastFinaleGate(y: CGFloat, world: WorldState, run: RunState) -> Bool {
+        guard let gate = finaleGateY(world: world, run: run) else { return false }
+        return y >= gate - world.baseUnit * 2
+    }
+
+    static func cullPastFinaleGate(world: inout WorldState, run: RunState) {
+        guard let gate = finaleGateY(world: world, run: run) else { return }
+        let margin = world.baseUnit * 2
+        for i in world.obstacles.indices {
+            if world.obstacles[i].active, world.obstacles[i].y >= gate - margin {
+                world.obstacles[i].active = false
+            }
+        }
+        for i in world.pickups.indices {
+            if world.pickups[i].active, world.pickups[i].y >= gate - margin {
+                world.pickups[i].active = false
             }
         }
     }
@@ -1065,7 +1107,7 @@ enum CombatSimulator {
                 skinId: world.skinId
                 ), !run.fuelDying {
                 markInteract(run: &run, obstacle: world.obstacles[i])
-                if run.cinema == .clearHold || run.cinema == .clearBoost || run.cinema == .clearFade {
+                if run.cinema.isClearFlyout {
                     continue
                 }
                 run.isOver = true

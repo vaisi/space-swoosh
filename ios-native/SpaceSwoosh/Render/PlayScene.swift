@@ -1,5 +1,5 @@
 // PlayScene.swift
-// Changes: sfxShieldCrash fires HapticsService.shieldSmash() (Light impact at 0.55).
+// Changes: L42 skips intro voice; smash haptic.
 // L42 written epilogue keeps MusicPlayer running (do not stop on completed).
 
 import SpriteKit
@@ -260,8 +260,12 @@ final class PlayScene: SKScene {
         if run.cinema == .introTitle, !run.introVoiceStarted {
             run.introVoiceStarted = true
             if run.profile.mode == .journey {
-                VoicePlayer.shared.playLevel(run.profile.level) { [weak self] in
-                    self?.run.introVoiceDone = true
+                if run.profile.level >= JourneyConfig.totalLevels {
+                    run.introVoiceDone = true
+                } else {
+                    VoicePlayer.shared.playLevel(run.profile.level) { [weak self] in
+                        self?.run.introVoiceDone = true
+                    }
                 }
             } else {
                 run.introVoiceDone = true

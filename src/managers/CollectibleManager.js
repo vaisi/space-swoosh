@@ -6,6 +6,7 @@
 // - Collect refills clamped fuel, then maybeSpeakFuelLow() (re-arm / dip).
 // - Collect refills clamped fuel and increments sparklesCollected (no points).
 // - Popup text is "+FUEL"; no salvage once fuelDying has started.
+// - Day 42: do not plant sparkles past the finish gate.
 // - Spawn also respects obstacleManager.pauseSpawning so the level-clear flyout
 //   can tick collection without planting new sparkles ahead of the exit.
 // - Enable gate is profile score only (no tutorial hold) so Journey @ 0 KM can
@@ -43,7 +44,10 @@ export class CollectibleManager {
             !om.inCutscene &&
             !om.pauseSpawning &&
             now - this.lastSpawnTime > this.spawnInterval) {
-            this.spawn();
+            const y = this.game.camera.y - this.game.height;
+            if (!this.game.isAtOrPastFinaleGate?.(y)) {
+                this.spawn();
+            }
             this.lastSpawnTime = now;
             this.spawnInterval = 2600 + Math.random() * 2600; // 2.6s – 5.2s
         }

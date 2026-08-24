@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: one written ending per device; Arc unlocks after Journey. -->
+<!-- userdoc.md — Changes: last Journey day is silent at the start; NAV speaks after the gate. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -27,7 +27,8 @@
 > under the hull — chevrons, rings, stamps, dashes, and the rest of the
 > family, not a column of dots. The
 > four free ships are **Focus**, **Flicker**, **Ember**, and **Saber** — the
-> rest are unlocked for this playtest build. Journey tiles are also all open
+> rest show a store price (or LOCKED) until you buy or Restore Purchases.
+> Journey tiles are still all open
 > (`UNLOCK_ALL_LEVELS`) so you can tap any level. Zigzag from the start; Arc
 > sits under Options → Controls as out of service until the Journey is finished.
 > Wall BOOP (the word
@@ -45,8 +46,8 @@
 > mutes everything; Options → Sound isolates Music / Sound FX / Voice). The turn cue is the same clip as Android when `turn.mp3` is in the
 > build. Music and spoken NAV lines play only when those clips are in the
 > build. The **browser App Preview** is a video of the simulator — it often
-> has **no sound** and extra tap delay. Store prices and restore are not in this
-> iOS build yet. High Scores / Submit Score use the same online board as Android.
+> has **no sound** and extra tap delay. Store prices and Restore Purchases
+> are in this iOS build (sandbox / TestFlight). High Scores / Submit Score use the same online board as Android.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap
@@ -102,7 +103,7 @@ distances show. Styles you haven't tried don't appear.
 Deep space exploration starting from Day 1. **42 numbered days** (119 stars),
 each with a distance goal to reach. A calm navigator speaks at the start of each
 level (no chatter mid-flight). Words appear **one sentence at a time** so you can read
-along, and you hear the spoken line on every Journey level.
+along. The last day stays quiet until you pass the finish gate.
 
 **Levels 1–5 teach the basics**, in order:
 
@@ -185,7 +186,7 @@ to unlock on the apps). Options → Ship has the same roster in a grid.
 
 - **Play** — Journey (recommended) then Open Space. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
-- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), and Light/Dark Mode. Android also has Restore Purchases; native TestFlight omits that row until IAP.
+- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases.
 - **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS and Android share the same online board (call sign + ship). Android pages 10 scores at a time (up to 100).
 
 After a run, **Menu** on the end screen brings you back here.
@@ -270,7 +271,7 @@ Options opens a short list:
 | **Controls** | Flight style (Zigzag now; Arc shows as out of service until you finish the Journey). |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
-| **Restore Purchases** | Re-sync ship unlocks and Pro after reinstall (iOS / Android). Native TestFlight omits this row until IAP. |
+| **Restore Purchases** | Re-sync ship unlocks after reinstall (iOS / Android). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
 main menu.

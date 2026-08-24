@@ -4,7 +4,8 @@
 // keeps the stair-with-plateaus curve honest: hold `d` and nothing gets harder,
 // however many levels pass.
 // Changes:
-// - introBeats exposes LEVEL_INTRO_BEATS (sentence-at-a-time; voice on 1–42);
+// - introBeats exposes LEVEL_INTRO_BEATS (sentence-at-a-time; voice on 1–41;
+//   Day 42 beats play in the written epilogue);
 //   introMessage stays the full LEVEL_MESSAGES line.
 // - Levels 1–5 teach gates: L1 no belt; collectibles from L4; shields from L5.
 // - introMessage uses Signal Story LEVEL_MESSAGES (JourneyNarrative).

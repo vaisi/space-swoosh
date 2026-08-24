@@ -9,7 +9,8 @@
 // - Font preload is time-capped in ensureBrandFonts(); splash hide does not
 //   wait on webfonts.
 // - initTheme() before first paint so light/dark preference paints tokens + shell.
-// - Playtest `?level=42&nearend=1` starts that Journey day near the finish.
+// - Playtest `?level=42&nearend=1` starts that Journey day near the finish;
+//   no intro captions; level-42.mp3 plays after the fade with the written ending.
 // - Preload the brand webfonts (Space Grotesk / Space Mono) before the first
 //   canvas paint so the on-brand HUD and end screens render correctly from
 //   frame one instead of flashing a system fallback.

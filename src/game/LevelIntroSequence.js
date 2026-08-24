@@ -1,8 +1,8 @@
 // LevelIntroSequence.js
 // Short run-start cinematic for Journey and Open World.
 // Changes:
-// - Handoff starts IntroNarration (sentence beats + level 1–42 voice) instead of
-//   a single showMessage call.
+// - Handoff starts IntroNarration (sentence beats + level 1–41 voice). Day 42
+//   skips intro text/voice — those play after the gate with the written ending.
 // - Title hold stretched (~1.1s) so Signal Story two-sentence lines can be read.
 // - Title fade-out shortened to 900ms (was 3s). Game unpauses the belt as soon
 //   as the title line clears — no extra empty second before rocks.
@@ -197,7 +197,7 @@ export class LevelIntroSequence {
         game.pendingIntroBeats = null;
         game.pendingIntroMessage = null;
 
-        if (beats?.length) {
+        if (beats?.length && !game.isJourneyFinale?.()) {
             game.hudRevealPhase = 'title';
             game.hudRevealStart = null;
             game.hudRevealWaitStart = null;

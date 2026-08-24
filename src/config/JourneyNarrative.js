@@ -1,5 +1,6 @@
 // JourneyNarrative.js
 // Changes: skip captions are two beats (one phrase each); skipLine is the joined string.
+// L42 arrival (level-42.mp3) waits 3s on black before epilogue-open.
 // First L42 ending adds an Arc unlock card after Follow @spacewoosh.
 // THE REPLY — Signal Story copy for Journey: pre-Level-1 lore, first-BOOP cue,
 // per-level NAV voice lines (1–42), and the player-written ending epilogue.
@@ -295,7 +296,7 @@ export const LEVEL_INTRO_BEATS = {
  * ENDING EPILOGUE — begins AFTER the final flown level (L42) fades to black.
  * This replaces the old spoken L39/L40 and ENDING_BEATS. Flow:
  *   1. L42 cleared -> full fade to black, HUD gone.
- *   2. Full fade to black, HUD gone, ~1.6s silent hold, then NAV `open` beats.
+ *   2. ~1.6s silent hold, then Day 42 voice + captions, 3s black gap, then NAV `open` beats.
  *   3. Prompt + text field appear. NAV goes SILENT (no waiting pressure).
  *   4. Player writes and submits, OR skips (two skip beats, one phrase each).
  *   5. Their words drift up into a single point of light. More lights bloom

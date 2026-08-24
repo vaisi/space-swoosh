@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - L42: no intro voice or captions; after the gate, fade to black, pause,
+//   then level-42.mp3 with its captions, then the written epilogue.
+//   `?level=42&nearend=1` still warps.
 // - Playtest `?level=42&nearend=1` warps Journey KM near the gate after boot.
 // - L42 completeRun leaves BGM running so the written epilogue still has music.
 // - Arc is locked until Day 42 is cleared; Controls shows it as OUT until then.
@@ -926,6 +929,43 @@ export class Game {
         return this.playMode === PLAY_MODE.journey;
     }
 
+    isJourneyFinale() {
+        return this.isJourney() && this.journeyLevel >= TOTAL_LEVELS;
+    }
+
+    /** World Y of the finish gate. Ship flies toward smaller Y. */
+    finishGateWorldY() {
+        if (this.finishLineWorldY != null) return this.finishLineWorldY;
+        if (!this.profile || this.profile.isEndless || !this.spacecraft) return null;
+        const remaining = Math.max(0, this.profile.goalScore - this.score);
+        return this.spacecraft.y - remaining * 0.6;
+    }
+
+    /** True on Day 42 when worldY is at or past the gate (empty space beyond). */
+    isAtOrPastFinaleGate(worldY) {
+        if (!this.isJourneyFinale()) return false;
+        const gateY = this.finishGateWorldY();
+        if (gateY == null || !Number.isFinite(worldY)) return false;
+        const margin = (this.baseUnit ?? 16) * 2;
+        return worldY <= gateY + margin;
+    }
+
+    cullEntitiesPastFinaleGate() {
+        if (!this.isJourneyFinale()) return;
+        const om = this.obstacleManager;
+        if (om?.obstacles) {
+            om.obstacles = om.obstacles.filter((o) => !this.isAtOrPastFinaleGate(o.y));
+        }
+        const cm = this.collectibleManager;
+        if (cm?.collectibles) {
+            cm.collectibles = cm.collectibles.filter((c) => !this.isAtOrPastFinaleGate(c.y));
+        }
+        const pm = this.powerUpManager;
+        if (pm?.powerUps) {
+            pm.powerUps = pm.powerUps.filter((p) => !this.isAtOrPastFinaleGate(p.y));
+        }
+    }
+
     isHazardLab() {
         return this.playMode === PLAY_MODE.hazardLab
             || this.profile?.isHazardLab === true;
@@ -1016,7 +1056,10 @@ export class Game {
                 this.ctx.globalAlpha = clear.worldAlpha;
                 this.renderWorld({ hudAlpha: clear.hudAlpha });
                 this.ctx.restore();
-                if (this.gameOverAlpha <= 0) return;
+            }
+            // Flyout owns the frame until screenIn (or L42 epilogue).
+            if (clear?.active && this.gameOverAlpha <= 0 && clear.phase !== 'screenIn') {
+                return;
             }
 
             // Crash / fuel-out: keep the world fading under the end screen.
@@ -2517,8 +2560,12 @@ export class Game {
         this.isPaused = false;
 
         // Defer navigator beats until the intro hands off the controls.
-        const beats = this.profile.introBeats
-            || (this.profile.introMessage ? [this.profile.introMessage] : null);
+        // Day 42 speaks after the gate with the written ending, not at boot.
+        const skipFinaleIntro = this.isJourneyFinale();
+        const beats = skipFinaleIntro
+            ? null
+            : (this.profile.introBeats
+                || (this.profile.introMessage ? [this.profile.introMessage] : null));
         this.pendingIntroBeats = beats;
         this.pendingIntroMessage = this.profile.introMessage || null;
         this.introNarration?.dispose?.();
@@ -3082,6 +3129,7 @@ export class Game {
         // destroyed / stars.
         this.logbook?.onFinishGateCrossed?.();
         this.finishLineWorldY = this.spacecraft.y;
+        this.cullEntitiesPastFinaleGate();
         this.levelClear = new LevelClearSequence(this);
         this.logbook?.flushToast?.();
     }

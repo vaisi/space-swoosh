@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Arc gated on L42; one epilogue reply per device. -->
+<!-- Changes: L42 outro is fade/pause then level-42.mp3, 3s black gap, then epilogue-open. Native iOS ship IAP + Restore via RevenueCat; UNLOCK_ALL_SKINS false. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -8,8 +8,9 @@
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
-> Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Playtest flag
-> `UNLOCK_ALL_SKINS = true` (flip false before store). Playtest flag
+> Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Native iOS
+> `UNLOCK_ALL_SKINS = false` — premium ships buy via RevenueCat; Options has
+> Restore Purchases. Playtest flag
 > `UNLOCK_ALL_LEVELS = true` opens every Journey tile (flip false before store;
 > web also `?unlocklevels=1|0`). Free forever (no
 > `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
@@ -27,7 +28,7 @@
 > aurora strata, peacock stamps, …) — not a generic particle dump. Hitboxes are JS circle
 > packs; jelly does not deform the hitbox. Plus **Journey** (42 levels / 119 stars),
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
-> lean-preserving clear flyout, L42 written epilogue (prompt, lights, ordinal).
+> lean-preserving clear flyout, L42 written epilogue (arrival voice, prompt, lights, ordinal).
 > `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV)
 > plus `crash` / `crash_with_shield` / `shield` / `turn`. Those four plus turn
 > play as pre-decoded engine buffers (no `AVAudioPlayer` hitch). Synth fallback
@@ -60,8 +61,10 @@
 > teach band (empty → simple → moving → sparkles → shields). Per-level intro
 > lines come from `LEVEL_MESSAGES`; all levels use `LEVEL_INTRO_BEATS` (one
 > sentence at a time; L6+ carry `gapAfterMs` from ElevenLabs breaks). Navigator
-> MP3s for levels **1–42** in `public/sounds/voice/level-N.mp3` via
-> `SoundManager.playLevelVoice` (11/19/21/22/40 currently use old clips as
+> MP3s for levels **1–41** play at intro (`public/sounds/voice/level-N.mp3` via
+> `SoundManager.playLevelVoice`). **Day 42** has no intro text or voice;
+> `level-42.mp3` and its captions play after the gate, then a **3s** black gap, then `epilogue-open.mp3`.
+> 11/19/21/22/40 currently use old clips as
 > placeholders — replace in place; old L36 is not the final L40 sun line).
 > `first-boop.mp3` (first sidewall hit per app session + milestone beats from
 > `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3` (every style swoosh, voice only).
@@ -239,7 +242,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor Android (`logEvent`). Params sanitized to string/number (booleans → 0/1). Config: `android/app/google-services.json` (gitignored). Native iOS uses `ios-native/.../Analytics.swift` (same event names). Android: AD ID collection off + `AD_ID` permission stripped. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is true for playtest** (home picker + Play equip the full roster, no IAP). Flip **false** before a store build. `UNLOCK_PRO` stays **false**. |
+| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). Android **`UNLOCK_ALL_SKINS` is still true for playtest**. Native iOS flag is **false** (`SkinCatalog` + `EntitlementsStore`). `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
@@ -249,7 +252,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
 | `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. |
-| `game/JourneyEpilogueSequence.js` | L42 written ending: slower fade, ~1.6s dark hold, NAV open, prompt/skip (same hold), small bright lights, ordinal, Follow @spacewoosh, first-time Arc card → Controls. Replay skips the prompt (one reply per device). |
+| `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spacewoosh, first-time Arc card. Replay skips the prompt (one reply per device). |
 | `services/ReplyService.js` | RPC `submit_journey_reply` → ordinal. Called once per device; replay does not insert again. Offline falls back to a local card. |
 | `services/ReplyFilter.js` | 140-char UGC filter for epilogue text (same blocklist as call signs). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
@@ -271,9 +274,10 @@ game build env. Journey progress and Open Space personal best stay in
 | `ui/screens/ProPaywallScreen.js` | Empty lives → weekly / yearly Pro offers + restore (only when `LIVES_ENABLED`). |
 | `ui/screens/AnnualShipPickScreen.js` | Yearly Pro one-time pick of up to 3 premium ships. |
 | `ui/LivesChip.js` | Compact lives / ∞ + regen countdown. Hidden while `LIVES_ENABLED` is false. |
-| `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost off the top, fade world, fade screen in. |
+| `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost, fade world, fade screen in. L42 hands off to the written epilogue. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
-| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–42 voice; holds belt until done. |
+| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–41 voice (Day 42 skips intro text); holds belt until done. |
+| `utils/BrandDraw.js` | Paper, framed tiles/buttons, sparkle glyph. |
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
@@ -458,9 +462,10 @@ on-screen beats come from `LEVEL_INTRO_BEATS` (sentence-at-a-time for all
 levels; L6+ include ElevenLabs `gapAfterMs`). Copy matches THE REPLY narrator
 script (SSML/stage directions stripped). Voice clips:
 `public/sounds/voice/level-1.mp3` … `level-42.mp3` including new fond-beat / sun-line
-clips at **11 / 19 / 21 / 22 / 40**. L42 fade is **~1400 ms** then a **~1.6 s** black
-hold before `epilogue-open.mp3` (Web Audio buffer, after `AudioContext.resume`; BGM
-stays running). Skip uses the same hold then `epilogue-skip.mp3` with **two caption
+clips at **11 / 19 / 21 / 22 / 40**. Day 42 has **no intro text or voice**. After
+the gate, fade **~1400 ms**, then a **~1.6 s** black hold, then `level-42.mp3` with
+its three captions, then a **3 s** black gap, then `epilogue-open.mp3` with the two open captions (Web Audio
+buffer, after `AudioContext.resume`; BGM stays running). Skip uses the same hold then `epilogue-skip.mp3` with **two caption
 beats** (one per phrase). Prompt placeholder
 is **Write it here.** Session cues:
 `first-boop.mp3`, `swoosh-voice.mp3` (sources under `assets/voice/`).
@@ -501,7 +506,8 @@ flag off restores the real lock cursor. Web override: `?unlocklevels=1` forces
 on, `?unlocklevels=0` forces the real lock even when the constant is true. The
 Journey map shows a **TEST** chip while the flag is on. iOS has the constant
 only (no URL). Localhost epilogue skip: **`?level=42&nearend=1`** boots Day 42
-~350 KM before the gate (`nearend=500` sets remaining KM). Intro still plays.
+~350 KM before the gate (`nearend=500` sets remaining KM). No intro captions;
+`level-42.mp3` plays with its captions after the fade and dark hold, then a 3s gap before `epilogue-open.mp3`.
 
 ### Open Space unlock ladder (`OPEN_WORLD_UNLOCKS`)
 
@@ -596,7 +602,7 @@ live; pause button and spawning stay off until chips):
 
 | Phase | What happens |
 | --- | --- |
-| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Journey levels also play `playLevelVoice(level)` and duck BGM. Phase ends only when **all beats** and the **voice clip** are done. No HUD, no pause. |
+| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Journey levels **1–41** also play `playLevelVoice(level)` and duck BGM. Day 42 skips this phase (short wait, then chips). Phase ends only when **all beats** and the **voice clip** (if any) are done. No HUD, no pause. |
 | `wait` | Short calm beat when there is no intro line (e.g. Open Space). |
 | `chips` | Timed 1s fades: distance HUD → **pause last**. Icon-meter stack: route + ink goal bar (Journey) or route + KM (Open Space); sparkle + Signal fuel bar once collectibles are live; target + smash dots (Journey `smashTarget`) or small ink count (Open Space) after first smash. |
 
@@ -617,8 +623,11 @@ heading) and hyperspeeds off at that angle — no centre ease:
 | --- | --- | --- |
 | `hold` | Shield on, world keeps drifting at run pace along current lean — a beat to register the clear | 315ms |
 | `boost` | `moveState` cleared, `Spacecraft.boost` ramped to 7.2 along the lean (silent wall bounces OK), speed streaks on. Motion via `cinematicFlight` + real `deltaTime` | Off-screen *and* at least 1260ms, or a 2240ms safety cap |
-| `fadeOut` | `worldAlpha` 1→0 over 385ms; `hudAlpha` goes 1.6× faster | The fade completes |
-| `screenIn` | Drives `game.gameOverAlpha` 0→1 over 420ms | Alpha reaches 1 |
+| `fadeOut` | `worldAlpha` 1→0 over 385ms (L42 **1400ms**); `hudAlpha` goes 1.6× faster | The fade completes |
+| `screenIn` | Drives `game.gameOverAlpha` 0→1 over 420ms. L42 skips this and starts the written epilogue | Alpha reaches 1 |
+
+On Day 42, nothing spawns at or past the finish gate (obstacles, sparkles, plus, wall boost);
+crossing the gate also culls leftovers so the flyout looks into empty space.
 
 Journey also draws a world-space finish gate (`Game.renderFinishLine`): a
 Signal-Blue jet stream between minimal left/right wall emitters that fades in within ~2 screens of the ship and
@@ -1144,8 +1153,8 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards, Lab on map. Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). |
-| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity. |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards, Lab on map. Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. |
+| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity. `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn (`turn.mp3`) / crash/shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice including L4 NAV. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
@@ -1153,7 +1162,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
-| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`). `CURRENT_PROJECT_VERSION` 13. |
+| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
@@ -1178,8 +1187,8 @@ Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,
 matching hull bakes / `LiveHullPaint` (play + picker), and Android trail + `wallTrailDeform`
 modes (incl. Focus ripple + Ember twin-dots). The 17 live ships use dedicated wake
 drawers and `trailTailOffset`. Hull jelly does not
-deform the hitbox. Shield smash stays a scaled circle. IAP / RevenueCat /
-locked tiles later (`productId` is data only until the flag flips false). Slice D feel remains: Arc/zigzag, overlap spawn, cluster
+deform the hitbox. Shield smash stays a scaled circle. Ship IAP / Restore
+uses RevenueCat (`UNLOCK_ALL_SKINS` false). Slice D feel remains: Arc/zigzag, overlap spawn, cluster
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,
 milestones, local PB, night paper. C.5 combat remains:
 `CombatSimulator` fills pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see

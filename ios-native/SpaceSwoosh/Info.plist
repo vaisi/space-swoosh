@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: CFBundleVersion 13 — SPACE BOARD reads/writes vaisi's Project high_scores. Firebase Analytics IDFA off. -->
+	<!-- Changes: REVENUECAT_IOS_KEY for native ship IAP (injected at build). -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -53,6 +53,9 @@
 	<key>SUPABASE_URL</key>
 	<string></string>
 	<key>SUPABASE_ANON_KEY</key>
+	<string></string>
+	<!-- Public RevenueCat iOS SDK key. Injected at build from VITE_REVENUECAT_IOS_KEY. -->
+	<key>REVENUECAT_IOS_KEY</key>
 	<string></string>
 	<key>UIAppFonts</key>
 	<array>

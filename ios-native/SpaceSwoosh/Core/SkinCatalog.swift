@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: Nyan/Halo/Orbit live; Fletch 0.32 / Nyan 0 tail offsets.
+// Changes: UNLOCK_ALL_SKINS false; isOwned reads EntitlementsStore; full-roster browse.
 
 import Foundation
 import CoreGraphics
@@ -73,8 +73,8 @@ struct SkinDef {
 }
 
 enum SkinCatalog {
-    /// Playtest hangar — true so every ship flies. Flip false before store.
-    static let UNLOCK_ALL_SKINS = true
+    /// Store hangar — premium ships need IAP. Flip true only for local art tests.
+    static let UNLOCK_ALL_SKINS = false
 
     static let roster: [SkinId] = SkinId.allCases
     static let free: [SkinId] = [.focus, .flicker, .ember, .saber]
@@ -84,8 +84,19 @@ enum SkinCatalog {
     }
 
     static func isOwned(_ id: SkinId) -> Bool {
-        if UNLOCK_ALL_SKINS { return true }
-        return def(id).productId == nil
+        EntitlementsStore.shared.owns(id)
+    }
+
+    static func isPremium(_ id: SkinId) -> Bool {
+        def(id).productId != nil
+    }
+
+    /// Home arrows browse every hull, including locked.
+    static func adjacent(after id: SkinId, delta: Int) -> SkinId {
+        let list = roster
+        let i = list.firstIndex(of: id) ?? 0
+        let count = list.count
+        return list[(i + delta % count + count) % count]
     }
 
     static func `def`(_ id: SkinId) -> SkinDef {

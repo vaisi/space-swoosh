@@ -4,7 +4,7 @@
 # - Native iOS writes GoogleService-Info.plist from GOOGLE_SERVICE_INFO_PLIST.
 # - Add ios-native-simulator: unsigned iPhone simulator .app for App Preview.
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
-# - Inject VITE_SUPABASE_* into native Info.plist for SPACE BOARD.
+# - Inject VITE_SUPABASE_* and VITE_REVENUECAT_IOS_KEY into native Info.plist.
 # - Floor build number at 3 for C.5 TestFlight.
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
@@ -110,6 +110,12 @@ workflows:
           else
             echo "WARN: VITE_SUPABASE_* missing — SPACE BOARD will be offline in this IPA"
           fi
+          if [ -n "${VITE_REVENUECAT_IOS_KEY:-}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :REVENUECAT_IOS_KEY $VITE_REVENUECAT_IOS_KEY" ios-native/SpaceSwoosh/Info.plist
+            echo "Injected REVENUECAT_IOS_KEY into Info.plist"
+          else
+            echo "WARN: VITE_REVENUECAT_IOS_KEY missing — ship IAP will be offline in this IPA"
+          fi
       - name: Resolve Swift packages
         script: |
           set -euo pipefail
@@ -181,6 +187,12 @@ workflows:
             echo "Injected SUPABASE_URL into Info.plist"
           else
             echo "WARN: VITE_SUPABASE_* missing — SPACE BOARD will be offline in App Preview"
+          fi
+          if [ -n "${VITE_REVENUECAT_IOS_KEY:-}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :REVENUECAT_IOS_KEY $VITE_REVENUECAT_IOS_KEY" ios-native/SpaceSwoosh/Info.plist
+            echo "Injected REVENUECAT_IOS_KEY into Info.plist"
+          else
+            echo "WARN: VITE_REVENUECAT_IOS_KEY missing — ship IAP will be offline in App Preview"
           fi
       - name: Build unsigned iPhone simulator .app
         script: |

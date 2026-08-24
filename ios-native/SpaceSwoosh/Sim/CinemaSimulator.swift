@@ -1,5 +1,6 @@
 // CinemaSimulator.swift
 // Changes: L42 fade hands off to the written epilogue overlay (no ENDING_BEATS).
+// Day 42 skips intro captions; those play in the epilogue after the dark hold.
 
 import Foundation
 import CoreGraphics
@@ -14,6 +15,15 @@ enum CinemaPhase {
     case clearBoost
     case clearFade
     case endingCaptions
+
+    var isClearFlyout: Bool {
+        switch self {
+        case .clearHold, .clearBoost, .clearFade:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 enum CinemaSimulator {
@@ -54,7 +64,7 @@ enum CinemaSimulator {
         }
     }
 
-    static func beginClear(world: WorldState, run: inout RunState) {
+    static func beginClear(world: inout WorldState, run: inout RunState) {
         guard run.cinema == .play else { return }
         run.cinema = .clearHold
         run.cinemaT = 0
@@ -70,6 +80,7 @@ enum CinemaSimulator {
         run.logbookMarks.append(.interact("finishGate"))
         run.sfxShield = true
         run.sfxSwoosh = true
+        CombatSimulator.cullPastFinaleGate(world: &world, run: run)
     }
 
     static func tick(
@@ -150,7 +161,8 @@ enum CinemaSimulator {
         run.cinemaBoost = 1
         run.seatY = CinematicFlight.cruiseSeat
         run.streakAlpha = 0
-        if run.profile.introBeats.isEmpty {
+        if run.profile.introBeats.isEmpty
+            || (run.profile.mode == .journey && run.profile.level >= JourneyConfig.totalLevels) {
             run.cinema = .introWait
         } else {
             run.cinema = .introTitle

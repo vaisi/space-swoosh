@@ -6,7 +6,8 @@
   - iOS CI stamps CFBundleVersion ≥ 2 (ASC already has 1.0.0 (1)).
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
-  - iOS Native workflows inject those vars into Info.plist for SPACE BOARD.
+  - iOS Native workflows inject those vars into Info.plist for SPACE BOARD
+    and VITE_REVENUECAT_IOS_KEY for ship IAP.
 -->
 
 # Codemagic setup
@@ -41,7 +42,7 @@ Mark secrets as Secret.
 | `VITE_SUPABASE_URL` | vaisi's Project URL (Android / web / **native iOS** SPACE BOARD) |
 | `VITE_SUPABASE_ANON_KEY` | vaisi's Project anon / publishable key. iOS Native workflows write these into `Info.plist` `SUPABASE_URL` / `SUPABASE_ANON_KEY` before `xcodebuild`. |
 | `GOOGLE_SERVICE_INFO_PLIST` | Full XML of `GoogleService-Info.plist` (Secret). Gitignored; CI writes it to `ios-native/SpaceSwoosh/` before `xcodebuild`. Required for native iOS Firebase Analytics. |
-| `VITE_REVENUECAT_IOS_KEY` | `appl_…` public key (later for native IAP) |
+| `VITE_REVENUECAT_IOS_KEY` | `appl_…` public key. Native iOS writes it into `Info.plist` `REVENUECAT_IOS_KEY` before `xcodebuild`. Required for TestFlight ship IAP. |
 | `VITE_REVENUECAT_ANDROID_KEY` | `goog_…` public key |
 | `CM_KEYSTORE` | Base64 of the Android upload keystore |
 | `CM_KEYSTORE_PASSWORD` | Keystore password |

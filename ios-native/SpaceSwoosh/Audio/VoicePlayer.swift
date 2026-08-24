@@ -1,6 +1,7 @@
 // VoicePlayer.swift
 // Changes: playEpilogueOpen / playEpilogueSkip for the written ending; missing
-// clips finish immediately so captions can still run. Level clips 1–42.
+// clips finish immediately so captions can still run. Level clips 1–41 at intro;
+// level-42.mp3 plays with its captions after the L42 dark hold.
 
 import AVFoundation
 import Foundation
