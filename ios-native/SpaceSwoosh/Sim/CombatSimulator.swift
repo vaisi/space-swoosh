@@ -1,5 +1,6 @@
 // CombatSimulator.swift
-// Changes: L42 empty space past the gate; playEpilogue flag for the written ending.
+// Changes: Open World steer cue is overlay-only (no second milestone line).
+// Atmosphere still at 200 KM. L42 empty space past the gate; playEpilogue.
 
 import Foundation
 import CoreGraphics
@@ -57,6 +58,10 @@ struct RunState {
     var announcedMask: UInt16 = 1
     var milestoneMask: UInt16 = 0
     var taughtSteer: Bool = false
+    var taughtSteerLeft: Bool = false
+    var taughtSteerRight: Bool = false
+    var steerCue: String = ""
+    var steerPromptPhase: Int = 0
     var taughtAtmosphere: Bool = false
     var milestoneText: String = ""
     var milestoneOpacity: CGFloat = 0
@@ -161,6 +166,7 @@ enum CombatSimulator {
     ) {
         if run.isOver {
             run.endingT += dt
+            run.steerCue = ""
             if !run.completed {
                 run.worldAlpha = max(0, 1 - (run.endingT / 2.0) * 1.2)
             }
@@ -177,6 +183,9 @@ enum CombatSimulator {
         if steer != .none {
             run.lastFlipAt = run.scoreKm
             run.sfxTurn = true
+            if steer == .flip { run.taughtSteer = true }
+            if steer == .bankLeft { run.taughtSteerLeft = true }
+            if steer == .bankRight { run.taughtSteerRight = true }
         }
 
         if run.teleportT > 0 {
@@ -499,14 +508,9 @@ enum CombatSimulator {
             }
             return
         }
-        if !run.taughtSteer, run.scoreKm >= GameConfig.Milestones.teachKm, run.lastFlipAt >= 0 {
+        tickSteerCue(run: &run)
+        if run.flightStyle != .zigzag, run.taughtSteerLeft, run.taughtSteerRight {
             run.taughtSteer = true
-            showMilestone(
-                run: &run,
-                run.flightStyle == .zigzag
-                    ? "Tap to change direction"
-                    : "Bank LEFT or RIGHT to move in arcs"
-            )
         }
         if !run.taughtAtmosphere, run.scoreKm >= GameConfig.Milestones.atmosphereKm, run.taughtSteer {
             run.taughtAtmosphere = true
@@ -545,6 +549,40 @@ enum CombatSimulator {
             run.milestoneText = ""
             run.milestoneOpacity = 0
         }
+    }
+
+    private static func tickSteerCue(run: inout RunState) {
+        guard run.cinema == .play, !run.isOver, !run.inputLocked else {
+            run.steerCue = ""
+            return
+        }
+        if run.flightStyle == .zigzag {
+            if run.taughtSteer {
+                run.steerCue = ""
+                return
+            }
+            run.steerCue = "tap"
+            if run.steerPromptPhase != 1 {
+                run.steerPromptPhase = 1
+            }
+            return
+        }
+        if !run.taughtSteerLeft {
+            run.steerCue = "swipeLeft"
+            if run.steerPromptPhase != 1 {
+                run.steerPromptPhase = 1
+            }
+            return
+        }
+        if !run.taughtSteerRight {
+            run.steerCue = "swipeRight"
+            if run.steerPromptPhase != 2 {
+                run.steerPromptPhase = 2
+            }
+            return
+        }
+        run.steerCue = ""
+        run.taughtSteer = true
     }
 
     private static func showMilestone(run: inout RunState, _ text: String) {

@@ -8,7 +8,8 @@
 // - Luna mothLavender lifts on night paper.
 // - Spore amber/violet + Sprout green lift on night paper (same as Lantern).
 // - Lantern teal/gold trail tokens lift on night paper (same as Ember).
-// - Default theme is light (cream paper) when no `ssTheme` is stored.
+// - Dark page surround uses paperDeep (charcoal); beige tunnel frame is CSS
+//   on #gameContainer. Light still letterboxes with near-black ink.
 // - Created: two palettes, localStorage persistence, applyTheme() mutates the
 //   shared `color` / `semantic` objects + CSS vars + page shell so canvas and
 //   DOM stay in sync. Clears hull/glow bake caches on switch.
@@ -186,17 +187,19 @@ function syncCssVars() {
 }
 
 /**
- * Letterbox surround is the opposite of the stage so edges still read:
- * dark stage → bone surround; cream stage → ink surround.
+ * Light: near-black letterbox so the cream stage reads.
+ * Dark: charcoal page (same family as the stage) so the beige tunnel frame
+ * is the only light edge — not a full-page bone wash.
  */
 function syncPageShell() {
-    const surround = currentTheme === THEME_DARK ? color.ink : color.ink;
-    // Dark: bone ink surround; Light: near-black ink surround (same token role).
+    const surround = currentTheme === THEME_DARK ? color.paperDeep : color.ink;
     const themeColor = surround;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', themeColor);
 
-    document.documentElement.style.background = surround;
+    const root = document.documentElement;
+    root.style.setProperty('--ss-surround', surround);
+    root.style.background = surround;
     if (document.body) document.body.style.background = surround;
 }
 

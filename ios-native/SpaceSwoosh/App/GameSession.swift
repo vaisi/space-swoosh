@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: showEpilogue after L42; Firebase Analytics run-end events matching Android.
+// Changes: Open World steerCue overlay; showEpilogue after L42; Firebase Analytics run-end events matching Android.
 
 import Foundation
 import Combine
@@ -54,6 +54,7 @@ final class GameSession: ObservableObject {
     @Published var rankLookupFailed = false
     @Published var scoreSubmitted = false
     @Published var showEpilogue = false
+    @Published var steerCue: String = ""
 
     private var flavorPicked = false
 
@@ -86,6 +87,7 @@ final class GameSession: ObservableObject {
         milestoneOpacity = run.milestoneOpacity
         captionText = run.captionText
         captionOpacity = run.captionOpacity
+        steerCue = run.steerCue
         hudLive = run.hudLive
         hudDistance = run.hudDistance
         hudPause = run.hudPause
@@ -172,6 +174,7 @@ final class GameSession: ObservableObject {
         rankLookupFailed = false
         scoreSubmitted = false
         showEpilogue = false
+        steerCue = ""
         flavorPicked = false
         LogbookStore.shared.clearToast()
     }

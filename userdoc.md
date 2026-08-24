@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: last Journey day is silent at the start; NAV speaks after the gate. -->
+<!-- userdoc.md — Changes: desktop right leftover column says Soon on iOS & Android. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -75,7 +75,10 @@
 >
 > **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
-> night paper — charcoal ground, light ink, shiny ice-blue accents.
+> night paper — charcoal ground, light ink, shiny ice-blue accents. In Dark Mode
+> the whole page stays charcoal; a beige frame marks the edges of the playfield.
+> On a desktop browser the game fills the window height, with a quiet
+> “Soon on iOS & Android” line in the leftover space on the right.
 >
 > **Lives:** Not active in this build. Journey and Open Space can be retried
 > as often as you like after a crash or empty tank. (A lives pool and Pro
@@ -128,6 +131,13 @@ play the ending, without another prompt.
 ### Open Space
 
 The endless run. No finish line: fly until you crash or run out of fuel, and see how far you got.
+Right at the start, Open Space shows how to steer until you actually do it:
+**Zigzag** — phones say TAP (tap anywhere); a desktop browser says
+Click or press, then a SPACE bar icon, then the word space. **Arc** — SWIPE LEFT,
+then SWIPE RIGHT on phones; a desktop browser says drag left or press, then a
+left-arrow key icon, then the word key (and the same for the right-arrow key),
+one direction at a time. A bouncing finger or pointer sits on the playfield so it is hard to
+miss. Journey does not use these lines.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up — they do **not** flash a name banner when they first appear.
 On Android, if a wormhole or black hole leaves the ship sitting low in the
@@ -386,8 +396,8 @@ backing out to the menu.
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
-| Steer (Zigzag) | Space or Left / Right arrows (any flips) | Press/tap anywhere to flip (on touch-down). Swipe does nothing. |
-| Steer (Arc) | Left / Right arrow keys | Swipe left or right. A short tap on either half of the screen also banks that way. |
+| Steer (Zigzag) | Space or Left / Right arrows (any flips). On desktop web, a mouse click also flips. | Press/tap anywhere to flip (on touch-down). Swipe does nothing. |
+| Steer (Arc) | Left / Right arrow keys. On desktop web, click-drag left or right also banks. | Swipe left or right. A short tap on either half of the screen also banks that way. |
 | Pause | Escape or the pause button (top-right). In Arc, Space also pauses. | Pause button (top-right) |
 
 In Zigzag the path flips as soon as you tap; the hull leans over instead of
@@ -442,7 +452,8 @@ keep the full high-refresh path — travel speed stays matched either way.
 
 Once sparkles are in play (Journey from level 4; Open Space after the opening
 stretch), your ship burns **fuel** as it flies. The HUD sparkle icon + blue bar
-shows how much is left.
+shows how much is left. A full tank lasts about the same distance on a phone
+or a tall desktop window — screen size does not empty the tank sooner.
 
 - **Collect a diamond → refill fuel.** A glowing **Signal-Blue four-point
   sparkle** drifts down the corridor. Fly close and it gently slides toward your

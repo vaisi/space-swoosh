@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - KM / fuel use GameConfig.kmDelta (reference height 800) so a full-height
+//   desktop stage does not empty the tank by 2000 KM.
 // - L42: no intro voice or captions; after the gate, fade to black, pause,
 //   then level-42.mp3 with its captions, then the written epilogue.
 //   `?level=42&nearend=1` still warps.
@@ -94,7 +96,7 @@
 // - Snappy pacing (all platforms): one update per paint, `tickScale = dt * 120`.
 //   Ship updates before camera. Camera is a catch-up follower (cruise +
 //   accelerate when the ship rides too high) so climb feels smooth, not
-//   spring-sluggish. KM from abs(Δcamera.y) * (100/60).
+//   spring-sluggish. KM from GameConfig.kmDelta (800px reference height).
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on Android/desktop web / 1.5 on iOS / 2 on other Cap native) and scales
 //   the context so all game math stays in CSS pixels via this.width /
@@ -302,6 +304,7 @@ import {
 import { parsePerfFlags, isKilled } from '../core/perfFlags.js';
 import { PerfMonitor } from '../core/PerfMonitor.js';
 import { clearHullCache } from '../ships/HullCache.js';
+import { renderControlHint } from '../ui/ControlHint.js';
 
 export class Game {
     constructor(config) {
@@ -785,7 +788,10 @@ export class Game {
                 || this.hudRevealPhase === 'wait'
                 || this.hudRevealPhase === 'chips';
             if (kmLive) {
-                const kmDelta = Math.abs(this.camera.y - prevCameraY) * (100 / 60);
+                const kmDelta = this.config.kmDelta(
+                    this.camera.y - prevCameraY,
+                    this.height
+                );
                 this.score += kmDelta;
                 this.drainFuel(kmDelta);
                 this.maybeSpeakFuelLow();
@@ -1151,6 +1157,7 @@ export class Game {
         }
 
         this.milestoneManager.render(this.ctx);
+        renderControlHint(this.ctx, this);
         this.powerUpManager.render(this.ctx);
         this.collectibleManager.render(this.ctx);
         this.styleSwooshManager.render(this.ctx);

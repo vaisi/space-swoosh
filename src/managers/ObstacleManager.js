@@ -45,8 +45,8 @@
 //   then playShield() for the exit deflector gift.
 // - Journey Logbook hooks: observe on-screen obstacles; interact on smash /
 //   fatal hit / black-hole pull / wormhole teleport.
-// - Intro control hint matches flight style (zigzag: tap to flip; arc: bank
-//   left/right). Zigzag flips count toward the tutorial movement requirement.
+// - Open World steer copy lives only on ControlHint (one boxed line + glyph).
+//   Atmosphere cutscene still at 200 KM. Arc banks track via Spacecraft.
 // - Tightened hitboxes to match drawn ink: ComplexAsteroid satellites use the
 //   same body rotation as render (ghost moons were killing early); square rocks
 //   use circle-vs-AABB; shooting stars use the star polygon; black holes match
@@ -74,7 +74,6 @@
 // - Row width and cluster size now respect `profile.maxRowSpawns()` /
 //   `maxClusterCount()`, so early Journey levels stay at one rock per line.
 
-import { FLIGHT_STYLE } from '../config/flightStyle.js';
 import { color } from '../brand/tokens.js';
 import { hapticShieldSmash } from '../native/index.js';
 import { drawBlackHoleGlowSprite } from '../utils/GlowSprites.js';
@@ -1585,25 +1584,7 @@ export class ObstacleManager {
         // ahead. (A 1.5×height lead put rows straight into the despawn band.)
         this.nextSpawnY = this.tutorialPhase ? 0 : game.camera.y;
 
-        const zigzag = game.flightStyle === FLIGHT_STYLE.zigzag;
-        // Distances are HUD KM (`game.score`) — short teach, then rocks.
-        this.tutorialMessages = [
-            {
-                distance: 80,
-                message: zigzag
-                    ? 'Tap or press {space} to change direction'
-                    : 'Bank LEFT or RIGHT to move in arcs',
-                requirement: () => this.hasPlayerMoved(),
-                completed: false
-            },
-            {
-                distance: 200,
-                message: "Breaking the atmosphere!",
-                requirement: () => true,
-                completed: false,
-                triggerCutscene: true  // New flag for cutscene
-            }
-        ];
+        this.tutorialMessages = this.buildSteerTutorial();
         this.movementHistory = {
             left: false,
             right: false,
@@ -1652,6 +1633,20 @@ export class ObstacleManager {
         return count;
     }
 
+    buildSteerTutorial() {
+        // Steer copy is the ControlHint overlay — duplicating it here stacked
+        // two labels on screen. This list only drives the 200 KM cutscene.
+        return [
+            {
+                distance: 200,
+                message: 'Breaking the atmosphere!',
+                requirement: () => true,
+                completed: false,
+                triggerCutscene: true,
+            },
+        ];
+    }
+
     hasPlayerMoved() {
         return this.movementHistory.left
             || this.movementHistory.right
@@ -1676,6 +1671,8 @@ export class ObstacleManager {
             }
 
             // Show tutorial messages
+            const hudReady = this.game.hudRevealPhase == null
+                || this.game.hudRevealPhase === 'chips';
             for (let i = 0; i < this.tutorialMessages.length; i++) {
                 const msg = this.tutorialMessages[i];
                 if (!msg.completed && 
@@ -1685,18 +1682,20 @@ export class ObstacleManager {
                     if (msg.requirement()) {
                         msg.completed = true;
                         if (msg.triggerCutscene) {
-                            // Start cutscene
+                            this.showTutorialMessage(msg.message);
                             this.inCutscene = true;
                             this.cutsceneStartTime = performance.now();
-                            this.game.camera.speed *= 3; // Temporarily triple the speed
-                            // Create initial motion lines
+                            this.game.camera.speed *= 3;
                             this.createMotionLines();
                         } else if (i < this.tutorialMessages.length - 1) {
-                            setTimeout(() => {
-                                this.showTutorialMessage(this.tutorialMessages[i + 1].message);
-                            }, 1500);
+                            const next = this.tutorialMessages[i + 1];
+                            if (!next.triggerCutscene) {
+                                setTimeout(() => {
+                                    if (!next.completed) this.showTutorialMessage(next.message);
+                                }, 600);
+                            }
                         }
-                    } else if (!this.game.milestoneManager?.currentMessage) {
+                    } else if (hudReady && !this.game.milestoneManager?.currentMessage) {
                         this.showTutorialMessage(msg.message);
                     }
                 }

@@ -1,7 +1,8 @@
 // Spacecraft.js
 // The player ship: movement, heading, hitbox, trail, and shield state/rendering.
 // Changes:
-// - `forwardSpeedScale` eases to 0 during Game fuel-dying coast (engines out).
+// - Arc startMovement records left/right on ObstacleManager so Open World
+//   steer cues dismiss the same way zigzag flips do.
 // - Gameplay `speedBoost` (1.82×, 5s, refreshable) from wall-boost pickups —
 //   separate from cinematic `boost` so level-clear flyout is untouched.
 // - Arc banks: linear full-π half-turn so X closes to startX (snap on finish).
@@ -355,6 +356,7 @@ export class Spacecraft {
             direction,
             duration: this.arcDuration,
         };
+        this.game.obstacleManager?.trackMovement?.(direction);
         this.game.soundManager.playMove();
     }
 

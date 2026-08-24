@@ -1,5 +1,6 @@
 // PlayContainerView.swift
-// Changes: L42 written epilogue — dark hold, Day 42 voice+captions, 3s gap, then open.
+// Changes: Open World bouncing tap / swipe-left / swipe-right cue overlay.
+// L42 written epilogue — dark hold, Day 42 voice+captions, 3s gap, then open.
 // Skip captions are two beats (one phrase each), matching the skip voice.
 // First ending: Arc unlock card, then Controls with Arc on.
 // One epilogue reply per device — replay skips the prompt.
@@ -74,6 +75,11 @@ struct PlayContainerView: View {
                             .background(BrandColors.paperTint.opacity(0.92))
                             .opacity(Double(session.milestoneOpacity))
                             .padding(.top, 12)
+                    }
+
+                    if !session.steerCue.isEmpty {
+                        SteerCueOverlay(kind: session.steerCue)
+                            .padding(.top, 28)
                     }
 
                     if !session.logbookToast.isEmpty, session.hudLive {
@@ -381,6 +387,72 @@ struct PlayContainerView: View {
 
 }
 
+struct SteerCueOverlay: View {
+    var kind: String
+
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            let t = timeline.date.timeIntervalSinceReferenceDate
+            VStack(spacing: 18) {
+                glyph(at: t)
+                    .frame(width: 88, height: 88)
+                Text(label)
+                    .font(.system(size: 15, weight: .bold))
+                    .tracking(1.6)
+                    .foregroundStyle(BrandColors.ink)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(BrandColors.paperTint.opacity(0.94))
+                    .overlay(Rectangle().stroke(BrandColors.ink, lineWidth: 1.5))
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var label: String {
+        switch kind {
+        case "swipeLeft": return "SWIPE LEFT"
+        case "swipeRight": return "SWIPE RIGHT"
+        default: return "TAP"
+        }
+    }
+
+    @ViewBuilder
+    private func glyph(at time: TimeInterval) -> some View {
+        if kind == "swipeLeft" || kind == "swipeRight" {
+            let dir: CGFloat = kind == "swipeRight" ? 1 : -1
+            let cycle = time.truncatingRemainder(dividingBy: 1.35)
+            let eased = min(1, cycle / 0.95)
+            let x = dir * 36 * (eased * eased * (3 - 2 * eased) - 0.5)
+            Circle()
+                .fill(BrandColors.ink)
+                .frame(width: 28, height: 28)
+                .overlay(
+                    Circle()
+                        .fill(BrandColors.paper)
+                        .frame(width: 8, height: 8)
+                        .offset(x: -4, y: -5),
+                    alignment: .topLeading
+                )
+                .offset(x: x)
+        } else {
+            let cycle = time.truncatingRemainder(dividingBy: 1.15)
+            let press = cycle < 0.42 ? sin((cycle / 0.42) * .pi) : 0
+            let bounce = abs(sin(time * 5.5)) * 6
+            Circle()
+                .fill(BrandColors.ink)
+                .frame(width: 32, height: 32)
+                .scaleEffect(1 - press * 0.18)
+                .overlay(
+                    Circle()
+                        .stroke(BrandColors.ink.opacity(0.35), lineWidth: 2)
+                        .scaleEffect(1 + press * 0.9)
+                )
+                .offset(y: -bounce + press * 10)
+        }
+    }
+}
+
 #if DEBUG
 struct FramePacingHUD: View {
     @ObservedObject var monitor: FramePacingMonitor
@@ -433,7 +505,7 @@ struct JourneyEpilogueView: View {
     private let arrivalBeats = JourneyConfig.introBeats(for: JourneyConfig.totalLevels)
     private let bone = Color(red: 225 / 255, green: 217 / 255, blue: 193 / 255)
     private let darkHold: Double = 1.6
-    private let arrivalGap: Double = 3.0
+    private let arrivalGap: Double = 5.0
 
     var body: some View {
         ZStack {

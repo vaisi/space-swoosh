@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: light default — ink surround letterboxes
-     the cream game stage; theme.js can flip to night paper (bone surround /
-     charcoal stage). theme-color follows the surround. -->
+<!-- index.html — page shell. Changes: quiet “Soon on iOS & Android” only on
+     the right leftover column (no store cards, no left copy). Stage still 2:3;
+     dark charcoal surround + beige tunnel; light letterboxes in ink. -->
 <html lang="en">
 <head>
     <!-- Analytics is injected from src/services/Analytics.js, and only on the
@@ -26,21 +26,17 @@
     <style>
         html, body {
             height: 100%;
-            background: var(--ss-ink, #1A1A1A);
+            background: var(--ss-surround, var(--ss-ink, #1A1A1A));
         }
         body {
             margin: 0;
             padding: 0;
-            /* Ink surround — only the paper stage (#gameContainer) is cream/charcoal,
-               so the playfield rectangle is visible against the page. */
-            background: var(--ss-ink, #1A1A1A);
+            background: var(--ss-surround, var(--ss-ink, #1A1A1A));
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             touch-action: none;
-            /* Native shell hygiene: a WebView will happily rubber-band, long-press
-               to select, and flash a tap highlight over the game surface. */
             overscroll-behavior: none;
             -webkit-user-select: none;
             user-select: none;
@@ -53,9 +49,9 @@
             min-width: 280px;
             aspect-ratio: 2/3;
             position: relative;
-            /* Paper stage — cream (or charcoal in dark) before the canvas paints. */
             background: var(--ss-paper, #E1D9C1);
             overflow: hidden;
+            z-index: 1;
         }
         #gameCanvas {
             width: 100%;
@@ -65,7 +61,16 @@
             background: var(--ss-paper, #E1D9C1);
         }
 
-        /* Mobile / packaged app: fill the safe area with the stage; ink
+        /* Dark: charcoal page, beige tunnel so the playfield edge still reads. */
+        html[data-theme="dark"] #gameContainer {
+            box-shadow: 0 0 0 10px #E1D9C1;
+        }
+
+        .store-rail {
+            display: none;
+        }
+
+        /* Mobile / packaged app: fill the safe area with the stage; surround
            shows in the notch / home-indicator insets so the stage edge still
            reads. */
         @media (max-width: 768px) {
@@ -81,7 +86,48 @@
                 max-width: 100%;
                 aspect-ratio: auto;
                 height: 100%;
+                box-shadow: none;
             }
+        }
+
+        /* Desktop web: stage fills viewport height, leftover width is rails. */
+        @media (min-width: 769px) {
+            html[data-shell="web"] body {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                align-items: stretch;
+                justify-items: stretch;
+            }
+            html[data-shell="web"] #gameContainer {
+                grid-column: 2;
+                height: 100%;
+                max-height: 100%;
+                width: auto;
+                max-width: none;
+                aspect-ratio: 2 / 3;
+            }
+            html[data-shell="web"] .store-rail {
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                padding: 0 20px 40px;
+                min-width: 0;
+            }
+            html[data-shell="web"] .store-rail--left { grid-column: 1; }
+            html[data-shell="web"] .store-rail--right { grid-column: 3; }
+        }
+
+        .store-rail__note {
+            margin: 0;
+            max-width: 16em;
+            font-family: var(--ss-font-ui, system-ui, sans-serif);
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            line-height: 1.35;
+            text-align: center;
+            color: #E1D9C1;
+            opacity: 0.38;
         }
 
         /* dvh accounts for the collapsing browser chrome on mobile Safari /
@@ -97,8 +143,12 @@
     <script type="module" src="/src/main.js"></script>
 </head>
 <body>
+    <aside class="store-rail store-rail--left" aria-hidden="true"></aside>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
     </div>
+    <aside class="store-rail store-rail--right" aria-hidden="true">
+        <p class="store-rail__note">Soon on iOS &amp; Android</p>
+    </aside>
 </body>
 </html>

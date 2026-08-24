@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: L42 outro is fade/pause then level-42.mp3, 3s black gap, then epilogue-open. Native iOS ship IAP + Restore via RevenueCat; UNLOCK_ALL_SKINS false. -->
+<!-- Changes: Quiet “Soon on iOS & Android” only in the right leftover column. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -417,7 +417,8 @@ Two things worth knowing about the existing engine that this surfaced:
   iOS native Open Space / Journey uses `CinematicFlight.cruiseSeat` and does not
   reseat this way.
   KM must never be computed as `|velocity| * wallClockDt * 100` — that desyncs
-  HUD distance from world travel; use `abs(Δcamera.y) * (100/60)`.
+  HUD distance from world travel; use `GameConfig.kmDelta` —
+  `abs(Δcamera.y) × (800 / playfieldHeight) × (100/60)`.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
   (`ObstacleManager.countAhead()`), because the full list also holds everything
   already passed. Open Space's profile returns `Infinity`: the old `length < 7`
@@ -963,19 +964,24 @@ with a linear gradient along the wake's chord for the length-wise fade.
 - Opaque 2D context (`{ alpha: false }`) on native **and** iOS web (paper is
   always painted first). Active-play UI hits skip `getBoundingClientRect` (InputHandler
   owns steering). Trail/wake paths mutate or reuse scratch arrays.
-- KM is `abs(Δcamera.y) * (100/60)` so the HUD cannot desync from the world.
+- KM is `GameConfig.kmDelta` — `abs(Δcamera.y) × (800 / playfieldHeight) ×
+  (100/60)` — matching iOS, so a 1080px desktop stage and a 750px letterbox
+  burn fuel at the same HUD-KM rate.
 - The world scrolls: entities store an absolute `y`; `camera.getRelativeY(y)`
   converts to on-screen Y for rendering and off-screen culling.
 - `baseUnit` (derived from canvas size in `setupCanvas()`) is the scale unit for
   all sizes/type, so the game is responsive across desktop/mobile.
 - Canvas DPR: **iOS ≤ 1.5×** (Phase 1); other Capicitor ≤ 2×; Android/desktop web ≤ 3×
   (`?dpr=N` override).
-  **Page shell (night paper):** `html`/`body` are brand **ink** (bone `#E1D9C1`);
-  only `#gameContainer` / canvas are **paper** charcoal (`#1C1A16`), so the
-  playfield edges read on desktop (centered, max-width 500px, 2:3). Mobile fills
-  the safe area with the charcoal stage; bone ink shows in notch / home-indicator
-  insets. `theme-color` matches the bone surround. Native status bar uses
-  `Style.Dark` + charcoal background. Menu stamp: `BUILD N · NATIVE` / `WEB`
+  **Page shell:** `html`/`body` use `--ss-surround`. Light letterboxes the cream
+  stage in near-black ink. Dark uses charcoal `paperDeep` (`#12100E`) for the
+  whole page (not bone beige) and a beige `#E1D9C1` tunnel frame on
+  `#gameContainer` so the playfield edge still reads. Desktop **web** fills
+  viewport height with a 2:3 stage and a quiet “Soon on iOS & Android” line in
+  the leftover right column (`html[data-shell=web]`, hidden in the native
+  app and on viewports ≤768px). Mobile fills the safe area. `theme-color` matches the
+  surround. Native status bar uses `Style.Dark` + charcoal background in dark
+  mode. Menu stamp: `BUILD N · NATIVE` / `WEB`
   from `core/buildStamp.js` (auto-incremented on each `vite build`).
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset. **Arc is locked until Day 42 is actually
@@ -985,11 +991,16 @@ with a linear gradient along the wake's chord for the length-wise fade.
   Options → Controls with Arc selected. Saved `arc` values coerce to zigzag
   while locked. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at
-  `zigzagSpeedScale` × cruise; **touch flips on `touchstart`** (move/end ignored
-  for that gesture), plus **Space** / arrows; Escape pauses. Arc uses swipe +
-  half-screen tap + arrows (Space pauses); banks are **closed** linear full-π
-  swooshes (`arcDuration` 820 ms — see §5). The intro tutorial hint
-  matches the active style (`{space}` renders as a bold SPACE keycap).
+  `zigzagSpeedScale` × cruise; **touch flips on `touchstart`**, desktop web also
+  **clicks** (mouse/pen `pointerdown`), plus **Space** / arrows; Escape pauses.
+  Arc uses swipe + half-screen tap + arrows; desktop web also **mouse-drags**
+  (Space pauses); banks are **closed** linear full-π
+  swooshes (`arcDuration` 820 ms — see §5). Open World teaching starts as soon
+  as input is live (not at 80 KM): Zigzag shows TAP or “Click or press
+  `{space}` space” until the first flip; Arc shows SWIPE LEFT/RIGHT on phones,
+  or “drag left or press `{left}` key” then the matching `{right}` line on
+  desktop. `{space}` / `{left}` / `{right}` render as keycaps (`ui/Keycaps.js`).
+  Journey intro copy is unchanged.
   Persisted in localStorage. Open Space online scores and local personal bests
   key off this value (`flight_style` / `bestByStyle`). Space Board's Zigzag/Arc
   toggle stays viewable either way.
@@ -1000,7 +1011,7 @@ There are **several independent metrics** on the `Game` instance:
 
 | Field | Meaning | Source | Where shown |
 | --- | --- | --- | --- |
-| `score` | Distance in "KM" | `+= abs(Δcamera.y) * (100/60)` after each camera step (locked to world travel); also `+10` per shield-destroyed asteroid | HUD, end screen, leaderboard (`distance` tab) |
+| `score` | Distance in "KM" | `+= GameConfig.kmDelta(Δcamera.y, height)` after each camera step (locked to world travel, independent of playfield pixel size); also `+10` per shield-destroyed asteroid | HUD, end screen, leaderboard (`distance` tab) |
 | `fuel` | Survival tank (0–1) | Drains by KM once collectibles are enabled; diamonds refill (clamped, no overfill) | HUD sparkle icon + Signal-Blue meter bar |
 | `sparklesCollected` | Diamonds grabbed | `++` on each sparkle collect | Pause / end stats; Journey's second star vs `sparklesTarget` |
 | `obstaclesDestroyed` | Count of asteroids destroyed | `++` on each shield destruction | HUD target dots (Journey) or count (Open Space); end screen; leaderboard; third star vs `smashTarget` |

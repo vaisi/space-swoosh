@@ -3,7 +3,9 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
-// - fuel.voiceLowThreshold 0.20: NAV low-fuel line (HUD pulse stays at 0.28).
+// - kmDelta() matches iOS: Δy × (800 / playfieldHeight) × (100/60) so a full-
+//   height desktop stage awards KM (and burns fuel) at the same pace as the
+//   old 500×750 letterbox. Sparkle windows stay ~4s apart in real time.
 // - Camera reseat knobs (Android native + Hazard Lab): after 5s below the
 //   ideal seat, an 8s ease-in-out creeps the ship back.
 // - Soft sparkle magnet: radius 4.25× ship + magnetPull 0.15 so near-miss
@@ -32,8 +34,9 @@ export const GameConfig = {
     fuel: {
         max: 1,
         start: 1,
-        // HUD KM accrues ~90–110 per second of flight. Full tank ≈ 4000 KM
-        // (~35–40s / ~8–10 sparkle windows) before empty if you take nothing.
+        // HUD KM accrues ~90–110 per second of flight at any playfield size
+        // (see kmDelta). Full tank ≈ 4000 KM (~35–40s / ~8–10 sparkle windows)
+        // before empty if you take nothing.
         drainPerKm: 0.00025,
         refillPerCollectible: 0.45, // clamp to max; no overfill (~half a tank)
         dyingDurationMs: 900,
@@ -107,6 +110,16 @@ export const GameConfig = {
             maxDensity: 1.5,
             rampUpDistance: 10000
         }
+    },
+    // iOS already awards KM as Δy × (800 / playfieldHeight) × (100/60) so a
+    // tall phone and a short canvas stay in lockstep. Web used raw CSS pixels,
+    // so filling the desktop viewport (~1080px vs ~750) burned a full tank by
+    // ~2000 KM. Same helper here — fuel and HUD KM ignore screen size.
+    kmPerPixel: 100 / 60,
+    kmReferenceHeight: 800,
+    kmDelta(dy, playfieldHeight) {
+        const scale = this.kmReferenceHeight / Math.max(playfieldHeight, 1);
+        return Math.abs(dy) * scale * this.kmPerPixel;
     },
     milestones: [
         { score: 1000, message: "Breaking atmosphere..." },

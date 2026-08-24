@@ -6,8 +6,8 @@
  * Changes:
  * - Theme defaults to light cream/ink/Signal Blue; dark night-paper overrides
  *   via brand/theme.js at boot / Options toggle.
- * - Page shell (index.html) uses --ss-ink for the viewport surround and
- *   --ss-paper only on the game stage so the playfield edges read.
+ * - Dark surround is charcoal (`theme.js` --ss-surround); beige tunnel lives
+ *   on #gameContainer. Light still uses ink letterbox vs cream stage.
  * - Created file: mirrors src/brand/tokens.js for DOM/CSS surfaces (index.html,
  *   pause button, name input, brandkit.html). Import once at the root and use
  *   var(--ss-*) everywhere so the paper/ink/signal system + geometric type

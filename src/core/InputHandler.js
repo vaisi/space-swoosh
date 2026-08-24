@@ -1,6 +1,9 @@
 // InputHandler.js
-// Keyboard / touch steering. Only active during an in-progress run.
+// Keyboard / touch / mouse steering. Only active during an in-progress run.
 // Changes:
+// - Desktop web: mouse/pen pointerdown flips Zigzag (same as tap) and drags
+//   bank Arc (same as swipe). Touch pointers stay on the touch listeners so a
+//   phone cannot double-flip. Space still flips Zigzag; arrows still bank Arc.
 // - Zigzag flips on touchstart (immediate); move/end ignored for that gesture
 //   so micro-swipes cannot cancel the flip. Arc still swipe + half-screen tap.
 // - Steering locked while LevelIntroSequence is active (run-start cinematic).
@@ -19,13 +22,14 @@ export class InputHandler {
     constructor(game) {
         this.game = game;
         this.keys = {};
-        /** @type {null | { id: number, startX: number, startY: number, originX: number, lastDir: null | 'left' | 'right' }} */
+        /** @type {null | { id: number | string, startX: number, startY: number, originX: number, lastDir: null | 'left' | 'right', zigzagFlipped: boolean }} */
         this.touch = null;
 
         window.addEventListener('keydown', e => this.handleKeyDown(e));
         window.addEventListener('keyup', e => this.handleKeyUp(e));
 
         this.setupTouchControls();
+        this.setupPointerControls();
         // Scroll / pan / zoom / iOS rubber-band are blocked declaratively in CSS
         // (body + #gameCanvas touch-action: none, body overscroll-behavior: none,
         // #gameContainer overflow: hidden). So no non-passive touchmove JS is
@@ -61,6 +65,36 @@ export class InputHandler {
         }, { passive: true });
     }
 
+    // Mouse / pen only. Touch is owned by the touch listeners above.
+    setupPointerControls() {
+        const canvas = this.game.canvas;
+
+        canvas.addEventListener('pointerdown', e => {
+            if (e.pointerType === 'touch') return;
+            if (e.button != null && e.button !== 0) return;
+            if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
+            this.beginGesture(e.pointerId, e.clientX, e.clientY);
+            try {
+                canvas.setPointerCapture(e.pointerId);
+            } catch (_) {
+                /* capture is optional */
+            }
+        });
+
+        canvas.addEventListener('pointermove', e => {
+            if (e.pointerType === 'touch') return;
+            if (!this.game.isPlaying() || this.game.levelIntro?.active) return;
+            this.moveGesture(e.pointerId, e.clientX, e.clientY);
+        });
+
+        const endPointer = (e) => {
+            if (e.pointerType === 'touch') return;
+            this.endGesture(e.pointerId, e.clientX, e.clientY);
+        };
+        canvas.addEventListener('pointerup', endPointer);
+        canvas.addEventListener('pointercancel', endPointer);
+    }
+
     handleKeyDown(e) {
         if (!this.game.isPlaying()) return;
         // Run-start intro owns the ship — no steering until it hands off.
@@ -88,21 +122,36 @@ export class InputHandler {
     }
 
     handleTouchStart(e) {
-        // Passive listener — no preventDefault (touch-action: none blocks scroll).
         const t = e.changedTouches[0] || e.touches[0];
         if (!t) return;
+        this.beginGesture(t.identifier, t.clientX, t.clientY);
+    }
 
-        // One finger owns the gesture; ignore extras.
+    handleTouchMove(e) {
+        if (!this.touch) return;
+        const t = this.findTouch(e.touches, this.touch.id);
+        if (!t) return;
+        this.moveGesture(this.touch.id, t.clientX, t.clientY);
+    }
+
+    handleTouchEnd(e) {
+        if (!this.touch) return;
+        const t = this.findTouch(e.changedTouches, this.touch.id) || e.changedTouches[0];
+        this.endGesture(this.touch.id, t?.clientX, t?.clientY);
+    }
+
+    beginGesture(id, clientX, clientY) {
+        // One pointer owns the gesture; ignore extras.
         if (this.touch) return;
 
         // Zigzag: flip on press so the turn is immediate and finger drift
         // cannot kill the tap on touchend.
         if (this.game.flightStyle === FLIGHT_STYLE.zigzag) {
             this.touch = {
-                id: t.identifier,
-                startX: t.clientX,
-                startY: t.clientY,
-                originX: t.clientX,
+                id,
+                startX: clientX,
+                startY: clientY,
+                originX: clientX,
                 lastDir: null,
                 zigzagFlipped: true,
             };
@@ -111,29 +160,25 @@ export class InputHandler {
         }
 
         this.touch = {
-            id: t.identifier,
-            startX: t.clientX,
-            startY: t.clientY,
-            originX: t.clientX,
+            id,
+            startX: clientX,
+            startY: clientY,
+            originX: clientX,
             lastDir: null,
             zigzagFlipped: false,
         };
     }
 
-    handleTouchMove(e) {
-        if (!this.touch) return;
-        // Passive listener — no preventDefault (CSS blocks scroll/zoom/bounce).
+    moveGesture(id, clientX, clientY) {
+        if (!this.touch || this.touch.id !== id) return;
 
-        // Zigzag already flipped on touchstart — ignore swipe/drag entirely.
+        // Zigzag already flipped on press — ignore swipe/drag entirely.
         if (this.game.flightStyle === FLIGHT_STYLE.zigzag || this.touch.zigzagFlipped) {
             return;
         }
 
-        const t = this.findTouch(e.touches, this.touch.id);
-        if (!t) return;
-
-        const dx = t.clientX - this.touch.originX;
-        const dy = t.clientY - this.touch.startY;
+        const dx = clientX - this.touch.originX;
+        const dy = clientY - this.touch.startY;
 
         if (Math.abs(dx) < SWIPE_PX) return;
         // Ignore mostly-vertical drags (thumb rest / accidental scroll).
@@ -145,7 +190,7 @@ export class InputHandler {
             this.steer(dir);
             this.touch.lastDir = dir;
             // Re-anchor so dragging back the other way can reverse cleanly.
-            this.touch.originX = t.clientX;
+            this.touch.originX = clientX;
             return;
         }
 
@@ -155,30 +200,28 @@ export class InputHandler {
         }
     }
 
-    handleTouchEnd(e) {
-        if (!this.touch) return;
-        // Passive listener — no preventDefault (touch-action: none blocks scroll).
+    endGesture(id, clientX, clientY) {
+        if (!this.touch || this.touch.id !== id) return;
 
-        const t = this.findTouch(e.changedTouches, this.touch.id) || e.changedTouches[0];
         const gesture = this.touch;
         this.touch = null;
 
-        if (!t || !this.game.isPlaying()) return;
+        if (clientX == null || !this.game.isPlaying()) return;
         if (this.game.levelIntro?.active) return;
 
-        // Zigzag already handled on touchstart.
+        // Zigzag already handled on press.
         if (gesture.zigzagFlipped) return;
 
         // No swipe committed → tap.
         if (gesture.lastDir) return;
 
-        const dx = t.clientX - gesture.startX;
-        const dy = t.clientY - gesture.startY;
+        const dx = clientX - gesture.startX;
+        const dy = clientY - gesture.startY;
         if (Math.hypot(dx, dy) > TAP_SLOP_PX) return;
 
         // Arc: classic half-screen left/right.
         const rect = this.game.canvas.getBoundingClientRect();
-        const touchX = t.clientX - rect.left;
+        const touchX = clientX - rect.left;
         this.steer(touchX < rect.width / 2 ? 'left' : 'right');
     }
 

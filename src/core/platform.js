@@ -1,6 +1,8 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
+// - isDesktopWeb() / isNativeApp() / markDocumentShell(): Open World teach copy
+//   and the desktop store rails branch on desktop web vs native/touch.
 // - isAndroidNative(): Capacitor Android only — production camera reseat after
 //   wormhole / black-hole dips. Hazard Lab enables the same reseat on web too.
 // - iOS DPR cap raised 1.5 → 2.0: 1.5 sits below the retina threshold (visibly
@@ -58,4 +60,27 @@ export function preferOpaqueCanvas() {
 /** True only on the Capacitor Android app — not Android Chrome / desktop. */
 export function isAndroidNative() {
     return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+}
+
+/** Packaged iOS / Android shell — not a browser tab. */
+export function isNativeApp() {
+    return Capacitor.isNativePlatform();
+}
+
+/**
+ * Desktop browser with a mouse/trackpad. Phone browsers and native apps are
+ * tap/swipe even if the viewport is wide.
+ */
+export function isDesktopWeb() {
+    if (isNativeApp()) return false;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+        return false;
+    }
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+
+/** `html[data-shell=web|native]` so CSS can hide store rails in the app. */
+export function markDocumentShell() {
+    if (typeof document === 'undefined') return;
+    document.documentElement.dataset.shell = isNativeApp() ? 'native' : 'web';
 }

@@ -1,6 +1,7 @@
 // MilestoneManager.js
 // Shows the timed milestone log lines during flight.
 // Changes:
+// - `{space}` keycap draws through ui/Keycaps.js (same glyph as Open Space).
 // - Night paper: backing plate uses charcoal paperRgb so bone ink text stays
 //   readable (old cream plate washed out against ink).
 // - Rich `{space}` lines reset textAlign/fillStyle after the keycap so the
@@ -15,7 +16,8 @@
 //   (medium) instead of the near-invisible white Arial + glow, with a soft paper
 //   backing plate so the science-officer log reads clearly over the math paper.
 
-import { color, font } from '../brand/tokens.js';
+import { color } from '../brand/tokens.js';
+import { drawRichLine, measureRichWidth as measureKeycapLine } from '../ui/Keycaps.js';
 
 const SPACE_TOKEN = '{space}';
 
@@ -69,74 +71,11 @@ export class MilestoneManager {
 
     /** Measure width of a message that may contain `{space}` keycaps. */
     measureRichWidth(ctx, text, fontSize) {
-        const parts = String(text).split(SPACE_TOKEN);
-        let width = 0;
-        ctx.font = `500 ${fontSize}px ${font.ui}`;
-        for (let i = 0; i < parts.length; i++) {
-            width += ctx.measureText(parts[i]).width;
-            if (i < parts.length - 1) {
-                width += this.spaceKeyWidth(ctx, fontSize);
-            }
-        }
-        return width;
-    }
-
-    spaceKeyWidth(ctx, fontSize) {
-        const label = 'SPACE';
-        ctx.font = `700 ${fontSize * 0.72}px ${font.ui}`;
-        const labelW = ctx.measureText(label).width;
-        return labelW + fontSize * 0.7;
-    }
-
-    drawSpaceKey(ctx, x, y, fontSize) {
-        const label = 'SPACE';
-        const keyH = fontSize * 1.05;
-        const padX = fontSize * 0.28;
-        ctx.font = `700 ${fontSize * 0.72}px ${font.ui}`;
-        const labelW = ctx.measureText(label).width;
-        const keyW = labelW + padX * 2;
-        const left = x;
-        const top = y - keyH / 2;
-
-        ctx.fillStyle = color.ink;
-        ctx.beginPath();
-        const r = fontSize * 0.18;
-        ctx.moveTo(left + r, top);
-        ctx.arcTo(left + keyW, top, left + keyW, top + keyH, r);
-        ctx.arcTo(left + keyW, top + keyH, left, top + keyH, r);
-        ctx.arcTo(left, top + keyH, left, top, r);
-        ctx.arcTo(left, top, left + keyW, top, r);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = color.paper;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(label, left + keyW / 2, y + fontSize * 0.04);
-        return keyW + fontSize * 0.15;
+        return measureKeycapLine(ctx, text, fontSize);
     }
 
     drawRichText(ctx, text, cx, cy, fontSize) {
-        const parts = String(text).split(SPACE_TOKEN);
-        const totalW = this.measureRichWidth(ctx, text, fontSize);
-        let x = cx - totalW / 2;
-
-        ctx.textBaseline = 'middle';
-
-        for (let i = 0; i < parts.length; i++) {
-            // Keycap draw leaves textAlign=center; restore before each text run
-            // or the next words centre on the cursor and sit on top of the key.
-            ctx.textAlign = 'left';
-            ctx.fillStyle = color.ink;
-            ctx.font = `500 ${fontSize}px ${font.ui}`;
-            if (parts[i]) {
-                ctx.fillText(parts[i], x, cy);
-                x += ctx.measureText(parts[i]).width;
-            }
-            if (i < parts.length - 1) {
-                x += this.drawSpaceKey(ctx, x, cy, fontSize);
-            }
-        }
+        drawRichLine(ctx, text, cx, cy, fontSize);
     }
 
     render(ctx) {
