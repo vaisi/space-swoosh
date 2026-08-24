@@ -4,6 +4,8 @@
 // Skip captions are two beats (one phrase each), matching the skip voice.
 // First ending: Arc unlock card, then Controls with Arc on.
 // One epilogue reply per device — replay skips the prompt.
+// Epilogue lights: reply fades to 0, your-star crossfades in with a birth
+// sparkle. Sky lights are Signal-Blue cores + tight halos + short spikes.
 
 import SwiftUI
 import SpriteKit
@@ -495,10 +497,11 @@ struct JourneyEpilogueView: View {
     @State private var arrivalBeatsDone = false
     @State private var skipVoiceDone = false
     @State private var skipBeatsDone = false
-    @State private var drift: CGFloat = 0
-    @State private var driftAlpha: Double = 1
     @State private var lightsAt = Date()
     @State private var generation = UUID()
+
+    private let driftMs: Double = 1.6
+    private let yourStarFadeMs: Double = 0.7
 
     private let openBeats = GeneratedJourneyData.epilogueOpen
     private let skipBeats = GeneratedJourneyData.epilogueSkip
@@ -585,9 +588,16 @@ struct JourneyEpilogueView: View {
                     .disabled(busy)
                 }
                 if phase == "lights" {
-                    ZStack {
-                        TimelineView(.animation) { timeline in
-                            let elapsed = timeline.date.timeIntervalSince(lightsAt)
+                    TimelineView(.animation) { timeline in
+                        let elapsed = timeline.date.timeIntervalSince(lightsAt)
+                        let t = min(1, elapsed / driftMs)
+                        let ease = t * t
+                        let textAlpha = reply.isEmpty ? 0.0 : (1 - ease)
+                        let driftY: CGFloat = reply.isEmpty ? 0 : CGFloat(80 - ease * 120)
+                        let yourStart = reply.isEmpty ? 0.0 : (driftMs - yourStarFadeMs)
+                        let yourAge = elapsed - yourStart
+                        let yourAlpha = max(0, min(1, yourAge / yourStarFadeMs))
+                        ZStack {
                             Canvas { context, size in
                                 for light in lights {
                                     let age = elapsed - light.delay
@@ -595,23 +605,35 @@ struct JourneyEpilogueView: View {
                                     let alpha = min(1, age / 0.9)
                                     let cx = light.x * size.width
                                     let cy = light.y * size.height
-                                    let halo = CGRect(x: cx - light.r * 3.2, y: cy - light.r * 3.2, width: light.r * 6.4, height: light.r * 6.4)
-                                    let core = CGRect(x: cx - light.r, y: cy - light.r, width: light.r * 2, height: light.r * 2)
-                                    context.opacity = alpha * 0.45
-                                    context.fill(Path(ellipseIn: halo), with: .color(Color(red: 1, green: 0.98, blue: 0.92)))
-                                    context.opacity = alpha
-                                    context.fill(Path(ellipseIn: core), with: .color(.white))
+                                    EpilogueStarPaint.drawSky(
+                                        &context,
+                                        cx: cx,
+                                        cy: cy,
+                                        r: light.r,
+                                        alpha: alpha
+                                    )
+                                }
+                                if yourAlpha > 0.01 {
+                                    EpilogueStarPaint.drawYour(
+                                        &context,
+                                        cx: size.width / 2,
+                                        cy: size.height * 0.5 - 40,
+                                        alpha: yourAlpha,
+                                        age: yourAge
+                                    )
                                 }
                             }
-                        }
-                        if !reply.isEmpty {
-                            Text(reply)
-                                .font(BrandType.display(18))
-                                .foregroundStyle(bone.opacity(0.9))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 28)
-                                .offset(y: drift)
-                                .opacity(driftAlpha)
+                            .frame(maxWidth: .infinity, minHeight: 280)
+                            if !reply.isEmpty {
+                                Text(reply)
+                                    .font(BrandType.display(18))
+                                    .foregroundStyle(bone.opacity(0.9))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 28)
+                                    .offset(y: driftY)
+                                    .opacity(textAlpha)
+                                    .allowsHitTesting(false)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, minHeight: 280)
@@ -849,17 +871,11 @@ struct JourneyEpilogueView: View {
             EpilogueLight(
                 x: CGFloat.random(in: 0.12...0.88),
                 y: CGFloat.random(in: 0.12...0.78),
-                r: CGFloat.random(in: 0.5...1.2),
+                r: CGFloat.random(in: 0.75...1.8),
                 delay: Double.random(in: 0.4...2.6)
             )
         }
-        drift = 80
-        driftAlpha = 1
         phase = "lights"
-        withAnimation(.easeIn(duration: 1.6)) {
-            drift = -40
-            driftAlpha = 0.12
-        }
         let stamp = generation
         DispatchQueue.main.asyncAfter(deadline: .now() + 4.2) {
             guard stamp == generation else { return }
@@ -896,4 +912,108 @@ private struct EpilogueLight {
     var y: CGFloat
     var r: CGFloat
     var delay: Double
+}
+
+private enum EpilogueStarPaint {
+    private static let sparkleMs: Double = 0.5
+    private static var glow: Color { BrandColors.signal }
+
+    static func drawSky(_ context: inout GraphicsContext, cx: CGFloat, cy: CGFloat, r: CGFloat, alpha: Double) {
+        let s = r * 1.12
+        let haloR = s * 2.05
+        let glowR = max(0.55 as CGFloat, s * 0.48)
+        let coreR = max(0.35 as CGFloat, s * 0.26)
+        fillHalo(&context, cx: cx, cy: cy, radius: haloR, alpha: alpha, inner: 0.42)
+        if s >= 1.15 {
+            strokeSpikes(&context, cx: cx, cy: cy, arm: s * 3.05, width: max(0.45 as CGFloat, s * 0.24), alpha: alpha * 0.7)
+        }
+        context.opacity = alpha * 0.92
+        context.fill(Path(ellipseIn: disc(cx, cy, glowR)), with: .color(glow))
+        context.opacity = alpha
+        context.fill(Path(ellipseIn: disc(cx, cy, coreR)), with: .color(.white))
+    }
+
+    static func drawYour(_ context: inout GraphicsContext, cx: CGFloat, cy: CGFloat, alpha: Double, age: Double) {
+        let sparkleT = max(0, min(1, age / sparkleMs))
+        let burst = CGFloat(1 - sparkleT)
+        let r: CGFloat = 2.8
+        let haloR = r * 4.4 + burst * r * 2.4
+        fillHalo(&context, cx: cx, cy: cy, radius: haloR, alpha: alpha, inner: 0.55)
+        let arm = r * 4.2 + burst * r * 3.2
+        strokeSpikes(&context, cx: cx, cy: cy, arm: arm, width: 0.9 + burst * 0.7, alpha: alpha * Double(0.82 + burst * 0.12))
+        if burst > 0.02 {
+            var rotated = context
+            rotated.translateBy(x: cx, y: cy)
+            rotated.rotate(by: .degrees(45))
+            strokeSpikes(&rotated, cx: 0, cy: 0, arm: arm * 0.62, width: 0.55 + burst * 0.4, alpha: alpha * Double(burst) * 0.75)
+            context.opacity = alpha * Double(burst) * 0.9
+            context.fill(sparklePath(cx: cx, cy: cy, r: r * 2.2 + burst * r * 2.8, innerRatio: 0.32), with: .color(glow))
+        }
+        context.opacity = alpha
+        context.fill(sparklePath(cx: cx, cy: cy, r: r * 1.55, innerRatio: 0.4), with: .color(glow))
+        context.fill(Path(ellipseIn: disc(cx, cy, r * 0.38)), with: .color(.white))
+    }
+
+    private static func fillHalo(
+        _ context: inout GraphicsContext,
+        cx: CGFloat,
+        cy: CGFloat,
+        radius: CGFloat,
+        alpha: Double,
+        inner: Double
+    ) {
+        let rect = disc(cx, cy, radius)
+        context.opacity = 1
+        context.fill(
+            Path(ellipseIn: rect),
+            with: .radialGradient(
+                Gradient(stops: [
+                    .init(color: glow.opacity(inner * alpha), location: 0),
+                    .init(color: glow.opacity(0.12 * alpha), location: 0.42),
+                    .init(color: Color.clear, location: 1)
+                ]),
+                center: CGPoint(x: cx, y: cy),
+                startRadius: 0,
+                endRadius: radius
+            )
+        )
+    }
+
+    private static func strokeSpikes(
+        _ context: inout GraphicsContext,
+        cx: CGFloat,
+        cy: CGFloat,
+        arm: CGFloat,
+        width: CGFloat,
+        alpha: Double
+    ) {
+        var path = Path()
+        path.move(to: CGPoint(x: cx - arm, y: cy))
+        path.addLine(to: CGPoint(x: cx + arm, y: cy))
+        path.move(to: CGPoint(x: cx, y: cy - arm))
+        path.addLine(to: CGPoint(x: cx, y: cy + arm))
+        context.opacity = alpha
+        context.stroke(path, with: .color(glow), style: StrokeStyle(lineWidth: width, lineCap: .round))
+    }
+
+    private static func sparklePath(cx: CGFloat, cy: CGFloat, r: CGFloat, innerRatio: CGFloat = 0.22) -> Path {
+        var path = Path()
+        let inner = r * innerRatio
+        for i in 0..<8 {
+            let angle = CGFloat(i) * .pi / 4 - .pi / 2
+            let radius = i % 2 == 0 ? r : inner
+            let point = CGPoint(x: cx + cos(angle) * radius, y: cy + sin(angle) * radius)
+            if i == 0 {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+        path.closeSubpath()
+        return path
+    }
+
+    private static func disc(_ cx: CGFloat, _ cy: CGFloat, _ r: CGFloat) -> CGRect {
+        CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2)
+    }
 }

@@ -7,7 +7,9 @@
 // Changes:
 // - After the dark hold: L42 arrival voice + captions, 3s black gap, then open.
 // - Prompt: “Write it here.” placeholder, larger type, bottom-docked tall buttons.
-// - Lights are smaller with a bright core + faint halo.
+// - Reply text fades fully to 0 (ease-in); a bright your-star crossfades in
+//   with a birth sparkle. Sky lights are Signal-Blue cores + tight halos + spikes
+//   (smaller than the first HD pass, especially the player’s star).
 // - Keep BGM through the hold; skip captions are two beats (one per phrase).
 // - First-time Arc unlock card after Follow @spacewoosh.
 // - One reply per device: replay skips the prompt and does not submit again.
@@ -32,7 +34,9 @@ import {
     setLabelType,
     setMonoType,
     resetType,
+    drawSparkle,
 } from '../utils/BrandDraw.js';
+import { color } from '../brand/tokens.js';
 
 const BEAT_FADE_IN = 350;
 const BEAT_FADE_OUT = 350;
@@ -44,6 +48,8 @@ const FOOTER_HOLD_MS = 3600;
 const LIGHTS_MS = 4200;
 const MAX_LIGHTS = 72;
 const DRIFT_MS = 1600;
+const YOUR_STAR_FADE_MS = 700;
+const SPARKLE_MS = 500;
 const DARK_HOLD_MS = 1600;
 const ARRIVAL_GAP_MS = 3000;
 const INPUT_FONT_PX = 22;
@@ -63,6 +69,10 @@ function mapBeats(raw) {
         text: String(beat.text || beat || '').trim(),
         gapAfterMs: beat.gapAfterMs ?? DEFAULT_BEAT_GAP_MS,
     })).filter((b) => b.text);
+}
+
+function easeInQuad(t) {
+    return t * t;
 }
 
 export class JourneyEpilogueSequence {
@@ -345,7 +355,7 @@ export class JourneyEpilogueSequence {
             this.lights.push({
                 x: w * (0.12 + Math.random() * 0.76),
                 y: h * (0.12 + Math.random() * 0.7),
-                r: 0.5 + Math.random() * 0.7,
+                r: 0.75 + Math.random() * 1.05,
                 delay: 400 + Math.random() * 2200,
                 born: 0,
             });
@@ -356,8 +366,9 @@ export class JourneyEpilogueSequence {
         const elapsed = now - this.phaseStart;
         if (this.replyText) {
             const t = Math.min(1, elapsed / DRIFT_MS);
-            this.driftY = t * this.game.height * 0.42;
-            this.driftAlpha = 1 - t * 0.85;
+            const ease = easeInQuad(t);
+            this.driftY = ease * this.game.height * 0.42;
+            this.driftAlpha = 1 - ease;
         }
         for (const light of this.lights) {
             if (!light.born && elapsed >= light.delay) light.born = now;
@@ -635,17 +646,91 @@ export class JourneyEpilogueSequence {
         this.buttons.follow = null;
     }
 
-    drawLight(ctx, x, y, r, alpha) {
+    strokeSpikes(ctx, x, y, arm, width, alpha) {
         ctx.save();
-        ctx.globalAlpha = alpha * 0.45;
-        ctx.fillStyle = 'rgba(255, 250, 235, 1)';
-        ctx.beginPath();
-        ctx.arc(x, y, r * 3.2, 0, Math.PI * 2);
-        ctx.fill();
         ctx.globalAlpha = alpha;
-        ctx.fillStyle = 'rgba(255, 255, 248, 1)';
+        ctx.strokeStyle = `rgba(${color.signalRgb}, 1)`;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.moveTo(x - arm, y);
+        ctx.lineTo(x + arm, y);
+        ctx.moveTo(x, y - arm);
+        ctx.lineTo(x, y + arm);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    drawLight(ctx, x, y, r, alpha) {
+        const s = r * 1.12;
+        const haloR = s * 2.05;
+        const glowR = Math.max(0.55, s * 0.48);
+        const coreR = Math.max(0.35, s * 0.26);
+
+        ctx.save();
+        const halo = ctx.createRadialGradient(x, y, 0, x, y, haloR);
+        halo.addColorStop(0, `rgba(${color.signalRgb}, ${0.42 * alpha})`);
+        halo.addColorStop(0.42, `rgba(${color.signalRgb}, ${0.12 * alpha})`);
+        halo.addColorStop(1, `rgba(${color.signalRgb}, 0)`);
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(x, y, haloR, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (s >= 1.15) {
+            this.strokeSpikes(ctx, x, y, s * 3.05, Math.max(0.45, s * 0.24), alpha * 0.7);
+        }
+
+        ctx.globalAlpha = alpha * 0.92;
+        ctx.fillStyle = `rgba(${color.signalRgb}, 1)`;
+        ctx.beginPath();
+        ctx.arc(x, y, glowR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, coreR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    drawYourStar(ctx, x, y, alpha, ageMs, unit) {
+        const sparkleT = Math.max(0, Math.min(1, ageMs / SPARKLE_MS));
+        const burst = 1 - sparkleT;
+        const r = Math.max(2.4, unit * 0.28);
+
+        ctx.save();
+        const haloR = r * 4.4 + burst * r * 2.4;
+        const halo = ctx.createRadialGradient(x, y, 0, x, y, haloR);
+        halo.addColorStop(0, `rgba(${color.signalRgb}, ${0.55 * alpha})`);
+        halo.addColorStop(0.28, `rgba(${color.signalRgb}, ${0.22 * alpha})`);
+        halo.addColorStop(0.62, `rgba(${color.signalRgb}, ${0.07 * alpha})`);
+        halo.addColorStop(1, `rgba(${color.signalRgb}, 0)`);
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(x, y, haloR, 0, Math.PI * 2);
+        ctx.fill();
+
+        const arm = r * 4.2 + burst * r * 3.2;
+        this.strokeSpikes(ctx, x, y, arm, 0.9 + burst * 0.7, alpha * (0.82 + burst * 0.12));
+        if (burst > 0.02) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(Math.PI / 4);
+            this.strokeSpikes(ctx, 0, 0, arm * 0.62, 0.55 + burst * 0.4, alpha * burst * 0.75);
+            ctx.restore();
+            drawSparkle(ctx, x, y, r * 2.2 + burst * r * 2.8, {
+                fill: `rgba(${color.signalRgb}, ${alpha * burst * 0.9})`,
+                innerRatio: 0.32,
+            });
+        }
+
+        ctx.globalAlpha = alpha;
+        drawSparkle(ctx, x, y, r * 1.55, { fill: color.signal, innerRatio: 0.4 });
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.38, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     }
@@ -670,8 +755,13 @@ export class JourneyEpilogueSequence {
             const alpha = Math.min(1, age);
             this.drawLight(ctx, light.x, light.y, light.r, alpha);
         }
-        if (!this.replyText || this.driftAlpha < 0.2) {
-            this.drawLight(ctx, w / 2, h * 0.2, 1.1, 1);
+
+        const elapsed = now - this.phaseStart;
+        const yourStart = this.replyText ? DRIFT_MS - YOUR_STAR_FADE_MS : 0;
+        const yourAge = elapsed - yourStart;
+        const yourAlpha = Math.max(0, Math.min(1, yourAge / YOUR_STAR_FADE_MS));
+        if (yourAlpha > 0.01) {
+            this.drawYourStar(ctx, w / 2, h * 0.2, yourAlpha, yourAge, unit);
         }
     }
 

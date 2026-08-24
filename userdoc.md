@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: desktop right leftover column says Soon on iOS & Android. -->
+<!-- userdoc.md — Changes: ending sky lights are smaller Signal-Blue sparkles. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -126,7 +126,8 @@ Flying Journey is also how you **unlock Space Log entries** — observe and inte
 with hazards and boosts to fill your field manual. The opening Signal brief is
 the first Journey entry. After the last relay, you can write one thing into the
 dark — or leave it unsaid. That choice is once per device; later visits still
-play the ending, without another prompt.
+play the ending, without another prompt. The lights that bloom there are the same
+Signal Blue as the fuel sparkles, kept small so the field stays dark.
 
 ### Open Space
 

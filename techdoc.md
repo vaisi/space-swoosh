@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Quiet “Soon on iOS & Android” only in the right leftover column. -->
+<!-- Changes: L42 epilogue sky lights are smaller Signal-Blue sparkles, not huge warm glows. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -252,7 +252,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
 | `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. |
-| `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spacewoosh, first-time Arc card. Replay skips the prompt (one reply per device). |
+| `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spacewoosh, first-time Arc card. Replay skips the prompt (one reply per device). Sky lights and the player star use Signal Blue with tight halos (same accent as fuel sparkles). |
 | `services/ReplyService.js` | RPC `submit_journey_reply` → ordinal. Called once per device; replay does not insert again. Offline falls back to a local card. |
 | `services/ReplyFilter.js` | 140-char UGC filter for epilogue text (same blocklist as call signs). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
