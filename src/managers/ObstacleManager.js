@@ -3,6 +3,8 @@
 // Changes:
 // - Journey 6+ / Open Space weather: corridor mid-fill and mixed pairs via
 //   usesPairedBelt; EncounterDirector spikes (Journey) and KM storms (Open Space).
+// - Open Space belt: tighter live gaps; delay (do not skip) when at maxOnScreen.
+//   Paired rows consume simpleChance and pack thin point rows; remember heavies.
 // - Day 42: skip new rows at/past the finish gate so Arrival flyout is empty.
 // - Shield smash plays crash_with_shield plus the same Light-impact haptic as
 //   wall BOOP at reduced strength (Android quieter waveform / iOS intensity 0.55).
@@ -82,6 +84,7 @@ import { drawBlackHoleGlowSprite } from '../utils/GlowSprites.js';
 import { isKilled } from '../core/perfFlags.js';
 import { EncounterDirector } from '../game/EncounterDirector.js';
 import { HEAVY_TYPES, laneRange, planPairedRow, rowPrimaryTypes } from '../config/HazardPairs.js';
+import { PLAY_MODE } from '../modes/RunProfile.js';
 
 // How rarely the shielded-smash sound may repeat during the level-clear flyout.
 const CINEMATIC_CRASH_MS = 120;
@@ -1753,17 +1756,26 @@ export class ObstacleManager {
             this._beltArmed = false;
         }
 
-        // Regular obstacle spawning logic. A row is skipped rather than delayed
-        // when the field ahead is already full, so the gap the player flies
-        // through stays where the spacing put it.
+        // Regular obstacle spawning. At the on-screen cap, delay (do not skip)
+        // so the spacing cursor cannot walk into empty sky. Storms still force.
         if (beltOpen) {
             while (this.nextSpawnY > this.game.camera.y - this.game.height) {
+                const gaps = this.game.profile.gapRange(this.game.height);
+                this.minVerticalGap = gaps.min;
+                this.maxVerticalGap = gaps.max;
+                const forceRow = this.encounters?.isLive || this.encounters?.wouldStart(this);
+                if (
+                    !this.pauseSpawning
+                    && !forceRow
+                    && this.countAhead() >= this.game.profile.maxOnScreen
+                ) {
+                    break;
+                }
                 const spacing = this.minVerticalGap + Math.random() * (this.maxVerticalGap - this.minVerticalGap);
                 const candidate = this.nextSpawnY - spacing;
                 if (this.game.isAtOrPastFinaleGate?.(candidate)) break;
                 this.nextSpawnY = candidate;
                 if (this.encounters?.inQuietZone(this.nextSpawnY)) continue;
-                const forceRow = this.encounters?.isLive || this.encounters?.wouldStart(this);
                 if (!this.pauseSpawning && (forceRow || this.countAhead() < this.game.profile.maxOnScreen)) {
                     this.spawnObstacleRow();
                 }
@@ -1963,6 +1975,7 @@ export class ObstacleManager {
         const blackholeBusy = this.countAheadBlackHoles() >= 2;
         
         if (this.game.profile.usesPairedBelt) {
+            const openSpace = this.game.profile.mode === PLAY_MODE.openWorld;
             const plan = planPairedRow({
                 spawnCount,
                 available: availableTypesArray,
@@ -1971,6 +1984,8 @@ export class ObstacleManager {
                 comboTheme: this.game.profile.comboTheme,
                 avoid,
                 blackholeBusy,
+                simpleChance: openSpace ? this.game.profile.simpleChance : 0,
+                packThinRows: openSpace,
             });
             this.spawnPlannedRow(plan, difficultyMultiplier);
             return;
@@ -2029,7 +2044,7 @@ export class ObstacleManager {
                 this.spawnObstacleByType(slot.type, xPos, xPos + 0.2);
             }
         }
-        if (this.game.profile.isLateJourney) {
+        if (this.game.profile.usesPairedBelt) {
             this.rememberRowTypes(rowPrimaryTypes(plan));
         }
     }

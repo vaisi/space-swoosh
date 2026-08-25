@@ -5,7 +5,9 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
-// - Open Space weather (pair/combo/focus by KM) lives on OpenWorldProfile.
+// - Open Space weather + belt density live on OpenWorldProfile (tighter vertical
+//   pack than Journey's 0.14 gaps — Open Space rows are thinner).
+// - Open Space speedMultiplier 1.1 so web matches Android cruise.
 // - Journey L6+ pairing / L20+ comboTheme / encounters live on JourneyProfile.
 // - OPEN_WORLD_UNLOCKS messages are null — types still unlock by KM, but
 //   Open Space no longer flashes hazard-name banners.
@@ -27,6 +29,7 @@
 import { clamp01 } from '../utils/math.js';
 import {
     OPEN_SPACE_PAIRED_FROM_KM,
+    beltAt,
     weatherAt,
 } from '../config/OpenSpaceWeather.js';
 
@@ -263,6 +266,11 @@ export class OpenWorldProfile extends RunProfile {
         return this.game.TOTAL_DISTANCE * 100;
     }
 
+    /** Web and Android Capacitor: +10% so Open Space matches the snappier Android feel. */
+    get speedMultiplier() {
+        return 1.1;
+    }
+
     get usesPairedBelt() {
         return this.game.score >= OPEN_SPACE_PAIRED_FROM_KM;
     }
@@ -279,10 +287,39 @@ export class OpenWorldProfile extends RunProfile {
         return weatherAt(this.game.score).focus;
     }
 
+    get simpleChance() {
+        return beltAt(this.game.score).simpleChance;
+    }
+
+    gapRange(canvasHeight) {
+        const belt = beltAt(this.game.score);
+        const min = canvasHeight * belt.minGapFrac;
+        return { min, max: min * belt.gapSpread };
+    }
+
+    density() {
+        return beltAt(this.game.score).density;
+    }
+
+    maxClusterCount() {
+        return 5;
+    }
+
+    rollRowSpawnCount() {
+        const maxSpawns = Math.max(1, this.maxRowSpawns());
+        if (maxSpawns <= 1) return 1;
+        const belt = beltAt(this.game.score);
+        const r = Math.random();
+        if (r < belt.rowOne) return 1;
+        if (r < belt.rowTwo) return Math.min(2, maxSpawns);
+        return Math.min(3, maxSpawns);
+    }
+
     /**
      * Uncapped on Android/desktop (historical Open World feel). On iOS Safari
      * a soft ceiling keeps late-run Canvas2D draw+collision from melting FPS;
-     * Journey already caps via JourneyProfile.
+     * Journey already caps via JourneyProfile. Hitting the cap delays the next
+     * row rather than skipping it (empty holes).
      */
     get maxOnScreen() {
         return this.game.iosDrawLod ? 18 : Infinity;

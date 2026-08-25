@@ -3,9 +3,7 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
-// - kmDelta() matches iOS: Δy × (800 / playfieldHeight) × (100/60) so a full-
-//   height desktop stage awards KM (and burns fuel) at the same pace as the
-//   old 500×750 letterbox. Sparkle windows stay ~4s apart in real time.
+// - Open Space Deep space milestone at 12,500 KM (Day 33 belt), not 10,000.
 // - Camera reseat knobs (Android native + Hazard Lab): after 5s below the
 //   ideal seat, an 8s ease-in-out creeps the ship back.
 // - Soft sparkle magnet: radius 4.25× ship + magnetPull 0.15 so near-miss
@@ -103,8 +101,8 @@ export const GameConfig = {
         maxSize: 6.25,
         verticalSpacing: 0.35,
         rotationRange: [-0.02, 0.02],
-        // Open World density ramp. Journey levels ignore this and lerp from their
-        // own difficulty scalar instead (modes/JourneyProfile.js).
+        // Historical Open World cluster scale. Open Space belt density now
+        // lives in OpenSpaceWeather.OPEN_SPACE_BELT (KM lerp). Journey ignores this.
         scaling: {
             startDensity: 0.7,
             maxDensity: 1.5,
@@ -125,7 +123,7 @@ export const GameConfig = {
         { score: 1000, message: "Breaking atmosphere..." },
         { score: 2000, message: "Warning: Complex asteroids detected..." },
         { score: 5000, message: "Caution: Asteroid belts ahead..." },
-        { score: 10000, message: "Deep space detected..." },
+        { score: 12500, message: "Deep space detected..." },
         { score: 25000, message: "Unknown signals ahead..." },
         { score: 50000, message: "Approaching the void..." }
     ]

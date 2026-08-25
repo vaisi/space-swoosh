@@ -279,7 +279,7 @@ export const voice = {
         1000:  'Atmosphere cleared. Ascent nominal.',
         2000:  'Complex asteroids detected. Recalculating trajectory.',
         5000:  'Asteroid belt ahead. Collision: probable.',
-        10000: 'Deep space. No signs of life.',
+        12500: 'Deep space. No signs of life.',
         25000: 'Unknown signals. Origin: indeterminate.',
         50000: 'Approaching the void. Fascinating.',
     },

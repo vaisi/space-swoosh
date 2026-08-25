@@ -1,6 +1,9 @@
 // CombatSimulator.swift
 // Changes: L6+ pairing and Open Space KM storms read GeneratedJourneyData
-// (catalog + weather table). Corridor mid-fill, family picker, comboTheme belt.
+// (catalog + weather + belt table). Delay at maxOnScreen instead of skip-holes.
+// Corridor mid-fill, family picker, comboTheme belt.
+// Wormholes are helpers (occasional gift hop), not weather identity.
+// Open Space storm quiet is short; dual patches chain without half-screen holes.
 // Open World steer cue is overlay-only (no second milestone line).
 // Atmosphere still at 200 KM. L42 empty space past the gate; playEpilogue.
 
@@ -299,18 +302,21 @@ enum CombatSimulator {
         if run.nextSpawnY == 0 {
             run.nextSpawnY = world.ship.y + world.height * 0.9
         }
-        let gap = run.profile.gapRange(height: world.height)
         var guardCount = 0
         while run.nextSpawnY < world.ship.y + world.height && guardCount < 4 {
             guardCount += 1
+            LateJourneyBelt.armIfNeeded(run: &run)
+            let force = LateJourneyBelt.shouldForceRow(world: world, run: &run)
+            let live = world.obstacles.filter { $0.active && $0.y > world.ship.y }.count
+            if !force, live >= run.profile.maxOnScreen { break }
+            let gap = run.profile.gapRange(height: world.height, scoreKm: run.scoreKm)
             let nextY = run.nextSpawnY + gap.min + rand01(&run.rng) * (gap.max - gap.min)
             if isAtOrPastFinaleGate(y: nextY, world: world, run: run) { break }
             run.nextSpawnY = nextY
-            LateJourneyBelt.armIfNeeded(run: &run)
             if LateJourneyBelt.inQuietZone(run: &run, y: run.nextSpawnY) { continue }
-            let force = LateJourneyBelt.shouldForceRow(world: world, run: &run)
-            let live = world.obstacles.filter(\.active).count
-            if force || live < run.profile.maxOnScreen {
+            let stillForce = LateJourneyBelt.shouldForceRow(world: world, run: &run)
+            let stillLive = world.obstacles.filter { $0.active && $0.y > world.ship.y }.count
+            if stillForce || stillLive < run.profile.maxOnScreen {
                 spawnRow(world: &world, run: &run, atY: run.nextSpawnY)
             }
         }
@@ -397,7 +403,7 @@ enum CombatSimulator {
         if LateJourneyBelt.playIfNeeded(world: &world, run: &run, atY: atY) { return }
         let types = run.profile.unlockedTypes(scoreKm: run.scoreKm)
         guard !types.isEmpty else { return }
-        let spawnCount = run.profile.rollRowSpawnCount(&run.rng)
+        let spawnCount = run.profile.rollRowSpawnCount(&run.rng, scoreKm: run.scoreKm)
         let dens = run.profile.density(scoreKm: run.scoreKm)
         if run.profile.usesPairedBelt(scoreKm: run.scoreKm) {
             let plan = LateJourneyBelt.planPairedRow(types: types, world: world, run: &run, spawnCount: spawnCount)
@@ -424,7 +430,7 @@ enum CombatSimulator {
     }
 
     private static func pickType(_ types: [String], run: inout RunState, world: WorldState) -> String {
-        if rand01(&run.rng) < run.profile.simpleChance, types.contains("simple") {
+        if rand01(&run.rng) < run.profile.liveSimpleChance(scoreKm: run.scoreKm), types.contains("simple") {
             return "simple"
         }
         var others = types.filter { $0 != "simple" }
@@ -1227,6 +1233,9 @@ enum LateJourneyBelt {
     private static let corridor: Set<String> = [
         "sideBarrier", "driftCurrent"
     ]
+    private static let helpers: Set<String> = [
+        "wormhole"
+    ]
     private static let heavy: Set<String> = [
         "blackhole", "repulsor", "wormhole", "sweepGate", "phase", "sideBarrier"
     ]
@@ -1263,18 +1272,7 @@ enum LateJourneyBelt {
     }
 
     private static func armOpenSpaceStorms(run: inout RunState) {
-        var marks: [CGFloat] = []
-        var seen = Set<CGFloat>()
-        for entry in GameConfig.Unlocks.table where entry.score > 0 {
-            if seen.insert(entry.score).inserted { marks.append(entry.score) }
-        }
-        marks.sort()
-        let full = GeneratedJourneyData.openSpaceFullRosterKm
-        let step = GeneratedJourneyData.openSpaceStormRepeatKm
-        let repeats = GeneratedJourneyData.openSpaceStormRepeatCount
-        for n in 1...repeats {
-            marks.append(full + CGFloat(n) * step)
-        }
+        let marks = OpenSpaceWeather.stormMarks()
         var ids: [String] = []
         var ats: [CGFloat] = []
         var lastFamily: String?
@@ -1282,18 +1280,21 @@ enum LateJourneyBelt {
             let types = GameConfig.Unlocks.table.compactMap { km >= $0.score ? $0.type : nil }
             let sky = OpenSpaceWeather.at(km)
             let unlocking = GameConfig.Unlocks.table.last { $0.score == km && $0.type != "simple" }?.type
+            let count = OpenSpaceWeather.stormCount(at: km)
             let picked = pickIds(
                 types: types,
                 focus: unlocking ?? sky.focus,
                 pair: sky.pair,
-                count: 1,
+                count: count,
                 level: i + Int(km / 100),
                 avoidFamily: lastFamily
             )
-            guard let id = picked.first, let rec = recipes.first(where: { $0.id == id }) else { continue }
-            ids.append(id)
-            ats.append(km)
-            lastFamily = rec.family
+            for id in picked {
+                guard let rec = recipes.first(where: { $0.id == id }) else { continue }
+                ids.append(id)
+                ats.append(km)
+                lastFamily = rec.family
+            }
         }
         if ids.isEmpty {
             run.encounterRecipeIds = ["_none"]
@@ -1343,17 +1344,41 @@ enum LateJourneyBelt {
         let beat = recipe.beats[run.encounterBeat]
         run.encounterBeat += 1
         let last = run.encounterBeat >= recipe.beats.count
+        let chained = last && run.encounterUsesKm && hasChainedStorm(run: run)
         if beat.kind == "gap" {
-            run.quietUntilY = atY + world.height * beat.frac
+            var frac = beat.frac
+            if run.encounterUsesKm {
+                frac = min(frac, GeneratedJourneyData.openSpaceStormGapCap)
+            }
+            if last, run.encounterUsesKm {
+                frac = min(frac, quietFrac(chained: chained))
+            }
+            run.quietUntilY = atY + world.height * frac
             if last { run.encounterLiveIndex = -1 }
             return true
         }
         spawnPlan(beat.slots, world: &world, run: &run, atY: atY, dens: run.profile.density(scoreKm: run.scoreKm))
         if last {
-            run.quietUntilY = atY + world.height * 0.5
+            let frac = run.encounterUsesKm ? quietFrac(chained: chained) : 0.5
+            run.quietUntilY = atY + world.height * frac
             run.encounterLiveIndex = -1
         }
         return true
+    }
+
+    private static func hasChainedStorm(run: RunState) -> Bool {
+        guard run.encounterLiveIndex >= 0, run.encounterLiveIndex < run.encounterAt.count else { return false }
+        let km = run.encounterAt[run.encounterLiveIndex]
+        for i in run.encounterFired.indices where !run.encounterFired[i] {
+            if abs(run.encounterAt[i] - km) < 0.5 { return true }
+        }
+        return false
+    }
+
+    private static func quietFrac(chained: Bool) -> CGFloat {
+        chained
+            ? GeneratedJourneyData.openSpaceStormChainFrac
+            : GeneratedJourneyData.openSpaceStormQuietFrac
     }
 
     static func remember(_ types: [String], run: inout RunState) {
@@ -1369,17 +1394,43 @@ enum LateJourneyBelt {
             if wells >= 2 { set.insert("blackhole") }
             return set
         }()
-        let advanced = types.filter { $0 != "simple" && !banned.contains($0) }
-        let pool = advanced.isEmpty ? types.filter { $0 != "simple" } : advanced
-        guard !pool.isEmpty else { return [slot("simple")] }
+        let helpers = types.filter { LateJourneyBelt.helpers.contains($0) && !banned.contains($0) }
+        let advanced = types.filter {
+            $0 != "simple" && !banned.contains($0) && !LateJourneyBelt.helpers.contains($0)
+        }
+        let pool = advanced.isEmpty
+            ? types.filter { $0 != "simple" && !LateJourneyBelt.helpers.contains($0) }
+            : advanced
+        guard !pool.isEmpty || !helpers.isEmpty else { return [slot("simple")] }
+        if run.profile.mode == .openSpace,
+           CombatSimulator.rand01(&run.rng) < run.profile.liveSimpleChance(scoreKm: run.scoreKm) {
+            return [slot("simple")]
+        }
         let focus = run.profile.liveFocusType(&run.rng, scoreKm: run.scoreKm)
         let pair = run.profile.livePairTheme(scoreKm: run.scoreKm)
         let combo = run.profile.liveComboTheme(scoreKm: run.scoreKm)
         let roll = CombatSimulator.rand01(&run.rng)
-        var primary = pool[Int(CombatSimulator.rand01(&run.rng) * CGFloat(pool.count)) % pool.count]
-        if let focus, pool.contains(focus), roll < 0.28 { primary = focus }
-        else if let pair, pool.contains(pair), roll < 0.52 { primary = pair }
-        else if let combo, pool.contains(combo), roll < 0.72 { primary = combo }
+        var primary: String
+        if pool.isEmpty {
+            primary = helpers[Int(CombatSimulator.rand01(&run.rng) * CGFloat(helpers.count)) % helpers.count]
+        } else {
+            primary = pool[Int(CombatSimulator.rand01(&run.rng) * CGFloat(pool.count)) % pool.count]
+        }
+        if let focus, LateJourneyBelt.helpers.contains(focus), helpers.contains(focus), roll < 0.28 {
+            primary = focus
+        } else if let pair, LateJourneyBelt.helpers.contains(pair), helpers.contains(pair), roll < 0.52 {
+            primary = pair
+        } else if let combo, LateJourneyBelt.helpers.contains(combo), helpers.contains(combo), roll < 0.72 {
+            primary = combo
+        } else if !helpers.isEmpty, roll < 0.08 {
+            primary = helpers[Int(CombatSimulator.rand01(&run.rng) * CGFloat(helpers.count)) % helpers.count]
+        } else if let focus, pool.contains(focus), roll < 0.28 {
+            primary = focus
+        } else if let pair, pool.contains(pair), roll < 0.52 {
+            primary = pair
+        } else if let combo, pool.contains(combo), roll < 0.72 {
+            primary = combo
+        }
 
         if corridor.contains(primary) {
             let mid: String
@@ -1400,7 +1451,13 @@ enum LateJourneyBelt {
             return [slot(primary), slot(mid, "center")]
         }
 
-        if solo.contains(primary) || primary == "simple" || spawnCount < 2 {
+        if solo.contains(primary) || primary == "simple" {
+            return [slot(primary)]
+        }
+        let packThin = run.profile.mode == .openSpace
+            && points.contains(primary)
+            && primary != "simple"
+        if spawnCount < 2 && !packThin {
             return [slot(primary)]
         }
 

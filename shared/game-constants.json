@@ -262,8 +262,14 @@
   "openSpaceWeather": {
     "pairedFromKm": 2000,
     "stormRepeatKm": 2500,
+    "stormDenseRepeatKm": 1500,
+    "stormDenseFromKm": 5000,
+    "dualStormFromKm": 12500,
     "fullRosterKm": 7000,
     "stormRepeatCount": 40,
+    "stormQuietFrac": 0.18,
+    "stormChainFrac": 0.08,
+    "stormGapCap": 0.28,
     "bands": [
       {
         "fromKm": 0,
@@ -311,7 +317,7 @@
       {
         "pair": "phase",
         "combo": "shooting",
-        "focus": "wormhole"
+        "focus": "pulsating"
       },
       {
         "pair": "repulsor",
@@ -324,9 +330,47 @@
         "focus": "sweepGate"
       },
       {
-        "pair": "wormhole",
-        "combo": "complex",
-        "focus": "wormhole"
+        "pair": "complex",
+        "combo": "pulsating",
+        "focus": "shooting"
+      }
+    ],
+    "belt": [
+      {
+        "fromKm": 0,
+        "minGapFrac": 0.22,
+        "gapSpread": 1.45,
+        "simpleChance": 0.55,
+        "density": 0.85,
+        "rowOne": 0.55,
+        "rowTwo": 0.88
+      },
+      {
+        "fromKm": 5000,
+        "minGapFrac": 0.13,
+        "gapSpread": 1.25,
+        "simpleChance": 0.34,
+        "density": 1.7,
+        "rowOne": 0.18,
+        "rowTwo": 0.68
+      },
+      {
+        "fromKm": 12500,
+        "minGapFrac": 0.11,
+        "gapSpread": 1.22,
+        "simpleChance": 0.26,
+        "density": 2.05,
+        "rowOne": 0.12,
+        "rowTwo": 0.62
+      },
+      {
+        "fromKm": 20000,
+        "minGapFrac": 0.1,
+        "gapSpread": 1.2,
+        "simpleChance": 0.22,
+        "density": 2.15,
+        "rowOne": 0.1,
+        "rowTwo": 0.58
       }
     ]
   },

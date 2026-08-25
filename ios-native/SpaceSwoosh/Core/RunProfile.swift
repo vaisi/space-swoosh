@@ -1,7 +1,7 @@
 // RunProfile.swift
 // Changes: Hazard Lab uses advanced black-hole Y-pull (matches JS sandbox).
 // Journey L6+ mixed rows / L20+ late knobs; pairTheme + comboTheme + encounterCount from spec.
-// Open Space weather pair/combo/focus is live from KM.
+// Open Space weather, belt density (tighter vertical pack by 5k / 12.5k / 20k), and +10% cruise are live from KM.
 
 import Foundation
 import CoreGraphics
@@ -79,11 +79,11 @@ struct RunProfile {
             density1: GameConfig.Obstacles.scaling.maxDensity,
             minGapFrac: 0.25,
             gapSpread: 1.6,
-            speedMultiplier: 1,
+            speedMultiplier: 1.1,
             maxOnScreen: 64,
             baseCluster0: 2,
             baseCluster1: 2,
-            maxCluster: GameConfig.Profile.maxClusterCount,
+            maxCluster: 5,
             maxRowSpawns: GameConfig.Profile.maxRowSpawns,
             sparklesTarget: 0,
             smashTarget: 0,
@@ -202,14 +202,17 @@ struct RunProfile {
 
     func density(scoreKm: CGFloat) -> CGFloat {
         if usesOpenSpaceDensity {
-            let s = GameConfig.Obstacles.scaling
-            let progress = min(scoreKm / (s.rampUpDistance * 1.2), 1)
-            return s.startDensity + (s.maxDensity - s.startDensity) * pow(progress, 1.2)
+            return OpenSpaceBelt.at(scoreKm).density
         }
         return Self.lerp(density0, density1, difficulty)
     }
 
-    func gapRange(height: CGFloat) -> (min: CGFloat, max: CGFloat) {
+    func gapRange(height: CGFloat, scoreKm: CGFloat = 0) -> (min: CGFloat, max: CGFloat) {
+        if mode == .openSpace {
+            let belt = OpenSpaceBelt.at(scoreKm)
+            let minGap = height * belt.minGapFrac
+            return (minGap, minGap * belt.gapSpread)
+        }
         let minGap = height * minGapFrac
         return (minGap, minGap * gapSpread)
     }
@@ -250,9 +253,21 @@ struct RunProfile {
         return comboTheme
     }
 
-    func rollRowSpawnCount(_ rng: inout UInt64) -> Int {
+    func liveSimpleChance(scoreKm: CGFloat) -> CGFloat {
+        if mode == .openSpace { return OpenSpaceBelt.at(scoreKm).simpleChance }
+        return simpleChance
+    }
+
+    func rollRowSpawnCount(_ rng: inout UInt64, scoreKm: CGFloat = 0) -> Int {
         let maxSpawns = max(1, maxRowSpawns)
         if maxSpawns <= 1 { return 1 }
+        if mode == .openSpace {
+            let belt = OpenSpaceBelt.at(scoreKm)
+            let r = CombatSimulator.rand01(&rng)
+            if r < belt.rowOne { return 1 }
+            if r < belt.rowTwo { return min(2, maxSpawns) }
+            return min(3, maxSpawns)
+        }
         if isLateJourney {
             let r = CombatSimulator.rand01(&rng)
             if r < 0.35 { return 1 }

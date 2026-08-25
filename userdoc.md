@@ -1,4 +1,4 @@
-<!-- Changes: Journey from Day 6 mixes hazards and one spike; Open Space weather and storms. -->
+<!-- Changes: Open Space packed vertical belt (tighter gaps, rock rows, short storm quiet); portals stay helpers. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -127,8 +127,11 @@ breath after it. From **Day 20** the sky does not simply get faster — the mix
 gets denser, a third pairing shows up between spikes, and from Day 25 a day
 can have two spikes that feel different from each other. The same well or
 wall will not stamp itself
-row after row. **Open Space** changes weather as you fly farther, with the
-odd storm, without turning into a speed contest. The sparkles star opens when fuel diamonds
+row after row. **Open Space** gets busier the farther you fly — by about 5,000 KM
+the sky is packed like a late Journey day (not long empty corridors), and past
+12,500 KM the odd storm is a real patch of trouble with only a short breath after.
+Cruise is a little snappier than it used to be, without turning
+into a speed contest. The sparkles star opens when fuel diamonds
 do (level 4); the smash star opens with the shield (level 5). Both targets climb
 later without turning into a grind.
 
@@ -152,6 +155,9 @@ one direction at a time. A bouncing finger or pointer sits on the playfield so i
 miss. Journey does not use these lines.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up — they do **not** flash a name banner when they first appear.
+The field stays readable while types arrive; after about **5,000 KM** the
+sky is packed like a late Journey day, and past **12,500 KM** storms come in
+harder pairs with only a short breath between them. Cruise is a bit snappier than before; it does not keep climbing.
 On Android, if a wormhole or black hole leaves the ship sitting low in the
 view, the camera slowly eases it back to the usual height over several seconds.
 **This is the mode with the leaderboard** — if your run lands in the
@@ -509,10 +515,12 @@ While that speed rush is on, your fuel bar does not drain. Grabbing another plus
 or wall boost while you're already powered up refreshes the timers. Don't confuse
 it with the thick **black** side barriers — those still end the run.
 
-Blue **portal** rings are also safe: fly into one and you hear a deep echoing
+Blue **portal** rings are a boost, not a threat: fly into one and you hear a deep echoing
 warp suck you in, then a second warp as space briefly wobbles on the way out
-and you emerge ahead with a fresh shield. The rocks around a portal can still
-crash you if you miss the ring itself — aim for the blue.
+and you emerge ahead with a fresh shield. In Open Space they show up as
+occasional gifts (and a named storm when they first unlock), not as empty
+portal-only weather. The rocks around a portal can still crash you if you miss
+the ring itself — aim for the blue.
 
 ## Flight style
 

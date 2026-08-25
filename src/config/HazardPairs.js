@@ -7,7 +7,10 @@
 // - Corridor types (side barriers, drift) always get a mid-lane fill so the
 //   centre is not an empty hallway. Heavy types cannot repeat back-to-back.
 // - Sandwich rows (point + simple cluster + point) restore rock agglomeration.
-// - Weaker focus bias; simple clusters are a common partner, not a fallback.
+// - Wormholes are helpers (hop + shield gift), not weather identity or a
+//   random belt threat. Occasional gift spawn; Journey intro focus still teaches.
+// - Open Space may pass simpleChance (rock-cluster rows) and packThinRows
+//   (lonely point hazards get a simple partner) so 1-slot sky is not empty.
 // - Created file: pairing rules, pair-theme hints, lane fractions, row planner.
 
 export const LATE_FROM_LEVEL = 20;
@@ -25,6 +28,11 @@ export const SOLO_IN_ROW = new Set([
 export const CORRIDOR_TYPES = new Set([
     'sideBarrier',
     'driftCurrent',
+]);
+
+/** Portals hop you forward and gift a shield — helpers, not belt threats. */
+export const HELPER_TYPES = new Set([
+    'wormhole',
 ]);
 
 /** Don't stamp these on consecutive rows — a run of wells/walls feels cheap. */
@@ -125,12 +133,26 @@ function pickFrom(list, rng) {
 }
 
 function pickPrimary(available, focus, pairTheme, comboTheme, banned, rng) {
-    const advanced = available.filter((type) => type !== 'simple' && !banned.has(type));
+    const helpers = available.filter((type) => HELPER_TYPES.has(type) && !banned.has(type));
+    const advanced = available.filter(
+        (type) => type !== 'simple' && !banned.has(type) && !HELPER_TYPES.has(type)
+    );
     const pool = advanced.length > 0
         ? advanced
-        : available.filter((type) => type !== 'simple');
-    if (pool.length === 0) return 'simple';
+        : available.filter((type) => type !== 'simple' && !HELPER_TYPES.has(type));
+    if (pool.length === 0 && helpers.length === 0) return 'simple';
     const roll = rng();
+    if (focus && HELPER_TYPES.has(focus) && helpers.includes(focus) && roll < 0.28) {
+        return focus;
+    }
+    if (pairTheme && HELPER_TYPES.has(pairTheme) && helpers.includes(pairTheme) && roll < 0.52) {
+        return pairTheme;
+    }
+    if (comboTheme && HELPER_TYPES.has(comboTheme) && helpers.includes(comboTheme) && roll < 0.72) {
+        return comboTheme;
+    }
+    if (helpers.length > 0 && roll < 0.08) return pickFrom(helpers, rng);
+    if (pool.length === 0) return pickFrom(helpers, rng) || 'simple';
     if (focus && pool.includes(focus) && roll < 0.28) return focus;
     if (pairTheme && pool.includes(pairTheme) && roll < 0.52) return pairTheme;
     if (comboTheme && pool.includes(comboTheme) && roll < 0.72) return comboTheme;
@@ -178,6 +200,8 @@ export function planPairedRow({
     avoid = [],
     blackholeBusy = false,
     rng = Math.random,
+    simpleChance = 0,
+    packThinRows = false,
 }) {
     const types = available.filter(Boolean);
     if (types.length === 0) {
@@ -186,6 +210,10 @@ export function planPairedRow({
 
     const banned = new Set(avoid);
     if (blackholeBusy) banned.add('blackhole');
+
+    if (simpleChance > 0 && rng() < simpleChance) {
+        return { slots: [{ type: 'simple' }] };
+    }
 
     const primary = pickPrimary(types, focus, pairTheme, comboTheme, banned, rng);
 
@@ -199,7 +227,10 @@ export function planPairedRow({
         };
     }
 
-    if (primary === 'simple' || SOLO_IN_ROW.has(primary) || spawnCount < 2) {
+    const mustSolo = primary === 'simple' || SOLO_IN_ROW.has(primary);
+    const countSolo = spawnCount < 2
+        && !(packThinRows && POINT_TYPES.has(primary) && primary !== 'simple');
+    if (mustSolo || countSolo) {
         return { slots: [{ type: primary }] };
     }
 

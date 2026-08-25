@@ -1,6 +1,6 @@
 // JourneyConfig.swift
 // Changes: 42-level Journey descriptors; L6+ pairTheme / encounterCount, L20+ comboTheme;
-// Open Space weather types; encounter recipes from GeneratedJourneyData.
+// Open Space weather + belt density types; storm quiet/chain/gap-cap from GeneratedJourneyData.
 
 import Foundation
 import CoreGraphics
@@ -66,6 +66,16 @@ struct OpenSpaceSkyShift: Equatable {
     var focus: String?
 }
 
+struct OpenSpaceBeltBand: Equatable {
+    var fromKm: CGFloat
+    var minGapFrac: CGFloat
+    var gapSpread: CGFloat
+    var simpleChance: CGFloat
+    var density: CGFloat
+    var rowOne: CGFloat
+    var rowTwo: CGFloat
+}
+
 enum OpenSpaceWeather {
     static func at(_ km: CGFloat) -> OpenSpaceSkyShift {
         let full = GeneratedJourneyData.openSpaceFullRosterKm
@@ -81,6 +91,62 @@ enum OpenSpaceWeather {
             band = row
         }
         return OpenSpaceSkyShift(pair: band.pair, combo: band.combo, focus: band.focus)
+    }
+
+    static func stormCount(at km: CGFloat) -> Int {
+        km >= GeneratedJourneyData.openSpaceDualStormFromKm ? 2 : 1
+    }
+
+    static func stormMarks() -> [CGFloat] {
+        var unique: [CGFloat] = []
+        var seen = Set<CGFloat>()
+        for entry in GameConfig.Unlocks.table where entry.score > 0 {
+            if seen.insert(entry.score).inserted { unique.append(entry.score) }
+        }
+        unique.sort()
+        var extra: [CGFloat] = []
+        let full = GeneratedJourneyData.openSpaceFullRosterKm
+        let denseFrom = GeneratedJourneyData.openSpaceStormDenseFromKm
+        let denseStep = GeneratedJourneyData.openSpaceStormDenseRepeatKm
+        let step = GeneratedJourneyData.openSpaceStormRepeatKm
+        var km = full
+        for _ in 0..<GeneratedJourneyData.openSpaceStormRepeatCount {
+            let use = km >= denseFrom ? denseStep : step
+            km += use
+            extra.append(km)
+        }
+        return unique + extra
+    }
+}
+
+enum OpenSpaceBelt {
+    static func at(_ km: CGFloat) -> OpenSpaceBeltBand {
+        let rows = GeneratedJourneyData.openSpaceBelt
+        let fallback = OpenSpaceBeltBand(
+            fromKm: 0, minGapFrac: 0.22, gapSpread: 1.45,
+            simpleChance: 0.55, density: 0.85, rowOne: 0.55, rowTwo: 0.88
+        )
+        guard let first = rows.first else { return fallback }
+        if km <= first.fromKm { return first }
+        guard let last = rows.last else { return first }
+        if km >= last.fromKm { return last }
+        var i = 0
+        for n in 1..<rows.count where km >= rows[n].fromKm {
+            i = n
+        }
+        let a = rows[i]
+        let b = rows[min(i + 1, rows.count - 1)]
+        if b.fromKm <= a.fromKm { return a }
+        let t = (km - a.fromKm) / (b.fromKm - a.fromKm)
+        return OpenSpaceBeltBand(
+            fromKm: km,
+            minGapFrac: a.minGapFrac + (b.minGapFrac - a.minGapFrac) * t,
+            gapSpread: a.gapSpread + (b.gapSpread - a.gapSpread) * t,
+            simpleChance: a.simpleChance + (b.simpleChance - a.simpleChance) * t,
+            density: a.density + (b.density - a.density) * t,
+            rowOne: a.rowOne + (b.rowOne - a.rowOne) * t,
+            rowTwo: a.rowTwo + (b.rowTwo - a.rowTwo) * t
+        )
     }
 }
 

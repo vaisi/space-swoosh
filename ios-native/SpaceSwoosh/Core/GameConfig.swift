@@ -122,7 +122,7 @@ enum GameConfig {
             (1000, "Breaking atmosphere..."),
             (2000, "Warning: Complex asteroids detected..."),
             (5000, "Caution: Asteroid belts ahead..."),
-            (10000, "Deep space detected..."),
+            (12500, "Deep space detected..."),
             (25000, "Unknown signals ahead..."),
             (50000, "Approaching the void..."),
         ]

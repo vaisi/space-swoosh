@@ -1783,8 +1783,14 @@ enum GeneratedJourneyData {
 
     static let openSpacePairedFromKm: CGFloat = 2000
     static let openSpaceStormRepeatKm: CGFloat = 2500
+    static let openSpaceStormDenseRepeatKm: CGFloat = 1500
+    static let openSpaceStormDenseFromKm: CGFloat = 5000
+    static let openSpaceDualStormFromKm: CGFloat = 12500
     static let openSpaceFullRosterKm: CGFloat = 7000
     static let openSpaceStormRepeatCount = 40
+    static let openSpaceStormQuietFrac: CGFloat = 0.18
+    static let openSpaceStormChainFrac: CGFloat = 0.08
+    static let openSpaceStormGapCap: CGFloat = 0.28
 
     static let openSpaceWeather: [OpenSpaceWeatherBand] = [
         OpenSpaceWeatherBand(
@@ -1834,7 +1840,7 @@ enum GeneratedJourneyData {
         OpenSpaceSkyShift(
             pair: "phase",
             combo: "shooting",
-            focus: "wormhole"
+            focus: "pulsating"
         ),
         OpenSpaceSkyShift(
             pair: "repulsor",
@@ -1847,9 +1853,48 @@ enum GeneratedJourneyData {
             focus: "sweepGate"
         ),
         OpenSpaceSkyShift(
-            pair: "wormhole",
-            combo: "complex",
-            focus: "wormhole"
+            pair: "complex",
+            combo: "pulsating",
+            focus: "shooting"
+        )
+    ]
+
+    static let openSpaceBelt: [OpenSpaceBeltBand] = [
+        OpenSpaceBeltBand(
+            fromKm: 0,
+            minGapFrac: 0.22,
+            gapSpread: 1.45,
+            simpleChance: 0.55,
+            density: 0.85,
+            rowOne: 0.55,
+            rowTwo: 0.88
+        ),
+        OpenSpaceBeltBand(
+            fromKm: 5000,
+            minGapFrac: 0.13,
+            gapSpread: 1.25,
+            simpleChance: 0.34,
+            density: 1.7,
+            rowOne: 0.18,
+            rowTwo: 0.68
+        ),
+        OpenSpaceBeltBand(
+            fromKm: 12500,
+            minGapFrac: 0.11,
+            gapSpread: 1.22,
+            simpleChance: 0.26,
+            density: 2.05,
+            rowOne: 0.12,
+            rowTwo: 0.62
+        ),
+        OpenSpaceBeltBand(
+            fromKm: 20000,
+            minGapFrac: 0.1,
+            gapSpread: 1.2,
+            simpleChance: 0.22,
+            density: 2.15,
+            rowOne: 0.1,
+            rowTwo: 0.58
         )
     ]
 }

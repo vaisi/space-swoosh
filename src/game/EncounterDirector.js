@@ -2,8 +2,10 @@
 // Schedules authored catalog recipes: 1–2 Journey spikes (progress of the
 // goal) or Open Space storms (absolute KM). Speed is untouched.
 // Changes:
-// - Open Space: KM-anchored storms at unlock marks, then every 2500 KM after
-//   7000; family rotation so neighbouring storms differ.
+// - Open Space storms: short quiet (0.18) after a patch; dual recipes at the
+//   same KM chain (0.08) instead of two half-screen holes. Recipe gaps cap at 0.28.
+// - Open Space: KM-anchored storms at unlock marks, then every 1500 KM after 5k;
+//   dual-family patches after 12.5k.
 // - Journey 6+ one spike; 25+ two different families.
 // - Created file: progress-based encounter windows, quiet-zone breathing room.
 
@@ -11,8 +13,11 @@ import { clamp01 } from '../utils/math.js';
 import { pickEncounterRecipes } from '../config/EncounterCatalog.js';
 import {
     openSpaceStormMarks,
+    stormCountAt,
+    stormQuietFrac,
     typesAtKm,
     weatherAt,
+    OPEN_SPACE_STORM_GAP_CAP,
 } from '../config/OpenSpaceWeather.js';
 import { OPEN_WORLD_UNLOCKS, PLAY_MODE } from '../modes/RunProfile.js';
 
@@ -28,18 +33,17 @@ function unlockingFocus(atKm) {
     return unlocking[unlocking.length - 1] || null;
 }
 
-function pickStormRecipe(atKm, stormIndex, lastFamily) {
+function pickStormRecipes(atKm, stormIndex, lastFamily) {
     const types = typesAtKm(atKm, OPEN_WORLD_UNLOCKS);
     const sky = weatherAt(atKm);
-    const recipes = pickEncounterRecipes({
+    return pickEncounterRecipes({
         types,
         focusType: unlockingFocus(atKm) || sky.focus,
         pairTheme: sky.pair,
-        count: 1,
+        count: stormCountAt(atKm),
         level: stormIndex + Math.round(atKm / 100),
         avoidFamily: lastFamily,
     });
-    return recipes[0] || null;
 }
 
 export class EncounterDirector {
@@ -78,10 +82,11 @@ export class EncounterDirector {
         const marks = openSpaceStormMarks(OPEN_WORLD_UNLOCKS);
         let lastFamily = null;
         marks.forEach((atKm, i) => {
-            const recipe = pickStormRecipe(atKm, i, lastFamily);
-            if (!recipe) return;
-            this.schedule.push({ atKm, recipe, fired: false });
-            lastFamily = recipe.family;
+            const recipes = pickStormRecipes(atKm, i, lastFamily);
+            recipes.forEach((recipe) => {
+                this.schedule.push({ atKm, recipe, fired: false });
+                lastFamily = recipe.family;
+            });
         });
     }
 
@@ -144,14 +149,14 @@ export class EncounterDirector {
                 const next = this.schedule.find((slot) => !slot.fired && km >= slot.atKm);
                 if (!next) return false;
                 next.fired = true;
-                this.live = { recipe: next.recipe, beat: 0 };
+                this.live = { recipe: next.recipe, beat: 0, atKm: next.atKm };
             } else {
                 const progress = this.spawnProgress(manager);
                 if (progress > 0.9) return false;
                 const next = this.schedule.find((slot) => !slot.fired && progress >= slot.at);
                 if (!next) return false;
                 next.fired = true;
-                this.live = { recipe: next.recipe, beat: 0 };
+                this.live = { recipe: next.recipe, beat: 0, atKm: null };
             }
         }
 
@@ -161,7 +166,7 @@ export class EncounterDirector {
         const last = live.beat >= live.recipe.beats.length;
 
         if (beat.kind === 'gap') {
-            this.beginQuiet(manager, beat.frac);
+            this.beginQuiet(manager, this.gapFrac(beat.frac, last, live.atKm));
             if (last) this.live = null;
             return true;
         }
@@ -171,9 +176,28 @@ export class EncounterDirector {
         }
 
         if (last) {
-            this.beginQuiet(manager, 0.5);
+            this.beginQuiet(manager, this.endQuietFrac(live.atKm));
             this.live = null;
         }
         return true;
+    }
+
+    hasChainedStorm(atKm) {
+        if (!this.kmMode || atKm == null) return false;
+        return this.schedule.some((slot) => !slot.fired && slot.atKm === atKm);
+    }
+
+    gapFrac(frac, last, atKm) {
+        let value = Number(frac) || 0;
+        if (this.kmMode) value = Math.min(value, OPEN_SPACE_STORM_GAP_CAP);
+        if (last && this.kmMode) {
+            return Math.min(value, this.endQuietFrac(atKm));
+        }
+        return value;
+    }
+
+    endQuietFrac(atKm) {
+        if (!this.kmMode) return 0.5;
+        return stormQuietFrac(this.hasChainedStorm(atKm));
     }
 }

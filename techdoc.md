@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Journey 6–19 pairing + one spike; Open Space KM weather and catalog storms. Android Play store defaults remain versionCode 42 / versionName 1.0.42. -->
+<!-- Changes: Open Space vertical pack (tighter gaps, rock rows, short storm quiet); portals are helpers. Android Play store defaults remain versionCode 42 / versionName 1.0.42. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -295,9 +295,9 @@ game build env. Journey progress and Open Space personal best stay in
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
 | `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. L6+ mixed pairs + `EncounterDirector` spikes/storms. Shield smash: `playSmashCrashFeedback()` (crash SFX + `hapticShieldSmash`), 120 ms flyout gate. |
 | `config/EncounterCatalog.js` | Authored gauntlets for Journey spikes and Open Space storms. Source of truth — `npm run constants:export` copies them into `shared/game-constants.json` and `GeneratedJourneyData.encounterCatalog`. |
-| `config/OpenSpaceWeather.js` | Open Space KM pair/combo/focus bands and storm marks. |
+| `config/OpenSpaceWeather.js` | Open Space KM pair/combo/focus, belt density lerp, and storm marks. |
 | `config/HazardPairs.js` | Compatible same-row mixes, pair-theme hints, `usesPairedBelt` from L6. |
-| `game/EncounterDirector.js` | Journey 6+: 1–2 catalog spikes. Open Space: KM-anchored storms. |
+| `game/EncounterDirector.js` | Journey 6+: 1–2 catalog spikes. Open Space: KM-anchored storms (dual after 25k). |
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Fuel diamonds: spawn cadence, collect → clamped fuel refill + `sparklesCollected`, `+FUEL` popup + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
@@ -410,9 +410,9 @@ built by `createRunProfile()` and hung off `game.profile`:
 | `runsTutorial` | `ObstacleManager` tutorial phase |
 | `submitsScore`, `introMessage`, `introBeats`, `title` | `Game` end-of-run flow, milestone / intro narration |
 
-`OpenWorldProfile` reproduces the pre-existing numbers exactly, including the
-obstacle unlock table (`OPEN_WORLD_UNLOCKS`) that `ObstacleManager` used to keep
-privately — and which had already drifted from the dead copy in `GameConfig`.
+`OpenWorldProfile` keeps the Open Space unlock table (`OPEN_WORLD_UNLOCKS`)
+and live weather/belt knobs from `OpenSpaceWeather.js`. Spacing, mix, and
+cluster density lerp by KM; speed stays 1.
 
 Two things worth knowing about the existing engine that this surfaced:
 
@@ -434,9 +434,9 @@ Two things worth knowing about the existing engine that this surfaced:
   `abs(Δcamera.y) × (800 / playfieldHeight) × (100/60)`.
 - **`maxOnScreen` is counted against obstacles *ahead* of the camera**
   (`ObstacleManager.countAhead()`), because the full list also holds everything
-  already passed. Open Space's profile returns `Infinity`: the old `length < 7`
-  test guarded a branch that can only fire once per run, so it never actually
-  withheld a row, and keeping it uncapped is what "plays identically" means.
+  already passed. Open Space is uncapped on Android/desktop and soft-capped at
+  18 on iOS Safari draw LOD. Hitting the cap **delays** the next row rather
+  than skipping it, so the cursor cannot walk into empty sky.
 - **The despawn margin derives from the gap range** (`despawnAhead`). It used to
   be a hardcoded `1.5 × canvas height`, which silently assumed the old
   0.25–0.4 spacing; Journey's wider early gaps put new rows *past* that line, so
@@ -503,6 +503,9 @@ Triple rolls sandwich a simple cluster between two point hazards. Plateau
 `focusType` skips side-barrier identity except on the intro day. Each late
 level also has a `pairTheme`, a `comboTheme` (third pairing, ~20% of mixed
 rows), and `encounterCount` (1 on L6–24, 2 from L25).
+Wormholes stay `SOLO_IN_ROW` / `HEAVY_TYPES` and are also `HELPER_TYPES`: the
+belt treats them as occasional gift hops (or Journey intro/combo identity),
+not as a random weather threat.
 `game/EncounterDirector.js` fires that many authored gauntlets from
 `config/EncounterCatalog.js` near ~35% / ~70% of the goal, then leaves a
 breathing gap. Each recipe has a `family`; the second spike on 25+ must be a
@@ -512,8 +515,15 @@ bloom-drift, push-shot, well-wind, sweep-shot, and portal-rocks. `npm run
 constants:export` copies that catalog and the Open Space weather table into
 `GeneratedJourneyData`. Encounter rows bypass the on-screen
 cap so they are not skipped. Hazard Lab and levels 1–5 keep the earlier mix.
-Open Space uses weather pairing after 2000 KM and KM-anchored catalog storms
-(unlock marks, then every 2500 KM after 7000).
+Open Space uses weather pairing after 2000 KM, a live belt that tightens toward
+a packed late-Journey *feel* by ~5k / 12.5k / 20k — **tighter vertical gaps
+than Journey's 0.14** (Open Space rows are thinner, so 0.14 still looked empty),
+more 2/3-slot rows, and `simpleChance` actually placing rock clusters on the
+paired belt. Cruise is **1.1×**, not a speed ramp. KM-anchored catalog
+storms (unlock marks, then every 1500 KM after the full roster;
+dual-family patches after 12.5k) use a short quiet (0.18 screen, 0.08 between
+chained recipes) instead of half-screen holes. Hitting `maxOnScreen` delays the next row
+instead of punching a hole.
 Teach band goals are fixed: **L1 1250 / L2 2000 / L3 3000 / L4 4000 /
 L5 7500**. From L6 onward each level adds **+500 KM**; levels **10 / 15 / 20 /
 25 / 30 / 35 / 40 / 42** also add **+1000 KM**. From L2 onward the belt opens at
@@ -572,9 +582,15 @@ is skipped; distance lines at 2000 / 5000 KM (asteroid warnings) are silent.
 
 Open Space **weather** (`config/OpenSpaceWeather.js`): from 2000 KM, mixed
 rows follow a KM pair/combo/focus band (full-sky rotation after 7000).
-**Storms** play one catalog recipe at each unlock KM (if playable) and every
-2500 KM after 7000, with a breathing gap after. Speed and the 10k density
-cap are unchanged.
+**Wormholes are helpers** (hop + shield gift), not a weather identity: full-sky
+never uses `wormhole` as pair/focus. The belt still unlocks them at 5000 KM
+(named portal storm + ~8% gift hops); Journey intro `focusType: wormhole` is
+unchanged. **Belt density** lerps 0→5k (Day 20 pack) →12.5k (Day 33) →20k hold
+(`minGapFrac` 0.22→0.13→0.11→0.10, more 2/3-slot rows, live `simpleChance`).
+`gapRange` is re-read each spawn row. **Storms** play catalog recipes at each
+unlock KM (if playable), then every 1500 KM after 7000;
+after 12.5k each storm is two different families with a **short** quiet (0.18 /
+0.08 chain). Cruise is 1.1×.
 
 ### Hazard Lab
 
