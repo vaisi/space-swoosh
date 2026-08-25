@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: finishing the Journey also stores the ship with the reply. -->
+<!-- userdoc.md — Changes: no player-facing change; native iOS archive compile fix only. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.

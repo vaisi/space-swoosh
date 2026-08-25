@@ -1,5 +1,5 @@
 // SettingsStore.swift
-// Changes: Snap equipped ship to Flicker when IAP ownership drops.
+// Changes: Init from locals so Swift does not read self before all stored properties are set.
 
 import Foundation
 import Combine
@@ -23,15 +23,17 @@ final class SettingsStore: ObservableObject {
     private init() {
         let style = UserDefaults.standard.string(forKey: "spaceswoosh.flightStyle")
         let requested = style == FlightStyle.arc.rawValue ? FlightStyle.arc : .zigzag
-        flightStyle = Self.resolved(requested)
-        if flightStyle != requested {
-            UserDefaults.standard.set(flightStyle.rawValue, forKey: "spaceswoosh.flightStyle")
+        let resolvedStyle = Self.resolved(requested)
+        if resolvedStyle != requested {
+            UserDefaults.standard.set(resolvedStyle.rawValue, forKey: "spaceswoosh.flightStyle")
         }
-        shipSkinId = SkinCatalog.resolve(UserDefaults.standard.string(forKey: "shipSkinId"))
-        if !SkinCatalog.isOwned(shipSkinId) {
-            shipSkinId = .flicker
+        var resolvedSkin = SkinCatalog.resolve(UserDefaults.standard.string(forKey: "shipSkinId"))
+        if !SkinCatalog.isOwned(resolvedSkin) {
+            resolvedSkin = .flicker
             UserDefaults.standard.set(SkinId.flicker.rawValue, forKey: "shipSkinId")
         }
+        flightStyle = resolvedStyle
+        shipSkinId = resolvedSkin
         isDark = UserDefaults.standard.string(forKey: "ssTheme") == "dark"
         muted = UserDefaults.standard.bool(forKey: "soundMuted")
         musicEnabled = Self.flag("soundMusicEnabled", default: true)

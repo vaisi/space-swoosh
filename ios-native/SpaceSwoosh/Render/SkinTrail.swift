@@ -1,5 +1,5 @@
 // SkinTrail.swift
-// Changes: Classic wakes (Wisp–Cinder) leave ParticleWakeField.
+// Changes: Exhaustive TrailKind switch; ParticleWakeField is unused on the 41-ship roster.
 
 import SpriteKit
 
@@ -102,8 +102,6 @@ enum SkinTrailFactory {
             return DashTrailNode(maxPoints: slots)
         case .cinder:
             return CinderTrailNode(disc: disc, maxPoints: slots + 2)
-        default:
-            return ParticleWakeField(texture: disc, ring: bake.ring, sparkle: bake.sparkle, slots: min(400, slots * 3), skin: skin)
         }
     }
 }
