@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native SettingsStore init uses locals so Swift two-phase init compiles on Codemagic. -->
+<!-- Changes: Android Play store defaults bumped to versionCode 42 / versionName 1.0.42. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -102,7 +102,7 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play store snapshot: versionCode
-> **28** / versionName **1.0.28**. Menu stamp is no longer frozen at 28 — see §2.
+> **42** / versionName **1.0.42**. Menu stamp is independent of Play version — see §2.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
@@ -169,7 +169,7 @@ increments it on every production build (`vite build` / `build:native`, not
 `npm run dev`). The Capacitor/web menu draws `BUILD N · NATIVE` / `WEB` from
 that value. If a phone still shows the previous N, Android Studio ran an old
 web bundle — rebuild, then Run; uninstall the app if WebView cached the old
-assets. Play `versionCode` 28 is a store snapshot and is not auto-bumped.
+assets. Play `versionCode` 42 / `versionName` 1.0.42 is the current store snapshot and is not auto-bumped (override with `VERSION_CODE` / `VERSION_NAME` env vars).
 
 Credentials live in `.env` (`VITE_SUPABASE_*`, `VITE_REVENUECAT_*`). See `.env.example`.
 For a working leaderboard locally, copy `.env.example` → `.env` and set the

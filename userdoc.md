@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: no player-facing change; native iOS archive compile fix only. -->
+<!-- userdoc.md — Changes: no player-facing change; Android Play version bumped to 1.0.42 for the next store upload. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
