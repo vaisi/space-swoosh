@@ -1,7 +1,9 @@
 // EncounterCatalog.js
-// Short authored gauntlets for Journey levels 20+. Each recipe is a few beats
-// (spawn rows and breathing gaps) that only fire if every required type is live.
+// Short authored gauntlets for Journey 6+ spikes and Open Space storms.
+// Each recipe is a few beats that only fire if every required type is live.
 // Changes:
+// - Mid-roster recipes wallWeave / moonLane / moonWall so days 6–11 are not all
+//   rockStorm, and Open Space's 1000 KM unlock can storm walls+moons.
 // - Family tags so a day's second spike is a different silhouette, not another
 //   crossfire. Eight new recipes: moons, rock storm, pulse weave, bloom drift,
 //   push-shot, well-wind, sweep-shot, portal rocks.
@@ -57,6 +59,17 @@ export const ENCOUNTER_CATALOG = [
             { kind: 'spawn', slots: [{ type: 'sideBarrier' }] },
             { kind: 'spawn', slots: [{ type: 'moving', lane: 'center' }] },
             { kind: 'spawn', slots: [{ type: 'shooting', lane: 'left' }] },
+            { kind: 'gap', frac: 0.5 },
+        ],
+    },
+    {
+        id: 'wallWeave',
+        family: 'corridor',
+        requires: ['sideBarrier', 'moving'],
+        beats: [
+            { kind: 'spawn', slots: [{ type: 'sideBarrier' }] },
+            { kind: 'spawn', slots: [{ type: 'moving', lane: 'center' }] },
+            { kind: 'spawn', slots: [{ type: 'simple', lane: 'left' }, { type: 'simple', lane: 'right' }] },
             { kind: 'gap', frac: 0.5 },
         ],
     },
@@ -132,6 +145,26 @@ export const ENCOUNTER_CATALOG = [
         beats: [
             { kind: 'spawn', slots: [{ type: 'complex', lane: 'left' }, { type: 'shooting', lane: 'right' }] },
             { kind: 'spawn', slots: [{ type: 'simple', lane: 'center' }] },
+            { kind: 'gap', frac: 0.5 },
+        ],
+    },
+    {
+        id: 'moonLane',
+        family: 'complex',
+        requires: ['complex', 'moving'],
+        beats: [
+            { kind: 'spawn', slots: [{ type: 'complex', lane: 'left' }] },
+            { kind: 'spawn', slots: [{ type: 'moving', lane: 'right' }] },
+            { kind: 'gap', frac: 0.5 },
+        ],
+    },
+    {
+        id: 'moonWall',
+        family: 'complex',
+        requires: ['complex', 'sideBarrier'],
+        beats: [
+            { kind: 'spawn', slots: [{ type: 'sideBarrier' }] },
+            { kind: 'spawn', slots: [{ type: 'complex', lane: 'center' }] },
             { kind: 'gap', frac: 0.5 },
         ],
     },
@@ -235,10 +268,21 @@ function rankRecipes(eligible, focusType, pairTheme) {
  * family so 25+ does not get two moving/shooting gauntlets. Neighbours rotate
  * the B-side by level.
  */
-export function pickEncounterRecipes({ types, focusType, pairTheme, count, level }) {
+export function pickEncounterRecipes({
+    types,
+    focusType,
+    pairTheme,
+    count,
+    level,
+    avoidFamily = null,
+}) {
     if (count <= 0) return [];
     const available = new Set(types);
-    const eligible = ENCOUNTER_CATALOG.filter((recipe) => recipePlayable(recipe, available));
+    let eligible = ENCOUNTER_CATALOG.filter((recipe) => recipePlayable(recipe, available));
+    if (avoidFamily) {
+        const other = eligible.filter((recipe) => recipe.family !== avoidFamily);
+        if (other.length > 0) eligible = other;
+    }
     if (eligible.length === 0) return [];
 
     const ranked = rankRecipes(eligible, focusType, pairTheme);

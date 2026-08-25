@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "source": "GameConfig + RunProfile + JourneyConfig + JourneyNarrative + Logbook + CopyBank + EncounterCatalog",
+  "source": "GameConfig + RunProfile + JourneyConfig + JourneyNarrative + Logbook + CopyBank + EncounterCatalog + OpenSpaceWeather",
   "simDt": 0.016666666666666666,
   "defaultShipId": "flicker",
   "fuel": {
@@ -259,6 +259,77 @@
       "score": 7000
     }
   ],
+  "openSpaceWeather": {
+    "pairedFromKm": 2000,
+    "stormRepeatKm": 2500,
+    "fullRosterKm": 7000,
+    "stormRepeatCount": 40,
+    "bands": [
+      {
+        "fromKm": 0,
+        "pair": null,
+        "combo": null,
+        "focus": null
+      },
+      {
+        "fromKm": 1000,
+        "pair": "complex",
+        "combo": null,
+        "focus": "complex"
+      },
+      {
+        "fromKm": 2000,
+        "pair": "moving",
+        "combo": null,
+        "focus": "moving"
+      },
+      {
+        "fromKm": 3000,
+        "pair": "shooting",
+        "combo": "moving",
+        "focus": "shooting"
+      },
+      {
+        "fromKm": 4500,
+        "pair": "phase",
+        "combo": "shooting",
+        "focus": "phase"
+      },
+      {
+        "fromKm": 5500,
+        "pair": "repulsor",
+        "combo": "phase",
+        "focus": "repulsor"
+      }
+    ],
+    "fullSky": [
+      {
+        "pair": "shooting",
+        "combo": "moving",
+        "focus": "complex"
+      },
+      {
+        "pair": "phase",
+        "combo": "shooting",
+        "focus": "wormhole"
+      },
+      {
+        "pair": "repulsor",
+        "combo": "phase",
+        "focus": "blackhole"
+      },
+      {
+        "pair": "sweepGate",
+        "combo": "moving",
+        "focus": "sweepGate"
+      },
+      {
+        "pair": "wormhole",
+        "combo": "complex",
+        "focus": "wormhole"
+      }
+    ]
+  },
   "journey": {
     "totalLevels": 42,
     "totalStars": 119,
@@ -425,7 +496,7 @@
         "focusType": "sideBarrier",
         "pairTheme": "moving",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": "sideBarrier",
         "sparklesTarget": 7,
         "smashTarget": 2,
@@ -445,7 +516,7 @@
         "focusType": "moving",
         "pairTheme": "sideBarrier",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 8,
         "smashTarget": 2,
@@ -465,7 +536,7 @@
         "focusType": "moving",
         "pairTheme": "sideBarrier",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 8,
         "smashTarget": 2,
@@ -486,7 +557,7 @@
         "focusType": "complex",
         "pairTheme": "moving",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": "complex",
         "sparklesTarget": 9,
         "smashTarget": 2,
@@ -507,7 +578,7 @@
         "focusType": "complex",
         "pairTheme": "moving",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 10,
         "smashTarget": 2,
@@ -528,7 +599,7 @@
         "focusType": "moving",
         "pairTheme": "complex",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 11,
         "smashTarget": 2,
@@ -550,7 +621,7 @@
         "focusType": "shooting",
         "pairTheme": "moving",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": "shooting",
         "sparklesTarget": 11,
         "smashTarget": 2,
@@ -572,7 +643,7 @@
         "focusType": "complex",
         "pairTheme": "shooting",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 12,
         "smashTarget": 3,
@@ -594,7 +665,7 @@
         "focusType": "shooting",
         "pairTheme": "moving",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 12,
         "smashTarget": 3,
@@ -617,7 +688,7 @@
         "focusType": "driftCurrent",
         "pairTheme": "moving",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": "driftCurrent",
         "sparklesTarget": 14,
         "smashTarget": 3,
@@ -640,7 +711,7 @@
         "focusType": "complex",
         "pairTheme": "shooting",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 14,
         "smashTarget": 3,
@@ -664,7 +735,7 @@
         "focusType": "pulsating",
         "pairTheme": "moving",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": "pulsating",
         "sparklesTarget": 15,
         "smashTarget": 3,
@@ -688,7 +759,7 @@
         "focusType": "complex",
         "pairTheme": "shooting",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 15,
         "smashTarget": 3,
@@ -712,7 +783,7 @@
         "focusType": "shooting",
         "pairTheme": "pulsating",
         "comboTheme": null,
-        "encounterCount": 0,
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 16,
         "smashTarget": 3,
@@ -2175,6 +2246,55 @@
         ]
       },
       {
+        "id": "wallWeave",
+        "family": "corridor",
+        "requires": [
+          "sideBarrier",
+          "moving"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sideBarrier",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "simple",
+                "lane": "left"
+              },
+              {
+                "type": "simple",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
         "id": "windWeave",
         "family": "wind",
         "requires": [
@@ -2456,6 +2576,76 @@
             "slots": [
               {
                 "type": "simple",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "moonLane",
+        "family": "complex",
+        "requires": [
+          "complex",
+          "moving"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "complex",
+                "lane": "left"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "moonWall",
+        "family": "complex",
+        "requires": [
+          "complex",
+          "sideBarrier"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sideBarrier",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "complex",
                 "lane": "center"
               }
             ]

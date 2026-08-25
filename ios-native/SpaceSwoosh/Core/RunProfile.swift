@@ -1,7 +1,7 @@
 // RunProfile.swift
 // Changes: Hazard Lab uses advanced black-hole Y-pull (matches JS sandbox).
-// Journey L20+ lowers simpleChance / tightens gaps / raises maxOnScreen;
-// speedMultiplier lerp is unchanged. pairTheme + comboTheme + encounterCount from spec.
+// Journey L6+ mixed rows / L20+ late knobs; pairTheme + comboTheme + encounterCount from spec.
+// Open Space weather pair/combo/focus is live from KM.
 
 import Foundation
 import CoreGraphics
@@ -234,6 +234,22 @@ struct RunProfile {
 
     var isLateJourney: Bool { mode == .journey && level >= 20 }
 
+    func usesPairedBelt(scoreKm: CGFloat) -> Bool {
+        if mode == .journey { return level >= 6 }
+        if mode == .openSpace { return scoreKm >= GeneratedJourneyData.openSpacePairedFromKm }
+        return false
+    }
+
+    func livePairTheme(scoreKm: CGFloat) -> String? {
+        if mode == .openSpace { return OpenSpaceWeather.at(scoreKm).pair }
+        return pairTheme
+    }
+
+    func liveComboTheme(scoreKm: CGFloat) -> String? {
+        if mode == .openSpace { return OpenSpaceWeather.at(scoreKm).combo }
+        return comboTheme
+    }
+
     func rollRowSpawnCount(_ rng: inout UInt64) -> Int {
         let maxSpawns = max(1, maxRowSpawns)
         if maxSpawns <= 1 { return 1 }
@@ -249,7 +265,8 @@ struct RunProfile {
         return min(spawnCount, maxSpawns)
     }
 
-    func liveFocusType(_ rng: inout UInt64) -> String? {
+    func liveFocusType(_ rng: inout UInt64, scoreKm: CGFloat = 0) -> String? {
+        if mode == .openSpace { return OpenSpaceWeather.at(scoreKm).focus }
         if randomizeFocusEachPick, !HazardLabConfig.types.isEmpty {
             rng = rng &* 6364136223846793005 &+ 1
             let idx = Int((rng >> 33) % UInt64(HazardLabConfig.types.count))

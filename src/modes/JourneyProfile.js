@@ -7,7 +7,8 @@
 // - Late belt: corridor mid-fill, no back-to-back heavies, more simple clusters.
 // - L20+ late belt: lower simpleChance, denser row mix, wider maxOnScreen,
 //   slightly tighter gaps — speed lerp is unchanged.
-// - Exposes pairTheme / comboTheme / encounterCount / isLateJourney / rollRowSpawnCount.
+// - Exposes pairTheme / comboTheme / encounterCount / usesPairedBelt (L6+) /
+//   isLateJourney / rollRowSpawnCount.
 // - introBeats exposes LEVEL_INTRO_BEATS (sentence-at-a-time; voice on 1–41;
 //   Day 42 beats play in the written epilogue);
 //   introMessage stays the full LEVEL_MESSAGES line.
@@ -26,7 +27,7 @@ import {
     POINTS_FROM_LEVEL,
     SHIELDS_FROM_LEVEL,
 } from '../config/JourneyConfig.js';
-import { LATE_FROM_LEVEL } from '../config/HazardPairs.js';
+import { LATE_FROM_LEVEL, PAIRED_FROM_LEVEL } from '../config/HazardPairs.js';
 import { levelIntroBeats, levelMessage } from '../config/JourneyNarrative.js';
 import { PLAY_MODE, RunProfile } from './RunProfile.js';
 
@@ -70,6 +71,10 @@ export class JourneyProfile extends RunProfile {
 
     get isLateJourney() {
         return this.level >= LATE_FROM_LEVEL;
+    }
+
+    get usesPairedBelt() {
+        return this.level >= PAIRED_FROM_LEVEL;
     }
 
     get pairTheme() {

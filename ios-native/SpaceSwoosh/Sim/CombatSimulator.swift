@@ -1,6 +1,6 @@
 // CombatSimulator.swift
-// Changes: L20+ gauntlets read GeneratedJourneyData.encounterCatalog (exported
-// from EncounterCatalog.js). Corridor mid-fill, family picker, comboTheme belt.
+// Changes: L6+ pairing and Open Space KM storms read GeneratedJourneyData
+// (catalog + weather table). Corridor mid-fill, family picker, comboTheme belt.
 // Open World steer cue is overlay-only (no second milestone line).
 // Atmosphere still at 200 KM. L42 empty space past the gate; playEpilogue.
 
@@ -35,6 +35,7 @@ struct RunState {
     var encounterFired: [Bool] = []
     var encounterLiveIndex: Int = -1
     var encounterBeat: Int = 0
+    var encounterUsesKm: Bool = false
     var quietUntilY: CGFloat? = nil
     var recentPrimaries: [String] = []
     var sparkleCooldown: CGFloat = 0
@@ -398,7 +399,7 @@ enum CombatSimulator {
         guard !types.isEmpty else { return }
         let spawnCount = run.profile.rollRowSpawnCount(&run.rng)
         let dens = run.profile.density(scoreKm: run.scoreKm)
-        if run.profile.isLateJourney, spawnCount >= 2 {
+        if run.profile.usesPairedBelt(scoreKm: run.scoreKm) {
             let plan = LateJourneyBelt.planPairedRow(types: types, world: world, run: &run, spawnCount: spawnCount)
             LateJourneyBelt.spawnPlan(plan, world: &world, run: &run, atY: atY, dens: dens)
             return
@@ -427,7 +428,7 @@ enum CombatSimulator {
             return "simple"
         }
         var others = types.filter { $0 != "simple" }
-        if run.profile.isLateJourney {
+        if run.profile.usesPairedBelt(scoreKm: run.scoreKm) {
             var banned = Set(run.recentPrimaries)
             let wells = world.obstacles.filter { $0.active && $0.kind == .blackhole }.count
             if wells >= 2 { banned.insert("blackhole") }
@@ -435,7 +436,7 @@ enum CombatSimulator {
             if !filtered.isEmpty { others = filtered }
         }
         if others.isEmpty { return types.contains("simple") ? "simple" : types[0] }
-        if let focus = run.profile.liveFocusType(&run.rng),
+        if let focus = run.profile.liveFocusType(&run.rng, scoreKm: run.scoreKm),
            others.contains(focus),
            rand01(&run.rng) < run.profile.focusChance {
             return focus
@@ -1237,17 +1238,74 @@ enum LateJourneyBelt {
 
     static func armIfNeeded(run: inout RunState) {
         if !run.encounterRecipeIds.isEmpty { return }
+        if run.profile.mode == .openSpace {
+            armOpenSpaceStorms(run: &run)
+            return
+        }
         let count = run.profile.encounterCount
         guard count > 0 else { return }
-        let ids = pickIds(run.profile, count: count)
+        let ids = pickIds(
+            types: run.profile.types,
+            focus: run.profile.focusType,
+            pair: run.profile.pairTheme,
+            count: count,
+            level: run.profile.level
+        )
         let anchors: [CGFloat] = count == 1 ? [0.42] : [0.32, 0.68]
         run.encounterRecipeIds = ids
+        run.encounterUsesKm = false
         run.encounterAt = ids.enumerated().map { i, _ in
             let seed = (run.profile.level * 997 + (i + 3) * 7919) % 1000
             let jitter = (CGFloat(seed) / 1000 - 0.5) * 0.08
             return min(0.88, max(0.15, anchors[min(i, anchors.count - 1)] + jitter))
         }
         run.encounterFired = Array(repeating: false, count: ids.count)
+    }
+
+    private static func armOpenSpaceStorms(run: inout RunState) {
+        var marks: [CGFloat] = []
+        var seen = Set<CGFloat>()
+        for entry in GameConfig.Unlocks.table where entry.score > 0 {
+            if seen.insert(entry.score).inserted { marks.append(entry.score) }
+        }
+        marks.sort()
+        let full = GeneratedJourneyData.openSpaceFullRosterKm
+        let step = GeneratedJourneyData.openSpaceStormRepeatKm
+        let repeats = GeneratedJourneyData.openSpaceStormRepeatCount
+        for n in 1...repeats {
+            marks.append(full + CGFloat(n) * step)
+        }
+        var ids: [String] = []
+        var ats: [CGFloat] = []
+        var lastFamily: String?
+        for (i, km) in marks.enumerated() {
+            let types = GameConfig.Unlocks.table.compactMap { km >= $0.score ? $0.type : nil }
+            let sky = OpenSpaceWeather.at(km)
+            let unlocking = GameConfig.Unlocks.table.last { $0.score == km && $0.type != "simple" }?.type
+            let picked = pickIds(
+                types: types,
+                focus: unlocking ?? sky.focus,
+                pair: sky.pair,
+                count: 1,
+                level: i + Int(km / 100),
+                avoidFamily: lastFamily
+            )
+            guard let id = picked.first, let rec = recipes.first(where: { $0.id == id }) else { continue }
+            ids.append(id)
+            ats.append(km)
+            lastFamily = rec.family
+        }
+        if ids.isEmpty {
+            run.encounterRecipeIds = ["_none"]
+            run.encounterAt = []
+            run.encounterFired = []
+            run.encounterUsesKm = true
+            return
+        }
+        run.encounterRecipeIds = ids
+        run.encounterAt = ats
+        run.encounterFired = Array(repeating: false, count: ids.count)
+        run.encounterUsesKm = true
     }
 
     static func inQuietZone(run: inout RunState, y: CGFloat) -> Bool {
@@ -1269,7 +1327,7 @@ enum LateJourneyBelt {
         if run.quietUntilY != nil { return false }
         if run.encounterLiveIndex < 0 {
             guard wouldStart(world: world, run: &run) else { return false }
-            if let i = run.encounterFired.enumerated().first(where: { !$0.element && progress(world: world, run: run) >= run.encounterAt[$0.offset] })?.offset {
+            if let i = run.encounterFired.enumerated().first(where: { !$0.element && cursor(world: world, run: run) >= run.encounterAt[$0.offset] })?.offset {
                 run.encounterFired[i] = true
                 run.encounterLiveIndex = i
                 run.encounterBeat = 0
@@ -1314,9 +1372,9 @@ enum LateJourneyBelt {
         let advanced = types.filter { $0 != "simple" && !banned.contains($0) }
         let pool = advanced.isEmpty ? types.filter { $0 != "simple" } : advanced
         guard !pool.isEmpty else { return [slot("simple")] }
-        let focus = run.profile.focusType
-        let pair = run.profile.pairTheme
-        let combo = run.profile.comboTheme
+        let focus = run.profile.liveFocusType(&run.rng, scoreKm: run.scoreKm)
+        let pair = run.profile.livePairTheme(scoreKm: run.scoreKm)
+        let combo = run.profile.liveComboTheme(scoreKm: run.scoreKm)
         let roll = CombatSimulator.rand01(&run.rng)
         var primary = pool[Int(CombatSimulator.rand01(&run.rng) * CGFloat(pool.count)) % pool.count]
         if let focus, pool.contains(focus), roll < 0.28 { primary = focus }
@@ -1386,42 +1444,54 @@ enum LateJourneyBelt {
     private static func wouldStart(world: WorldState, run: inout RunState) -> Bool {
         if run.encounterLiveIndex >= 0 || run.encounterRecipeIds.isEmpty { return false }
         if run.quietUntilY != nil { return false }
-        let p = progress(world: world, run: run)
-        if p > 0.9 { return false }
+        let p = cursor(world: world, run: run)
+        if !run.encounterUsesKm, p > 0.9 { return false }
         for i in run.encounterFired.indices where !run.encounterFired[i] {
             if p >= run.encounterAt[i] { return true }
         }
         return false
     }
 
-    private static func progress(world: WorldState, run: RunState) -> CGFloat {
-        let goal = run.profile.goalKm
-        guard goal > 0, goal < RunProfile.neverKm / 2 else { return 0 }
+    private static func cursor(world: WorldState, run: RunState) -> CGFloat {
         let ahead = run.nextSpawnY - world.ship.y
         let spawnKm = run.scoreKm + GameConfig.kmDelta(dy: ahead, playfieldHeight: world.height)
+        if run.encounterUsesKm { return spawnKm }
+        let goal = run.profile.goalKm
+        guard goal > 0, goal < RunProfile.neverKm / 2 else { return 0 }
         return min(1, max(0, spawnKm / goal))
     }
 
-    private static func pickIds(_ profile: RunProfile, count: Int) -> [String] {
-        let available = Set(profile.types)
-        let eligible = recipes.filter { rec in
+    private static func pickIds(
+        types: [String],
+        focus: String?,
+        pair: String?,
+        count: Int,
+        level: Int,
+        avoidFamily: String? = nil
+    ) -> [String] {
+        let available = Set(types)
+        var eligible = recipes.filter { rec in
             rec.requires.allSatisfy { available.contains($0) }
                 && rec.beats.allSatisfy { beat in
                     beat.slots.allSatisfy { $0.type == "simple" || available.contains($0.type) }
                 }
         }
+        if let avoidFamily {
+            let other = eligible.filter { $0.family != avoidFamily }
+            if !other.isEmpty { eligible = other }
+        }
         guard !eligible.isEmpty else { return [] }
         let ranked = eligible.sorted { a, b in
-            let sa = score(a, focus: profile.focusType, pair: profile.pairTheme)
-            let sb = score(b, focus: profile.focusType, pair: profile.pairTheme)
+            let sa = score(a, focus: focus, pair: pair)
+            let sb = score(b, focus: focus, pair: pair)
             if sa != sb { return sa > sb }
             return a.id < b.id
         }
         var picked: [String] = []
         var used = Set<String>()
-        let bestScore = score(ranked[0], focus: profile.focusType, pair: profile.pairTheme)
-        let top = ranked.filter { score($0, focus: profile.focusType, pair: profile.pairTheme) == bestScore }
-        let first = top[abs(profile.level) % top.count]
+        let bestScore = score(ranked[0], focus: focus, pair: pair)
+        let top = ranked.filter { score($0, focus: focus, pair: pair) == bestScore }
+        let first = top[abs(level) % top.count]
         picked.append(first.id)
         used.insert(first.id)
         if count >= 2 {
@@ -1431,9 +1501,9 @@ enum LateJourneyBelt {
                 ? ranked.filter { !used.contains($0.id) }
                 : otherFamily
             if !pool.isEmpty {
-                let topScore = score(pool[0], focus: profile.focusType, pair: profile.pairTheme)
+                let topScore = score(pool[0], focus: focus, pair: pair)
                 let cutoff = topScore - 1
-                var band = pool.filter { score($0, focus: profile.focusType, pair: profile.pairTheme) >= cutoff }
+                var band = pool.filter { score($0, focus: focus, pair: pair) >= cutoff }
                 if band.isEmpty { band = pool }
                 var unique: [EncounterRecipe] = []
                 var seen = Set<String>()
@@ -1447,7 +1517,7 @@ enum LateJourneyBelt {
                     seen.insert(next.family)
                     unique.append(next)
                 }
-                let second = unique[abs(profile.level + 1) % unique.count]
+                let second = unique[abs(level + 1) % unique.count]
                 picked.append(second.id)
                 used.insert(second.id)
             }

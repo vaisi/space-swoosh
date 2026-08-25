@@ -174,7 +174,7 @@ enum GeneratedJourneyData {
             focusType: "sideBarrier",
             pairTheme: "moving",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: "sideBarrier",
             sparklesTarget: 7,
             smashTarget: 2,
@@ -190,7 +190,7 @@ enum GeneratedJourneyData {
             focusType: "moving",
             pairTheme: "sideBarrier",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 8,
             smashTarget: 2,
@@ -206,7 +206,7 @@ enum GeneratedJourneyData {
             focusType: "moving",
             pairTheme: "sideBarrier",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 8,
             smashTarget: 2,
@@ -222,7 +222,7 @@ enum GeneratedJourneyData {
             focusType: "complex",
             pairTheme: "moving",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: "complex",
             sparklesTarget: 9,
             smashTarget: 2,
@@ -238,7 +238,7 @@ enum GeneratedJourneyData {
             focusType: "complex",
             pairTheme: "moving",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 10,
             smashTarget: 2,
@@ -254,7 +254,7 @@ enum GeneratedJourneyData {
             focusType: "moving",
             pairTheme: "complex",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 11,
             smashTarget: 2,
@@ -270,7 +270,7 @@ enum GeneratedJourneyData {
             focusType: "shooting",
             pairTheme: "moving",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: "shooting",
             sparklesTarget: 11,
             smashTarget: 2,
@@ -286,7 +286,7 @@ enum GeneratedJourneyData {
             focusType: "complex",
             pairTheme: "shooting",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 12,
             smashTarget: 3,
@@ -302,7 +302,7 @@ enum GeneratedJourneyData {
             focusType: "shooting",
             pairTheme: "moving",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 12,
             smashTarget: 3,
@@ -318,7 +318,7 @@ enum GeneratedJourneyData {
             focusType: "driftCurrent",
             pairTheme: "moving",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: "driftCurrent",
             sparklesTarget: 14,
             smashTarget: 3,
@@ -334,7 +334,7 @@ enum GeneratedJourneyData {
             focusType: "complex",
             pairTheme: "shooting",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 14,
             smashTarget: 3,
@@ -350,7 +350,7 @@ enum GeneratedJourneyData {
             focusType: "pulsating",
             pairTheme: "moving",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: "pulsating",
             sparklesTarget: 15,
             smashTarget: 3,
@@ -366,7 +366,7 @@ enum GeneratedJourneyData {
             focusType: "complex",
             pairTheme: "shooting",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 15,
             smashTarget: 3,
@@ -382,7 +382,7 @@ enum GeneratedJourneyData {
             focusType: "shooting",
             pairTheme: "pulsating",
             comboTheme: nil,
-            encounterCount: 0,
+            encounterCount: 1,
             introduces: nil,
             sparklesTarget: 16,
             smashTarget: 3,
@@ -1600,6 +1600,17 @@ enum GeneratedJourneyData {
             ]
         ),
         EncounterRecipe(
+            id: "wallWeave",
+            family: "corridor",
+            requires: ["sideBarrier", "moving"],
+            beats: [
+                EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "sideBarrier", lane: nil)]),
+                EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "moving", lane: "center")]),
+                EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "simple", lane: "left"), EncounterSlot(type: "simple", lane: "right")]),
+                EncounterBeat(kind: "gap", frac: 0.5, slots: [])
+            ]
+        ),
+        EncounterRecipe(
             id: "windWeave",
             family: "wind",
             requires: ["driftCurrent", "moving", "shooting"],
@@ -1671,6 +1682,26 @@ enum GeneratedJourneyData {
             beats: [
                 EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "complex", lane: "left"), EncounterSlot(type: "shooting", lane: "right")]),
                 EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "simple", lane: "center")]),
+                EncounterBeat(kind: "gap", frac: 0.5, slots: [])
+            ]
+        ),
+        EncounterRecipe(
+            id: "moonLane",
+            family: "complex",
+            requires: ["complex", "moving"],
+            beats: [
+                EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "complex", lane: "left")]),
+                EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "moving", lane: "right")]),
+                EncounterBeat(kind: "gap", frac: 0.5, slots: [])
+            ]
+        ),
+        EncounterRecipe(
+            id: "moonWall",
+            family: "complex",
+            requires: ["complex", "sideBarrier"],
+            beats: [
+                EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "sideBarrier", lane: nil)]),
+                EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "complex", lane: "center")]),
                 EncounterBeat(kind: "gap", frac: 0.5, slots: [])
             ]
         ),
@@ -1747,6 +1778,78 @@ enum GeneratedJourneyData {
                 EncounterBeat(kind: "spawn", frac: 0, slots: [EncounterSlot(type: "complex", lane: "center")]),
                 EncounterBeat(kind: "gap", frac: 0.5, slots: [])
             ]
+        )
+    ]
+
+    static let openSpacePairedFromKm: CGFloat = 2000
+    static let openSpaceStormRepeatKm: CGFloat = 2500
+    static let openSpaceFullRosterKm: CGFloat = 7000
+    static let openSpaceStormRepeatCount = 40
+
+    static let openSpaceWeather: [OpenSpaceWeatherBand] = [
+        OpenSpaceWeatherBand(
+            fromKm: 0,
+            pair: nil,
+            combo: nil,
+            focus: nil
+        ),
+        OpenSpaceWeatherBand(
+            fromKm: 1000,
+            pair: "complex",
+            combo: nil,
+            focus: "complex"
+        ),
+        OpenSpaceWeatherBand(
+            fromKm: 2000,
+            pair: "moving",
+            combo: nil,
+            focus: "moving"
+        ),
+        OpenSpaceWeatherBand(
+            fromKm: 3000,
+            pair: "shooting",
+            combo: "moving",
+            focus: "shooting"
+        ),
+        OpenSpaceWeatherBand(
+            fromKm: 4500,
+            pair: "phase",
+            combo: "shooting",
+            focus: "phase"
+        ),
+        OpenSpaceWeatherBand(
+            fromKm: 5500,
+            pair: "repulsor",
+            combo: "phase",
+            focus: "repulsor"
+        )
+    ]
+
+    static let openSpaceFullSky: [OpenSpaceSkyShift] = [
+        OpenSpaceSkyShift(
+            pair: "shooting",
+            combo: "moving",
+            focus: "complex"
+        ),
+        OpenSpaceSkyShift(
+            pair: "phase",
+            combo: "shooting",
+            focus: "wormhole"
+        ),
+        OpenSpaceSkyShift(
+            pair: "repulsor",
+            combo: "phase",
+            focus: "blackhole"
+        ),
+        OpenSpaceSkyShift(
+            pair: "sweepGate",
+            combo: "moving",
+            focus: "sweepGate"
+        ),
+        OpenSpaceSkyShift(
+            pair: "wormhole",
+            combo: "complex",
+            focus: "wormhole"
         )
     ]
 }

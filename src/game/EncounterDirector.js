@@ -1,16 +1,45 @@
 // EncounterDirector.js
-// Schedules 1–2 authored gauntlets on Journey 20+ and plays them beat-by-beat
-// when the spawn cursor reaches those points in the level. Speed is untouched.
+// Schedules authored catalog recipes: 1–2 Journey spikes (progress of the
+// goal) or Open Space storms (absolute KM). Speed is untouched.
 // Changes:
-// - Picker in EncounterCatalog enforces different families for 2nd spikes.
+// - Open Space: KM-anchored storms at unlock marks, then every 2500 KM after
+//   7000; family rotation so neighbouring storms differ.
+// - Journey 6+ one spike; 25+ two different families.
 // - Created file: progress-based encounter windows, quiet-zone breathing room.
 
 import { clamp01 } from '../utils/math.js';
 import { pickEncounterRecipes } from '../config/EncounterCatalog.js';
+import {
+    openSpaceStormMarks,
+    typesAtKm,
+    weatherAt,
+} from '../config/OpenSpaceWeather.js';
+import { OPEN_WORLD_UNLOCKS, PLAY_MODE } from '../modes/RunProfile.js';
 
 function jitterFor(level, index) {
     const seed = ((level || 1) * 997 + (index + 3) * 7919) % 1000;
     return (seed / 1000 - 0.5) * 0.08;
+}
+
+function unlockingFocus(atKm) {
+    const unlocking = OPEN_WORLD_UNLOCKS
+        .filter((entry) => entry.score === atKm && entry.type && entry.type !== 'simple')
+        .map((entry) => entry.type);
+    return unlocking[unlocking.length - 1] || null;
+}
+
+function pickStormRecipe(atKm, stormIndex, lastFamily) {
+    const types = typesAtKm(atKm, OPEN_WORLD_UNLOCKS);
+    const sky = weatherAt(atKm);
+    const recipes = pickEncounterRecipes({
+        types,
+        focusType: unlockingFocus(atKm) || sky.focus,
+        pairTheme: sky.pair,
+        count: 1,
+        level: stormIndex + Math.round(atKm / 100),
+        avoidFamily: lastFamily,
+    });
+    return recipes[0] || null;
 }
 
 export class EncounterDirector {
@@ -19,8 +48,14 @@ export class EncounterDirector {
         this.schedule = [];
         this.live = null;
         this.quietUntilY = null;
+        this.kmMode = false;
 
         const profile = game.profile;
+        if (profile?.mode === PLAY_MODE.openWorld) {
+            this.armOpenSpaceStorms();
+            return;
+        }
+
         const count = profile?.encounterCount ?? 0;
         if (count <= 0) return;
 
@@ -38,12 +73,35 @@ export class EncounterDirector {
         });
     }
 
+    armOpenSpaceStorms() {
+        this.kmMode = true;
+        const marks = openSpaceStormMarks(OPEN_WORLD_UNLOCKS);
+        let lastFamily = null;
+        marks.forEach((atKm, i) => {
+            const recipe = pickStormRecipe(atKm, i, lastFamily);
+            if (!recipe) return;
+            this.schedule.push({ atKm, recipe, fired: false });
+            lastFamily = recipe.family;
+        });
+    }
+
     get isLive() {
         return this.live != null;
     }
 
+    cursorKm(manager) {
+        const game = manager.game;
+        const dy = game.camera.y - manager.nextSpawnY;
+        const ahead = game.config.kmDelta(Math.abs(dy), game.height);
+        return game.score + ahead;
+    }
+
     wouldStart(manager) {
         if (this.live || this.schedule.length === 0 || this.quietUntilY != null) return false;
+        if (this.kmMode) {
+            const km = this.cursorKm(manager);
+            return this.schedule.some((slot) => !slot.fired && km >= slot.atKm);
+        }
         const progress = this.spawnProgress(manager);
         if (progress > 0.9) return false;
         return this.schedule.some((slot) => !slot.fired && progress >= slot.at);
@@ -81,12 +139,20 @@ export class EncounterDirector {
         if (this.quietUntilY != null) return false;
 
         if (!this.live) {
-            const progress = this.spawnProgress(manager);
-            if (progress > 0.9) return false;
-            const next = this.schedule.find((slot) => !slot.fired && progress >= slot.at);
-            if (!next) return false;
-            next.fired = true;
-            this.live = { recipe: next.recipe, beat: 0 };
+            if (this.kmMode) {
+                const km = this.cursorKm(manager);
+                const next = this.schedule.find((slot) => !slot.fired && km >= slot.atKm);
+                if (!next) return false;
+                next.fired = true;
+                this.live = { recipe: next.recipe, beat: 0 };
+            } else {
+                const progress = this.spawnProgress(manager);
+                if (progress > 0.9) return false;
+                const next = this.schedule.find((slot) => !slot.fired && progress >= slot.at);
+                if (!next) return false;
+                next.fired = true;
+                this.live = { recipe: next.recipe, beat: 0 };
+            }
         }
 
         const live = this.live;

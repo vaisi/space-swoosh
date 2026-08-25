@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: EncounterCatalog.js exports into GeneratedJourneyData so iOS gauntlets cannot drift. Android Play store defaults remain versionCode 42 / versionName 1.0.42. -->
+<!-- Changes: Journey 6–19 pairing + one spike; Open Space KM weather and catalog storms. Android Play store defaults remain versionCode 42 / versionName 1.0.42. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -293,10 +293,11 @@ game build env. Journey progress and Open Space personal best stay in
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
 | `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision + soft magnet pull). |
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
-| `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. L20+ mixed pairs + `EncounterDirector` gauntlets. Shield smash: `playSmashCrashFeedback()` (crash SFX + `hapticShieldSmash`), 120 ms flyout gate. |
-| `config/HazardPairs.js` | Compatible same-row mixes, pair-theme hints, lane fractions for Journey 20+. |
-| `config/EncounterCatalog.js` | Authored late-Journey gauntlets. Source of truth — `npm run constants:export` copies them into `shared/game-constants.json` and `GeneratedJourneyData.encounterCatalog`. |
-| `game/EncounterDirector.js` | Schedules 1–2 catalog spikes per L20+ level and plays them beat-by-beat. |
+| `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. L6+ mixed pairs + `EncounterDirector` spikes/storms. Shield smash: `playSmashCrashFeedback()` (crash SFX + `hapticShieldSmash`), 120 ms flyout gate. |
+| `config/EncounterCatalog.js` | Authored gauntlets for Journey spikes and Open Space storms. Source of truth — `npm run constants:export` copies them into `shared/game-constants.json` and `GeneratedJourneyData.encounterCatalog`. |
+| `config/OpenSpaceWeather.js` | Open Space KM pair/combo/focus bands and storm marks. |
+| `config/HazardPairs.js` | Compatible same-row mixes, pair-theme hints, `usesPairedBelt` from L6. |
+| `game/EncounterDirector.js` | Journey 6+: 1–2 catalog spikes. Open Space: KM-anchored storms. |
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Fuel diamonds: spawn cadence, collect → clamped fuel refill + `sparklesCollected`, `+FUEL` popup + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
@@ -403,7 +404,7 @@ built by `createRunProfile()` and hung off `game.profile`:
 | Profile reads | Used by |
 | --- | --- |
 | `goalScore`, `isRunComplete()`, `progress()`, `isEndless` | `Game.update()` win check, HUD goal bar |
-| `density()`, `baseClusterCount()`, `maxOnScreen`, `gapRange()`, `simpleChance`, `focusType`, `pairTheme`, `comboTheme`, `encounterCount`, `rollRowSpawnCount()`, `unlocksBy()`, `advancedBlackHoles`, `obstaclesFromScore` (default 0) | `ObstacleManager` / `EncounterDirector` |
+| `density()`, `baseClusterCount()`, `maxOnScreen`, `gapRange()`, `simpleChance`, `focusType`, `pairTheme`, `comboTheme`, `encounterCount`, `usesPairedBelt`, `rollRowSpawnCount()`, `unlocksBy()`, `advancedBlackHoles`, `obstaclesFromScore` (default 0) | `ObstacleManager` / `EncounterDirector` |
 | `shieldsFromScore` / `wallBoostsFromScore` / `collectiblesFromScore` | `PowerUpManager` / `CollectibleManager` |
 | `speedMultiplier` | `Spacecraft.baseSpeed` |
 | `runsTutorial` | `ObstacleManager` tutorial phase |
@@ -487,10 +488,13 @@ Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
 (`gapSpread` 1.35), `speedMultiplier` 0.95→1.38, cluster size 1→4 (capped by
 `maxClusterCount` 3→5), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42.
-**From level 20**, speed is **not** raised further as a difficulty lever
-(`speedMultiplier` still follows the same lerp). Instead the late belt
-tightens: `simpleChance` 0.40→0.26, min gap 0.18→0.14 of screen height,
-`maxOnScreen` 14, `focusChance` 0.32, row mix about 35/45/20 for 1/2/3 slots.
+**From level 6**, mixed rows use `planPairedRow` (corridor mid-fill, heavy
+cooldown, 2-well cap) and each day fires **one** catalog spike near ~42% of
+the goal. `comboTheme` stays off until 20. **From level 20**, speed is **not**
+raised further as a difficulty lever (`speedMultiplier` still follows the same
+lerp). Instead the late belt tightens: `simpleChance` 0.40→0.26, min gap
+0.18→0.14 of screen height, `maxOnScreen` 14, `focusChance` 0.32, row mix
+about 35/45/20 for 1/2/3 slots.
 2-slot rows pick a mixed pair on opposite lanes; **corridor** types (side
 barriers, drift) always get a mid-lane fill (simple cluster or a point
 hazard). Heavy types (black hole, repulsor, portal, sweep, bloom, walls)
@@ -498,17 +502,18 @@ cannot repeat for ~2 rows, and at most **2 black holes** may wait ahead.
 Triple rolls sandwich a simple cluster between two point hazards. Plateau
 `focusType` skips side-barrier identity except on the intro day. Each late
 level also has a `pairTheme`, a `comboTheme` (third pairing, ~20% of mixed
-rows), and `encounterCount` (1 on L20–24, 2 from L25).
+rows), and `encounterCount` (1 on L6–24, 2 from L25).
 `game/EncounterDirector.js` fires that many authored gauntlets from
 `config/EncounterCatalog.js` near ~35% / ~70% of the goal, then leaves a
 breathing gap. Each recipe has a `family`; the second spike on 25+ must be a
 different family so days do not get two moving/shooting gauntlets. Catalog
-includes rock-storm, moon-cross, pulse-weave, bloom-drift, push-shot,
-well-wind, sweep-shot, and portal-rocks. `npm run constants:export` copies
-that catalog into `GeneratedJourneyData.encounterCatalog` so native iOS
-cannot keep a stale copy. Encounter rows bypass the on-screen
-cap so they are not skipped. Open World, Hazard Lab, and levels 1–19 keep the
-earlier mix.
+includes wall-weave, moon-lane, moon-wall, rock-storm, moon-cross, pulse-weave,
+bloom-drift, push-shot, well-wind, sweep-shot, and portal-rocks. `npm run
+constants:export` copies that catalog and the Open Space weather table into
+`GeneratedJourneyData`. Encounter rows bypass the on-screen
+cap so they are not skipped. Hazard Lab and levels 1–5 keep the earlier mix.
+Open Space uses weather pairing after 2000 KM and KM-anchored catalog storms
+(unlock marks, then every 2500 KM after 7000).
 Teach band goals are fixed: **L1 1250 / L2 2000 / L3 3000 / L4 4000 /
 L5 7500**. From L6 onward each level adds **+500 KM**; levels **10 / 15 / 20 /
 25 / 30 / 35 / 40 / 42** also add **+1000 KM**. From L2 onward the belt opens at
@@ -564,6 +569,12 @@ is skipped; distance lines at 2000 / 5000 KM (asteroid warnings) are silent.
 | 5500 | `repulsor` |
 | 6000 | `blackhole` |
 | 7000 | `sweepGate` |
+
+Open Space **weather** (`config/OpenSpaceWeather.js`): from 2000 KM, mixed
+rows follow a KM pair/combo/focus band (full-sky rotation after 7000).
+**Storms** play one catalog recipe at each unlock KM (if playable) and every
+2500 KM after 7000, with a breathing gap after. Speed and the 10k density
+cap are unchanged.
 
 ### Hazard Lab
 

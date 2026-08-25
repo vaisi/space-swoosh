@@ -1,7 +1,7 @@
 // HazardPairs.js
-// Compatible late-Journey mixes: which advanced types may share a row, which
-// must fly solo, and which second type a focus hazard likes to pair with.
+// Compatible mixed-row rules for Journey 6+ and Open Space weather.
 // Changes:
+// - PAIRED_FROM_LEVEL 6: one spike on 6–24; comboTheme still only from 20.
 // - comboTheme: a third advanced type (not focus, not pairTheme) gets ~20% of
 //   late mixed rows so the belt between spikes uses a different pairing.
 // - Corridor types (side barriers, drift) always get a mid-lane fill so the
@@ -11,6 +11,8 @@
 // - Created file: pairing rules, pair-theme hints, lane fractions, row planner.
 
 export const LATE_FROM_LEVEL = 20;
+/** Mixed rows + one spike start here; 1–5 stay the teach band. */
+export const PAIRED_FROM_LEVEL = 6;
 
 /** Full-width or teleport set pieces — they own the row's silhouette. */
 export const SOLO_IN_ROW = new Set([
@@ -101,7 +103,7 @@ export function pickStrongFocus(introduces, setPieces, indexInStep) {
 }
 
 export function encounterCountFor(levelNumber) {
-    if (levelNumber < LATE_FROM_LEVEL) return 0;
+    if (levelNumber < PAIRED_FROM_LEVEL) return 0;
     if (levelNumber < 25) return 1;
     return 2;
 }

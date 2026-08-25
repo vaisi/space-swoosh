@@ -1,8 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
-// - L20+ Journey: corridor mid-fill, no back-to-back heavies, more simple
-//   clusters; EncounterDirector gauntlets + planned mixed pairs (comboTheme).
+// - Journey 6+ / Open Space weather: corridor mid-fill and mixed pairs via
+//   usesPairedBelt; EncounterDirector spikes (Journey) and KM storms (Open Space).
 // - Day 42: skip new rows at/past the finish gate so Arrival flyout is empty.
 // - Shield smash plays crash_with_shield plus the same Light-impact haptic as
 //   wall BOOP at reduced strength (Android quieter waveform / iOS intensity 0.55).
@@ -1962,7 +1962,7 @@ export class ObstacleManager {
         const avoid = this.recentRowPrimaries || [];
         const blackholeBusy = this.countAheadBlackHoles() >= 2;
         
-        if (this.game.profile.isLateJourney && spawnCount >= 2) {
+        if (this.game.profile.usesPairedBelt) {
             const plan = planPairedRow({
                 spawnCount,
                 available: availableTypesArray,
@@ -2534,7 +2534,7 @@ export class ObstacleManager {
         }
 
         let otherTypes = types.filter(type => type !== 'simple');
-        if (profile.isLateJourney) {
+        if (profile.usesPairedBelt) {
             const banned = new Set(this.recentRowPrimaries || []);
             if (this.countAheadBlackHoles() >= 2) banned.add('blackhole');
             const filtered = otherTypes.filter((type) => !banned.has(type));

@@ -5,7 +5,8 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
-// - Journey L20+ pairing / comboTheme / encounters live on JourneyProfile, not here.
+// - Open Space weather (pair/combo/focus by KM) lives on OpenWorldProfile.
+// - Journey L6+ pairing / L20+ comboTheme / encounters live on JourneyProfile.
 // - OPEN_WORLD_UNLOCKS messages are null — types still unlock by KM, but
 //   Open Space no longer flashes hazard-name banners.
 // - OPEN_WORLD_UNLOCKS: driftCurrent@3500, phase@4500, repulsor@5500,
@@ -24,6 +25,10 @@
 //   there is now one source of truth for it.
 
 import { clamp01 } from '../utils/math.js';
+import {
+    OPEN_SPACE_PAIRED_FROM_KM,
+    weatherAt,
+} from '../config/OpenSpaceWeather.js';
 
 export const PLAY_MODE = {
     openWorld: 'openWorld',
@@ -183,6 +188,10 @@ export class RunProfile {
         return false;
     }
 
+    get usesPairedBelt() {
+        return false;
+    }
+
     rollRowSpawnCount() {
         const maxSpawns = Math.max(1, this.maxRowSpawns());
         if (maxSpawns <= 1) return 1;
@@ -252,6 +261,22 @@ export class RunProfile {
 export class OpenWorldProfile extends RunProfile {
     get goalScore() {
         return this.game.TOTAL_DISTANCE * 100;
+    }
+
+    get usesPairedBelt() {
+        return this.game.score >= OPEN_SPACE_PAIRED_FROM_KM;
+    }
+
+    get pairTheme() {
+        return weatherAt(this.game.score).pair;
+    }
+
+    get comboTheme() {
+        return weatherAt(this.game.score).combo;
+    }
+
+    get focusType() {
+        return weatherAt(this.game.score).focus;
     }
 
     /**

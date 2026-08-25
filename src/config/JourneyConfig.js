@@ -5,8 +5,8 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
-// - L20+: `pairTheme` + `comboTheme` + `encounterCount`; plateau focus skips
-//   side-barrier identity so days like 23 are not empty-mid wall levels.
+// - L6+: `pairTheme` + `encounterCount` 1; L20+ also `comboTheme`; plateau
+//   focus skips side-barrier identity so days like 23 are not empty-mid walls.
 // - 42 flown levels: final plateau d:1.00 is 9 levels (L34–42); hazard unlock
 //   numbers for L1–40 stay put. Chapters follow THE REPLY bands (First Light
 //   1–6 … Arrival 41–42). Milestone KM also on 42.

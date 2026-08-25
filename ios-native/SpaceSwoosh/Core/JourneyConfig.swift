@@ -1,7 +1,6 @@
 // JourneyConfig.swift
-// Changes: 42-level Journey descriptors; L20+ pairTheme / comboTheme / encounterCount;
-// encounter recipe types are filled by GeneratedJourneyData from EncounterCatalog.js;
-// epilogue copy lives on GeneratedJourneyData.
+// Changes: 42-level Journey descriptors; L6+ pairTheme / encounterCount, L20+ comboTheme;
+// Open Space weather types; encounter recipes from GeneratedJourneyData.
 
 import Foundation
 import CoreGraphics
@@ -52,6 +51,37 @@ struct EncounterRecipe: Equatable {
     var family: String
     var requires: [String]
     var beats: [EncounterBeat]
+}
+
+struct OpenSpaceWeatherBand: Equatable {
+    var fromKm: CGFloat
+    var pair: String?
+    var combo: String?
+    var focus: String?
+}
+
+struct OpenSpaceSkyShift: Equatable {
+    var pair: String?
+    var combo: String?
+    var focus: String?
+}
+
+enum OpenSpaceWeather {
+    static func at(_ km: CGFloat) -> OpenSpaceSkyShift {
+        let full = GeneratedJourneyData.openSpaceFullRosterKm
+        let sky = GeneratedJourneyData.openSpaceFullSky
+        if km >= full, !sky.isEmpty {
+            let step = max(GeneratedJourneyData.openSpaceStormRepeatKm, 1)
+            let i = Int((km - full) / step)
+            let idx = ((i % sky.count) + sky.count) % sky.count
+            return sky[idx]
+        }
+        var band = GeneratedJourneyData.openSpaceWeather[0]
+        for row in GeneratedJourneyData.openSpaceWeather where km >= row.fromKm {
+            band = row
+        }
+        return OpenSpaceSkyShift(pair: band.pair, combo: band.combo, focus: band.focus)
+    }
 }
 
 enum JourneyConfig {
