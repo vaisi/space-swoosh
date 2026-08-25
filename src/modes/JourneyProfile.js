@@ -4,6 +4,10 @@
 // keeps the stair-with-plateaus curve honest: hold `d` and nothing gets harder,
 // however many levels pass.
 // Changes:
+// - Late belt: corridor mid-fill, no back-to-back heavies, more simple clusters.
+// - L20+ late belt: lower simpleChance, denser row mix, wider maxOnScreen,
+//   slightly tighter gaps — speed lerp is unchanged.
+// - Exposes pairTheme / comboTheme / encounterCount / isLateJourney / rollRowSpawnCount.
 // - introBeats exposes LEVEL_INTRO_BEATS (sentence-at-a-time; voice on 1–41;
 //   Day 42 beats play in the written epilogue);
 //   introMessage stays the full LEVEL_MESSAGES line.
@@ -22,6 +26,7 @@ import {
     POINTS_FROM_LEVEL,
     SHIELDS_FROM_LEVEL,
 } from '../config/JourneyConfig.js';
+import { LATE_FROM_LEVEL } from '../config/HazardPairs.js';
 import { levelIntroBeats, levelMessage } from '../config/JourneyNarrative.js';
 import { PLAY_MODE, RunProfile } from './RunProfile.js';
 
@@ -45,9 +50,13 @@ const TUNING = {
     maxCluster: [3, 5],
     // How many separate spawns a row may place. Early: up to two.
     maxRowSpawns: [2, 3],
-    // Set pieces get more common as the roster grows.
+    // Set pieces get more common as the roster grows (early curve).
     simpleChance: [0.70, 0.42],
 };
+
+function lateT(d) {
+    return (d - 0.72) / 0.28;
+}
 
 export class JourneyProfile extends RunProfile {
     constructor(game, level) {
@@ -57,6 +66,22 @@ export class JourneyProfile extends RunProfile {
 
     get d() {
         return this.descriptor.difficulty;
+    }
+
+    get isLateJourney() {
+        return this.level >= LATE_FROM_LEVEL;
+    }
+
+    get pairTheme() {
+        return this.descriptor.pairTheme ?? null;
+    }
+
+    get comboTheme() {
+        return this.descriptor.comboTheme ?? null;
+    }
+
+    get encounterCount() {
+        return this.descriptor.encounterCount ?? 0;
     }
 
     // --- Identity --------------------------------------------------------
@@ -130,11 +155,18 @@ export class JourneyProfile extends RunProfile {
     }
 
     get maxOnScreen() {
+        if (this.isLateJourney) return 14;
         return lerpInt(TUNING.maxOnScreen[0], TUNING.maxOnScreen[1], this.d);
     }
 
     get simpleChance() {
+        if (this.isLateJourney) return lerp(0.40, 0.26, lateT(this.d));
         return lerp(TUNING.simpleChance[0], TUNING.simpleChance[1], this.d);
+    }
+
+    get focusChance() {
+        if (this.isLateJourney) return 0.32;
+        return 0.5;
     }
 
     get focusType() {
@@ -146,6 +178,10 @@ export class JourneyProfile extends RunProfile {
     }
 
     gapRange(canvasHeight) {
+        if (this.isLateJourney) {
+            const min = canvasHeight * lerp(0.18, 0.14, lateT(this.d));
+            return { min, max: min * TUNING.gapSpread };
+        }
         const min = canvasHeight * lerp(TUNING.minGap[0], TUNING.minGap[1], this.d);
         return { min, max: min * TUNING.gapSpread };
     }
@@ -167,6 +203,21 @@ export class JourneyProfile extends RunProfile {
     // How many independent obstacles a spawn row may place side by side.
     maxRowSpawns() {
         return lerpInt(TUNING.maxRowSpawns[0], TUNING.maxRowSpawns[1], this.d);
+    }
+
+    rollRowSpawnCount() {
+        const maxSpawns = Math.max(1, this.maxRowSpawns());
+        if (maxSpawns <= 1) return 1;
+        if (this.isLateJourney) {
+            const r = Math.random();
+            if (r < 0.35) return 1;
+            if (r < 0.80) return Math.min(2, maxSpawns);
+            return Math.min(3, maxSpawns);
+        }
+        let spawnCount = 1;
+        if (maxSpawns >= 2 && Math.random() >= 0.7) spawnCount = 2;
+        if (maxSpawns >= 3 && Math.random() >= 0.9) spawnCount = 3;
+        return Math.min(spawnCount, maxSpawns);
     }
 
     // The level's difficulty already prices in its whole roster, so all of it is

@@ -5,6 +5,8 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - L20+: `pairTheme` + `comboTheme` + `encounterCount`; plateau focus skips
+//   side-barrier identity so days like 23 are not empty-mid wall levels.
 // - 42 flown levels: final plateau d:1.00 is 9 levels (L34–42); hazard unlock
 //   numbers for L1–40 stay put. Chapters follow THE REPLY bands (First Light
 //   1–6 … Arrival 41–42). Milestone KM also on 42.
@@ -22,6 +24,14 @@
 // - Levels 1–5 Signal Story tutorial: empty → simple → moving → sparkles →
 //   shields. `moving` at L3; sideBarrier/complex later.
 // - Sparkles star from L4; smash star from L5.
+
+import {
+    encounterCountFor,
+    LATE_FROM_LEVEL,
+    pickComboTheme,
+    pickPairTheme,
+    pickStrongFocus,
+} from './HazardPairs.js';
 
 // One entry = one difficulty step. `d` is the 0-1 difficulty scalar every
 // tunable lerps from, and `levels` is how long the plateau at that height
@@ -91,9 +101,7 @@ const SMASH_LEVELS_PER_STEP = 7;
 const SMASH_TARGET_MAX = 6;
 
 function pickFocus(introduces, setPieces, indexInStep) {
-    if (introduces && introduces !== 'simple') return introduces;
-    if (setPieces.length === 0) return null;
-    return setPieces[indexInStep % setPieces.length];
+    return pickStrongFocus(introduces, setPieces, indexInStep);
 }
 
 /** How many star objectives this level exposes (1 / 2 / 3). */
@@ -157,6 +165,11 @@ function buildLevels() {
             previousGoalKm = goalKm;
             const introduces = i === 0 ? step.unlock : null;
             const starSlots = starsAvailableFor(levelNumber);
+            const focusType = pickFocus(introduces, setPieces, i);
+            const pairTheme = pickPairTheme(focusType, setPieces, i);
+            const comboTheme = levelNumber >= LATE_FROM_LEVEL
+                ? pickComboTheme(focusType, pairTheme, setPieces, i)
+                : null;
 
             levels.push({
                 level: levelNumber,
@@ -168,7 +181,10 @@ function buildLevels() {
                 difficulty: step.d,
                 goalKm,
                 types,
-                focusType: pickFocus(introduces, setPieces, i),
+                focusType,
+                pairTheme,
+                comboTheme,
+                encounterCount: encounterCountFor(levelNumber),
                 introduces,
                 sparklesTarget: sparklesTargetFor(levelNumber, goalKm),
                 smashTarget: smashTargetFor(levelNumber),

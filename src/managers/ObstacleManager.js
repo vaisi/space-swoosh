@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - L20+ Journey: corridor mid-fill, no back-to-back heavies, more simple
+//   clusters; EncounterDirector gauntlets + planned mixed pairs (comboTheme).
 // - Day 42: skip new rows at/past the finish gate so Arrival flyout is empty.
 // - Shield smash plays crash_with_shield plus the same Light-impact haptic as
 //   wall BOOP at reduced strength (Android quieter waveform / iOS intensity 0.55).
@@ -78,6 +80,8 @@ import { color } from '../brand/tokens.js';
 import { hapticShieldSmash } from '../native/index.js';
 import { drawBlackHoleGlowSprite } from '../utils/GlowSprites.js';
 import { isKilled } from '../core/perfFlags.js';
+import { EncounterDirector } from '../game/EncounterDirector.js';
+import { HEAVY_TYPES, laneRange, planPairedRow, rowPrimaryTypes } from '../config/HazardPairs.js';
 
 // How rarely the shielded-smash sound may repeat during the level-clear flyout.
 const CINEMATIC_CRASH_MS = 120;
@@ -1611,6 +1615,8 @@ export class ObstacleManager {
         // Silent: the milestone manager doesn't exist yet this early in the run
         // build, and an opening run of log lines would be noise anyway.
         this.updateAvailableTypes(0, { announce: false });
+        this.encounters = new EncounterDirector(game);
+        this.recentRowPrimaries = [];
     }
 
     // Obstacles further than this ahead of the camera are dropped. Rows are
@@ -1756,7 +1762,9 @@ export class ObstacleManager {
                 const candidate = this.nextSpawnY - spacing;
                 if (this.game.isAtOrPastFinaleGate?.(candidate)) break;
                 this.nextSpawnY = candidate;
-                if (!this.pauseSpawning && this.countAhead() < this.game.profile.maxOnScreen) {
+                if (this.encounters?.inQuietZone(this.nextSpawnY)) continue;
+                const forceRow = this.encounters?.isLive || this.encounters?.wouldStart(this);
+                if (!this.pauseSpawning && (forceRow || this.countAhead() < this.game.profile.maxOnScreen)) {
                     this.spawnObstacleRow();
                 }
             }
@@ -1882,6 +1890,7 @@ export class ObstacleManager {
 
         // Spawn new obstacles (same belt gate as the row cursor above).
         if (beltOpen && !this.inCutscene && !this.pauseSpawning
+            && !this.encounters?.inQuietZone(this.nextSpawnY)
             && this.countAhead() < this.game.profile.maxOnScreen
             && !this.game.isAtOrPastFinaleGate?.(this.nextSpawnY)) {
             const minSpawnInterval = this.game.height * 0.35; // Reduced from 0.4
@@ -1926,38 +1935,65 @@ export class ObstacleManager {
         }
     }
 
+    countAheadBlackHoles() {
+        let count = 0;
+        for (const obstacle of this.obstacles) {
+            if (obstacle instanceof BlackHoleObstacle && obstacle.y < this.game.camera.y) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    rememberRowTypes(types) {
+        const heavies = (types || []).filter((type) => HEAVY_TYPES.has(type));
+        const aged = (this.recentRowPrimaries || []).slice(0, 2);
+        this.recentRowPrimaries = [...heavies, ...aged].slice(0, 3);
+    }
+
     spawnObstacleRow() {
+        if (this.encounters?.playIfNeeded(this)) return;
+
         const availableTypesArray = Array.from(this.availableTypes);
         const difficultyMultiplier = this.getDifficultyMultiplier();
-        const maxSpawns = Math.max(1, this.game.profile.maxRowSpawns());
-
-        // Prefer a single obstacle; only fill the row when the profile allows it.
-        let spawnCount = 1;
-        if (maxSpawns >= 2 && Math.random() >= 0.7) spawnCount = 2;
-        if (maxSpawns >= 3 && Math.random() >= 0.9) spawnCount = 3;
-        spawnCount = Math.min(spawnCount, maxSpawns);
+        const spawnCount = this.game.profile.rollRowSpawnCount
+            ? this.game.profile.rollRowSpawnCount()
+            : 1;
+        const avoid = this.recentRowPrimaries || [];
+        const blackholeBusy = this.countAheadBlackHoles() >= 2;
         
+        if (this.game.profile.isLateJourney && spawnCount >= 2) {
+            const plan = planPairedRow({
+                spawnCount,
+                available: availableTypesArray,
+                focus: this.game.profile.focusType,
+                pairTheme: this.game.profile.pairTheme,
+                comboTheme: this.game.profile.comboTheme,
+                avoid,
+                blackholeBusy,
+            });
+            this.spawnPlannedRow(plan, difficultyMultiplier);
+            return;
+        }
+
         if (spawnCount === 1) {
-            // Single obstacle - can be any type
             const type = this.selectObstacleType(availableTypesArray);
             if (type === 'simple') {
-                // For simple asteroids, spawn a cluster
                 this.spawnSimpleAsteroids(difficultyMultiplier);
+                this.rememberRowTypes([]);
             } else {
-                // For other types, position randomly but avoid edges
-                const margin = 0.2; // 20% margin from edges
+                const margin = 0.2;
                 const xPos = margin + Math.random() * (1 - margin * 2);
                 this.spawnObstacleByType(type, xPos, xPos + 0.2);
+                this.rememberRowTypes([type]);
             }
         } else {
-            // Multiple obstacles - mix types and ensure good spacing
             const positions = this.generateSpawnPositions(spawnCount);
             let lastType = null;
+            const used = [];
             
             positions.forEach(pos => {
                 const type = this.selectObstacleType(availableTypesArray);
-                // Prevent same complex type spawning next to each other — unless
-                // the profile wants dense focus practice (Hazard Lab repulsors).
                 const allowRepeat = this.game.profile.allowAdjacentSetPieces;
                 if (type !== 'simple' && type === lastType && !allowRepeat) {
                     this.spawnSimpleAsteroids(difficultyMultiplier / 2, pos.start, pos.end);
@@ -1966,10 +2002,35 @@ export class ObstacleManager {
                         this.spawnSimpleAsteroids(difficultyMultiplier / 2, pos.start, pos.end);
                     } else {
                         this.spawnObstacleByType(type, pos.start, pos.end);
+                        used.push(type);
                     }
                     lastType = type;
                 }
             });
+            this.rememberRowTypes(used);
+        }
+    }
+
+    spawnPlannedRow(plan, difficultyMultiplier = this.getDifficultyMultiplier()) {
+        const slots = plan?.slots;
+        if (!slots || slots.length === 0) return;
+        for (const slot of slots) {
+            const range = slot.lane ? laneRange(slot.lane) : null;
+            if (slot.type === 'simple') {
+                if (range) {
+                    this.spawnSimpleAsteroids(Math.max(1, difficultyMultiplier * 0.7), range.start, range.end);
+                } else {
+                    this.spawnSimpleAsteroids(difficultyMultiplier);
+                }
+            } else if (range) {
+                this.spawnObstacleByType(slot.type, range.start, range.end);
+            } else {
+                const xPos = 0.2 + Math.random() * 0.6;
+                this.spawnObstacleByType(slot.type, xPos, xPos + 0.2);
+            }
+        }
+        if (this.game.profile.isLateJourney) {
+            this.rememberRowTypes(rowPrimaryTypes(plan));
         }
     }
 
@@ -2045,14 +2106,13 @@ export class ObstacleManager {
         const baseSize = this.game.config.obstacles.minSize * this.game.baseUnit +
             Math.random() * (this.game.config.obstacles.maxSize - this.game.config.obstacles.minSize) * this.game.baseUnit;
         const size = baseSize * 0.8; // 20% smaller
-        
-        const margin = size * 3;
+        const band = this.laneSearch(x, width, size, 3);
         const position = this.findValidPosition(
-            size * 2.5, // Increased collision check radius for satellites
-            margin,
-            this.game.width - margin,
+            size * 2.5,
+            band.min,
+            band.max,
             this.nextSpawnY,
-            15 // Increased max attempts to find valid position
+            15
         );
         
         if (position) {
@@ -2068,20 +2128,25 @@ export class ObstacleManager {
     spawnSimpleAsteroids(difficultyMultiplier, startX = 0, endX = 1) {
         const baseCount = this.game.profile.baseClusterCount();
         const maxCount = this.game.profile.maxClusterCount();
-        const count = Math.min(
+        let count = Math.min(
             baseCount + Math.floor(Math.random() * difficultyMultiplier),
             maxCount
         );
-        
-        // Slightly tighter spacing for more challenge
-        const sections = count + 1.2; // Reduced from 1.5
-        const sectionWidth = this.game.width / sections;
+        const span = Math.max(0.12, (endX ?? 1) - (startX ?? 0));
+        if (span < 0.28) count = Math.min(count, 2);
+        else if (span < 0.7) count = Math.min(count, 3);
+
+        const fullWidth = span >= 0.85;
+        const pad = fullWidth ? 0.08 : 0.02;
+        const x0 = (startX + pad) * this.game.width;
+        const x1 = (endX - pad) * this.game.width;
+        const band = Math.max(this.game.baseUnit, x1 - x0);
+        const sectionWidth = band / Math.max(1, count);
         
         for (let i = 0; i < count; i++) {
             const size = this.game.baseUnit * (0.9 + Math.random() * 0.5);
-            const minX = sectionWidth * (i + 0.6); // Adjusted spacing
-            const maxX = sectionWidth * (i + 1.6);
-            
+            const minX = x0 + sectionWidth * i;
+            const maxX = x0 + sectionWidth * (i + 1);
             const position = this.findValidPosition(size, minX, maxX, this.nextSpawnY);
             if (position) {
                 this.obstacles.push(new SimpleAsteroid(
@@ -2094,13 +2159,35 @@ export class ObstacleManager {
         }
     }
 
+    laneSearch(x, width, size, extra = 2.5) {
+        const full = this.game.width;
+        const usingLane = width > 0 && width < full * 0.7;
+        if (!usingLane) {
+            const margin = size * extra;
+            return { min: margin, max: full - margin };
+        }
+        const pad = size * 0.4;
+        let min = Math.max(pad, x);
+        let max = Math.min(full - pad, x + width);
+        if (max - min < size) {
+            const mid = (x + x + width) / 2;
+            min = Math.max(pad, mid - size);
+            max = Math.min(full - pad, mid + size);
+        }
+        return { min, max };
+    }
+
+    pointX(x, width) {
+        return width > this.game.width * 0.15 ? x + width * 0.5 : x;
+    }
+
     spawnPulsatingAsteroid(x, width) {
         const size = this.game.config.obstacles.minSize * this.game.baseUnit +
             Math.random() * (this.game.config.obstacles.maxSize - this.game.config.obstacles.minSize) * this.game.baseUnit;
         
         this.obstacles.push(new PulsatingAsteroid(
             this.game,
-            x,
+            this.pointX(x, width),
             this.nextSpawnY,
             size
         ));
@@ -2110,11 +2197,11 @@ export class ObstacleManager {
         // Square bloom needs room for wide open arms + a flyable centre.
         const size = this.game.baseUnit * (1.25 + Math.random() * 0.35);
         const reach = size * 2.45 + size * 0.36;
-        const margin = reach + size * 0.25;
+        const band = this.laneSearch(x, width, reach, 1);
         const position = this.findValidPosition(
             reach,
-            margin,
-            this.game.width - margin,
+            band.min,
+            band.max,
             this.nextSpawnY,
             12
         );
@@ -2141,11 +2228,11 @@ export class ObstacleManager {
 
     spawnRepulsor(x, width) {
         const size = this.game.baseUnit * (1.1 + Math.random() * 0.35);
-        const margin = size * 4;
+        const band = this.laneSearch(x, width, size, 4);
         const position = this.findValidPosition(
             size * 3,
-            margin,
-            this.game.width - margin,
+            band.min,
+            band.max,
             this.nextSpawnY,
             12
         );
@@ -2175,7 +2262,7 @@ export class ObstacleManager {
         
         this.obstacles.push(new MovingAsteroid(
             this.game,
-            x,
+            this.pointX(x, width),
             this.nextSpawnY,
             size
         ));
@@ -2187,7 +2274,7 @@ export class ObstacleManager {
         
         this.obstacles.push(new ShootingAsteroid(
             this.game,
-            x,
+            this.pointX(x, width),
             this.nextSpawnY,
             size
         ));
@@ -2201,11 +2288,10 @@ export class ObstacleManager {
 
     spawnBlackHole(x, width) {
         const size = this.game.baseUnit * 3;
-        const margin = size * 4;
-        // Use the passed x parameter or calculate a position if score is low
-        const finalX = this.game.score < 100 ? 
-            this.game.width / 2 : 
-            x;
+        const usingLane = width > 0 && width < this.game.width * 0.7;
+        const finalX = usingLane
+            ? x + width * 0.5
+            : (this.game.score < 100 ? this.game.width / 2 : x);
         
         const blackHole = new BlackHoleObstacle(
             this.game,
@@ -2447,11 +2533,15 @@ export class ObstacleManager {
             return 'simple';
         }
 
-        const otherTypes = types.filter(type => type !== 'simple');
+        let otherTypes = types.filter(type => type !== 'simple');
+        if (profile.isLateJourney) {
+            const banned = new Set(this.recentRowPrimaries || []);
+            if (this.countAheadBlackHoles() >= 2) banned.add('blackhole');
+            const filtered = otherTypes.filter((type) => !banned.has(type));
+            if (filtered.length > 0) otherTypes = filtered;
+        }
         if (otherTypes.length === 0) return 'simple';
 
-        // A run may lean on one set piece, which is how two Journey levels of
-        // identical difficulty end up feeling like different levels.
         const focus = profile.focusType;
         const focusChance = profile.focusChance ?? 0.5;
         if (focus && focus !== 'simple' && otherTypes.includes(focus) && Math.random() < focusChance) {

@@ -1,5 +1,7 @@
 // JourneyConfig.swift
-// Changes: 42-level Journey descriptors; epilogue copy lives on GeneratedJourneyData.
+// Changes: 42-level Journey descriptors; L20+ pairTheme / comboTheme / encounterCount;
+// encounter recipe types are filled by GeneratedJourneyData from EncounterCatalog.js;
+// epilogue copy lives on GeneratedJourneyData.
 
 import Foundation
 import CoreGraphics
@@ -25,10 +27,31 @@ struct JourneyLevelSpec: Equatable {
     var goalKm: CGFloat
     var types: [String]
     var focusType: String?
+    var pairTheme: String?
+    var comboTheme: String?
+    var encounterCount: Int
     var introduces: String?
     var sparklesTarget: Int
     var smashTarget: Int
     var starSlots: Int
+}
+
+struct EncounterSlot: Equatable {
+    var type: String
+    var lane: String?
+}
+
+struct EncounterBeat: Equatable {
+    var kind: String
+    var frac: CGFloat
+    var slots: [EncounterSlot]
+}
+
+struct EncounterRecipe: Equatable {
+    var id: String
+    var family: String
+    var requires: [String]
+    var beats: [EncounterBeat]
 }
 
 enum JourneyConfig {

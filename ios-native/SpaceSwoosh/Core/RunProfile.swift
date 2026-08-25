@@ -1,5 +1,7 @@
 // RunProfile.swift
 // Changes: Hazard Lab uses advanced black-hole Y-pull (matches JS sandbox).
+// Journey L20+ lowers simpleChance / tightens gaps / raises maxOnScreen;
+// speedMultiplier lerp is unchanged. pairTheme + comboTheme + encounterCount from spec.
 
 import Foundation
 import CoreGraphics
@@ -19,6 +21,9 @@ struct RunProfile {
     var difficulty: CGFloat
     var types: [String]
     var focusType: String?
+    var pairTheme: String?
+    var comboTheme: String?
+    var encounterCount: Int
     var focusChance: CGFloat
     var simpleChance: CGFloat
     var allowAdjacentSetPieces: Bool
@@ -60,6 +65,9 @@ struct RunProfile {
             difficulty: 0,
             types: GameConfig.Unlocks.table.map(\.type),
             focusType: nil,
+            pairTheme: nil,
+            comboTheme: nil,
+            encounterCount: 0,
             focusChance: 0.5,
             simpleChance: GameConfig.Profile.simpleChance,
             allowAdjacentSetPieces: false,
@@ -96,6 +104,8 @@ struct RunProfile {
         let neverObstacles = spec.level <= 1
         let neverSparkles = spec.level < JourneyConfig.pointsFromLevel
         let neverShields = spec.level < JourneyConfig.shieldsFromLevel
+        let late = spec.level >= 20
+        let tLate = (spec.difficulty - 0.72) / 0.28
         return RunProfile(
             mode: .journey,
             level: spec.level,
@@ -105,8 +115,11 @@ struct RunProfile {
             difficulty: spec.difficulty,
             types: spec.types,
             focusType: spec.focusType,
-            focusChance: 0.5,
-            simpleChance: lerp(0.70, 0.42, spec.difficulty),
+            pairTheme: spec.pairTheme,
+            comboTheme: spec.comboTheme,
+            encounterCount: spec.encounterCount,
+            focusChance: late ? 0.32 : 0.5,
+            simpleChance: late ? lerp(0.40, 0.26, tLate) : lerp(0.70, 0.42, spec.difficulty),
             allowAdjacentSetPieces: false,
             obstaclesFromKm: neverObstacles ? neverKm : 0,
             collectiblesFromKm: neverSparkles ? neverKm : 0,
@@ -114,10 +127,10 @@ struct RunProfile {
             wallBoostsFromKm: GameConfig.Profile.wallBoostsFromScore,
             density0: 1.15,
             density1: 2.05,
-            minGapFrac: lerp(0.30, 0.16, spec.difficulty),
+            minGapFrac: late ? lerp(0.18, 0.14, tLate) : lerp(0.30, 0.16, spec.difficulty),
             gapSpread: 1.35,
             speedMultiplier: lerp(0.95, 1.38, spec.difficulty),
-            maxOnScreen: lerpInt(5, 10, spec.difficulty),
+            maxOnScreen: late ? 14 : lerpInt(5, 10, spec.difficulty),
             baseCluster0: 1,
             baseCluster1: 4,
             maxCluster: lerpInt(3, 5, spec.difficulty),
@@ -146,6 +159,9 @@ struct RunProfile {
             difficulty: HazardLabConfig.difficulty,
             types: HazardLabConfig.types,
             focusType: nil,
+            pairTheme: nil,
+            comboTheme: nil,
+            encounterCount: 0,
             focusChance: 0.55,
             simpleChance: 0.1,
             allowAdjacentSetPieces: true,
@@ -214,6 +230,23 @@ struct RunProfile {
         case .journey: return difficulty >= 0.7
         case .hazardLab: return true
         }
+    }
+
+    var isLateJourney: Bool { mode == .journey && level >= 20 }
+
+    func rollRowSpawnCount(_ rng: inout UInt64) -> Int {
+        let maxSpawns = max(1, maxRowSpawns)
+        if maxSpawns <= 1 { return 1 }
+        if isLateJourney {
+            let r = CombatSimulator.rand01(&rng)
+            if r < 0.35 { return 1 }
+            if r < 0.80 { return min(2, maxSpawns) }
+            return min(3, maxSpawns)
+        }
+        var spawnCount = 1
+        if maxSpawns >= 2, CombatSimulator.rand01(&rng) >= 0.7 { spawnCount = 2 }
+        if maxSpawns >= 3, CombatSimulator.rand01(&rng) >= 0.9 { spawnCount = 3 }
+        return min(spawnCount, maxSpawns)
     }
 
     func liveFocusType(_ rng: inout UInt64) -> String? {

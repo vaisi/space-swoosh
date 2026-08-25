@@ -1,4 +1,4 @@
-<!-- userdoc.md — Changes: no player-facing change; Android Play version bumped to 1.0.42 for the next store upload. -->
+<!-- Changes: Journey from Day 20 mixes a third pairing between spikes; late days have two different gauntlet families. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -120,7 +120,15 @@ along. The last day stays quiet until you pass the finish gate.
 
 After that the runs stay longer and the field gets busier. Levels get harder a
 step at a time and then hold there for a while, so you get room to master what
-just arrived before anything new does. The sparkles star opens when fuel diamonds
+just arrived before anything new does. From **Day 20** the sky does not simply
+get faster — hazards show up in mixed pairs more often, side walls keep
+rocks or movers in the middle of the corridor, and each day has one
+or two short spikes (a corridor of blooms, a well with traffic, two sweeps in
+a row, a rock storm, moons against star shots) with a breath after them.
+When a day has two spikes, they feel different from each other. Between
+those spikes the mix still changes — not the same two hazards on shuffle.
+The same well or wall will not stamp itself
+row after row. The sparkles star opens when fuel diamonds
 do (level 4); the smash star opens with the shield (level 5). Both targets climb
 later without turning into a grind.
 

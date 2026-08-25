@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "source": "GameConfig + RunProfile + JourneyConfig + JourneyNarrative + Logbook + CopyBank",
+  "source": "GameConfig + RunProfile + JourneyConfig + JourneyNarrative + Logbook + CopyBank + EncounterCatalog",
   "simDt": 0.016666666666666666,
   "defaultShipId": "flicker",
   "fuel": {
@@ -328,6 +328,9 @@
         "goalKm": 1250,
         "types": [],
         "focusType": null,
+        "pairTheme": null,
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 0,
         "smashTarget": 0,
@@ -343,6 +346,9 @@
           "simple"
         ],
         "focusType": null,
+        "pairTheme": null,
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": "simple",
         "sparklesTarget": 0,
         "smashTarget": 0,
@@ -359,6 +365,9 @@
           "moving"
         ],
         "focusType": "moving",
+        "pairTheme": null,
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": "moving",
         "sparklesTarget": 0,
         "smashTarget": 0,
@@ -375,6 +384,9 @@
           "moving"
         ],
         "focusType": "moving",
+        "pairTheme": null,
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 2,
         "smashTarget": 0,
@@ -391,6 +403,9 @@
           "moving"
         ],
         "focusType": "moving",
+        "pairTheme": null,
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 7,
         "smashTarget": 1,
@@ -408,6 +423,9 @@
           "sideBarrier"
         ],
         "focusType": "sideBarrier",
+        "pairTheme": "moving",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": "sideBarrier",
         "sparklesTarget": 7,
         "smashTarget": 2,
@@ -424,7 +442,10 @@
           "moving",
           "sideBarrier"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "moving",
+        "pairTheme": "sideBarrier",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 8,
         "smashTarget": 2,
@@ -442,6 +463,9 @@
           "sideBarrier"
         ],
         "focusType": "moving",
+        "pairTheme": "sideBarrier",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 8,
         "smashTarget": 2,
@@ -460,6 +484,9 @@
           "complex"
         ],
         "focusType": "complex",
+        "pairTheme": "moving",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": "complex",
         "sparklesTarget": 9,
         "smashTarget": 2,
@@ -477,7 +504,10 @@
           "sideBarrier",
           "complex"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "moving",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 10,
         "smashTarget": 2,
@@ -495,7 +525,10 @@
           "sideBarrier",
           "complex"
         ],
-        "focusType": "complex",
+        "focusType": "moving",
+        "pairTheme": "complex",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 11,
         "smashTarget": 2,
@@ -515,6 +548,9 @@
           "shooting"
         ],
         "focusType": "shooting",
+        "pairTheme": "moving",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": "shooting",
         "sparklesTarget": 11,
         "smashTarget": 2,
@@ -533,7 +569,10 @@
           "complex",
           "shooting"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 12,
         "smashTarget": 3,
@@ -552,7 +591,10 @@
           "complex",
           "shooting"
         ],
-        "focusType": "complex",
+        "focusType": "shooting",
+        "pairTheme": "moving",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 12,
         "smashTarget": 3,
@@ -573,6 +615,9 @@
           "driftCurrent"
         ],
         "focusType": "driftCurrent",
+        "pairTheme": "moving",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": "driftCurrent",
         "sparklesTarget": 14,
         "smashTarget": 3,
@@ -592,7 +637,10 @@
           "shooting",
           "driftCurrent"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 14,
         "smashTarget": 3,
@@ -614,6 +662,9 @@
           "pulsating"
         ],
         "focusType": "pulsating",
+        "pairTheme": "moving",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": "pulsating",
         "sparklesTarget": 15,
         "smashTarget": 3,
@@ -634,7 +685,10 @@
           "driftCurrent",
           "pulsating"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 15,
         "smashTarget": 3,
@@ -655,7 +709,10 @@
           "driftCurrent",
           "pulsating"
         ],
-        "focusType": "complex",
+        "focusType": "shooting",
+        "pairTheme": "pulsating",
+        "comboTheme": null,
+        "encounterCount": 0,
         "introduces": null,
         "sparklesTarget": 16,
         "smashTarget": 3,
@@ -678,6 +735,9 @@
           "phase"
         ],
         "focusType": "phase",
+        "pairTheme": "moving",
+        "comboTheme": "driftCurrent",
+        "encounterCount": 1,
         "introduces": "phase",
         "sparklesTarget": 17,
         "smashTarget": 4,
@@ -699,7 +759,10 @@
           "pulsating",
           "phase"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 18,
         "smashTarget": 4,
@@ -723,6 +786,9 @@
           "wormhole"
         ],
         "focusType": "wormhole",
+        "pairTheme": "moving",
+        "comboTheme": "driftCurrent",
+        "encounterCount": 1,
         "introduces": "wormhole",
         "sparklesTarget": 18,
         "smashTarget": 4,
@@ -745,7 +811,10 @@
           "phase",
           "wormhole"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 19,
         "smashTarget": 4,
@@ -768,7 +837,10 @@
           "phase",
           "wormhole"
         ],
-        "focusType": "complex",
+        "focusType": "shooting",
+        "pairTheme": "pulsating",
+        "comboTheme": "wormhole",
+        "encounterCount": 1,
         "introduces": null,
         "sparklesTarget": 19,
         "smashTarget": 4,
@@ -793,6 +865,9 @@
           "repulsor"
         ],
         "focusType": "repulsor",
+        "pairTheme": "moving",
+        "comboTheme": "driftCurrent",
+        "encounterCount": 2,
         "introduces": "repulsor",
         "sparklesTarget": 21,
         "smashTarget": 4,
@@ -816,7 +891,10 @@
           "wormhole",
           "repulsor"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 21,
         "smashTarget": 4,
@@ -842,6 +920,9 @@
           "blackhole"
         ],
         "focusType": "blackhole",
+        "pairTheme": "moving",
+        "comboTheme": "driftCurrent",
+        "encounterCount": 2,
         "introduces": "blackhole",
         "sparklesTarget": 22,
         "smashTarget": 5,
@@ -866,7 +947,10 @@
           "repulsor",
           "blackhole"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 22,
         "smashTarget": 5,
@@ -891,7 +975,10 @@
           "repulsor",
           "blackhole"
         ],
-        "focusType": "complex",
+        "focusType": "shooting",
+        "pairTheme": "pulsating",
+        "comboTheme": "wormhole",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 23,
         "smashTarget": 5,
@@ -916,7 +1003,10 @@
           "repulsor",
           "blackhole"
         ],
-        "focusType": "shooting",
+        "focusType": "driftCurrent",
+        "pairTheme": "moving",
+        "comboTheme": "repulsor",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 24,
         "smashTarget": 5,
@@ -943,6 +1033,9 @@
           "sweepGate"
         ],
         "focusType": "sweepGate",
+        "pairTheme": "moving",
+        "comboTheme": "driftCurrent",
+        "encounterCount": 2,
         "introduces": "sweepGate",
         "sparklesTarget": 25,
         "smashTarget": 5,
@@ -968,7 +1061,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 25,
         "smashTarget": 5,
@@ -994,7 +1090,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "complex",
+        "focusType": "shooting",
+        "pairTheme": "pulsating",
+        "comboTheme": "wormhole",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 26,
         "smashTarget": 5,
@@ -1021,6 +1120,9 @@
           "sweepGate"
         ],
         "focusType": "moving",
+        "pairTheme": "shooting",
+        "comboTheme": "pulsating",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 26,
         "smashTarget": 6,
@@ -1046,7 +1148,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "sideBarrier",
+        "focusType": "complex",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 28,
         "smashTarget": 6,
@@ -1072,7 +1177,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "complex",
+        "focusType": "shooting",
+        "pairTheme": "pulsating",
+        "comboTheme": "wormhole",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 28,
         "smashTarget": 6,
@@ -1098,7 +1206,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "shooting",
+        "focusType": "driftCurrent",
+        "pairTheme": "moving",
+        "comboTheme": "repulsor",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 29,
         "smashTarget": 6,
@@ -1124,7 +1235,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "driftCurrent",
+        "focusType": "pulsating",
+        "pairTheme": "shooting",
+        "comboTheme": "blackhole",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 29,
         "smashTarget": 6,
@@ -1150,7 +1264,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "pulsating",
+        "focusType": "phase",
+        "pairTheme": "shooting",
+        "comboTheme": "sweepGate",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 30,
         "smashTarget": 6,
@@ -1176,7 +1293,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "phase",
+        "focusType": "wormhole",
+        "pairTheme": "moving",
+        "comboTheme": "complex",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 31,
         "smashTarget": 6,
@@ -1202,7 +1322,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "wormhole",
+        "focusType": "repulsor",
+        "pairTheme": "shooting",
+        "comboTheme": "complex",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 32,
         "smashTarget": 6,
@@ -1228,7 +1351,10 @@
           "blackhole",
           "sweepGate"
         ],
-        "focusType": "repulsor",
+        "focusType": "blackhole",
+        "pairTheme": "complex",
+        "comboTheme": "driftCurrent",
+        "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 33,
         "smashTarget": 6,
@@ -1873,7 +1999,766 @@
       "instagramHandle": "spacewoosh",
       "instagramUrl": "https://instagram.com/spacewoosh"
     },
-    "defaultBeatGapMs": 400
+    "defaultBeatGapMs": 400,
+    "encounterCatalog": [
+      {
+        "id": "bloomSqueeze",
+        "family": "bloom",
+        "requires": [
+          "phase",
+          "sideBarrier"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sideBarrier",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "phase",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "simple",
+                "lane": "left"
+              },
+              {
+                "type": "simple",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.55,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "crossfire",
+        "family": "cross",
+        "requires": [
+          "shooting",
+          "moving"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "shooting",
+                "lane": "left"
+              },
+              {
+                "type": "moving",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "left"
+              },
+              {
+                "type": "shooting",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "pulseGate",
+        "family": "pulse",
+        "requires": [
+          "pulsating",
+          "sideBarrier"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sideBarrier",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "pulsating",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "needleWeave",
+        "family": "corridor",
+        "requires": [
+          "sideBarrier",
+          "moving",
+          "shooting"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sideBarrier",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "shooting",
+                "lane": "left"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "windWeave",
+        "family": "wind",
+        "requires": [
+          "driftCurrent",
+          "moving",
+          "shooting"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "driftCurrent",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "left"
+              },
+              {
+                "type": "shooting",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "portalAmbush",
+        "family": "portal",
+        "requires": [
+          "wormhole",
+          "moving",
+          "shooting"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "wormhole",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.85,
+            "slots": []
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "left"
+              },
+              {
+                "type": "shooting",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "twinPush",
+        "family": "push",
+        "requires": [
+          "repulsor",
+          "moving"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "repulsor",
+                "lane": "left"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.18,
+            "slots": []
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "repulsor",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.55,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "wellWeave",
+        "family": "well",
+        "requires": [
+          "blackhole",
+          "moving",
+          "shooting"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "blackhole",
+                "lane": "left"
+              },
+              {
+                "type": "moving",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "shooting",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.55,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "currentCut",
+        "family": "wind",
+        "requires": [
+          "driftCurrent",
+          "sweepGate"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "driftCurrent",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.16,
+            "slots": []
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sweepGate",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.55,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "staggerSweeps",
+        "family": "sweep",
+        "requires": [
+          "sweepGate"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sweepGate",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.22,
+            "slots": []
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sweepGate",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.55,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "moonCross",
+        "family": "complex",
+        "requires": [
+          "complex",
+          "shooting"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "complex",
+                "lane": "left"
+              },
+              {
+                "type": "shooting",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "simple",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "rockStorm",
+        "family": "rocks",
+        "requires": [
+          "simple",
+          "moving"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "simple",
+                "lane": "left"
+              },
+              {
+                "type": "simple",
+                "lane": "center"
+              },
+              {
+                "type": "simple",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "simple",
+                "lane": "left"
+              },
+              {
+                "type": "simple",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "pulseWeave",
+        "family": "pulse",
+        "requires": [
+          "pulsating",
+          "moving"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "pulsating",
+                "lane": "left"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "simple",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "bloomDrift",
+        "family": "bloom",
+        "requires": [
+          "phase",
+          "moving"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "phase",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "moving",
+                "lane": "left"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "pushShot",
+        "family": "push",
+        "requires": [
+          "repulsor",
+          "shooting"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "repulsor",
+                "lane": "left"
+              },
+              {
+                "type": "shooting",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "simple",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "wellWind",
+        "family": "well",
+        "requires": [
+          "blackhole",
+          "driftCurrent"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "blackhole",
+                "lane": "left"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.18,
+            "slots": []
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "driftCurrent",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.55,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "sweepShot",
+        "family": "sweep",
+        "requires": [
+          "sweepGate",
+          "shooting"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "sweepGate",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "shooting",
+                "lane": "right"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "portalRocks",
+        "family": "portal",
+        "requires": [
+          "wormhole",
+          "complex"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "wormhole",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.85,
+            "slots": []
+          },
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "complex",
+                "lane": "center"
+              }
+            ]
+          },
+          {
+            "kind": "gap",
+            "frac": 0.5,
+            "slots": []
+          }
+        ]
+      }
+    ]
   },
   "hazardLab": {
     "id": "hazardLab",

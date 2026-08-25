@@ -5,6 +5,7 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - Journey L20+ pairing / comboTheme / encounters live on JourneyProfile, not here.
 // - OPEN_WORLD_UNLOCKS messages are null — types still unlock by KM, but
 //   Open Space no longer flashes hazard-name banners.
 // - OPEN_WORLD_UNLOCKS: driftCurrent@3500, phase@4500, repulsor@5500,
@@ -164,6 +165,31 @@ export class RunProfile {
     /** When true, adjacent row slots may repeat the same set-piece type. */
     get allowAdjacentSetPieces() {
         return false;
+    }
+
+    get pairTheme() {
+        return null;
+    }
+
+    get comboTheme() {
+        return null;
+    }
+
+    get encounterCount() {
+        return 0;
+    }
+
+    get isLateJourney() {
+        return false;
+    }
+
+    rollRowSpawnCount() {
+        const maxSpawns = Math.max(1, this.maxRowSpawns());
+        if (maxSpawns <= 1) return 1;
+        let spawnCount = 1;
+        if (maxSpawns >= 2 && Math.random() >= 0.7) spawnCount = 2;
+        if (maxSpawns >= 3 && Math.random() >= 0.9) spawnCount = 3;
+        return Math.min(spawnCount, maxSpawns);
     }
 
     get advancedBlackHoles() {

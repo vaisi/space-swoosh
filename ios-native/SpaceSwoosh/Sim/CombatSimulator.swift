@@ -1,5 +1,7 @@
 // CombatSimulator.swift
-// Changes: Open World steer cue is overlay-only (no second milestone line).
+// Changes: L20+ gauntlets read GeneratedJourneyData.encounterCatalog (exported
+// from EncounterCatalog.js). Corridor mid-fill, family picker, comboTheme belt.
+// Open World steer cue is overlay-only (no second milestone line).
 // Atmosphere still at 200 KM. L42 empty space past the gate; playEpilogue.
 
 import Foundation
@@ -28,6 +30,13 @@ struct RunState {
     var failReason: FailReason?
     var swooshCooldown: CGFloat = 0
     var nextSpawnY: CGFloat = 0
+    var encounterRecipeIds: [String] = []
+    var encounterAt: [CGFloat] = []
+    var encounterFired: [Bool] = []
+    var encounterLiveIndex: Int = -1
+    var encounterBeat: Int = 0
+    var quietUntilY: CGFloat? = nil
+    var recentPrimaries: [String] = []
     var sparkleCooldown: CGFloat = 0
     var shieldCooldown: CGFloat = 0
     var wallBoostCooldown: CGFloat = 0
@@ -296,7 +305,13 @@ enum CombatSimulator {
             let nextY = run.nextSpawnY + gap.min + rand01(&run.rng) * (gap.max - gap.min)
             if isAtOrPastFinaleGate(y: nextY, world: world, run: run) { break }
             run.nextSpawnY = nextY
-            spawnRow(world: &world, run: &run, atY: run.nextSpawnY)
+            LateJourneyBelt.armIfNeeded(run: &run)
+            if LateJourneyBelt.inQuietZone(run: &run, y: run.nextSpawnY) { continue }
+            let force = LateJourneyBelt.shouldForceRow(world: world, run: &run)
+            let live = world.obstacles.filter(\.active).count
+            if force || live < run.profile.maxOnScreen {
+                spawnRow(world: &world, run: &run, atY: run.nextSpawnY)
+            }
         }
 
         let ahead = world.ship.y + world.height
@@ -378,43 +393,47 @@ enum CombatSimulator {
 
     private static func spawnRow(world: inout WorldState, run: inout RunState, atY: CGFloat) {
         if run.scoreKm < run.profile.obstaclesFromKm { return }
+        if LateJourneyBelt.playIfNeeded(world: &world, run: &run, atY: atY) { return }
         let types = run.profile.unlockedTypes(scoreKm: run.scoreKm)
         guard !types.isEmpty else { return }
-        let live = world.obstacles.filter(\.active).count
-        if live >= run.profile.maxOnScreen { return }
-        var spawnCount = 1
-        if run.profile.maxRowSpawns >= 2, rand01(&run.rng) >= 0.7 { spawnCount = 2 }
-        if run.profile.maxRowSpawns >= 3, rand01(&run.rng) >= 0.9 { spawnCount = 3 }
+        let spawnCount = run.profile.rollRowSpawnCount(&run.rng)
         let dens = run.profile.density(scoreKm: run.scoreKm)
+        if run.profile.isLateJourney, spawnCount >= 2 {
+            let plan = LateJourneyBelt.planPairedRow(types: types, world: world, run: &run, spawnCount: spawnCount)
+            LateJourneyBelt.spawnPlan(plan, world: &world, run: &run, atY: atY, dens: dens)
+            return
+        }
         var lastType: String?
-        for _ in 0..<spawnCount {
-            var type = pickType(types, run: &run)
+        var used: [String] = []
+        for i in 0..<spawnCount {
+            var type = pickType(types, run: &run, world: world)
             if !run.profile.allowAdjacentSetPieces, type != "simple", type == lastType {
                 type = types.contains("simple") ? "simple" : type
             }
             if type == "simple" {
                 spawnSimpleCluster(world: &world, run: &run, atY: atY, dens: dens)
             } else {
-                let size = world.baseUnit * 2.2
-                let pos = findValidPosition(
-                    world: world,
-                    size: size,
-                    minX: world.width * 0.18,
-                    maxX: world.width * 0.82,
-                    baseY: atY,
-                    run: &run
-                )
-                placeHazard(world: &world, type: type, x: pos.x, y: pos.y, run: &run)
+                let lane = spawnCount == 1 ? 0.5 : (0.22 + 0.56 * CGFloat(i) / CGFloat(max(spawnCount - 1, 1)))
+                placeHazard(world: &world, type: type, x: world.width * lane, y: atY, run: &run)
+                used.append(type)
             }
             lastType = type
         }
+        LateJourneyBelt.remember(used, run: &run)
     }
 
-    private static func pickType(_ types: [String], run: inout RunState) -> String {
+    private static func pickType(_ types: [String], run: inout RunState, world: WorldState) -> String {
         if rand01(&run.rng) < run.profile.simpleChance, types.contains("simple") {
             return "simple"
         }
-        let others = types.filter { $0 != "simple" }
+        var others = types.filter { $0 != "simple" }
+        if run.profile.isLateJourney {
+            var banned = Set(run.recentPrimaries)
+            let wells = world.obstacles.filter { $0.active && $0.kind == .blackhole }.count
+            if wells >= 2 { banned.insert("blackhole") }
+            let filtered = others.filter { !banned.contains($0) }
+            if !filtered.isEmpty { others = filtered }
+        }
         if others.isEmpty { return types.contains("simple") ? "simple" : types[0] }
         if let focus = run.profile.liveFocusType(&run.rng),
            others.contains(focus),
@@ -596,7 +615,7 @@ enum CombatSimulator {
         score == 2000 || score == 5000
     }
 
-    private static func placeSimple(
+    fileprivate static func placeSimple(
         world: inout WorldState,
         kind: ObstacleKind,
         x: CGFloat,
@@ -620,7 +639,7 @@ enum CombatSimulator {
         }
     }
 
-    private static func placeHazard(
+    fileprivate static func placeHazard(
         world: inout WorldState,
         type: String,
         x: CGFloat,
@@ -1197,6 +1216,299 @@ enum CombatSimulator {
     static func rand01(_ rng: inout UInt64) -> CGFloat {
         rng = rng &* 6364136223846793005 &+ 1
         return CGFloat((rng >> 33) & 0xFFFFFF) / CGFloat(0xFFFFFF)
+    }
+}
+
+enum LateJourneyBelt {
+    private static let solo: Set<String> = [
+        "phase", "wormhole", "sweepGate"
+    ]
+    private static let corridor: Set<String> = [
+        "sideBarrier", "driftCurrent"
+    ]
+    private static let heavy: Set<String> = [
+        "blackhole", "repulsor", "wormhole", "sweepGate", "phase", "sideBarrier"
+    ]
+    private static let points: Set<String> = [
+        "simple", "moving", "shooting", "pulsating", "complex"
+    ]
+
+    private static var recipes: [EncounterRecipe] { GeneratedJourneyData.encounterCatalog }
+
+    static func armIfNeeded(run: inout RunState) {
+        if !run.encounterRecipeIds.isEmpty { return }
+        let count = run.profile.encounterCount
+        guard count > 0 else { return }
+        let ids = pickIds(run.profile, count: count)
+        let anchors: [CGFloat] = count == 1 ? [0.42] : [0.32, 0.68]
+        run.encounterRecipeIds = ids
+        run.encounterAt = ids.enumerated().map { i, _ in
+            let seed = (run.profile.level * 997 + (i + 3) * 7919) % 1000
+            let jitter = (CGFloat(seed) / 1000 - 0.5) * 0.08
+            return min(0.88, max(0.15, anchors[min(i, anchors.count - 1)] + jitter))
+        }
+        run.encounterFired = Array(repeating: false, count: ids.count)
+    }
+
+    static func inQuietZone(run: inout RunState, y: CGFloat) -> Bool {
+        guard let until = run.quietUntilY else { return false }
+        if y >= until {
+            run.quietUntilY = nil
+            return false
+        }
+        return true
+    }
+
+    static func shouldForceRow(world: WorldState, run: inout RunState) -> Bool {
+        if run.encounterLiveIndex >= 0 { return true }
+        return wouldStart(world: world, run: &run)
+    }
+
+    static func playIfNeeded(world: inout WorldState, run: inout RunState, atY: CGFloat) -> Bool {
+        if run.encounterRecipeIds.isEmpty { return false }
+        if run.quietUntilY != nil { return false }
+        if run.encounterLiveIndex < 0 {
+            guard wouldStart(world: world, run: &run) else { return false }
+            if let i = run.encounterFired.enumerated().first(where: { !$0.element && progress(world: world, run: run) >= run.encounterAt[$0.offset] })?.offset {
+                run.encounterFired[i] = true
+                run.encounterLiveIndex = i
+                run.encounterBeat = 0
+            } else {
+                return false
+            }
+        }
+        let recipe = recipes.first { $0.id == run.encounterRecipeIds[run.encounterLiveIndex] }
+        guard let recipe, run.encounterBeat < recipe.beats.count else {
+            run.encounterLiveIndex = -1
+            return false
+        }
+        let beat = recipe.beats[run.encounterBeat]
+        run.encounterBeat += 1
+        let last = run.encounterBeat >= recipe.beats.count
+        if beat.kind == "gap" {
+            run.quietUntilY = atY + world.height * beat.frac
+            if last { run.encounterLiveIndex = -1 }
+            return true
+        }
+        spawnPlan(beat.slots, world: &world, run: &run, atY: atY, dens: run.profile.density(scoreKm: run.scoreKm))
+        if last {
+            run.quietUntilY = atY + world.height * 0.5
+            run.encounterLiveIndex = -1
+        }
+        return true
+    }
+
+    static func remember(_ types: [String], run: inout RunState) {
+        let heavies = types.filter { heavy.contains($0) }
+        let aged = Array(run.recentPrimaries.prefix(2))
+        run.recentPrimaries = Array((heavies + aged).prefix(3))
+    }
+
+    static func planPairedRow(types: [String], world: WorldState, run: inout RunState, spawnCount: Int) -> [EncounterSlot] {
+        let banned: Set<String> = {
+            var set = Set(run.recentPrimaries)
+            let wells = world.obstacles.filter { $0.active && $0.kind == .blackhole }.count
+            if wells >= 2 { set.insert("blackhole") }
+            return set
+        }()
+        let advanced = types.filter { $0 != "simple" && !banned.contains($0) }
+        let pool = advanced.isEmpty ? types.filter { $0 != "simple" } : advanced
+        guard !pool.isEmpty else { return [slot("simple")] }
+        let focus = run.profile.focusType
+        let pair = run.profile.pairTheme
+        let combo = run.profile.comboTheme
+        let roll = CombatSimulator.rand01(&run.rng)
+        var primary = pool[Int(CombatSimulator.rand01(&run.rng) * CGFloat(pool.count)) % pool.count]
+        if let focus, pool.contains(focus), roll < 0.28 { primary = focus }
+        else if let pair, pool.contains(pair), roll < 0.52 { primary = pair }
+        else if let combo, pool.contains(combo), roll < 0.72 { primary = combo }
+
+        if corridor.contains(primary) {
+            let mid: String
+            if CombatSimulator.rand01(&run.rng) < 0.5 {
+                mid = "simple"
+            } else {
+                let pts = types.filter { points.contains($0) && $0 != "simple" && !banned.contains($0) }
+                if let pair, pts.contains(pair) {
+                    mid = pair
+                } else if let combo, pts.contains(combo), CombatSimulator.rand01(&run.rng) < 0.20 {
+                    mid = combo
+                } else if !pts.isEmpty {
+                    mid = pts[Int(CombatSimulator.rand01(&run.rng) * CGFloat(pts.count)) % pts.count]
+                } else {
+                    mid = "simple"
+                }
+            }
+            return [slot(primary), slot(mid, "center")]
+        }
+
+        if solo.contains(primary) || primary == "simple" || spawnCount < 2 {
+            return [slot(primary)]
+        }
+
+        let clean = types.filter { t in
+            t != "simple" && t != primary && !solo.contains(t) && !banned.contains(t)
+        }
+        var partner = "simple"
+        if let pair, clean.contains(pair), CombatSimulator.rand01(&run.rng) < 0.45 {
+            partner = pair
+        } else if let combo, clean.contains(combo), CombatSimulator.rand01(&run.rng) < 0.20 {
+            partner = combo
+        } else if !clean.isEmpty {
+            partner = clean[Int(CombatSimulator.rand01(&run.rng) * CGFloat(clean.count)) % clean.count]
+        }
+        if partner != "simple", CombatSimulator.rand01(&run.rng) < 0.28 { partner = "simple" }
+
+        if spawnCount >= 3, points.contains(primary), points.contains(partner), partner != "simple", primary != "blackhole" {
+            return [slot(primary, "left"), slot("simple", "center"), slot(partner, "right")]
+        }
+
+        let fieldLeft = CombatSimulator.rand01(&run.rng) < 0.5
+        let primaryLane = (primary == "blackhole" || primary == "repulsor")
+            ? (fieldLeft ? "left" : "right")
+            : "left"
+        let partnerLane = primaryLane == "left" ? "right" : "left"
+        return [slot(primary, primaryLane), slot(partner, partnerLane)]
+    }
+
+    static func spawnPlan(_ slots: [EncounterSlot], world: inout WorldState, run: inout RunState, atY: CGFloat, dens: CGFloat) {
+        for item in slots {
+            let x = laneX(item.lane, width: world.width)
+            if item.type == "simple" {
+                spawnLaneCluster(world: &world, run: &run, atY: atY, dens: dens, lane: item.lane)
+            } else {
+                CombatSimulator.placeHazard(world: &world, type: item.type, x: x, y: atY, run: &run)
+            }
+        }
+        remember(slots.map(\.type), run: &run)
+    }
+
+    private static func wouldStart(world: WorldState, run: inout RunState) -> Bool {
+        if run.encounterLiveIndex >= 0 || run.encounterRecipeIds.isEmpty { return false }
+        if run.quietUntilY != nil { return false }
+        let p = progress(world: world, run: run)
+        if p > 0.9 { return false }
+        for i in run.encounterFired.indices where !run.encounterFired[i] {
+            if p >= run.encounterAt[i] { return true }
+        }
+        return false
+    }
+
+    private static func progress(world: WorldState, run: RunState) -> CGFloat {
+        let goal = run.profile.goalKm
+        guard goal > 0, goal < RunProfile.neverKm / 2 else { return 0 }
+        let ahead = run.nextSpawnY - world.ship.y
+        let spawnKm = run.scoreKm + GameConfig.kmDelta(dy: ahead, playfieldHeight: world.height)
+        return min(1, max(0, spawnKm / goal))
+    }
+
+    private static func pickIds(_ profile: RunProfile, count: Int) -> [String] {
+        let available = Set(profile.types)
+        let eligible = recipes.filter { rec in
+            rec.requires.allSatisfy { available.contains($0) }
+                && rec.beats.allSatisfy { beat in
+                    beat.slots.allSatisfy { $0.type == "simple" || available.contains($0.type) }
+                }
+        }
+        guard !eligible.isEmpty else { return [] }
+        let ranked = eligible.sorted { a, b in
+            let sa = score(a, focus: profile.focusType, pair: profile.pairTheme)
+            let sb = score(b, focus: profile.focusType, pair: profile.pairTheme)
+            if sa != sb { return sa > sb }
+            return a.id < b.id
+        }
+        var picked: [String] = []
+        var used = Set<String>()
+        let bestScore = score(ranked[0], focus: profile.focusType, pair: profile.pairTheme)
+        let top = ranked.filter { score($0, focus: profile.focusType, pair: profile.pairTheme) == bestScore }
+        let first = top[abs(profile.level) % top.count]
+        picked.append(first.id)
+        used.insert(first.id)
+        if count >= 2 {
+            let firstFamily = first.family
+            let otherFamily = ranked.filter { !used.contains($0.id) && $0.family != firstFamily }
+            let pool = otherFamily.isEmpty
+                ? ranked.filter { !used.contains($0.id) }
+                : otherFamily
+            if !pool.isEmpty {
+                let topScore = score(pool[0], focus: profile.focusType, pair: profile.pairTheme)
+                let cutoff = topScore - 1
+                var band = pool.filter { score($0, focus: profile.focusType, pair: profile.pairTheme) >= cutoff }
+                if band.isEmpty { band = pool }
+                var unique: [EncounterRecipe] = []
+                var seen = Set<String>()
+                for rec in band {
+                    if seen.contains(rec.family) { continue }
+                    seen.insert(rec.family)
+                    unique.append(rec)
+                }
+                while unique.count < 3 {
+                    guard let next = pool.first(where: { !seen.contains($0.family) }) else { break }
+                    seen.insert(next.family)
+                    unique.append(next)
+                }
+                let second = unique[abs(profile.level + 1) % unique.count]
+                picked.append(second.id)
+                used.insert(second.id)
+            }
+        }
+        for rec in ranked {
+            if picked.count >= count { break }
+            if used.contains(rec.id) { continue }
+            picked.append(rec.id)
+            used.insert(rec.id)
+        }
+        var wrap = 0
+        while picked.count < count, wrap < count {
+            picked.append(ranked[wrap % ranked.count].id)
+            wrap += 1
+        }
+        return picked
+    }
+
+    private static func score(_ recipe: EncounterRecipe, focus: String?, pair: String?) -> Int {
+        var n = 0
+        if let focus, recipe.requires.contains(focus) { n += 3 }
+        if let pair, recipe.requires.contains(pair) { n += 2 }
+        if let focus, recipe.id.lowercased().contains(focus.lowercased()) { n += 1 }
+        return n
+    }
+
+    private static func laneX(_ lane: String?, width: CGFloat) -> CGFloat {
+        switch lane {
+        case "left": return width * 0.24
+        case "right": return width * 0.76
+        case "center": return width * 0.5
+        default: return width * 0.5
+        }
+    }
+
+    private static func spawnLaneCluster(
+        world: inout WorldState,
+        run: inout RunState,
+        atY: CGFloat,
+        dens: CGFloat,
+        lane: String?
+    ) {
+        let cap = lane == "center" ? 3 : 2
+        let n = min(cap, run.profile.clusterCount(scoreKm: run.scoreKm, dens: dens, roll: CombatSimulator.rand01(&run.rng)))
+        let mid = laneX(lane, width: world.width)
+        for k in 0..<n {
+            let size = world.baseUnit * (0.9 + CombatSimulator.rand01(&run.rng) * 0.5)
+            let x = mid + CGFloat(k) * world.width * 0.06 - world.width * 0.03
+            CombatSimulator.placeSimple(
+                world: &world,
+                kind: .circle,
+                x: x,
+                y: atY,
+                size: size,
+                run: &run
+            )
+        }
+    }
+
+    private static func slot(_ type: String, _ lane: String? = nil) -> EncounterSlot {
+        EncounterSlot(type: type, lane: lane)
     }
 }
 
