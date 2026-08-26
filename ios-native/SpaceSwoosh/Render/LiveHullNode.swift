@@ -1,5 +1,6 @@
 // LiveHullNode.swift
-// Changes: Squash/shear live on the SkinRenderer hull rig, not this node.
+// Changes: Pools 16 fills / 24 strokes / 24 discs so Puff ticks and Argus eyes
+// never drop hangar ornaments.
 
 import SpriteKit
 
@@ -13,7 +14,7 @@ final class LiveHullNode: SKNode {
     init(id: SkinId, disc: SKTexture) {
         self.id = id
         var fillList: [SKShapeNode] = []
-        for _ in 0..<10 {
+        for _ in 0..<16 {
             let n = SKShapeNode()
             n.lineWidth = 0
             n.strokeColor = .clear
@@ -24,7 +25,7 @@ final class LiveHullNode: SKNode {
         }
         fills = fillList
         var strokeList: [SKShapeNode] = []
-        for _ in 0..<18 {
+        for _ in 0..<24 {
             let n = SKShapeNode()
             n.fillColor = .clear
             n.lineCap = .round
@@ -36,7 +37,7 @@ final class LiveHullNode: SKNode {
         }
         strokes = strokeList
         var discList: [SKSpriteNode] = []
-        for _ in 0..<16 {
+        for _ in 0..<24 {
             let n = SKSpriteNode(texture: disc)
             n.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             n.colorBlendFactor = 1

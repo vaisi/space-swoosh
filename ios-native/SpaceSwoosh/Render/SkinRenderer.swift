@@ -1,5 +1,5 @@
 // SkinRenderer.swift
-// Changes: Wall-jelly plant (halfScale) + shear warp matching Android beginHullFrame.
+// Changes: Live hull warp is not rasterized; pad sprite keeps satellites in bounds.
 
 import SpriteKit
 import QuartzCore
@@ -11,6 +11,7 @@ final class SkinRenderer {
     private let hullSprite: SKSpriteNode?
     private let liveHull: LiveHullNode?
     private let liveWarp: SKEffectNode?
+    private let livePad: SKSpriteNode?
     private let trail: SkinTrail
     private let skin: SkinDef
 
@@ -20,15 +21,20 @@ final class SkinRenderer {
         node.addChild(hullRig)
         if skin.skipHullCache {
             let warp = SKEffectNode()
-            warp.shouldRasterize = true
+            warp.shouldRasterize = false
             warp.subdivisionLevels = 1
             warp.zPosition = 10
             let live = LiveHullNode(id: skin.id, disc: bake.part(for: .circle))
             live.zPosition = 10
+            let pad = SKSpriteNode(color: .clear, size: CGSize(width: 1, height: 1))
+            pad.alpha = 0
+            pad.zPosition = 9
+            warp.addChild(pad)
             warp.addChild(live)
             hullRig.addChild(warp)
             liveHull = live
             liveWarp = warp
+            livePad = pad
             hullSprite = nil
         } else {
             let hull = SKSpriteNode(texture: bake.hull(for: skin.id))
@@ -38,6 +44,7 @@ final class SkinRenderer {
             hullSprite = hull
             liveHull = nil
             liveWarp = nil
+            livePad = nil
         }
         let wake = SkinTrailFactory.make(skin: skin, bake: bake)
         wake.node.zPosition = 5
@@ -94,6 +101,8 @@ final class SkinRenderer {
         if let live = liveHull, let liveWarp {
             hullRig.yScale = jelly.sy
             liveWarp.warpGeometry = warp
+            let ornament = radius * 3.2 * 2
+            livePad?.size = CGSize(width: ornament, height: ornament)
             live.present(radius: radius, turn: turn, jelly: jelly, jellyLive: jellyLive, alpha: 1, nowMs: nowMs)
         } else if let hull = hullSprite {
             hullRig.yScale = jelly.sy * stretch

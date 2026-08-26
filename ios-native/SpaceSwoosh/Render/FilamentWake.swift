@@ -1,5 +1,6 @@
 // FilamentWake.swift
-// Changes: Palette factories live on Palette so SkinTrail type-context resolves.
+// Changes: Full Android plankton count (no 600 cap); paint newest-first so
+// Luna/Spore sparkles sit next to the hull instead of starving on the tail.
 
 import SpriteKit
 
@@ -77,12 +78,12 @@ final class FilamentWake: SKNode, SkinTrail {
         left = Array(repeating: .zero, count: maxPoints)
         right = Array(repeating: .zero, count: maxPoints)
         ribbons = (0..<3).map { WakeCollect.shapeNode(z: 5 + CGFloat($0) * 0.01) }
-        let pool = min(600, Int(CGFloat(maxPoints) * 5 * palette.density))
+        let perPoint = max(1, Int((5 * palette.density).rounded()))
+        let pool = maxPoints * (perPoint + 2)
         plankton = (0..<pool).map { _ in WakeCollect.sprite(disc, z: 5.2) }
         if palette.glitter {
-            let g = min(200, maxPoints)
-            glitterDots = (0..<g).map { _ in WakeCollect.sprite(disc, z: 5.4) }
-            glitterArms = (0..<g).map { _ in
+            glitterDots = (0..<maxPoints).map { _ in WakeCollect.sprite(disc, z: 5.4) }
+            glitterArms = (0..<maxPoints).map { _ in
                 let n = SKShapeNode()
                 n.fillColor = .clear
                 n.lineCap = .round
@@ -138,7 +139,7 @@ final class FilamentWake: SKNode, SkinTrail {
 
         let perPoint = max(1, Int((5 * palette.density).rounded()))
         var used = 0
-        for i in 0..<n {
+        for i in stride(from: n - 1, through: 0, by: -1) {
             let p = wake[i]
             if p.opacity < 0.12 { continue }
             let leave = 1 - CGFloat(i) / denom
@@ -168,12 +169,13 @@ final class FilamentWake: SKNode, SkinTrail {
                 node.alpha = alpha * p.opacity * (0.28 + 0.45 * leave + energy * 0.35)
                 node.zRotation = 0
             }
+            if used >= plankton.count { break }
         }
         for k in used..<plankton.count { plankton[k].isHidden = true }
 
         guard palette.glitter else { return }
         var gi = 0
-        for i in 0..<n {
+        for i in stride(from: n - 1, through: 0, by: -1) {
             let p = wake[i]
             if p.opacity < 0.16 { continue }
             let u = WakeCollect.fract(p.seed * 12.99 + CGFloat(i) * 0.31)

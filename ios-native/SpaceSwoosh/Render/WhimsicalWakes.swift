@@ -1,5 +1,5 @@
 // WhimsicalWakes.swift
-// Changes: Dedicated Android wakes for Bloom…Chime; Chime arc transform is let.
+// Changes: Bloom/Argus/Koi use Android subdiv-1 dense marks; 2x sprite pools.
 
 import QuartzCore
 import SpriteKit
@@ -68,8 +68,8 @@ final class BloomWake: SKNode, SkinTrail {
     private let maxMarks: Int
 
     init(ring: SKTexture, disc: SKTexture, slots: Int) {
-        maxMarks = max(slots, 8)
-        marks = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: maxMarks * 2)
+        maxMarks = max(slots, 8) * 2
+        marks = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: maxMarks)
         rings = (0..<maxMarks).map { _ in WakeCollect.sprite(ring, z: 5) }
         inners = (0..<maxMarks).map { _ in WakeCollect.sprite(ring, z: 5.05) }
         sparks = (0..<maxMarks).map { _ in WakeCollect.sprite(disc, z: 5.2) }
@@ -93,7 +93,7 @@ final class BloomWake: SKNode, SkinTrail {
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) not used") }
 
     func sync(_ ctx: TrailSyncContext) {
-        let m = WakeCollect.dense(ctx, into: &marks, capacity: marks.count)
+        let m = WakeCollect.dense(ctx, into: &marks, capacity: marks.count, subdiv: 1)
         guard m >= 2 else {
             hide(rings); hide(inners); hide(sparks)
             for a in arms { a.isHidden = true }
@@ -154,7 +154,7 @@ final class BloomWake: SKNode, SkinTrail {
 
         let sparkChance: CGFloat = energy > 0.08 ? 0.82 : 0.48
         var si = 0
-        for i in 0..<m {
+        for i in stride(from: m - 1, through: 0, by: -1) {
             let p = marks[i]
             if p.opacity < 0.16 { continue }
             let u = WakeCollect.fract(p.seed * 12.9898 + CGFloat(i) * 0.37)
@@ -399,9 +399,10 @@ final class KoiWake: SKNode, SkinTrail {
 
     init(slots: Int) {
         maxPoints = max(slots, 8)
+        let markSlots = maxPoints * 2
         body = WakeCollect.shapeNode(z: 5)
         core = WakeCollect.shapeNode(z: 5.05)
-        scales = (0..<maxPoints).map { _ in
+        scales = (0..<markSlots).map { _ in
             let n = SKShapeNode()
             n.fillColor = .clear
             n.lineCap = .round
@@ -411,7 +412,7 @@ final class KoiWake: SKNode, SkinTrail {
             return n
         }
         wake = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: maxPoints)
-        marks = wake
+        marks = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: markSlots)
         left = Array(repeating: .zero, count: maxPoints)
         right = Array(repeating: .zero, count: maxPoints)
         super.init()
@@ -450,9 +451,9 @@ final class KoiWake: SKNode, SkinTrail {
         core.alpha = alpha * 0.55
         core.isHidden = false
 
-        let m = WakeCollect.dense(ctx, into: &marks, capacity: marks.count)
+        let m = WakeCollect.dense(ctx, into: &marks, capacity: marks.count, subdiv: 1)
         var used = 0
-        for i in 0..<m {
+        for i in stride(from: m - 1, through: 0, by: -1) {
             let p = marks[i]
             if p.opacity < 0.2 { continue }
             guard used < scales.count else { break }
@@ -892,7 +893,7 @@ final class ArgusWake: SKNode, SkinTrail {
     private let maxMarks: Int
 
     init(ring: SKTexture, disc: SKTexture, slots: Int) {
-        maxMarks = max(slots, 8)
+        maxMarks = max(slots, 8) * 2
         marks = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: maxMarks)
         rims = (0..<maxMarks).map { _ in WakeCollect.sprite(ring, z: 5) }
         pupils = (0..<maxMarks).map { _ in WakeCollect.sprite(disc, z: 5.1) }
@@ -907,7 +908,7 @@ final class ArgusWake: SKNode, SkinTrail {
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) not used") }
 
     func sync(_ ctx: TrailSyncContext) {
-        let m = WakeCollect.dense(ctx, into: &marks, capacity: marks.count)
+        let m = WakeCollect.dense(ctx, into: &marks, capacity: marks.count, subdiv: 1)
         guard m >= 2 else {
             for n in rims { n.isHidden = true }
             for n in pupils { n.isHidden = true }
@@ -970,8 +971,8 @@ final class ChimeWake: SKNode, SkinTrail {
     private let maxMarks: Int
 
     init(disc: SKTexture, slots: Int) {
-        maxMarks = max(slots, 8)
-        marks = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: maxMarks * 2)
+        maxMarks = max(slots, 8) * 2
+        marks = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: maxMarks)
         arcs = (0..<maxMarks).map { _ in
             let n = SKShapeNode()
             n.fillColor = .clear
@@ -1014,7 +1015,7 @@ final class ChimeWake: SKNode, SkinTrail {
             ? min(1, max(0, ctx.jellyElapsedMs / WallJelly.trailWaveMs)) : 1
         let alpha: CGFloat = 0.9
         var ai = 0
-        for i in 0..<m {
+        for i in stride(from: m - 1, through: 0, by: -1) {
             let p = marks[i]
             if p.opacity < 0.16 { continue }
             guard ai < arcs.count else { break }
@@ -1040,7 +1041,7 @@ final class ChimeWake: SKNode, SkinTrail {
 
         let noteChance: CGFloat = energy > 0.08 ? 0.94 : 0.88
         var ni = 0
-        for i in 0..<m {
+        for i in stride(from: m - 1, through: 0, by: -1) {
             let p = marks[i]
             if p.opacity < 0.14 { continue }
             let u = WakeCollect.fract(p.seed * 12.99 + CGFloat(i) * 0.33)
@@ -1082,6 +1083,7 @@ final class ChimeWake: SKNode, SkinTrail {
                 stem.isHidden = false
                 ni += 1
             }
+            if ni >= notes.count { break }
         }
         for k in ni..<notes.count {
             notes[k].isHidden = true

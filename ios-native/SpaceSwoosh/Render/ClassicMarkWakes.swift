@@ -1,5 +1,5 @@
 // ClassicMarkWakes.swift
-// Changes: Android Chevron / Ring / Cloud / Stamp / Tick / Ladder — pooled marks.
+// Changes: Cloud trail uses Android 6–9 dots/point (no 600 cap); newest-first.
 
 import SpriteKit
 
@@ -150,7 +150,7 @@ final class CloudTrailField: SKNode, SkinTrail {
         self.rippleScale = rippleScale
         self.scatterDust = scatterDust
         self.scatterWidth = scatterWidth
-        let pool = min(600, max(skin.trailMaxPoints, 8) * max(3, Int((3 * density).rounded())))
+        let pool = max(skin.trailMaxPoints, 8) * max(9, Int((9 * density).rounded()))
         dots = (0..<pool).map { _ in WakeCollect.sprite(disc, z: 5) }
         super.init()
         for d in dots { addChild(d) }
@@ -169,7 +169,7 @@ final class CloudTrailField: SKNode, SkinTrail {
         let r = ctx.shipRadius
         let screenY: (CGFloat) -> CGFloat = { ctx.sceneHeight * CinematicFlight.cruiseSeat + ($0 - ctx.cameraY) }
         var used = 0
-        for i in 0..<n {
+        for i in stride(from: n - 1, through: 0, by: -1) {
             guard used < dots.count else { break }
             let src = ctx.trail[i]
             let along = n <= 1 ? 1 : CGFloat(i) / denom
@@ -188,7 +188,7 @@ final class CloudTrailField: SKNode, SkinTrail {
             let age = 1 - src.opacity
             let env = rippleElapsed >= 0 ? WallJelly.rippleEnvelope(elapsedMs: rippleElapsed, along: along) * rippleScale : 0
             let condense: CGFloat = energy > 0 ? (1 - energy * along * 0.65) : 1
-            let count = max(1, Int(((2 + WakeCollect.fract(src.seed * 17.13) * 2) * density).rounded()))
+            let count = max(1, Int(((6 + WakeCollect.fract(src.seed * 17.13) * 3) * density).rounded()))
             let sizeBoost: CGFloat = env > 0 ? 1 + env * 1.2 : 1
             let spreadBoost = 1 + env * 0.85 + energy * 0.95
             let prevY = i > 0 ? ctx.trail[i - 1].y : src.y

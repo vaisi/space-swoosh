@@ -1,6 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: iOS hull canvas multiplies extra α with the swatch α so ink12/ink30 ship washes match Android (were painting solid bone). -->
+<!-- Changes: Native iOS wakes match Android density — Bloom/Argus/Koi/Chime
+     subdiv-1 marks, FilamentWake plankton pool is slots×(5×density+2) newest-first
+     (no 600 cap), live hull SKEffectNode is not rasterized. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -1253,8 +1255,12 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
 (smudge + body). Saber wake: three **reused** ribbons (bloom / body / core)
 plus a spark pool. Focus / Ember use pooled discs. The 17 live ships reuse a
-fixed fill/stroke/disc pool and rewrite `path` / position each frame; lantern-family
-wakes reuse 3 filament `SKShapeNode`s plus a plankton sprite pool (cap ~600). Sim at
+fixed fill/stroke/disc pool (16 / 24 / 24) and rewrite `path` / position each frame; lantern-family
+wakes reuse 3 filament `SKShapeNode`s plus a plankton sprite pool sized to
+`slots × (5×density + 2)` (Luna ~2000), painted **newest-first** so the near-hull
+cloud is never starved. Bloom / Argus / Koi / Chime call `WakeCollect.dense(..., subdiv: 1)`
+like Android `denseTrailMarks`. Live-hull `SKEffectNode` is **not** rasterized; a
+3.2r pad sprite keeps Bloom satellites and Luna dust inside the warp frame. Sim at
 1/60 with interpolated presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
 Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
