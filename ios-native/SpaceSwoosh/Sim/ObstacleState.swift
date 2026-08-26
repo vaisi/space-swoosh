@@ -1,5 +1,6 @@
 // ObstacleState.swift
-// Changes: C.5 — per-type hazard kinds + fields for JS collision / motion.
+// Changes: Wormholes do not use additive glow (Android stroke-only gate).
+// Per-type hazard kinds + fields for JS collision / motion.
 
 import Foundation
 import CoreGraphics
@@ -115,7 +116,7 @@ struct ObstacleField {
             o.baseRadius = o.radius
             o.rotation = CGFloat(i) * 0.17
             o.spin = ((i % 2 == 0) ? 1 : -1) * 0.55
-            o.glow = kind == .wormhole || kind == .blackhole
+            o.glow = kind == .blackhole
             world.obstacles[i] = o
         }
     }

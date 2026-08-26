@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Play store snapshot versionCode 44 / versionName 1.0.44. -->
+<!-- Changes: iOS wormholes match Android (spinning dashed stroke, no inner glow). Play store snapshot versionCode 44 / versionName 1.0.44. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -39,7 +39,9 @@
 > for **4s** (`Flicker.shieldSeconds`; Android stays 5s) with a last-1.5s
 > warning pulse. Sparkles are the 8-vertex 4-point star at Android radius
 > `1.15×` unit (sprite diameter `2r`) plus a filled `signalDisc` halo of
-> diameter `3.8r` (`signalSoft` alpha, alpha-blend). Flicker ribbon tucks
+> diameter `3.8r` (`signalSoft` alpha, alpha-blend). Wormholes are Android’s
+> spinning dashed stroke only (signal / ink / ink30, path diameter `2×size×pulse`,
+> no additive inner glow). Flicker ribbon tucks
 > under the hull center and tapers the smudge at the join; wall BOOP is a
 > spring path wiggle only. Drift lanes are thin scrolling dashes.
 > Cruise uses `snappyHz * feelSpeed` (`feelSpeed` 0.90). Clear-flyout smash SFX
@@ -1238,7 +1240,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn (`turn.mp3`) / crash/shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice including L4 NAV. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
 

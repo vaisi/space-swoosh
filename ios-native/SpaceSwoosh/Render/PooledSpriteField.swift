@@ -1,6 +1,7 @@
 // PooledSpriteField.swift
-// Changes: Wormhole dashes spin via phase rotation. Phase core fades fully
-// (Android mergeFactor). Piece Y is SpriteKit-up.
+// Changes: Wormholes match Android — spinning dashed stroke only, no additive
+// inner glow. Path diameter is 2×radius×pulse (plus stroke). Phase core fades
+// fully (Android mergeFactor). Piece Y is SpriteKit-up.
 
 import SpriteKit
 
@@ -128,14 +129,16 @@ final class PooledSpriteField: SKNode {
                 used: extraUsed
             )
 
-            if o.glow, glowUsed < glowNodes.count {
+            // Android WormholeGate is stroke-only (no fill / no radial). Black
+            // holes and repulsors keep their additive glow sprites.
+            if o.glow, o.kind != .wormhole, glowUsed < glowNodes.count {
                 let glow = glowNodes[glowUsed]
                 glowUsed += 1
                 glow.isHidden = false
                 glow.texture = (o.kind == .blackhole || o.kind == .repulsor) ? bake.glowInk : bake.glowSignal
                 glow.position = CGPoint(x: o.x, y: y)
                 glow.size = CGSize(width: o.radius * 3.4, height: o.radius * 3.4)
-                glow.alpha = o.kind == .wormhole && o.paired ? 0.25 : 0.85
+                glow.alpha = 0.85
             }
         }
         for i in glowUsed..<glowNodes.count {
@@ -224,8 +227,10 @@ final class PooledSpriteField: SKNode {
         case .slab:
             return CGSize(width: o.halfW * 2, height: o.halfH * 2)
         case .wormhole:
+            // Android: arc radius = size×pulse, lineWidth = size×0.1. Sprite
+            // covers the stroke so the path diameter stays 2×size×pulse.
             let pulse = 1 + sin(o.phase) * 0.1
-            let s = o.radius * 2 * pulse
+            let s = o.radius * 2 * pulse + o.radius * 0.1
             return CGSize(width: s, height: s)
         case .repulsor:
             let s = o.radius * 6.2

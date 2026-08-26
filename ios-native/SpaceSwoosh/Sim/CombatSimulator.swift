@@ -1,5 +1,6 @@
 // CombatSimulator.swift
-// Changes: Fuel-out sparkle salvage while the ship is still moving; death
+// Changes: Wormhole gates spawn without additive glow (Android stroke-only).
+// Fuel-out sparkle salvage while the ship is still moving; death
 // only after the coast elapses and displacement is noise.
 // L6+ pairing and Open Space KM storms read GeneratedJourneyData
 // (catalog + weather + belt table). Delay at maxOnScreen instead of skip-holes.
@@ -844,7 +845,7 @@ enum CombatSimulator {
         entry.y = y
         entry.radius = size
         entry.baseRadius = size
-        entry.glow = true
+        entry.glow = false
         entry.lethal = false
         entry.isExit = false
         world.obstacles[entryI] = entry
@@ -874,7 +875,7 @@ enum CombatSimulator {
         exit.y = y + world.height * 0.8
         exit.radius = size
         exit.baseRadius = size
-        exit.glow = true
+        exit.glow = false
         exit.lethal = false
         exit.isExit = true
         exit.partner = entryI

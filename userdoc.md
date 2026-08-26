@@ -1,4 +1,4 @@
-<!-- Changes: Style Swoosh does not cut music; camera reseat on web after hop/well; coasting onto a sparkle refills instead of locking you dead. -->
+<!-- Changes: Portal rings are a hollow spinning dashed stroke on iOS and Android. Style Swoosh does not cut music; camera reseat on web after hop/well; coasting onto a sparkle refills instead of locking you dead. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -520,12 +520,13 @@ While that speed rush is on, your fuel bar does not drain. Grabbing another plus
 or wall boost while you're already powered up refreshes the timers. Don't confuse
 it with the thick **black** side barriers — those still end the run.
 
-Blue **portal** rings are a boost, not a threat: fly into one and you hear a deep echoing
-warp suck you in, then a second warp as space briefly wobbles on the way out
-and you emerge ahead with a fresh shield. In Open Space they show up as
-occasional gifts (and a named storm when they first unlock), not as empty
-portal-only weather. The rocks around a portal can still crash you if you miss
-the ring itself — aim for the blue.
+Blue **portal** rings are a boost, not a threat: they look like a hollow spinning
+dashed circle (accent blue, no fill or glow — same on iPhone and Android). Fly
+into one and you hear a deep echoing warp suck you in, then a second warp as
+space briefly wobbles on the way out and you emerge ahead with a fresh shield.
+In Open Space they show up as occasional gifts (and a named storm when they
+first unlock), not as empty portal-only weather. The rocks around a portal can
+still crash you if you miss the ring itself — aim for the blue.
 
 ## Flight style
 

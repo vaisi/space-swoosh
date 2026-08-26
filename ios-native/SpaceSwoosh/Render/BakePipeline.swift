@@ -1,6 +1,6 @@
 // BakePipeline.swift
-// Changes: Wormhole dashed rings are instance-baked per theme (no stale static
-// cache). Repulsor ring/ticks use Android hairline strokes.
+// Changes: Wormhole dashed rings are full-bleed (Android stroke-only, no 0.38
+// inset) and instance-baked per theme. Repulsor ring/ticks use Android hairlines.
 
 import SpriteKit
 import UIKit
@@ -208,12 +208,26 @@ final class BakePipeline {
         }
     }
 
+    /// Android `WormholeGate.render`: arc radius `size`, `lineWidth = size*0.1`,
+    /// `setLineDash([5, 5])`, no fill. Full-texture so sprite size maps to the
+    /// stroked ring (path diameter + stroke), not the 0.38 `image` inset.
+    /// Stroke fraction is `0.1 / 2.1` (lineWidth / (2×size + lineWidth) at pulse 1).
+    /// Dash fraction `0.14` matches Android 5px on a ~35px gate.
     private static func dashedRing(size: CGFloat, color: UIColor) -> SKTexture {
-        image(size: size) { cg, mid, r in
+        rectImage(width: size, height: size) { cg, w, h in
+            let stroke = max(2, w * (0.1 / 2.1))
+            let inset = stroke * 0.5
+            let dash = w * 0.14
             cg.setStrokeColor(color.cgColor)
-            cg.setLineWidth(max(3, r * 0.12))
-            cg.setLineDash(phase: 0, lengths: [6, 6])
-            cg.strokeEllipse(in: CGRect(x: mid - r, y: mid - r, width: r * 2, height: r * 2))
+            cg.setLineWidth(stroke)
+            cg.setLineCap(.butt)
+            cg.setLineDash(phase: 0, lengths: [dash, dash])
+            cg.strokeEllipse(in: CGRect(
+                x: inset,
+                y: inset,
+                width: w - stroke,
+                height: h - stroke
+            ))
         }
     }
 
