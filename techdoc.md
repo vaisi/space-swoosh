@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS UNLOCK_ALL_SKINS true for playtest hangar (matches Android). -->
+<!-- Changes: iOS hull canvas multiplies extra α with the swatch α so ink12/ink30 ship washes match Android (were painting solid bone). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -979,7 +979,7 @@ seed only (leaves decorative). **Koi** is the body only (tail decorative).
 only (stem / ticks decorative). **Argus** is the body + inner fan (feather tips
 decorative). **Chime** is the central bell only (side bells / clappers decorative).
 Animated colour hulls set `skipHullCache` so live paint keeps moving on cheap Canvas.
-Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Chime; other Focus–Cinder hulls bake Android wash + highlight + crease (`ClassicHullPaint`, t = 1400 ms). Classic wakes (Wisp–Cinder) are dedicated SpriteKit drawers, not `ParticleWakeField`.
+Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Chime; other Focus–Cinder hulls bake Android wash + highlight + crease (`ClassicHullPaint`, t = 1400 ms). Hull paint multiplies extra α with the color's own α (Canvas `globalAlpha`) so `ink12` / `ink30` halos stay a light wash — `UIColor.withAlphaComponent` was replacing 0.12 with ~1 and painting solid bone. Classic wakes (Wisp–Cinder) are dedicated SpriteKit drawers, not `ParticleWakeField`.
 **Spine** is stacked circles down the bar only.
 
 - Registry: `ships/skins.js` (`getSkin`, `drawSkinPreview`, `loadShipSkinId` / `saveShipSkinId`).

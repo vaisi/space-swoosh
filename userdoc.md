@@ -1,4 +1,4 @@
-<!-- Changes: Playtest hangar — all ships free on native iOS (UNLOCK_ALL_SKINS). -->
+<!-- Changes: iOS ship halo rings match Android — soft translucent wash, not a solid white ring. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -24,8 +24,8 @@
 > whimsical ships (Lantern through Chime) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s satellite, and
 > **Nyan**’s gray crescent with pink spots match Android in play (hangar cards
-> freeze that pose). The other hulls show the same ink wash and crease as
-> Android. Each hangar card also shows a short sample of that ship’s wake
+> freeze that pose). The other hulls show the same **soft** ink wash and crease as
+> Android (a light halo, not a solid white ring). Each hangar card also shows a short sample of that ship’s wake
 > under the hull — chevrons, rings, stamps, dashes, and the rest of the
 > family, not a column of dots. The
 > four always-free ships are **Focus**, **Flicker**, **Ember**, and **Saber**.

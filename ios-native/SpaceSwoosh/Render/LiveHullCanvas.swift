@@ -1,8 +1,19 @@
 // LiveHullCanvas.swift
-// Changes: strokeRotatedEllipse for Orbit's tilted ring.
+// Changes: Extra alpha multiplies the color's own alpha (Canvas globalAlpha),
+// so ink12/ink30 ship washes stay translucent instead of painting solid bone.
 
 import SpriteKit
 import UIKit
+
+/// JS `globalAlpha * fillStyle.alpha`. `UIColor.withAlphaComponent` replaces
+/// alpha, so a 12% wash passed with body α≈1 was drawn as opaque ink.
+private func hullColor(_ color: UIColor, extra: CGFloat) -> UIColor {
+    var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+    if color.getRed(&r, green: &g, blue: &b, alpha: &a) {
+        return UIColor(red: r, green: g, blue: b, alpha: a * extra)
+    }
+    return color.withAlphaComponent(color.cgColor.alpha * extra)
+}
 
 protocol LiveHullCanvas: AnyObject {
     func fillEllipse(x: CGFloat, y: CGFloat, rx: CGFloat, ry: CGFloat, color: UIColor, alpha: CGFloat)
@@ -23,7 +34,7 @@ final class CGLiveCanvas: LiveHullCanvas {
     init(_ cg: CGContext) { self.cg = cg }
 
     func fillEllipse(x: CGFloat, y: CGFloat, rx: CGFloat, ry: CGFloat, color: UIColor, alpha: CGFloat) {
-        cg.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setFillColor(hullColor(color, extra: alpha).cgColor)
         cg.fillEllipse(in: CGRect(x: x - rx, y: y - ry, width: rx * 2, height: ry * 2))
     }
 
@@ -31,13 +42,13 @@ final class CGLiveCanvas: LiveHullCanvas {
         cg.saveGState()
         cg.translateBy(x: x, y: y)
         cg.rotate(by: rotation)
-        cg.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setFillColor(hullColor(color, extra: alpha).cgColor)
         cg.fillEllipse(in: CGRect(x: -rx, y: -ry, width: rx * 2, height: ry * 2))
         cg.restoreGState()
     }
 
     func strokeEllipse(x: CGFloat, y: CGFloat, rx: CGFloat, ry: CGFloat, color: UIColor, alpha: CGFloat, width: CGFloat) {
-        cg.setStrokeColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setStrokeColor(hullColor(color, extra: alpha).cgColor)
         cg.setLineWidth(width)
         cg.strokeEllipse(in: CGRect(x: x - rx, y: y - ry, width: rx * 2, height: ry * 2))
     }
@@ -46,7 +57,7 @@ final class CGLiveCanvas: LiveHullCanvas {
         cg.saveGState()
         cg.translateBy(x: x, y: y)
         cg.rotate(by: rotation)
-        cg.setStrokeColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setStrokeColor(hullColor(color, extra: alpha).cgColor)
         cg.setLineWidth(width)
         cg.strokeEllipse(in: CGRect(x: -rx, y: -ry, width: rx * 2, height: ry * 2))
         cg.restoreGState()
@@ -55,7 +66,7 @@ final class CGLiveCanvas: LiveHullCanvas {
     func fillHull(_ kind: HullKind, cx: CGFloat, cy: CGFloat, r: CGFloat, stretch: CGFloat, color: UIColor, alpha: CGFloat) {
         let path = CGMutablePath()
         HullPaths.add(kind, to: path, cx: cx, cy: cy, r: r, stretch: stretch)
-        cg.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setFillColor(hullColor(color, extra: alpha).cgColor)
         cg.addPath(path)
         cg.fillPath()
     }
@@ -63,14 +74,14 @@ final class CGLiveCanvas: LiveHullCanvas {
     func strokeHull(_ kind: HullKind, cx: CGFloat, cy: CGFloat, r: CGFloat, stretch: CGFloat, color: UIColor, alpha: CGFloat, width: CGFloat) {
         let path = CGMutablePath()
         HullPaths.add(kind, to: path, cx: cx, cy: cy, r: r, stretch: stretch)
-        cg.setStrokeColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setStrokeColor(hullColor(color, extra: alpha).cgColor)
         cg.setLineWidth(width)
         cg.addPath(path)
         cg.strokePath()
     }
 
     func strokeQuad(from: CGPoint, control: CGPoint, to: CGPoint, color: UIColor, width: CGFloat, alpha: CGFloat) {
-        cg.setStrokeColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setStrokeColor(hullColor(color, extra: alpha).cgColor)
         cg.setLineWidth(width)
         cg.setLineCap(.round)
         cg.setLineJoin(.round)
@@ -80,7 +91,7 @@ final class CGLiveCanvas: LiveHullCanvas {
     }
 
     func strokeCubic(from: CGPoint, c1: CGPoint, c2: CGPoint, to: CGPoint, color: UIColor, width: CGFloat, alpha: CGFloat) {
-        cg.setStrokeColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setStrokeColor(hullColor(color, extra: alpha).cgColor)
         cg.setLineWidth(width)
         cg.setLineCap(.round)
         cg.move(to: from)
@@ -89,7 +100,7 @@ final class CGLiveCanvas: LiveHullCanvas {
     }
 
     func strokeLine(from: CGPoint, to: CGPoint, color: UIColor, width: CGFloat, alpha: CGFloat) {
-        cg.setStrokeColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setStrokeColor(hullColor(color, extra: alpha).cgColor)
         cg.setLineWidth(width)
         cg.setLineCap(.round)
         cg.move(to: from)
@@ -99,7 +110,7 @@ final class CGLiveCanvas: LiveHullCanvas {
 
     func fillClosed(_ points: [CGPoint], color: UIColor, alpha: CGFloat) {
         guard let first = points.first else { return }
-        cg.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setFillColor(hullColor(color, extra: alpha).cgColor)
         cg.move(to: first)
         for p in points.dropFirst() { cg.addLine(to: p) }
         cg.closePath()
@@ -108,7 +119,7 @@ final class CGLiveCanvas: LiveHullCanvas {
 
     func strokeClosed(_ points: [CGPoint], color: UIColor, alpha: CGFloat, width: CGFloat) {
         guard let first = points.first else { return }
-        cg.setStrokeColor(color.withAlphaComponent(alpha).cgColor)
+        cg.setStrokeColor(hullColor(color, extra: alpha).cgColor)
         cg.setLineWidth(width)
         cg.setLineJoin(.round)
         cg.move(to: first)
@@ -144,16 +155,24 @@ final class SKLiveCanvas: LiveHullCanvas {
 
     private func flip(_ p: CGPoint) -> CGPoint { CGPoint(x: p.x, y: -p.y) }
 
+    /// Opaque RGB on the node, combined alpha on `node.alpha` — SpriteKit
+    /// ignores UIColor alpha on sprite tint / often on shape fill.
+    private func splitPaint(_ color: UIColor, extra: CGFloat) -> (UIColor, CGFloat) {
+        let painted = hullColor(color, extra: extra)
+        return (painted.withAlphaComponent(1), painted.cgColor.alpha)
+    }
+
     func fillEllipse(x: CGFloat, y: CGFloat, rx: CGFloat, ry: CGFloat, color: UIColor, alpha: CGFloat) {
         guard di < discs.count else { return }
         let n = discs[di]
         di += 1
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = CGPoint(x: x, y: -y)
         n.size = CGSize(width: rx * 2, height: ry * 2)
-        n.color = color
+        n.color = rgb
         n.colorBlendFactor = 1
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -161,12 +180,13 @@ final class SKLiveCanvas: LiveHullCanvas {
         guard di < discs.count else { return }
         let n = discs[di]
         di += 1
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = CGPoint(x: x, y: -y)
         n.size = CGSize(width: rx * 2, height: ry * 2)
-        n.color = color
+        n.color = rgb
         n.colorBlendFactor = 1
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = -rotation
     }
 
@@ -174,13 +194,14 @@ final class SKLiveCanvas: LiveHullCanvas {
         guard si < strokes.count else { return }
         let n = strokes[si]
         si += 1
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = CGPath(ellipseIn: CGRect(x: x - rx, y: -y - ry, width: rx * 2, height: ry * 2), transform: nil)
-        n.strokeColor = color
+        n.strokeColor = rgb
         n.fillColor = .clear
         n.lineWidth = width
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -188,27 +209,29 @@ final class SKLiveCanvas: LiveHullCanvas {
         guard si < strokes.count else { return }
         let n = strokes[si]
         si += 1
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = CGPoint(x: x, y: -y)
         n.zRotation = -rotation
         n.path = CGPath(ellipseIn: CGRect(x: -rx, y: -ry, width: rx * 2, height: ry * 2), transform: nil)
-        n.strokeColor = color
+        n.strokeColor = rgb
         n.fillColor = .clear
         n.lineWidth = width
-        n.alpha = alpha
+        n.alpha = a
     }
 
     func fillHull(_ kind: HullKind, cx: CGFloat, cy: CGFloat, r: CGFloat, stretch: CGFloat, color: UIColor, alpha: CGFloat) {
         guard fi < fills.count else { return }
         let n = fills[fi]
         fi += 1
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = flippedHull(kind, cx: cx, cy: cy, r: r, stretch: stretch)
-        n.fillColor = color
+        n.fillColor = rgb
         n.strokeColor = .clear
         n.lineWidth = 0
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -216,13 +239,14 @@ final class SKLiveCanvas: LiveHullCanvas {
         guard si < strokes.count else { return }
         let n = strokes[si]
         si += 1
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = flippedHull(kind, cx: cx, cy: cy, r: r, stretch: stretch)
         n.fillColor = .clear
-        n.strokeColor = color
+        n.strokeColor = rgb
         n.lineWidth = width
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -240,14 +264,15 @@ final class SKLiveCanvas: LiveHullCanvas {
         let path = CGMutablePath()
         path.move(to: flip(from))
         path.addQuadCurve(to: flip(to), control: flip(control))
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = path
         n.fillColor = .clear
-        n.strokeColor = color
+        n.strokeColor = rgb
         n.lineWidth = width
         n.lineCap = .round
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -258,14 +283,15 @@ final class SKLiveCanvas: LiveHullCanvas {
         let path = CGMutablePath()
         path.move(to: flip(from))
         path.addCurve(to: flip(to), control1: flip(c1), control2: flip(c2))
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = path
         n.fillColor = .clear
-        n.strokeColor = color
+        n.strokeColor = rgb
         n.lineWidth = width
         n.lineCap = .round
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -276,14 +302,15 @@ final class SKLiveCanvas: LiveHullCanvas {
         let path = CGMutablePath()
         path.move(to: flip(from))
         path.addLine(to: flip(to))
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = path
         n.fillColor = .clear
-        n.strokeColor = color
+        n.strokeColor = rgb
         n.lineWidth = width
         n.lineCap = .round
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -295,12 +322,13 @@ final class SKLiveCanvas: LiveHullCanvas {
         path.move(to: flip(first))
         for p in points.dropFirst() { path.addLine(to: flip(p)) }
         path.closeSubpath()
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = path
-        n.fillColor = color
+        n.fillColor = rgb
         n.strokeColor = .clear
-        n.alpha = alpha
+        n.alpha = a
         n.zRotation = 0
     }
 
@@ -312,12 +340,13 @@ final class SKLiveCanvas: LiveHullCanvas {
         path.move(to: flip(first))
         for p in points.dropFirst() { path.addLine(to: flip(p)) }
         path.closeSubpath()
+        let (rgb, a) = splitPaint(color, extra: alpha)
         n.isHidden = false
         n.position = .zero
         n.path = path
         n.fillColor = .clear
-        n.strokeColor = color
+        n.strokeColor = rgb
         n.lineWidth = width
-        n.alpha = alpha
+        n.alpha = a
     }
 }
