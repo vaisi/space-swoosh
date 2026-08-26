@@ -1,4 +1,4 @@
-<!-- Changes: Native iOS cruise matches Android/web. Portal rings are a hollow spinning dashed stroke on iOS and Android. Style Swoosh does not cut music; camera reseat on web after hop/well; coasting onto a sparkle refills instead of locking you dead. -->
+<!-- Changes: iOS level-failed actions match Android — Retry full width, Level Select and Menu side by side. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -288,8 +288,10 @@ results lock in. Sit tight for the flyout; it isn't skippable.
 The level screen lists the three objectives, each with the number it was measured
 against: your distance against the goal, your sparkles against the target, and
 your smash count against the mission target. A filled star means earned, an
-outline means missed, and **NEW** marks one you've just added. Then it's **Next Level**,
-**Replay**, **Level Select**, or **Menu** — or **Retry** if you came up short.
+outline means missed, and **NEW** marks one you've just added. **Retry** (or
+**Next Level** when you cleared it) is the full-width button; **Level Select** and
+**Menu** sit side by side under it. After a clear that isn't the last level,
+**Replay** pairs with **Level Select**, and **Menu** sits on its own row.
 
 ## Options
 

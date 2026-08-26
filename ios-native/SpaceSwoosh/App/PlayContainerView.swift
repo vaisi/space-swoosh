@@ -1,13 +1,6 @@
 // PlayContainerView.swift
-// Changes: Open World bouncing tap / swipe-left / swipe-right cue overlay.
-// L42 written epilogue — dark hold, Day 42 voice+captions, 3s gap, then open.
-// Skip captions are two beats (one phrase each), matching the skip voice.
-// First ending: Arc unlock card, then Controls with Arc on.
-// One epilogue reply per device — replay skips the prompt.
-// Submit records SettingsStore.shared.shipSkinId (this view has no settings).
-// Submit / Space Board overlays own their top inset (island + keyboard).
-// Epilogue lights: reply fades to 0, your-star crossfades in with a birth
-// sparkle. Sky lights are Signal-Blue cores + tight halos + short spikes.
+// Changes: Level outcome card matches Android — centered block, starred tally
+// with dotted rules, lead action full-width, Level Select + Menu paired.
 
 import SwiftUI
 import SpriteKit
@@ -284,60 +277,117 @@ struct PlayContainerView: View {
     }
 
     private func levelOutcomeCard(_ outcome: LevelOutcome) -> some View {
-        ShellChrome.paperWash {
-            VStack(spacing: 14) {
-                Spacer()
-                Text(outcome.title)
-                    .font(BrandType.display(24))
-                    .tracking(BrandType.displayTracking(24))
-                    .foregroundStyle(BrandColors.ink)
-                Text(outcome.flavor)
-                    .font(BrandType.body(14))
-                    .foregroundStyle(BrandColors.ink55)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 28)
-                ForEach(0..<outcome.starSlots, id: \.self) { i in
-                    HStack {
-                        SparkleIcon()
-                            .fill(outcome.stars[i] ? BrandColors.signal : Color.clear)
-                            .overlay(
-                                SparkleIcon().stroke(BrandColors.signal, lineWidth: 1.2)
-                            )
-                            .frame(width: 16, height: 16)
-                        Text(outcome.labels[i].uppercased())
-                            .font(BrandType.label(11))
-                            .tracking(BrandType.labelTracking(11))
-                        Spacer()
-                        if i < outcome.values.count {
-                            Text(outcome.values[i])
-                                .font(BrandType.mono(12))
+        let lab = outcome.isLab
+        let earned = outcome.stars.prefix(outcome.starSlots).filter { $0 }.count
+        let nextLevel: Int? = {
+            guard outcome.completed, !lab, case .journey(let level) = outcome.launch,
+                  level < JourneyConfig.totalLevels else { return nil }
+            return level + 1
+        }()
+
+        return ShellChrome.paperWash {
+            VStack(spacing: 0) {
+                Spacer(minLength: 24)
+                VStack(spacing: 0) {
+                    Text(outcome.title)
+                        .font(BrandType.display(26))
+                        .tracking(BrandType.displayTracking(26))
+                        .foregroundStyle(BrandColors.ink)
+                    Text(outcome.flavor)
+                        .font(BrandType.body(14))
+                        .foregroundStyle(BrandColors.ink55)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 12)
+
+                    if lab {
+                        ShellChrome.ruledLabel("SANDBOX")
+                            .padding(.top, 28)
+                        Text(outcome.values.first ?? "")
+                            .font(BrandType.mono(12))
+                            .foregroundStyle(BrandColors.ink)
+                            .padding(.top, 16)
+                    } else {
+                        ShellChrome.ruledLabel("\(earned) / \(outcome.starSlots) STARS")
+                            .padding(.top, 28)
+                        VStack(spacing: 2) {
+                            ForEach(0..<outcome.starSlots, id: \.self) { i in
+                                levelOutcomeObjectiveRow(outcome, index: i)
+                            }
                         }
-                        if i < outcome.newStars.count, outcome.newStars[i] {
-                            Text("NEW")
-                                .font(BrandType.label(10))
-                                .tracking(BrandType.labelTracking(10))
-                                .foregroundStyle(BrandColors.signal)
-                        }
+                        .padding(.top, 10)
                     }
-                    .foregroundStyle(outcome.stars[i] ? BrandColors.ink : BrandColors.ink80)
-                    .padding(.horizontal, 28)
+
+                    ShellChrome.divider()
+                        .padding(.top, 24)
+                    levelOutcomeActions(outcome, nextLevel: nextLevel)
+                        .padding(.top, 24)
                 }
-                VStack(spacing: 12) {
-                    if outcome.completed, case .journey(let level) = outcome.launch, level < JourneyConfig.totalLevels {
-                        ShellChrome.brandButton("Next Level", tag: "▶", primary: true) {
-                            replay(.journey(level + 1))
-                        }
+                .padding(.horizontal, 36)
+                Spacer(minLength: 24)
+            }
+            .padding(.bottom, 12)
+        }
+    }
+
+    private func levelOutcomeObjectiveRow(_ outcome: LevelOutcome, index i: Int) -> some View {
+        let earned = i < outcome.stars.count && outcome.stars[i]
+        let isNew = earned && i < outcome.newStars.count && outcome.newStars[i]
+        return HStack(spacing: 10) {
+            SparkleIcon()
+                .fill(earned ? BrandColors.signal : Color.clear)
+                .overlay {
+                    if !earned {
+                        SparkleIcon().stroke(BrandColors.ink30, lineWidth: 1.2)
                     }
-                    ShellChrome.brandButton(
-                        outcome.completed ? "Replay" : "Retry",
-                        tag: "↺",
-                        primary: !outcome.completed
-                    ) { replay(outcome.launch) }
-                    ShellChrome.brandButton("Level Select", tag: "☰", action: onMap)
-                    ShellChrome.ghostButton("Menu", action: onMenu)
                 }
-                .padding(.horizontal, 28)
-                .padding(.bottom, 36)
+                .frame(width: 16, height: 16)
+            if i < outcome.labels.count {
+                Text(outcome.labels[i].uppercased())
+                    .font(BrandType.label(11))
+                    .tracking(BrandType.labelTracking(11))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            Spacer(minLength: 8)
+            if i < outcome.values.count {
+                Text(outcome.values[i])
+                    .font(BrandType.mono(12, bold: earned))
+            }
+            if isNew {
+                Text("NEW")
+                    .font(BrandType.label(10))
+                    .tracking(BrandType.labelTracking(10))
+                    .foregroundStyle(BrandColors.signal)
+            }
+        }
+        .foregroundStyle(earned ? BrandColors.ink : BrandColors.ink30)
+        .frame(minHeight: 28)
+    }
+
+    @ViewBuilder
+    private func levelOutcomeActions(_ outcome: LevelOutcome, nextLevel: Int?) -> some View {
+        VStack(spacing: 12) {
+            if let nextLevel {
+                ShellChrome.brandButton("Next Level", tag: "▶", primary: true) {
+                    replay(.journey(nextLevel))
+                }
+                HStack(spacing: 12) {
+                    ShellChrome.brandButton("Replay", labelSize: 14) {
+                        replay(outcome.launch)
+                    }
+                    ShellChrome.brandButton("Level Select", labelSize: 14, action: onMap)
+                }
+                ShellChrome.brandButton("Menu", action: onMenu)
+            } else {
+                ShellChrome.brandButton(
+                    outcome.completed || outcome.isLab ? "Replay" : "Retry",
+                    tag: "↺",
+                    primary: true
+                ) { replay(outcome.launch) }
+                HStack(spacing: 12) {
+                    ShellChrome.brandButton("Level Select", labelSize: 14, action: onMap)
+                    ShellChrome.brandButton("Menu", labelSize: 14, action: onMenu)
+                }
             }
         }
     }

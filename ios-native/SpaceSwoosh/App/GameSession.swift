@@ -1,5 +1,5 @@
 // GameSession.swift
-// Changes: Open World steerCue overlay; showEpilogue after L42; Firebase Analytics run-end events matching Android.
+// Changes: Outcome values use grouped digits; lab outcome carries distance / goal.
 
 import Foundation
 import Combine
@@ -16,6 +16,8 @@ struct LevelOutcome: Equatable {
     var labels: [String]
     var values: [String]
     var goalKm: Int
+
+    var isLab: Bool { launch == .hazardLab }
 }
 
 final class GameSession: ObservableObject {
@@ -207,6 +209,9 @@ final class GameSession: ObservableObject {
                     ? CopyBank.pick(.fuelOut)
                     : "Lab interrupted. The rocks are still curious.")
             slots = 0
+            values = [
+                "\(ScoreService.formatScore(Int(run.scoreKm))) / \(ScoreService.formatScore(Int(run.profile.goalKm))) KM"
+            ]
         } else if let spec {
             stars = JourneyConfig.evaluateStars(
                 spec,
@@ -225,9 +230,9 @@ final class GameSession: ObservableObject {
             slots = spec.starSlots
             labels = JourneyConfig.starLabels(for: spec)
             values = [
-                "\(Int(run.scoreKm)) / \(Int(spec.goalKm))",
-                "\(run.sparklesCollected) / \(spec.sparklesTarget)",
-                "\(run.obstaclesDestroyed) / \(spec.smashTarget)"
+                "\(ScoreService.formatScore(Int(run.scoreKm))) / \(ScoreService.formatScore(Int(spec.goalKm)))",
+                "\(ScoreService.formatScore(run.sparklesCollected)) / \(ScoreService.formatScore(spec.sparklesTarget))",
+                "\(ScoreService.formatScore(run.obstaclesDestroyed)) / \(ScoreService.formatScore(spec.smashTarget))"
             ]
             if !completed {
                 title = "LEVEL FAILED"
@@ -256,7 +261,7 @@ final class GameSession: ObservableObject {
             newStars: newStars,
             starSlots: slots,
             labels: labels,
-            values: Array(values.prefix(slots)),
+            values: slots > 0 ? Array(values.prefix(slots)) : values,
             goalKm: Int(run.profile.goalKm)
         )
     }

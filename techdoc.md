@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS feelSpeed 1.0 (matches Android/web cruise). iOS wormholes match Android (spinning dashed stroke, no inner glow). Play store snapshot versionCode 44 / versionName 1.0.44. -->
+<!-- Changes: Native iOS level-outcome card matches Android (paired secondary actions, ruled star tally, centered block). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -739,6 +739,11 @@ Actions pair up: the lead action is full width, the rest go two-up, a trailing o
 one goes full width again — three rows instead of four. Paired buttons drop the mono
 tag and pass an explicit `labelPx` (new on `Game.drawBrandButton()`) so
 `LEVEL SELECT` fits half a row.
+
+Native iOS (`PlayContainerView.levelOutcomeCard`) uses the same rhythm: vertically
+centered block, `ShellChrome.ruledLabel` star tally, section gaps, and
+Level Select + Menu on one row (Replay + Level Select when Next Level leads).
+`brandButton` takes `labelSize` for the half-width pair.
 
 Every vertical size comes from `metrics(unit)`, measured once and re-measured at
 `unit × (available / totalH)` if it doesn't fit. `baseUnit` is width-derived on

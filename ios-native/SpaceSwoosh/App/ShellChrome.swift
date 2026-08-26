@@ -1,5 +1,6 @@
 // ShellChrome.swift
-// Changes: Home ship cycle browses the full roster; locked hulls show price and tap-to-buy.
+// Changes: brandButton accepts labelSize for paired half-width actions;
+// ruledLabel matches Android's dotted section header.
 
 import SwiftUI
 import UIKit
@@ -71,6 +72,21 @@ enum ShellChrome {
             .frame(height: 4)
     }
 
+    /// Uppercase section label with dotted rules to the content edges.
+    static func ruledLabel(_ text: String) -> some View {
+        HStack(spacing: 16) {
+            dottedRule()
+            Text(text.uppercased())
+                .font(BrandType.label(11))
+                .tracking(BrandType.labelTracking(11))
+                .foregroundStyle(BrandColors.ink55)
+                .fixedSize()
+            dottedRule()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
     @ViewBuilder
     static func brandButton(
         _ title: String,
@@ -78,15 +94,18 @@ enum ShellChrome {
         primary: Bool = false,
         signal: Bool = false,
         disabled: Bool = false,
+        labelSize: CGFloat = 17,
         action: @escaping () -> Void
     ) -> some View {
         let lit = primary && !disabled
         Button(action: { if !disabled { action() } }) {
             HStack(spacing: 0) {
                 Text(title.uppercased())
-                    .font(BrandType.ui(17))
-                    .tracking(BrandType.uiTracking(17))
+                    .font(BrandType.ui(labelSize))
+                    .tracking(BrandType.uiTracking(labelSize))
                     .foregroundStyle(disabled ? BrandColors.ink30 : (lit ? BrandColors.paper : BrandColors.ink))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                 if let tag {
@@ -109,6 +128,7 @@ enum ShellChrome {
             )
         }
         .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
         .disabled(disabled)
     }
 
