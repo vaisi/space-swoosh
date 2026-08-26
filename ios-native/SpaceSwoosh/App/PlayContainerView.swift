@@ -5,6 +5,7 @@
 // First ending: Arc unlock card, then Controls with Arc on.
 // One epilogue reply per device — replay skips the prompt.
 // Submit records SettingsStore.shared.shipSkinId (this view has no settings).
+// Submit / Space Board overlays own their top inset (island + keyboard).
 // Epilogue lights: reply fades to 0, your-star crossfades in with a birth
 // sparkle. Sky lights are Signal-Blue cores + tight halos + short spikes.
 
@@ -134,12 +135,10 @@ struct PlayContainerView: View {
                         },
                         onCancel: { showSubmit = false }
                     )
-                    .padding(.top, geo.safeAreaInsets.top)
                 }
 
                 if showHighScores {
                     HighScoresView(onBack: { showHighScores = false })
-                        .padding(.top, geo.safeAreaInsets.top)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Play store defaults versionCode 43 / versionName 1.0.43. Open Space vertical pack; portals are helpers. -->
+<!-- Changes: Submit Signal keeps stats-above-field order above the IME; opaque wash hides Mission Failed. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -226,7 +226,7 @@ RLS behavior stays the same.
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
 | Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style |
 | UI | **Space Board** screen: header title + quiet **← Back**; theme-style Zigzag/Arc toggle button on the right (`Zigzag`+`Z` / `Arc`+`S`); **DISTANCE / OBSTACLES** metric tabs below. Opens on the player's current flight style. |
-| Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal: idle layout stacks distance → asteroids → rank above the call-sign field (no auto-focus). Soft keyboard: `@capacitor/keyboard` (`resizeOnFullScreen`) + `game.softKeyboardHeight`; real IME inset pins the card to the top with call sign + Submit first and a single horizontal stats row. DOM input on `#gameContainer`, repositioned every frame. |
+| Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal always stacks distance → asteroids → rank **above** the call-sign field (no auto-focus). Soft keyboard: `@capacitor/keyboard` + `game.softKeyboardHeight` / `visualViewport`; opaque paper wash (Mission Failed is not drawn underneath); card centers in the remaining viewport; compact mode uses a three-column stats row still above the field. DOM input on `#gameContainer`, mapped from canvas to CSS every frame. Native iOS `SubmitScoreView` matches: same order, keyboard height pads the card above the IME, `safeAreaPadding` clears the island. |
 
 ### Journey replies (Supabase)
 

@@ -1,5 +1,5 @@
 // HighScoresView.swift
-// Changes: Live SPACE BOARD from Supabase high_scores (Android ScoreService parity).
+// Changes: Live SPACE BOARD from Supabase; top safeAreaPadding clears the island.
 
 import SwiftUI
 
@@ -98,6 +98,7 @@ struct HighScoresView: View {
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
+        .safeAreaPadding(.top)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(BrandColors.paper.ignoresSafeArea())
         .task(id: "\(boardStyle.rawValue)-\(tab == .distance ? "d" : "o")") {

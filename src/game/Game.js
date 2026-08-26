@@ -40,14 +40,13 @@
 // - Open Space leaderboard splits by flight style. Rank, submit, and fetch all
 //   filter on `flight_style`. Local personal bests are per-style via
 //   OpenWorldProgress v2.
-// - Submit Signal: no auto-focus/keyboard; keyboard layout only when a real IME
-//   inset is present; idle layout keeps stats above the field; compact keyboard
-//   mode draws Distance / Asteroids / Rank in one horizontal row.
+// - Submit Signal: no auto-focus. Stats always sit above the call-sign field
+//   (stacked idle, one compact row when the IME is up). Opaque paper wash so
+//   Mission Failed never shows through. Card centers in the remaining viewport.
 // - Journey lore screen (`appScreen === 'lore'`): one-time Signal Story brief
 //   before the map; Continue unlocks Logbook `signalCall`.
 // - Submit Signal + Android keyboard: Cap Keyboard plugin tracks IME height;
-//   DOM input on #gameContainer, repositioned every frame. resizeOnFullScreen
-//   in capacitor config works around Android edge-to-edge ignoring adjustResize.
+//   card keeps stats-above-field order and centers in the remaining viewport.
 // - Main menu: cycle full roster (menuShipBrowseId); owned equips, locked
 //   shows price + tap-to-buy; Play uses last owned shipSkinId.
 // - Options hub: Ship / Controls / Sound / Theme + Restore Purchases.
@@ -2730,6 +2729,13 @@ export class Game {
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
 
+        // Paint the card alone so a resized IME viewport cannot squeeze
+        // Play Again / Submit Score up through the modal.
+        if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1) {
+            this.renderNameInputModal();
+            return;
+        }
+
         ensureRegen();
         drawLivesChip(this, {
             x: L.right,
@@ -2859,12 +2865,6 @@ export class Game {
         this.gameOverButtons.menu = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, 'Menu', { tag: '\u2302' }
         );
-
-        // Submit modal only after Mission Failed has fully settled — avoids the
-        // modal flashing in over a half-faded end screen.
-        if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1) {
-            this.renderNameInputModal();
-        }
     }
 
     renderHighScores() {
@@ -4118,24 +4118,21 @@ export class Game {
     renderNameInputModal() {
         const ctx = this.ctx;
 
-        // Soft charcoal dim — Mission Failed stays readable underneath.
-        ctx.fillStyle = `rgba(${color.paperRgb}, 0.72)`;
+        // Solid paper — Mission Failed must not show through when the IME
+        // shrinks the WebView and restacks the end-screen buttons.
+        ctx.fillStyle = color.paper;
         ctx.fillRect(0, 0, this.width, this.height);
 
-        // Keyboard open (real IME inset only): pin card to the top, call sign +
-        // Submit first, stats as one horizontal row so they never crush under the button.
-        // Idle: stats stacked first, then field + Submit. No auto-focus.
-        const keyboardOpen = this.isSoftKeyboardOpen();
+        // Same order always: header → stats → call sign → Submit.
+        // Tight remaining height: compact padding + a three-column stats row.
         const view = this.getVisibleCanvasBounds();
         const modalWidth = Math.min(360, this.width * 0.88);
-        const idealHeight = keyboardOpen ? 300 : 460;
-        const modalHeight = Math.min(idealHeight, Math.max(240, view.height - 12));
-        const compact = keyboardOpen || modalHeight < 400;
+        const compact = view.height < 420;
         const pad = compact ? 16 : 28;
+        const idealHeight = compact ? 340 : 460;
+        const modalHeight = Math.min(idealHeight, Math.max(200, view.height - 16));
         const modalX = (this.width - modalWidth) / 2;
-        const modalY = keyboardOpen
-            ? view.top + 8
-            : view.top + Math.max(8, (view.height - modalHeight) / 2);
+        const modalY = view.top + Math.max(8, (view.height - modalHeight) / 2);
         const contentLeft = modalX + pad;
         const contentRight = modalX + modalWidth - pad;
         const contentWidth = contentRight - contentLeft;
@@ -4223,14 +4220,23 @@ export class Game {
             (container || document.body).appendChild(input);
         }
 
+        const placeNameInput = (inputX, inputY) => {
+            const input = this.nameInput;
+            const parent = container || document.body;
+            const canvasRect = this.canvas.getBoundingClientRect();
+            const parentRect = parent.getBoundingClientRect();
+            const sx = canvasRect.width / Math.max(1, this.width);
+            const sy = canvasRect.height / Math.max(1, this.height);
+            input.style.left = `${(canvasRect.left - parentRect.left) + inputX * sx}px`;
+            input.style.top = `${(canvasRect.top - parentRect.top) + inputY * sy}px`;
+            input.style.width = `${inputWidth * sx}px`;
+            input.style.height = `${inputHeight * sy}px`;
+        };
+
         const drawCallSignAndSubmit = () => {
             const inputX = contentLeft;
             const inputY = currentY;
-            const input = this.nameInput;
-            input.style.left = `${inputX}px`;
-            input.style.top = `${inputY}px`;
-            input.style.width = `${inputWidth}px`;
-            input.style.height = `${inputHeight}px`;
+            placeNameInput(inputX, inputY);
 
             currentY = inputY + inputHeight + pad * 0.7;
             this.submitButton = this.drawBrandButton(
@@ -4239,7 +4245,7 @@ export class Game {
                     tag: '\u2191',
                 }
             );
-            this.submitButton.enabled = !!(input.value && input.value.trim().length > 0);
+            this.submitButton.enabled = !!(this.nameInput.value && this.nameInput.value.trim().length > 0);
             currentY += buttonHeight;
 
             if (this.submitError) {
@@ -4331,17 +4337,14 @@ export class Game {
             drawStatStacked(`#${this.pendingHighScore.rank}`, null, 'YOUR RANK');
         };
 
-        if (keyboardOpen) {
-            drawCallSignAndSubmit();
-            dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
-            currentY += pad * 0.65;
+        if (compact) {
             drawStatsRow();
         } else {
             drawStatsStacked();
-            dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
-            currentY += pad * 0.7;
-            drawCallSignAndSubmit();
         }
+        dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
+        currentY += compact ? pad * 0.65 : pad * 0.7;
+        drawCallSignAndSubmit();
     }
 
     async submitHighScore(name) {

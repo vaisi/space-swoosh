@@ -1,4 +1,4 @@
-<!-- Changes: Open Space packed vertical belt (tighter gaps, rock rows, short storm quiet); portals stay helpers. -->
+<!-- Changes: Submit Signal card stays intact above the keyboard on Android and iOS. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -164,7 +164,8 @@ view, the camera slowly eases it back to the usual height over several seconds.
 top 10 for the flight style you were using (Zigzag or Arc), after Mission Failed
 settles a Submit Signal card lists your distance, asteroids destroyed, and rank —
 tap the call-sign field, type a short name, and send it up. On phones the card
-stays above the keyboard so the field does not jump outside the frame. Outside
+keeps that same layout above the keyboard (the end-screen buttons stay hidden).
+Outside
 the top 10 you can still tap **Submit Score** to send a signal. Scores go to
 that style’s board only. The board shows your call sign and the ship you flew
 (`Name, Ship` and the score).
