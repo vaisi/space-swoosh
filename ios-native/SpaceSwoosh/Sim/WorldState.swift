@@ -1,5 +1,6 @@
 // WorldState.swift
-// Changes: World carries equipped SkinId; trail buffer sized from the skin.
+// Changes: baseUnit matches Android mobile min(width/45, height/75).
+// World carries equipped SkinId; trail buffer sized from the skin.
 
 import Foundation
 import CoreGraphics
@@ -34,12 +35,12 @@ struct WorldState {
     var skinId: SkinId
 
     static func initial(width: CGFloat, height: CGFloat, skinId: SkinId = .flicker) -> WorldState {
-        let base = width / 40
+        let base = GameConfig.Playfield.baseUnit(width: width, height: height)
         let skin = SkinCatalog.def(skinId)
         let trail = TrailRingBuffer(capacity: skin.trailMaxPoints)
         let ship = ShipState(
             x: width * 0.5,
-            y: height * 0.22,
+            y: height * CinematicFlight.cruiseSeat,
             tangent: 0,
             bank: 0,
             zigzagSign: 1,

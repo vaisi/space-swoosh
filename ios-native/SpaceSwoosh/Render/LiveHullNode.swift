@@ -1,5 +1,5 @@
 // LiveHullNode.swift
-// Changes: One equipped live hull — pooled nodes + LiveHullPaint (Android numbers).
+// Changes: Squash/shear live on the SkinRenderer hull rig, not this node.
 
 import SpriteKit
 
@@ -67,7 +67,5 @@ final class LiveHullNode: SKNode {
             shake: jelly.shake,
             alpha: alpha
         )
-        xScale = jelly.sx
-        yScale = jelly.sy
     }
 }

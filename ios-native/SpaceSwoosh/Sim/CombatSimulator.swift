@@ -1,5 +1,6 @@
 // CombatSimulator.swift
-// Changes: Wormhole gates spawn without additive glow (Android stroke-only).
+// Changes: Play catch-up camera (Android Camera.js); KM from ΔcameraY; BOOP edge clamp.
+// Wormhole gates spawn without additive glow (Android stroke-only).
 // Fuel-out sparkle salvage while the ship is still moving; death
 // only after the coast elapses and displacement is noise.
 // L6+ pairing and Open Space KM storms read GeneratedJourneyData
@@ -103,6 +104,12 @@ struct RunState {
     var seatY: CGFloat = CinematicFlight.cruiseSeat
     var cameraLead: CGFloat = 0
     var cameraSpeed: CGFloat = 0
+    var cameraY: CGFloat = 0
+    var cameraVelocity: CGFloat = 0
+    var belowSeatSec: CGFloat = 0
+    var reseatActive: Bool = false
+    var reseatFrom: CGFloat = 0
+    var reseatT: CGFloat = 0
     var cinemaBoost: CGFloat = 1
     var cinemaHeading: CGFloat = 0
     var introElapsed: CGFloat = 0
@@ -186,6 +193,10 @@ enum CombatSimulator {
             run.steerCue = ""
             if !run.completed {
                 run.worldAlpha = max(0, 1 - (run.endingT / 2.0) * 1.2)
+                let slowdown = max(0, 1 - run.endingT / (GameConfig.Camera.decelerationMs / 1000))
+                if slowdown > 0 {
+                    PlayCamera.step(world: world, run: &run, dt: dt, speedFactor: slowdown)
+                }
             }
             FloatPopupBuffer.tick(&run.popups, dt: dt)
             BlastBuffer.tick(&run.blast, dt: dt)
@@ -239,7 +250,17 @@ enum CombatSimulator {
             }
         }
 
-        let dy = abs(world.ship.y - prevY)
+        let prevCamY = run.cameraY
+        if run.cinema == .play {
+            PlayCamera.step(world: world, run: &run, dt: dt)
+        }
+
+        let dy: CGFloat
+        if run.cinema == .play {
+            dy = abs(run.cameraY - prevCamY)
+        } else {
+            dy = abs(world.ship.y - prevY)
+        }
         let kmDelta = GameConfig.kmDelta(dy: dy, playfieldHeight: world.height)
         let kmLive = run.cinema != .introTitle
         if kmLive {
@@ -296,7 +317,8 @@ enum CombatSimulator {
     private static func emitBoop(world: inout WorldState, run: inout RunState) {
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let sign = world.wallBoopSide
-        let x = world.ship.x - sign * (radius * 0.25)
+        let preferredX = world.ship.x - sign * (radius * 0.25)
+        let x = safeBoopX(preferredX: preferredX, width: world.width, unit: world.baseUnit)
         let y = world.ship.y - radius * 1.75
         // SpriteKit Y-up: -1.6 drifts away from the hull (JS Y-down uses +1.6).
         FloatPopupBuffer.spawn(&run.popups, kind: .boop, x: x, y: y, vy: -1.6)
@@ -307,6 +329,14 @@ enum CombatSimulator {
             run.sfxFirstBoop = true
             run.logbookMarks.append(.interact("spaceBoop"))
         }
+    }
+
+    /// Android WallBoopManager.safeLabelX — keep the full tracked "BOOP" on-screen.
+    private static func safeBoopX(preferredX: CGFloat, width: CGFloat, unit: CGFloat) -> CGFloat {
+        let fontPx = max(11, unit * 1.05)
+        let halfW = fontPx * (4 * 0.72 + 3 * 0.18) * 0.5
+        let pad = max(unit * 0.35, 4)
+        return min(max(preferredX, halfW + pad), width - halfW - pad)
     }
 
     private static func spawnBelt(world: inout WorldState, run: inout RunState) {

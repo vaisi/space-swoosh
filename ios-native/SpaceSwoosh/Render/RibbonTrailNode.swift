@@ -1,5 +1,5 @@
 // RibbonTrailNode.swift
-// Changes: Parameterized Flicker/Quill/Ink ribbon; springNudge vs wallTrailDeform.
+// Changes: Spring wakes use WallJelly.deform (seed×2π + sx/sy); cruiseSeat screenY.
 
 import SpriteKit
 
@@ -130,10 +130,9 @@ final class RibbonTrailNode: SKNode, SkinTrail {
         shipRadius: CGFloat
     ) -> Int {
         let screenY: (CGFloat) -> CGFloat = { worldY in
-            sceneHeight * 0.22 + (worldY - cameraY)
+            CinematicFlight.screenY(worldY: worldY, cameraY: cameraY, sceneHeight: sceneHeight)
         }
         let jellyLive = WallJelly.isLive(elapsedMs: jellyElapsedMs, mode: skin.wallTrailMode)
-        let jellyT = jellyLive ? jellyElapsedMs / GameConfig.Flicker.wallJellyMs : 0
         let recorded = min(trail.count, maxPoints - 2)
         let denom = CGFloat(max(recorded - 1, 1))
 
@@ -143,28 +142,16 @@ final class RibbonTrailNode: SKNode, SkinTrail {
             var x = src.x
             var y = src.y
             if jellyLive {
-                if skin.wallTrailMode == .spring {
-                    let n = WallJelly.springNudge(
-                        t: jellyT,
-                        along: along,
-                        side: jellySide,
-                        radius: shipRadius,
-                        seed: src.seed
-                    )
-                    x += n.dx
-                    y += n.dy
-                } else {
-                    let d = WallJelly.deform(
-                        mode: skin.wallTrailMode,
-                        elapsedMs: jellyElapsedMs,
-                        along: along,
-                        side: jellySide,
-                        radius: shipRadius,
-                        seed: src.seed
-                    )
-                    x += d.dx
-                    y += d.dy
-                }
+                let d = WallJelly.deform(
+                    mode: skin.wallTrailMode,
+                    elapsedMs: jellyElapsedMs,
+                    along: along,
+                    side: jellySide,
+                    radius: shipRadius,
+                    seed: src.seed
+                )
+                x += d.dx
+                y += d.dy
             }
             wake[i] = WakePoint(x: x, y: screenY(y), opacity: src.opacity, seed: src.seed)
         }
@@ -174,28 +161,16 @@ final class RibbonTrailNode: SKNode, SkinTrail {
         var tx = ship.x - sin(ship.bank) * tail
         var ty = ship.y - cos(ship.bank) * tail
         if jellyLive {
-            if skin.wallTrailMode == .spring {
-                let n = WallJelly.springNudge(
-                    t: jellyT,
-                    along: 1,
-                    side: jellySide,
-                    radius: shipRadius,
-                    seed: 0.5
-                )
-                tx += n.dx
-                ty += n.dy
-            } else {
-                let d = WallJelly.deform(
-                    mode: skin.wallTrailMode,
-                    elapsedMs: jellyElapsedMs,
-                    along: 1,
-                    side: jellySide,
-                    radius: shipRadius,
-                    seed: 0.5
-                )
-                tx += d.dx
-                ty += d.dy
-            }
+            let d = WallJelly.deform(
+                mode: skin.wallTrailMode,
+                elapsedMs: jellyElapsedMs,
+                along: 1,
+                side: jellySide,
+                radius: shipRadius,
+                seed: 0.5
+            )
+            tx += d.dx
+            ty += d.dy
         }
         let sx = tx
         let sy = screenY(ty)

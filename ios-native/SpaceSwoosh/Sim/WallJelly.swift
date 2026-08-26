@@ -1,5 +1,5 @@
 // WallJelly.swift
-// Changes: All Android wallJellyDeform profiles + wallTrailDeform modes (incl. ripple).
+// Changes: Spring deform uses seed×2π; plantFactor matches Android PLANT_BY_PROFILE.
 
 import Foundation
 import CoreGraphics
@@ -223,23 +223,35 @@ enum WallJelly {
         return pulse * pow(a, 1.2)
     }
 
-    /// Flicker live nudge — keep the existing seed (0…1) phase, not seed×2π.
-    static func springNudge(
-        t: CGFloat,
-        along: CGFloat,
-        side: CGFloat,
-        radius: CGFloat,
-        seed: CGFloat
-    ) -> (dx: CGFloat, dy: CGFloat) {
-        let delay = (1 - along) * 0.35
-        let localT = max(0, min(1, t - delay))
-        let damp = exp(-2.5 * localT)
-        let primary = cos(localT * .pi * 2.8 + seed * 0.15) * damp
-        let whip = sin(localT * .pi * 5.2 + seed) * exp(-3.2 * localT)
-        let alongW = 0.25 + 0.75 * along
-        let dx = side * radius * (0.62 * primary * (0.25 + 0.75 * along) - 0.48 * whip * alongW)
-        let dy = radius * 0.12 * whip * along
-        return (dx, dy)
+    /// JS `PLANT_BY_PROFILE` — how hard the hull slides into the wall while squashing.
+    static func plantFactor(_ profile: JellyProfile) -> CGFloat {
+        switch profile {
+        case .standard: return 1
+        case .needle: return 0.55
+        case .halo: return 0.35
+        case .shard: return 0.75
+        case .stamp: return 1.1
+        case .fold: return 0.85
+        case .spine: return 0.7
+        case .mote: return 0.9
+        case .orbit: return 0.4
+        case .flux: return 0.75
+        case .cinder: return 0.95
+        case .lantern: return 0.85
+        case .bloom: return 0.3
+        case .lyra: return 0.4
+        case .sprout: return 0.8
+        case .plume: return 0.55
+        case .koi: return 0.7
+        case .spore: return 0.85
+        case .boreal: return 0.45
+        case .luna: return 0.55
+        case .wish: return 0.4
+        case .darner: return 0.5
+        case .puff: return 0.35
+        case .argus: return 0.6
+        case .chime: return 0.35
+        }
     }
 
     static func deform(
@@ -390,7 +402,7 @@ enum WallJelly {
                 into: 0.52, whipAmp: 0.7, endBoost: endBoost, tipHeavy: true
             )
         case .spring:
-            return springLike(t: t, along: a, side: s, radius: r, seedPhase: seed)
+            return springLike(t: t, along: a, side: s, radius: r, seedPhase: seedPhase)
         }
     }
 

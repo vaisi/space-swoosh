@@ -1,5 +1,6 @@
 // CinemaSimulator.swift
-// Changes: After fly-in, steering unlocks for NAV title / wait (Android title
+// Changes: Intro hands off at 0.20 from bottom; play camera seed; clear flyout keeps play framing.
+// After fly-in, steering unlocks for NAV title / wait (Android title
 // phase). L42 fade hands off to the written epilogue overlay (no ENDING_BEATS).
 // Day 42 skips intro captions; those play in the epilogue after the dark hold.
 
@@ -54,6 +55,13 @@ enum CinemaSimulator {
         run.captionOpacity = 0
         run.seatY = CinematicFlight.startSeat
         run.cameraLead = 0
+        run.cameraY = PlayCamera.pinY(
+            shipY: world.ship.y,
+            seatFromBottom: CinematicFlight.startSeat,
+            height: world.height
+        )
+        run.cameraVelocity = 0
+        PlayCamera.clearReseat(run: &run)
         run.cinemaBoost = CinematicFlight.startBoost
         run.streakAlpha = 1
         world.ship.x = world.width * 0.5
@@ -73,8 +81,8 @@ enum CinemaSimulator {
         run.inputLocked = true
         run.grantShield()
         run.finishLineY = world.ship.y
-        run.cameraLead = 0
         run.seatY = CinematicFlight.cruiseSeat
+        run.cameraLead = world.ship.y - run.cameraY
         run.cinemaBoost = 1
         run.cinemaHeading = CinematicFlight.captureArcHeading(world.ship)
         run.cameraSpeed = max(abs(world.ship.verticalVel), GameConfig.Spacecraft.speed * world.height)
@@ -124,7 +132,7 @@ enum CinemaSimulator {
             let t = CinematicFlight.easeOut(run.cinemaT / arrive)
             run.worldAlpha = min(1, t * 1.2)
             run.cinemaBoost = CinematicFlight.lerp(CinematicFlight.startBoost, 1.08, t)
-            run.seatY = CinematicFlight.lerp(CinematicFlight.startSeat, CinematicFlight.cruiseSeat, t)
+            run.seatY = CinematicFlight.lerp(CinematicFlight.startSeat, CinematicFlight.introHandoffSeat, t)
             CinematicFlight.streamCenter(world: &world, dt: dt, boost: run.cinemaBoost)
             if run.cinemaT >= arrive {
                 run.cinema = .introSettle
@@ -135,35 +143,43 @@ enum CinemaSimulator {
             let t = CinematicFlight.easeInOut(run.cinemaT / settle)
             run.worldAlpha = 1
             run.cinemaBoost = CinematicFlight.lerp(1.08, 1, t)
-            run.seatY = CinematicFlight.cruiseSeat
+            run.seatY = CinematicFlight.introHandoffSeat
             CinematicFlight.streamCenter(world: &world, dt: dt, boost: run.cinemaBoost)
             if run.cinemaT >= settle {
                 handoffAfterSettle(run: &run)
             }
         case .introTitle:
-            run.seatY = CinematicFlight.cruiseSeat
+            run.seatY = CinematicFlight.introHandoffSeat
             run.streakAlpha = 0
             tickCaption(run: &run, dt: dt)
             if run.captionText.isEmpty,
                run.introBeatIndex >= run.profile.introBeats.count,
                run.introVoiceDone {
-                enterPlay(run: &run)
+                enterPlay(world: world, run: &run)
             }
         case .introWait:
-            run.seatY = CinematicFlight.cruiseSeat
+            run.seatY = CinematicFlight.introHandoffSeat
             run.streakAlpha = 0
             if run.cinemaT >= CinematicFlight.openWait {
-                enterPlay(run: &run)
+                enterPlay(world: world, run: &run)
             }
         default:
             break
+        }
+        if run.cinema != .play {
+            run.cameraY = CinematicFlight.presentCameraY(
+                shipY: world.ship.y,
+                seatY: run.seatY,
+                cameraLead: run.cameraLead,
+                height: world.height
+            )
         }
     }
 
     private static func handoffAfterSettle(run: inout RunState) {
         run.cinemaT = 0
         run.cinemaBoost = 1
-        run.seatY = CinematicFlight.cruiseSeat
+        run.seatY = CinematicFlight.introHandoffSeat
         run.streakAlpha = 0
         run.inputLocked = false
         if run.profile.introBeats.isEmpty
@@ -175,7 +191,7 @@ enum CinemaSimulator {
         }
     }
 
-    private static func enterPlay(run: inout RunState) {
+    private static func enterPlay(world: WorldState, run: inout RunState) {
         run.cinema = .play
         run.cinemaT = 0
         run.pauseSpawning = false
@@ -183,9 +199,10 @@ enum CinemaSimulator {
         run.hudRevealT = 0
         run.inputLocked = false
         run.worldAlpha = 1
-        run.seatY = CinematicFlight.cruiseSeat
+        run.seatY = CinematicFlight.introHandoffSeat
         run.streakAlpha = 0
         run.cinemaBoost = 1
+        PlayCamera.seedHandoff(run: &run, ship: world.ship, height: world.height)
     }
 
     /// Android hudRevealAlpha: KM at 2s, pause at 3s, smash/PTS after first event.
@@ -273,7 +290,12 @@ enum CinemaSimulator {
         run.cinemaHeading = heading
         let shipDy = world.ship.y - prevY
         run.cameraLead += shipDy - run.cameraSpeed * camFactor * dt
-        run.cameraLead = max(0, run.cameraLead)
+        run.cameraY = CinematicFlight.presentCameraY(
+            shipY: world.ship.y,
+            seatY: run.seatY,
+            cameraLead: run.cameraLead,
+            height: world.height
+        )
 
         CombatSimulator.moveHazards(world: &world, run: &run, dt: dt)
         HazardCollision.applyFields(world: &world, run: run, dt: dt)

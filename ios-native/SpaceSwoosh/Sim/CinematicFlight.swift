@@ -1,5 +1,6 @@
 // CinematicFlight.swift
-// Changes: Trail samples use the equipped skin's trailTailOffset + trailFade.
+// Changes: introHandoffSeat 0.20 matches Android CRUISE_SCREEN; screenY helper.
+// Trail samples use the equipped skin's trailTailOffset + trailFade.
 // L42 uses clearFadeFinale (1.4s) into the written epilogue.
 
 import Foundation
@@ -7,9 +8,12 @@ import CoreGraphics
 
 enum CinematicFlight {
     static let minArcHeading: CGFloat = 0.12
+    /// Present-space origin (from bottom). Play catch-up targets Camera.idealSeat.
     static let cruiseSeat: CGFloat = 0.22
     /// Android START_SCREEN 1.14 (y-down) → below the SpriteKit frame.
     static let startSeat: CGFloat = -0.14
+    /// Android CRUISE_SCREEN 0.80 from top → 0.20 from bottom.
+    static let introHandoffSeat: CGFloat = 0.20
     static let startBoost: CGFloat = 1.35
     static let streakCount = 18
     static let streakBand: CGFloat = 0.38
@@ -100,9 +104,13 @@ enum CinematicFlight {
         a + (b - a) * max(0, min(1, t))
     }
 
-    /// Encode seat + camera lead into the 0.22-based present camera.
+    /// Encode seat + camera lead into the cruiseSeat-based present camera.
     static func presentCameraY(shipY: CGFloat, seatY: CGFloat, cameraLead: CGFloat, height: CGFloat) -> CGFloat {
         shipY - (seatY - cruiseSeat) * height - cameraLead
+    }
+
+    static func screenY(worldY: CGFloat, cameraY: CGFloat, sceneHeight: CGFloat) -> CGFloat {
+        sceneHeight * cruiseSeat + (worldY - cameraY)
     }
 
     private static func bounceSilent(

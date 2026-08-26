@@ -1,5 +1,5 @@
 // PopupField.swift
-// Changes: override init() for Xcode 26 SKNode.
+// Changes: Screen origin uses CinematicFlight.cruiseSeat.
 
 import SpriteKit
 import UIKit
@@ -34,7 +34,7 @@ final class PopupField: SKNode {
     }
 
     func sync(popups: [FloatPopup], cameraY: CGFloat, sceneHeight: CGFloat, baseUnit: CGFloat) {
-        let screenY = sceneHeight * 0.22
+        let screenY = sceneHeight * CinematicFlight.cruiseSeat
         for i in 0..<nodes.count {
             let node = nodes[i]
             guard i < popups.count, popups[i].active else {
@@ -108,7 +108,7 @@ final class BlastField: SKNode {
     }
 
     func sync(particles: [BlastParticle], cameraY: CGFloat, sceneHeight: CGFloat) {
-        let screenY = sceneHeight * 0.22
+        let screenY = sceneHeight * CinematicFlight.cruiseSeat
         for i in 0..<nodes.count {
             let node = nodes[i]
             guard i < particles.count, particles[i].active else {

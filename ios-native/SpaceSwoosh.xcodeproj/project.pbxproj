@@ -84,6 +84,7 @@
 		F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */; };
 		88E18631C63742802E1DF8C7 /* WallJelly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B844881344C2CA52B89178C /* WallJelly.swift */; };
 		1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082D090C673D6BD3BAE36892 /* WorldState.swift */; };
+		C4E8B1A27D9F4C6A8B3E1D50 /* PlayCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F3C7D14E2B8A6C5D0E1F24 /* PlayCamera.swift */; };
 		091BE23C010931EE6C4F761E /* SpaceSwooshApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B46362F53342EC376D581E /* SpaceSwooshApp.swift */; };
 		630079499D908838C6A12464 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 32BB636196F91ED59D7A4919 /* Assets.xcassets */; };
 		C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */; };
@@ -230,6 +231,7 @@
 		0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRingBuffer.swift; sourceTree = "<group>"; };
 		9B844881344C2CA52B89178C /* WallJelly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallJelly.swift; sourceTree = "<group>"; };
 		082D090C673D6BD3BAE36892 /* WorldState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldState.swift; sourceTree = "<group>"; };
+		A9F3C7D14E2B8A6C5D0E1F24 /* PlayCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayCamera.swift; sourceTree = "<group>"; };
 		49B46362F53342EC376D581E /* SpaceSwooshApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceSwooshApp.swift; sourceTree = "<group>"; };
 		04E4CF0498F47FCE691777EF /* background.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = background.mp3; sourceTree = "<group>"; };
 		0FE5527F72ADEF15677E5651 /* crash.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = crash.mp3; sourceTree = "<group>"; };
@@ -487,6 +489,7 @@
 				0BDA3D967612F47FA382CB20,
 				9B844881344C2CA52B89178C,
 				082D090C673D6BD3BAE36892,
+				A9F3C7D14E2B8A6C5D0E1F24,
 			);
 			path = Sim;
 			sourceTree = "<group>";
@@ -786,6 +789,7 @@
 				F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */,
 				88E18631C63742802E1DF8C7 /* WallJelly.swift in Sources */,
 				1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */,
+				C4E8B1A27D9F4C6A8B3E1D50 /* PlayCamera.swift in Sources */,
 				091BE23C010931EE6C4F761E /* SpaceSwooshApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

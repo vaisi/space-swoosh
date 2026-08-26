@@ -1,5 +1,6 @@
 // PooledSpriteField.swift
-// Changes: Wormholes match Android — spinning dashed stroke only, no additive
+// Changes: Screen origin uses CinematicFlight.cruiseSeat.
+// Wormholes match Android — spinning dashed stroke only, no additive
 // inner glow. Path diameter is 2×radius×pulse (plus stroke). Phase core fades
 // fully (Android mergeFactor). Piece Y is SpriteKit-up.
 
@@ -88,7 +89,7 @@ final class PooledSpriteField: SKNode {
     }
 
     func sync(world: WorldState, cameraY: CGFloat, sceneHeight: CGFloat) {
-        let screenY = sceneHeight * 0.22
+        let screenY = sceneHeight * CinematicFlight.cruiseSeat
         var glowUsed = 0
         var extraUsed = 0
 

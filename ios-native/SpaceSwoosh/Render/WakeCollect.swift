@@ -1,5 +1,5 @@
 // WakeCollect.swift
-// Changes: Shared wakePoints / ribbonPath / filamentOffset + per-skin tail tuck.
+// Changes: Spring mode uses full WallJelly.deform (seed×2π, sx/sy) like Android.
 
 import CoreGraphics
 import SpriteKit
@@ -225,17 +225,7 @@ enum WakeCollect {
     }
 
     private static func deform(_ ctx: TrailSyncContext, along: CGFloat, seed: CGFloat) -> TrailDeform {
-        if ctx.skin.wallTrailMode == .spring {
-            let n = WallJelly.springNudge(
-                t: ctx.jellyElapsedMs / GameConfig.Flicker.wallJellyMs,
-                along: along,
-                side: ctx.jellySide,
-                radius: ctx.shipRadius,
-                seed: seed
-            )
-            return TrailDeform(dx: n.dx, dy: n.dy, sx: 1, sy: 1)
-        }
-        return WallJelly.deform(
+        WallJelly.deform(
             mode: ctx.skin.wallTrailMode,
             elapsedMs: ctx.jellyElapsedMs,
             along: along,

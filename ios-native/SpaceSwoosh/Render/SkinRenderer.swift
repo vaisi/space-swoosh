@@ -1,30 +1,43 @@
 // SkinRenderer.swift
-// Changes: Live hulls paint their own stretch; jelly squash + shake on the node.
+// Changes: Wall-jelly plant (halfScale) + shear warp matching Android beginHullFrame.
 
 import SpriteKit
 import QuartzCore
+import simd
 
 final class SkinRenderer {
     let node = SKNode()
+    private let hullRig = SKNode()
     private let hullSprite: SKSpriteNode?
     private let liveHull: LiveHullNode?
+    private let liveWarp: SKEffectNode?
     private let trail: SkinTrail
     private let skin: SkinDef
 
     init(skin: SkinDef, bake: BakePipeline) {
         self.skin = skin
+        hullRig.zPosition = 10
+        node.addChild(hullRig)
         if skin.skipHullCache {
+            let warp = SKEffectNode()
+            warp.shouldRasterize = true
+            warp.subdivisionLevels = 1
+            warp.zPosition = 10
             let live = LiveHullNode(id: skin.id, disc: bake.part(for: .circle))
             live.zPosition = 10
-            node.addChild(live)
+            warp.addChild(live)
+            hullRig.addChild(warp)
             liveHull = live
+            liveWarp = warp
             hullSprite = nil
         } else {
             let hull = SKSpriteNode(texture: bake.hull(for: skin.id))
             hull.zPosition = 10
-            node.addChild(hull)
+            hull.subdivisionLevels = 1
+            hullRig.addChild(hull)
             hullSprite = hull
             liveHull = nil
+            liveWarp = nil
         }
         let wake = SkinTrailFactory.make(skin: skin, bake: bake)
         wake.node.zPosition = 5
@@ -64,21 +77,28 @@ final class SkinRenderer {
         default:
             shakeScale = 0.35
         }
+        let plant = WallJelly.plantFactor(skin.jellyProfile)
+        let plantX = jellyLive
+            ? jelly.side * (radius * skin.halfScale) * (1 - jelly.sx) * plant
+            : 0
         let shakeX = jellyLive ? jelly.shake * radius * jelly.side * shakeScale : 0
-        let pos = CGPoint(x: ship.x + shakeX, y: screenY)
+        let pos = CGPoint(x: ship.x + plantX + shakeX, y: screenY)
+        let shearAmt = jellyLive ? jelly.shear * jelly.side : 0
+        let warp = Self.shearWarp(shearAmt)
 
-        if let live = liveHull {
-            live.position = pos
-            live.zRotation = -ship.bank
-            live.alpha = hullAlpha
-            live.present(radius: radius, turn: turn, jelly: jelly, jellyLive: jellyLive, alpha: hullAlpha, nowMs: nowMs)
+        hullRig.position = pos
+        hullRig.zRotation = -ship.bank
+        hullRig.xScale = jelly.sx
+        hullRig.alpha = hullAlpha
+
+        if let live = liveHull, let liveWarp {
+            hullRig.yScale = jelly.sy
+            liveWarp.warpGeometry = warp
+            live.present(radius: radius, turn: turn, jelly: jelly, jellyLive: jellyLive, alpha: 1, nowMs: nowMs)
         } else if let hull = hullSprite {
-            hull.position = pos
-            hull.zRotation = -ship.bank
-            hull.xScale = jelly.sx
-            hull.yScale = jelly.sy * stretch
+            hullRig.yScale = jelly.sy * stretch
+            hull.warpGeometry = warp
             hull.size = CGSize(width: pad, height: pad)
-            hull.alpha = hullAlpha
         }
 
         trail.node.alpha = trailAlpha
@@ -93,5 +113,18 @@ final class SkinRenderer {
             shipSpeed: shipSpeed,
             skin: skin
         ))
+    }
+
+    private static func shearWarp(_ amount: CGFloat) -> SKWarpGeometryGrid {
+        let s = Float(amount) * 0.5
+        let src: [SIMD2<Float>] = [
+            SIMD2(0, 1), SIMD2(1, 1),
+            SIMD2(0, 0), SIMD2(1, 0)
+        ]
+        let dst: [SIMD2<Float>] = [
+            SIMD2(s, 1), SIMD2(1 + s, 1),
+            SIMD2(-s, 0), SIMD2(1 - s, 0)
+        ]
+        return SKWarpGeometryGrid(columns: 1, rows: 1, sourcePositions: src, destinationPositions: dst)
     }
 }

@@ -1,5 +1,5 @@
 // RainbowRibbonNode.swift
-// Changes: Nyan side-by-side bands + Fletch dawn strata; reused SKShapeNodes.
+// Changes: Spring wakes use WallJelly.deform like Android wallTrailDeform.
 
 import SpriteKit
 
@@ -101,28 +101,16 @@ final class RainbowRibbonNode: SKNode, SkinTrail {
             var x = src.x
             var y = src.y
             if live {
-                if skin.wallTrailMode == .spring {
-                    let n = WallJelly.springNudge(
-                        t: ctx.jellyElapsedMs / GameConfig.Flicker.wallJellyMs,
-                        along: along,
-                        side: ctx.jellySide,
-                        radius: ctx.shipRadius,
-                        seed: src.seed
-                    )
-                    x += n.dx
-                    y += n.dy
-                } else {
-                    let d = WallJelly.deform(
-                        mode: skin.wallTrailMode,
-                        elapsedMs: ctx.jellyElapsedMs,
-                        along: along,
-                        side: ctx.jellySide,
-                        radius: ctx.shipRadius,
-                        seed: src.seed
-                    )
-                    x += d.dx
-                    y += d.dy
-                }
+                let d = WallJelly.deform(
+                    mode: skin.wallTrailMode,
+                    elapsedMs: ctx.jellyElapsedMs,
+                    along: along,
+                    side: ctx.jellySide,
+                    radius: ctx.shipRadius,
+                    seed: src.seed
+                )
+                x += d.dx
+                y += d.dy
             }
             wake[i] = WakePoint(x: x, y: screenY(y), opacity: src.opacity, seed: src.seed)
         }

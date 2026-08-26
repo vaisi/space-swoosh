@@ -1,5 +1,6 @@
 // GameConfig.swift
-// Changes: feelSpeed 1.0 so native iOS cruise matches Android/web snappy tick.
+// Changes: Android catch-up camera knobs + mobile baseUnit (min(w/45, h/75)).
+// feelSpeed 1.0 so native iOS cruise matches Android/web snappy tick.
 // Fuel.dyingStopSpeed 0.01 so fuel-out waits until the hull stops.
 // Fuel.voiceLowThreshold 0.20 for NAV low-fuel lines (HUD stays 0.28).
 
@@ -52,9 +53,29 @@ enum GameConfig {
         static let shieldSeconds: CGFloat = 4.0
     }
 
+    enum Camera {
+        /// Floor cruise (× height). Ship speed is separate (Spacecraft.speed).
+        static let speed: CGFloat = 0.07
+        static let interpolation: CGFloat = 0.18
+        static let smoothingFactor: CGFloat = 0.78
+        static let deadzone: CGFloat = 0.16
+        static let reseatDelay: CGFloat = 5
+        static let reseatSlack: CGFloat = 0.03
+        static let reseatDuration: CGFloat = 8
+        static let reseatTrack: CGFloat = 0.015
+        /// From bottom. Android `idealOffset` 0.75 from top.
+        static let idealSeat: CGFloat = 0.25
+        /// Android `camera.deceleration` — game-over scroll fade.
+        static let decelerationMs: CGFloat = 2000
+    }
+
     enum Playfield {
         /// Full device; no letterbox.
         static let fillsDevice = true
+        /// Android mobile `baseUnit`: min(width/45, height/75).
+        static func baseUnit(width: CGFloat, height: CGFloat) -> CGFloat {
+            min(width / 45, height / 75)
+        }
     }
 
     enum Fuel {

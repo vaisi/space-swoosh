@@ -1,5 +1,6 @@
 // PlayScene.swift
-// Changes: L42 skips intro voice; smash haptic.
+// Changes: Present interpolates play cameraY; baseUnit matches Android mobile.
+// L42 skips intro voice; smash haptic.
 // L42 written epilogue keeps MusicPlayer running (do not stop on completed).
 
 import SpriteKit
@@ -29,6 +30,7 @@ final class PlayScene: SKScene {
     private var launch: PlayLaunch = .openSpace
     private var lastPresentX: CGFloat?
     private var lastPresentY: CGFloat?
+    private var previousCameraY: CGFloat?
 
     func startRun(_ launch: PlayLaunch = .openSpace) {
         self.launch = launch
@@ -38,6 +40,7 @@ final class PlayScene: SKScene {
         lastFrameTime = nil
         lastPresentX = nil
         lastPresentY = nil
+        previousCameraY = nil
         run = RunState()
         session?.reset()
         VoicePlayer.shared.reset()
@@ -129,9 +132,12 @@ final class PlayScene: SKScene {
         let scaleY = size.height / max(world.height, 1)
         world.width = size.width
         world.height = size.height
-        world.baseUnit = size.width / 40
+        world.baseUnit = GameConfig.Playfield.baseUnit(width: size.width, height: size.height)
         world.ship.x *= scaleX
         world.ship.y *= scaleY
+        run.cameraY *= scaleY
+        run.cameraVelocity *= scaleY
+        previousCameraY = run.cameraY
         currentWorld = world
         previousWorld = world
     }
@@ -162,6 +168,7 @@ final class PlayScene: SKScene {
 
         guard var world = currentWorld else { return }
         previousWorld = world
+        let prevCam = previousCameraY ?? run.cameraY
 
         let result = clock.tick(frameDelta: frameDelta) {
             let command = self.input.consumeSteerCommand()
@@ -180,7 +187,19 @@ final class PlayScene: SKScene {
         }
 
         let ship = WorldInterpolator.ship(previousWorld?.ship ?? world.ship, world.ship, alpha: result.alpha)
-        present(ship: ship, world: world, frameDelta: frameDelta)
+        let cameraY: CGFloat
+        if run.cinema == .play || run.isOver {
+            cameraY = prevCam + (run.cameraY - prevCam) * result.alpha
+        } else {
+            cameraY = CinematicFlight.presentCameraY(
+                shipY: ship.y,
+                seatY: run.seatY,
+                cameraLead: run.cameraLead,
+                height: size.height
+            )
+        }
+        previousCameraY = run.cameraY
+        present(ship: ship, world: world, cameraY: cameraY, frameDelta: frameDelta)
 
         var obs = 0
         for o in world.obstacles where o.active { obs += 1 }
@@ -273,14 +292,8 @@ final class PlayScene: SKScene {
         }
     }
 
-    private func present(ship: ShipState, world: WorldState, frameDelta: CGFloat) {
-        let cameraY = CinematicFlight.presentCameraY(
-            shipY: ship.y,
-            seatY: run.seatY,
-            cameraLead: run.cameraLead,
-            height: size.height
-        )
-        let screenY = size.height * CinematicFlight.cruiseSeat + (ship.y - cameraY)
+    private func present(ship: ShipState, world: WorldState, cameraY: CGFloat, frameDelta: CGFloat) {
+        let screenY = CinematicFlight.screenY(worldY: ship.y, cameraY: cameraY, sceneHeight: size.height)
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let nowMs = CGFloat(CACurrentMediaTime() * 1000)
         let breath = 0.9 + 0.06 * sin(nowMs * 0.0056) + 0.04 * sin(nowMs * 0.0088)
