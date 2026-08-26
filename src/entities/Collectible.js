@@ -7,7 +7,7 @@
 // Changes:
 // - Soft magnet: when within ~4.25× ship radius (and not fuelDying), ease world
 //   position toward the ship with proximity falloff (pull 0.15); collect still
-//   on contact.
+//   on contact (including during the engines-out coast).
 // - Copy: fuel refill diamond (not style points).
 // - Phase 1: cheap Canvas uses pre-baked glow sprite (drawImage) so iOS can
 //   show the halo again without createRadialGradient / soft path fills.

@@ -1,5 +1,7 @@
 // CombatSimulator.swift
-// Changes: L6+ pairing and Open Space KM storms read GeneratedJourneyData
+// Changes: Fuel-out sparkle salvage while the ship is still moving; death
+// only after the coast elapses and displacement is noise.
+// L6+ pairing and Open Space KM storms read GeneratedJourneyData
 // (catalog + weather + belt table). Delay at maxOnScreen instead of skip-holes.
 // Corridor mid-fill, family picker, comboTheme belt.
 // Wormholes are helpers (occasional gift hop), not weather identity.
@@ -212,6 +214,7 @@ enum CombatSimulator {
             run.invulnT = max(0, run.invulnT - dt)
         }
 
+        let prevX = world.ship.x
         let prevY = world.ship.y
         let ship = ShipSimulator()
         if run.teleportT <= 0 {
@@ -260,12 +263,6 @@ enum CombatSimulator {
 
         if run.fuelDying {
             run.fuelDyingT += dt
-            if run.fuelDyingT >= GameConfig.Fuel.dyingDurationMs / 1000 {
-                run.isOver = true
-                run.completed = false
-                run.failReason = .fuel
-                return
-            }
         }
 
         spawnBelt(world: &world, run: &run)
@@ -278,6 +275,16 @@ enum CombatSimulator {
         detectSwoosh(world: world, run: &run)
         HazardCollision.tryTeleport(world: &world, run: &run)
         collide(world: &world, run: &run)
+        if !run.isOver, run.fuelDying {
+            let dur = GameConfig.Fuel.dyingDurationMs / 1000
+            let moved = hypot(world.ship.x - prevX, world.ship.y - prevY)
+            if run.fuelDyingT >= dur, moved <= GameConfig.Fuel.dyingStopSpeed {
+                run.isOver = true
+                run.completed = false
+                run.failReason = .fuel
+                return
+            }
+        }
         if !run.profile.isEndless, run.scoreKm >= run.profile.goalKm, !run.isOver {
             CinemaSimulator.beginClear(world: &world, run: &run)
         }
@@ -1077,8 +1084,11 @@ enum CombatSimulator {
             run.logbookMarks.append(.interact(LogbookCatalog.pickupId(for: p.kind)))
             switch p.kind {
             case .sparkle:
-                guard !run.fuelDying else { break }
                 run.fuel = min(GameConfig.Fuel.max, run.fuel + GameConfig.Fuel.refillPerCollectible)
+                if run.fuelDying {
+                    run.fuelDying = false
+                    run.fuelDyingT = 0
+                }
                 run.sparklesCollected += 1
                 FloatPopupBuffer.spawn(&run.popups, kind: .fuel, x: p.x, y: p.y, vy: 2)
                 run.sfxCollect = true

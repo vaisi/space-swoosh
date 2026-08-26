@@ -4,14 +4,14 @@
 // left here is what every run shares.
 // Changes:
 // - Open Space Deep space milestone at 12,500 KM (Day 33 belt), not 10,000.
-// - Camera reseat knobs (Android native + Hazard Lab): after 5s below the
+// - Camera reseat knobs (all JS platforms): after 5s below the
 //   ideal seat, an 8s ease-in-out creeps the ship back.
 // - Soft sparkle magnet: radius 4.25× ship + magnetPull 0.15 so near-miss
 //   diamonds ease in more readily; collect still requires contact.
 // - Fuel drainPerKm 0.00025 ≈ 4000 KM full tank (playtest: 2700 still too
 //   stressful when the next sparkle is far).
 // - Added `fuel`: depleting 0–1 tank (distance drain, diamond refill, dying
-//   coast). Sparkles no longer award `points.perCollectible` — they refill fuel.
+//   coast). Sparkles collected during the coast cancel dying until the hull stops.
 // - Arc banks: arcDuration 820ms for a taller closed swoosh (linear full-π
 //   path + 0.55 mid-arc vertical boost in Spacecraft).
 // - Zigzag angle/speed tunables are the default flight style (see flightStyle.js).
@@ -37,7 +37,7 @@ export const GameConfig = {
         // before empty if you take nothing.
         drainPerKm: 0.00025,
         refillPerCollectible: 0.45, // clamp to max; no overfill (~half a tank)
-        dyingDurationMs: 900,
+        dyingDurationMs: 900, // coast; salvage sparkles until the hull stops
         lowThreshold: 0.28,
         voiceLowThreshold: 0.20, // NAV warning; HUD pulse stays on lowThreshold
         // Soft magnet assist — sparkles ease toward the ship when close; collect
@@ -87,10 +87,9 @@ export const GameConfig = {
         // the ship's speed and applies no re-seating pull — so steady flight is
         // pure smooth scroll and the camera only re-addresses on real drift.
         deadzone: 0.16,
-        // Android native (all modes) and Hazard Lab (any platform): if the ship
-        // sits below the ideal seat this long (seconds), ease the leftover gap
-        // closed over reseatDuration so a wormhole or black-hole dip does not
-        // leave the craft permanently low.
+        // After 5s below the ideal seat, ease the leftover gap closed over
+        // reseatDuration so a wormhole or black-hole dip does not leave the
+        // craft permanently low (all JS platforms: web + Capacitor).
         reseatDelay: 5,
         reseatSlack: 0.03, // × height — ignore tiny dips
         reseatDuration: 8, // seconds to ease the leftover gap closed

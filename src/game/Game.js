@@ -13,8 +13,8 @@
 // - tryBeginJourneyLevel respects isLevelUnlocked (UNLOCK_ALL_LEVELS / URL).
 // - Menu stamp reads BUILD_NUMBER from core/buildStamp.js (Vite +1 per
 //   production build) so a device install can be verified vs an old APK.
-// - cameraReseatEnabled: Android native (all modes) + Hazard Lab everywhere,
-//   so web lab can practice the 5s-below-seat ease after wormhole / black hole.
+// - cameraReseatEnabled: every JS platform (web + Capacitor). After a wormhole
+//   or black hole leaves the ship low, Camera.tickReseat eases it back.
 // - Pro lives economy (LIVES_ENABLED, default false): when on, gate Open Space
 //   / Journey at 0 lives, spendLife on crash/fuel gameOver, Pro paywall +
 //   annual 3-ship pick. When off, starts and retries are unlimited.
@@ -27,7 +27,8 @@
 //   flight during the blue-edge rush; KM still accrues).
 // - Fuel meter: depleting Signal-Blue bar once collectibles are live; diamonds
 //   refill (no overfill); empty → playFuelOut sputter + short engine-dying
-//   coast → gameOver(fuel). NAV playFuelLowVoice once per dip below 20%
+//   coast → gameOver(fuel) unless a sparkle is collected while still moving.
+//   NAV playFuelLowVoice once per dip below 20%
 //   (Journey + Open Space; Voice channel). Sparkles count toward Journey
 //   star 2; style points stay smash/swoosh only.
 // - Hazard Lab: beginHazardLab() → PLAY_MODE.hazardLab; finish/crash skips
@@ -296,7 +297,6 @@ import {
 } from '../config/flightStyle.js';
 import {
     canvasMaxDpr,
-    isAndroidNative,
     needsIosCanvasBudget,
     preferOpaqueCanvas,
 } from '../core/platform.js';
@@ -322,7 +322,7 @@ export class Game {
         this.fuelDyingStart = null;
         this.fuelPauseTeleportUntil = 0; // hop + camera catch-up: no fuel drain
         this.fuelLowVoiceLatched = false;
-        this.cameraReseatEnabled = isAndroidNative();
+        this.cameraReseatEnabled = true;
         this.failReason = null; // 'crash' | 'fuel' | null
         this.sparklesCollected = 0;
         this.isGameOver = false;
@@ -796,15 +796,6 @@ export class Game {
                 this.maybeSpeakFuelLow();
             }
 
-            // Engines-out coast finished → fail (distinct from crash).
-            if (this.fuelDying && this.fuelDyingStart != null) {
-                const dur = this.config.fuel?.dyingDurationMs ?? 900;
-                if (performance.now() - this.fuelDyingStart >= dur) {
-                    this.gameOver({ reason: 'fuel' });
-                    return;
-                }
-            }
-
             this.obstacleManager.update();
             this.milestoneManager.update();
             this.powerUpManager.update();
@@ -815,6 +806,13 @@ export class Game {
             this.logbookToast?.update();
             this.logbook?.flushToast?.();
             this.advanceHudReveal();
+
+            // Engines-out coast finished and ship stopped → fail (sparkle
+            // salvage above can cancel fuelDying before this check).
+            if (this.shouldFinalizeFuelDeath()) {
+                this.gameOver({ reason: 'fuel' });
+                return;
+            }
 
             if (this.profile.isRunComplete(this.score)) {
                 this.completeRun();
@@ -861,6 +859,20 @@ export class Game {
         this.fuelDying = true;
         this.fuelDyingStart = performance.now();
         this.soundManager?.playFuelOut?.();
+    }
+
+    /** Sparkle pickup during the engines-out coast — keep flying. */
+    cancelFuelDying() {
+        this.fuelDying = false;
+        this.fuelDyingStart = null;
+    }
+
+    /** Coast elapsed and the hull has fully stopped — salvage had its chance. */
+    shouldFinalizeFuelDeath() {
+        if (this.isGameOver || !this.fuelDying || this.fuelDyingStart == null) return false;
+        const dur = this.config.fuel?.dyingDurationMs ?? 900;
+        if (performance.now() - this.fuelDyingStart < dur) return false;
+        return this.spacecraft?.isEffectivelyStopped() ?? true;
     }
 
     /** Once per dip below 20% in Journey / Open Space. Re-arms after a refill. */
@@ -2681,7 +2693,7 @@ export class Game {
         this.pendingHighScore = null;
         this.removeNameInput();
 
-        this.cameraReseatEnabled = isAndroidNative() || this.isHazardLab();
+        this.cameraReseatEnabled = true;
         this.camera = new Camera(this);
         this.spacecraft = new Spacecraft(this);
         this.obstacleManager = new ObstacleManager(this);

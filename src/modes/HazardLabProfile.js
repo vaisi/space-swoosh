@@ -3,7 +3,7 @@
 // (almost no simple rocks), shields/sparkles from KM 0, no Journey progress.
 // Changes:
 // - Black hole in the mix with advanced Y-pull so the 5s camera reseat can
-//   be practiced in-lab (web included).
+//   be practiced in-lab.
 // - Wormhole in LAB_FOCUS so portal emerge framing can be practiced in-lab.
 // - Balanced focus across lab types (even mix after Journey rollout).
 // - allowAdjacentSetPieces so practice rows can stack set pieces.

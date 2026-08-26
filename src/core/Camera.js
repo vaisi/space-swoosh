@@ -1,9 +1,9 @@
 // Camera.js
 // Scroll position + world→screen mapping.
 // Changes:
-// - Reseat (Android native all modes + Hazard Lab on web): after 5s below the
-//   ideal seat, an 8s ease-in-out creeps the gap closed. Wormhole / black-hole
-//   leftover stays invisible.
+// - Reseat (every JS platform): after 5s below the ideal seat, an 8s
+//   ease-in-out creeps the gap closed. Wormhole / black-hole leftover stays
+//   invisible.
 // - Catch-up camera: ship leads; camera cruises and accelerates when the ship
 //   rides too high. Stronger lag response so turns don't feel mushy.
 // - Advances with `game.tickScale` so web and native share one pace.
@@ -70,7 +70,7 @@ export class Camera {
     /**
      * After a long dwell below the ideal seat, ease the gap closed over
      * reseatDuration so the lift is almost invisible.
-     * On when Game.cameraReseatEnabled (Android native, or Hazard Lab).
+     * On when Game.cameraReseatEnabled (every JS platform).
      */
     tickReseat(ship, shipScreenY, tickScale) {
         if (!this.reseatEnabled) return 0;

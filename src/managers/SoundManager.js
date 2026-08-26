@@ -3,6 +3,9 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // wormhole portal hops, and empty-tank engine sputter.
 // Changes:
+// - playSwooshVoice does not duck BGM (casual overlay, same as fuel-low).
+//   recoverBgmIfInterrupted() restarts HTMLAudio if the browser pauses it
+//   when Web Audio one-shots resume AudioContext.
 // - playFuelLowVoice does not duck BGM (music stays at full volume under the
 //   line). Other NAV clips still duck.
 // - playFuelOut(): three descending sputters (pitch 1.0 / 0.78 / 0.61, ~0.32s
@@ -17,9 +20,10 @@
 //   soundMusicEnabled, soundSfxEnabled, soundVoiceEnabled). Pause Sound stays
 //   master mute (soundMuted). canPlayMusic/Sfx/Voice gate playback; voice-off
 //   still fires onEnded so Journey captions continue.
-// - playCueVoice / playFirstBoopVoice / playSwooshVoice for session cues
-//   (first-boop.mp3, swoosh-voice.mp3) in Journey + Open Space; shares the
-//   level-voice slot (duck, mute, replace, leave/crash stop via stopLevelVoice).
+    // - playCueVoice / playFirstBoopVoice / playSwooshVoice for session cues
+    //   (first-boop.mp3, swoosh-voice.mp3) in Journey + Open Space; shares the
+    //   level-voice slot (duck except swoosh + fuel-low, mute, replace, leave/crash
+    //   stop via stopLevelVoice).
 // - playLevelVoice / stopLevelVoice for Journey levels 1–42 navigator MP3s
 //   plus epilogue-open / epilogue-skip cues. Missing files fail soft.
 //   Open/skip decode into buffers and wait for AudioContext.resume before
@@ -124,6 +128,9 @@ export class SoundManager {
         this.initialized = false;
         this.bgmPlaying = false;
         this.bgmPaused = false;
+        // True while a run wants the loop going. Distinct from bgmPlaying so a
+        // browser interrupt (paused element, flag still true) can be recovered.
+        this.bgmWanted = false;
         this.audioCtx = null;
         this.boopNoiseBuffer = null; // reused by playBoop (no per-hit GC)
         this.swooshNoiseBuffer = null; // reused by playSwoosh (no per-hit GC)
@@ -148,6 +155,9 @@ export class SoundManager {
                 console.error('Error loading sound:', e);
             });
         });
+
+        this.sounds.bgm.addEventListener('pause', () => this.recoverBgmIfInterrupted());
+        this.sounds.bgm.addEventListener('ended', () => this.recoverBgmIfInterrupted());
     }
 
     async initialize() {
@@ -231,6 +241,7 @@ export class SoundManager {
             src.connect(gain);
             gain.connect(ctx.destination);
             src.start(0);
+            this.recoverBgmIfInterrupted();
         } catch (error) {
             console.error('Error in playBuffer:', error);
         }
@@ -359,7 +370,7 @@ export class SoundManager {
     }
 
     playSwooshVoice(opts = {}) {
-        this.playCueVoice('swoosh-voice.mp3', opts);
+        this.playCueVoice('swoosh-voice.mp3', { ...opts, duckBgm: false });
     }
 
     /** Random low-fuel NAV line. No-op if Voice is off / muted / missing clips. */
@@ -549,6 +560,7 @@ export class SoundManager {
         src.onended = finish;
         try {
             src.start(0);
+            this.recoverBgmIfInterrupted();
         } catch (error) {
             console.error('Error playing decoded cue:', error);
             finish();
@@ -677,7 +689,9 @@ export class SoundManager {
             this.audioCtx = new Ctx();
         }
         if (this.audioCtx.state === 'suspended') {
-            this.audioCtx.resume().catch(() => {});
+            this.audioCtx.resume()
+                .then(() => this.recoverBgmIfInterrupted())
+                .catch(() => {});
         }
         if (this.audioCtx && !this.boopNoiseBuffer) {
             // ~80 ms decaying noise, shared by every wall boop.
@@ -701,9 +715,36 @@ export class SoundManager {
         return this.audioCtx;
     }
 
+    /**
+     * Restart looping BGM if the browser paused the <audio> element while a
+     * run still wants music (typical WebKit HTMLAudio + AudioContext clash).
+     */
+    recoverBgmIfInterrupted() {
+        if (!this.initialized || !this.bgmWanted || !this.canPlayMusic()) return;
+        const bgm = this.sounds.bgm;
+        if (!bgm || (!bgm.paused && !bgm.ended)) return;
+        try {
+            const playPromise = bgm.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        this.bgmPlaying = true;
+                        this.bgmPaused = false;
+                    })
+                    .catch(() => {
+                        /* autoplay / policy — next cue can retry */
+                    });
+            }
+        } catch {
+            /* ignore */
+        }
+    }
+
     playBGM() {
         if (!this.initialized) return;
-        if (this.bgmPlaying) return;
+        this.bgmWanted = true;
+        if (!this.canPlayMusic()) return;
+        if (this.bgmPlaying && !this.sounds.bgm.paused) return;
         
         try {
             const playPromise = this.sounds.bgm.play();
@@ -724,7 +765,9 @@ export class SoundManager {
     }
 
     pauseBGM() {
-        if (!this.initialized || !this.bgmPlaying) return;
+        if (!this.initialized) return;
+        this.bgmWanted = false;
+        if (!this.bgmPlaying) return;
         
         try {
             this.sounds.bgm.pause();
@@ -737,6 +780,7 @@ export class SoundManager {
 
     resumeBGM() {
         if (!this.initialized || !this.bgmPaused) return;
+        this.bgmWanted = true;
         
         try {
             const playPromise = this.sounds.bgm.play();
@@ -761,6 +805,7 @@ export class SoundManager {
 
     stopBGM() {
         if (!this.initialized) return;
+        this.bgmWanted = false;
         
         try {
             this.sounds.bgm.pause();
@@ -943,6 +988,7 @@ export class SoundManager {
 
             osc.start(now);
             osc.stop(now + 0.15);
+            this.recoverBgmIfInterrupted();
         } catch (error) {
             console.error('Error in playSwoosh:', error);
         }

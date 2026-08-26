@@ -3,6 +3,7 @@
 // Changes:
 // - Arc startMovement records left/right on ObstacleManager so Open World
 //   steer cues dismiss the same way zigzag flips do.
+// - isEffectivelyStopped(): fuel-out death waits until displacement is noise.
 // - Gameplay `speedBoost` (1.82×, 5s, refreshable) from wall-boost pickups —
 //   separate from cinematic `boost` so level-clear flyout is untouched.
 // - Arc banks: linear full-π half-turn so X closes to startX (snap on finish).
@@ -155,6 +156,11 @@ export class Spacecraft {
         const dur = this.game.config.fuel?.dyingDurationMs ?? 900;
         const t = (performance.now() - this.game.fuelDyingStart) / dur;
         return Math.max(0, 1 - Math.min(1, t));
+    }
+
+    /** True when this frame's displacement is noise — dead only after this. */
+    isEffectivelyStopped() {
+        return (this.speed ?? 0) <= MIN_HEADING_SPEED;
     }
 
     forwardSpeedScale() {

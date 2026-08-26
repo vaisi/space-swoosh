@@ -3,8 +3,8 @@
 // Changes:
 // - isDesktopWeb() / isNativeApp() / markDocumentShell(): Open World teach copy
 //   and the desktop store rails branch on desktop web vs native/touch.
-// - isAndroidNative(): Capacitor Android only — production camera reseat after
-//   wormhole / black-hole dips. Hazard Lab enables the same reseat on web too.
+// - isAndroidNative(): Capacitor Android only (not Chrome). Camera reseat now
+//   runs on every JS platform; this flag is kept for other native-only gates.
 // - iOS DPR cap raised 1.5 → 2.0: 1.5 sits below the retina threshold (visibly
 //   soft); 2.0 reads sharp while still ~56% fewer pixels than native DPR 3.
 //   Safe on heat because cheap Canvas + draw LOD + opaque context + hitch clamp

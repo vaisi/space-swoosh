@@ -1,5 +1,6 @@
 // VoicePlayer.swift
-// Changes: playEpilogueOpen / playEpilogueSkip for the written ending; missing
+// Changes: playSwoosh does not duck BGM (casual overlay, same as fuel-low).
+// playEpilogueOpen / playEpilogueSkip for the written ending; missing
 // clips finish immediately so captions can still run. Level clips 1–41 at intro;
 // level-42.mp3 plays with its captions after the L42 dark hold.
 
@@ -40,7 +41,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     }
 
     func playSwoosh() {
-        playEngineCue { SfxPlayer.shared.playSwooshVoice(onEnded: $0) }
+        playEngineCue(duck: false) { SfxPlayer.shared.playSwooshVoice(onEnded: $0) }
     }
 
     /// Random low-fuel NAV line. False if another clip already owns the slot.

@@ -4,8 +4,9 @@
 // floating "+FUEL" popup (Signal Blue, Space Mono) plus the pickup sound.
 // Changes:
 // - Collect refills clamped fuel, then maybeSpeakFuelLow() (re-arm / dip).
+//   Salvage during fuelDying cancels the engines-out coast.
 // - Collect refills clamped fuel and increments sparklesCollected (no points).
-// - Popup text is "+FUEL"; no salvage once fuelDying has started.
+// - Popup text is "+FUEL"; sparkle contact still collects during fuelDying.
 // - Day 42: do not plant sparkles past the finish gate.
 // - Spawn also respects obstacleManager.pauseSpawning so the level-clear flyout
 //   can tick collection without planting new sparkles ahead of the exit.
@@ -55,9 +56,9 @@ export class CollectibleManager {
         this.collectibles.forEach(c => c.update());
 
         // Collect on contact; otherwise drop once well below the camera.
-        // No salvage after engines start dying (fuel already at 0).
+        // Engines-out coast can still salvage a sparkle until the hull stops.
         this.collectibles = this.collectibles.filter(c => {
-            if (!this.game.fuelDying && c.checkCollision(this.game.spacecraft)) {
+            if (c.checkCollision(this.game.spacecraft)) {
                 this.collect(c);
                 return false;
             }
@@ -86,6 +87,9 @@ export class CollectibleManager {
         const max = fuelCfg?.max ?? 1;
         const refill = fuelCfg?.refillPerCollectible ?? 0.42;
         this.game.fuel = Math.min(max, (this.game.fuel ?? 0) + refill);
+        if (this.game.fuelDying) {
+            this.game.cancelFuelDying();
+        }
         this.game.sparklesCollected = (this.game.sparklesCollected ?? 0) + 1;
         this.game.soundManager?.playCollect?.();
         this.game.maybeSpeakFuelLow?.();

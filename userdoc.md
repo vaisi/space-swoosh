@@ -1,4 +1,4 @@
-<!-- Changes: Submit Signal card stays intact above the keyboard on Android and iOS. -->
+<!-- Changes: Style Swoosh does not cut music; camera reseat on web after hop/well; coasting onto a sparkle refills instead of locking you dead. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -60,7 +60,8 @@
 > **Hazard Lab:** At the top of the Journey map, an always-unlocked **LAB** tile
 > lets you practice square blooms, sweeps, push nodes, wind currents, portals,
 > and black holes (also in the main Journey). After a hop or well leaves the
-> ship low, the camera eases it back to the usual height after a few seconds.
+> ship low, the camera eases it back to the usual height after a few seconds
+> (same on browser, Android, and the Lab).
 > It does **not** change your Journey level unlocks or stars.
 >
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
@@ -73,7 +74,7 @@
 > top 10 on that style’s board; Submit Score stays available anytime.
 > Your Open Space personal bests (per style) and Journey progress stay on your device.
 > Journey and Open Space play short session voice cues on your first wall BOOP
-> and on each Style Swoosh (swoosh is voice-only).
+> and on each Style Swoosh (swoosh is voice-only; music keeps playing under it).
 >
 > **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
@@ -158,7 +159,7 @@ turning up — they do **not** flash a name banner when they first appear.
 The field stays readable while types arrive; after about **5,000 KM** the
 sky is packed like a late Journey day, and past **12,500 KM** storms come in
 harder pairs with only a short breath between them. Cruise is a bit snappier than before; it does not keep climbing.
-On Android, if a wormhole or black hole leaves the ship sitting low in the
+On browser and Android, if a wormhole or black hole leaves the ship sitting low in the
 view, the camera slowly eases it back to the usual height over several seconds.
 **This is the mode with the leaderboard** — if your run lands in the
 top 10 for the flight style you were using (Zigzag or Arc), after Mission Failed
@@ -262,7 +263,7 @@ level with its three stars underneath. It opens roughly where you left off.
   newer hazards (square blooms, sweeps, push nodes, wind currents, portals,
   black holes) without touching Journey progress. Lab runs are longer (~12,000 KM).
   If a portal or well leaves the ship sitting low, the camera eases it back
-  after about five seconds — same rule as Android Open Space.
+  after about five seconds — same as Journey and Open Space in the browser.
 - **Scroll** with the mouse wheel, or drag up and down on touch.
 - The tile outlined in **blue** is the next level you haven't cleared.
 - **Faded** tiles are still locked — you can see what's coming, but not play it yet.
@@ -391,7 +392,8 @@ soft space-boop sound and a light phone buzz on devices that support haptics
 (not in the browser App Preview). The first wall touch of a session (after any level
 opening voice finishes) also plays a short navigator line on screen (“The walls
 forgive…”). Threading a tight gap for a Style Swoosh plays a short voice cue with
-no extra caption (you still see the usual style points).
+no extra caption (you still see the usual style points). Background music keeps
+playing under it.
 
 Focus, Flicker, Ember, and Saber are free forever. Every other ship is a store
 unlock on the apps (IAP). On the main menu you can scroll the whole roster —
@@ -481,8 +483,10 @@ or a tall desktop window — screen size does not empty the tank sooner.
   fifth), NAV may say one line (Journey and Open Space; follows **Voice**,
   not Sound FX). Background music keeps playing under it. Miss several
   diamonds in a row and the bar bottoms out: you'll hear the engine sputter
-  three times, each a bit lower, then engines coast and the run fails
-  (**Out of fuel**). The sputter follows **Sound FX** (and the pause Sound mute).
+  three times, each a bit lower, then engines coast. If you still touch a
+  sparkle before the ship fully stops, it refills and you keep flying. Once
+  you have stopped with an empty tank, the run fails (**Out of fuel**). The
+  sputter follows **Sound FX** (and the pause Sound mute).
 - Diamonds are always safe to touch — blue means "good" here (same family as
   the shield).
 

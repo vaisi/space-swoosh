@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Submit Signal keeps stats-above-field order above the IME; opaque wash hides Mission Failed. -->
+<!-- Changes: Swoosh voice does not duck BGM; camera reseat on all JS platforms; fuel-out sparkle salvage until the hull stops. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -29,7 +29,8 @@
 > packs; jelly does not deform the hitbox. Plus **Journey** (42 levels / 119 stars),
 > **Hazard Lab**, Signal lore, logbook, Android-timed intro roll + streak shower,
 > lean-preserving clear flyout, L42 written epilogue (arrival voice, prompt, lights, ordinal).
-> `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV)
+> `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV
+> intros / first-boop; style swoosh and fuel-low sit on top at full volume)
 > plus `crash` / `crash_with_shield` / `shield` / `turn`. Those four plus turn
 > play as pre-decoded engine buffers (no `AVAudioPlayer` hitch). Synth fallback
 > if a file is missing. Boop, collect, portal hop, and style-swoosh whoosh stay
@@ -74,7 +75,7 @@
 > **Hazard Lab (sandbox):** Always-unlocked Journey-map tile → `PLAY_MODE.hazardLab`
 > / `HazardLabProfile`. Practice for **Phase**, **Sweep**, **Repulsor**, **Drift
 > Current**, **Wormhole**, and **Black hole** (advanced Y-pull). Camera reseat
-> after 5s below seat is on in-lab on every platform. Finish/crash skips
+> after 5s below seat is on for every JS run (web + Capacitor), including lab. Finish/crash skips
 > `recordLevelResult`. Logbook observes during lab via `isHazardLab()`.
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
@@ -303,7 +304,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playFuelLowVoice`; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
+| `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playSwooshVoice` and `playFuelLowVoice`; `recoverBgmIfInterrupted` restarts HTMLAudio if WebKit pauses it under Web Audio; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
@@ -421,12 +422,12 @@ Two things worth knowing about the existing engine that this surfaced:
   ideal seat (`height * 0.75`) so it accelerates back until the ship sits lower
   on screen. A `0.16×height` deadzone skips re-seating on small drift. Ship
   updates before camera each frame.
-  **Android native (all modes) and Hazard Lab (every platform, including web):**
+  **All JS platforms (web + Capacitor, every mode including Hazard Lab):**
   if the ship sits below the ideal seat for 5s (`camera.reseatDelay`, slack
   `0.03×height`) — typical after a wormhole hop or advanced black-hole Y-pull
   that lands inside the deadzone — `Camera.tickReseat` eases the leftover gap
   closed over 8s (`reseatDuration`, `reseatTrack` 0.015), not a catch-up snap.
-  Gated by `Game.cameraReseatEnabled` (`isAndroidNative()` or `isHazardLab()`).
+  Gated by `Game.cameraReseatEnabled` (always true for JS runs).
   iOS native Open Space / Journey uses `CinematicFlight.cruiseSeat` and does not
   reseat this way.
   KM must never be computed as `|velocity| * wallClockDt * 100` — that desyncs
@@ -600,7 +601,7 @@ always-unlocked **HAZARD LAB** tile → `Game.beginHazardLab()`.
 | Piece | Role |
 | --- | --- |
 | `config/HazardLabConfig.js` | `HAZARD_LAB` descriptor: phase / sweepGate / repulsor / driftCurrent / wormhole / blackhole, goal 12000 KM, `starSlots: 0`. |
-| `modes/HazardLabProfile.js` | Mid difficulty, `simpleChance` 0.1, even focus mix (incl. wormhole + advanced black hole), wall boosts off. Camera reseat is on in-lab on every platform. |
+| `modes/HazardLabProfile.js` | Mid difficulty, `simpleChance` 0.1, even focus mix (incl. wormhole + advanced black hole), wall boosts off. Camera reseat is on for every JS run, lab included. |
 | `Game.isLevelRun()` | Journey **or** Hazard Lab (finish gate, flyout, outcome UI). |
 | `finishJourneyLevel` | Lab branch builds outcome only — no `recordLevelResult`. |
 
@@ -840,7 +841,7 @@ Obstacle probes are meant to hug the drawn ink:
 | Complex (orbiting moons) | Main circle + sats in **body-rotated** world space (same as render). Shield smash destroys only the part hit: a moon clip leaves the core; a core hit clears the whole cluster. Render cull uses full cluster radius so moons are never collidable while undrawn. |
 | Shooting star | 8-point star polygon + projectile circles (projectiles still drawn when the star body is culled). Shield smash clips only the shots you hit; body hit clears the star. |
 | Black hole | Core radius only (glow/pulse are VFX) |
-| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera keeps scrolling during the hop so emerge catch-up is the spacetime wobble (original behavior); `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge. Reseat dwell does not count during the hop; if the ship stays low after emerge, the 5s reseat pull can lift it back (Android native all modes, Hazard Lab on every platform). |
+| Wormhole | Never kills; `safeZoneRadius = 1.2×size + baseUnit`; teleport at `size`; ship sets `wormholeTransit` (frozen + invuln) for the 300 ms hop; camera keeps scrolling during the hop so emerge catch-up is the spacetime wobble (original behavior); `playPortalEntry()` on suck-in, `playPortalExit()` + delayed `playShield()` on emerge. Reseat dwell does not count during the hop; if the ship stays low after emerge, the 5s reseat pull can lift it back (all JS platforms). |
 
 `ObstacleManager.update()` advances every obstacle (orbits, movers, shots)
 **before** running shield/fatal collision, so hit tests match the ink painted
@@ -1134,10 +1135,13 @@ UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly
    `dist < spacecraft.radius * fuel.magnetRadiusScale` (4.25). Pull strength is
    `fuel.magnetPull` (0.15) × `tickScale` × proximity falloff
    `(1 - dist / magnetRadius)`. Collection still requires circle overlap
-   (`size + ship.radius`). No pull / no salvage after engines die.
+   (`size + ship.radius`). Magnet stays off during the engines-out coast;
+   contact collect still works.
 4. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
-   clamped to `fuel.max` (1). Popup `+FUEL`. No salvage after `fuelDying`.
-   Refill above `voiceLowThreshold` re-arms the low-fuel NAV latch.
+   clamped to `fuel.max` (1). Popup `+FUEL`. Contact during `fuelDying` salvages:
+   refill + `Game.cancelFuelDying()` (iOS: clear `fuelDying` / `fuelDyingT`).
+   Collectibles update **before** fuel-death finalize so a last-frame overlap
+   still counts. Refill above `voiceLowThreshold` re-arms the low-fuel NAV latch.
 5. **Low-fuel NAV:** Journey / Open Space only. When fuel first crosses to
    `<= voiceLowThreshold` (0.20), `maybeSpeakFuelLow()` / iOS `sfxFuelLow`
    plays a random `fuel-low-N.mp3` (Voice channel; does **not** duck BGM). HUD pulse stays on
@@ -1146,10 +1150,12 @@ UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly
 6. **Empty:** `beginFuelDying()` plays `playFuelOut()` once (SFX channel;
    three descending sputters ~0.32s apart, pitch 1.0 / 0.78 / 0.61, ~1.09s
    total; not a crash boom) → ship `forwardSpeedScale` eases to 0 over
-   `dyingDurationMs` (900) → `gameOver({ reason: 'fuel' })` (no explosion;
-   CopyBank `fuelOut`). Crash path unchanged (`reason: 'crash'`). iOS:
-   `RunState.sfxFuelOut` → `SfxPlayer.playFuelOut()` (baked PCM;
-   `muted || !sfxEnabled`).
+   `dyingDurationMs` (900) → `gameOver({ reason: 'fuel' })` only after that
+   coast **and** `Spacecraft.isEffectivelyStopped()` (`speed <= MIN_HEADING_SPEED`).
+   Sparkle contact during the coast cancels dying. Crash path unchanged
+   (`reason: 'crash'`). iOS: `RunState.sfxFuelOut` → `SfxPlayer.playFuelOut()`
+   (baked PCM; `muted || !sfxEnabled`); `CombatSimulator` waits for
+   `Fuel.dyingStopSpeed` after collect.
 
 ### Style points + pickups (data flow)
 

@@ -1,5 +1,6 @@
 // GameConfig.swift
-// Changes: Fuel.voiceLowThreshold 0.20 for NAV low-fuel lines (HUD stays 0.28).
+// Changes: Fuel.dyingStopSpeed 0.01 so fuel-out waits until the hull stops.
+// Fuel.voiceLowThreshold 0.20 for NAV low-fuel lines (HUD stays 0.28).
 
 import Foundation
 import CoreGraphics
@@ -61,6 +62,8 @@ enum GameConfig {
         static let drainPerKm: CGFloat = 0.00025
         static let refillPerCollectible: CGFloat = 0.45
         static let dyingDurationMs: CGFloat = 900
+        /// JS MIN_HEADING_SPEED — fuel-out fail waits until displacement is noise.
+        static let dyingStopSpeed: CGFloat = 0.01
         static let lowThreshold: CGFloat = 0.28
         static let voiceLowThreshold: CGFloat = 0.20
         static let magnetRadiusScale: CGFloat = 4.25
