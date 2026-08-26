@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: iOS wormholes match Android (spinning dashed stroke, no inner glow). Play store snapshot versionCode 44 / versionName 1.0.44. -->
+<!-- Changes: Native iOS feelSpeed 1.0 (matches Android/web cruise). iOS wormholes match Android (spinning dashed stroke, no inner glow). Play store snapshot versionCode 44 / versionName 1.0.44. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -44,7 +44,7 @@
 > no additive inner glow). Flicker ribbon tucks
 > under the hull center and tapers the smudge at the join; wall BOOP is a
 > spring path wiggle only. Drift lanes are thin scrolling dashes.
-> Cruise uses `snappyHz * feelSpeed` (`feelSpeed` 0.90). Clear-flyout smash SFX
+> Cruise uses `snappyHz * feelSpeed` (`feelSpeed` 1.0, same travel as Android/web). Clear-flyout smash SFX
 > + smash haptic are throttled to 120 ms.
 > Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`).
 > `turn.mp3` is pre-decoded into the SFX engine. Captions still run if a voice
@@ -1261,7 +1261,7 @@ Turn / crash / shield / shield-crash decode into `AVAudioPCMBuffer`s (no
 `AVAudioPlayer` seek hitch). Empty-tank sputter is a baked synth
 (`makeFuelOut`, three descending sputters) fired once when `fuelDying` starts. Clear-flyout smash SFX
 and smash haptic are gated to 120 ms.
-Cruise travel is `snappyHz * feelSpeed` (0.90). Do not retune input or
+Cruise travel is `snappyHz * feelSpeed` (1.0, matches Android/web). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,
 matching hull bakes / `LiveHullPaint` (play + picker), and Android trail + `wallTrailDeform`

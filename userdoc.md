@@ -1,4 +1,4 @@
-<!-- Changes: Portal rings are a hollow spinning dashed stroke on iOS and Android. Style Swoosh does not cut music; camera reseat on web after hop/well; coasting onto a sparkle refills instead of locking you dead. -->
+<!-- Changes: Native iOS cruise matches Android/web. Portal rings are a hollow spinning dashed stroke on iOS and Android. Style Swoosh does not cut music; camera reseat on web after hop/well; coasting onto a sparkle refills instead of locking you dead. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -457,8 +457,8 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
 ink may show in the notch / home-indicator strips). Turn arcs and cruise speed
-are meant to feel the same as on a computer — if a build ever feels half-speed
-with KM racing ahead, that build is wrong; report the menu stamp
+are meant to feel the same on computer, Android, and native iPhone — if a build
+ever feels half-speed with KM racing ahead, that build is wrong; report the menu stamp
 (e.g. `BUILD 29 · WEB`). That number goes up every time a new native/web
 bundle is built — if it did not change after an Android Studio install, the
 phone is still running the previous version.
