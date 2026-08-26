@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: ink30 token for dotted menu rules; Nyan gray; live-ship accents.
+// Changes: Dark signal is ice blue #5CC8FF (Android night token; was mint).
 
 import SwiftUI
 import UIKit
@@ -41,7 +41,7 @@ enum BrandColors {
                 : UIColor(red: 26 / 255, green: 26 / 255, blue: 26 / 255, alpha: 1)
         case .signal:
             return night
-                ? UIColor(red: 61 / 255, green: 1, blue: 154 / 255, alpha: 1)
+                ? UIColor(red: 92 / 255, green: 200 / 255, blue: 1, alpha: 1)
                 : UIColor(red: 0, green: 0, blue: 1, alpha: 1)
         }
     }

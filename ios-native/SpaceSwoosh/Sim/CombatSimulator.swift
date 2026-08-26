@@ -6,6 +6,7 @@
 // Open Space storm quiet is short; dual patches chain without half-screen holes.
 // Open World steer cue is overlay-only (no second milestone line).
 // Atmosphere still at 200 KM. L42 empty space past the gate; playEpilogue.
+// Intro title: ship flies and steers (KM frozen). Phase bloom has magnetic lock.
 
 import Foundation
 import CoreGraphics
@@ -236,11 +237,14 @@ enum CombatSimulator {
 
         let dy = abs(world.ship.y - prevY)
         let kmDelta = GameConfig.kmDelta(dy: dy, playfieldHeight: world.height)
-        run.scoreKm += kmDelta
+        let kmLive = run.cinema != .introTitle
+        if kmLive {
+            run.scoreKm += kmDelta
+        }
 
         if run.speedBoostActive {
             run.speedBoostTimer = max(0, run.speedBoostTimer - dt)
-        } else if !run.fuelDying {
+        } else if kmLive, !run.fuelDying {
             run.fuel = max(0, run.fuel - kmDelta * GameConfig.Fuel.drainPerKm)
             if run.fuel <= 0 {
                 run.fuelDying = true
@@ -290,7 +294,7 @@ enum CombatSimulator {
         FloatPopupBuffer.spawn(&run.popups, kind: .boop, x: x, y: y, vy: -1.6)
         run.sfxBoop = true
         world.wallBoopSide = 0
-        if !run.firstBoopDone {
+        if !run.firstBoopDone, run.cinema == .play {
             run.firstBoopDone = true
             run.sfxFirstBoop = true
             run.logbookMarks.append(.interact("spaceBoop"))
@@ -974,6 +978,12 @@ enum CombatSimulator {
         let acc = (target - o.displaySpread) * k - o.moonSpin * damp
         o.moonSpin += acc * dt
         o.displaySpread += o.moonSpin * dt
+        let release = o.radius * 2.45
+        let err = abs(target - o.displaySpread)
+        if err < release * 0.02, abs(o.moonSpin) < release * 0.35 {
+            o.displaySpread = target
+            o.moonSpin = 0
+        }
     }
 
     private static func fireShot(world: inout WorldState, from star: ObstacleState, run: inout RunState) {

@@ -1,5 +1,6 @@
 // BakePipeline.swift
-// Changes: ClassicHullPaint stills (wash / highlight / Flux 0.82) keyed by HullKind.
+// Changes: Wormhole dashed rings are instance-baked per theme (no stale static
+// cache). Repulsor ring/ticks use Android hairline strokes.
 
 import SpriteKit
 import UIKit
@@ -14,6 +15,9 @@ final class BakePipeline {
     let shieldRingOuter: SKTexture
     let plus: SKTexture
     let windLane: SKTexture
+    private let wormholeSignal: SKTexture
+    private let wormholeInk: SKTexture
+    private let wormholeInk30: SKTexture
     private let parts: [ObstacleKind: SKTexture]
     private var hullByKind: [HullKind: SKTexture] = [:]
 
@@ -37,6 +41,9 @@ final class BakePipeline {
         shieldRingOuter = Self.shieldRing(size: 128, strokeFrac: 0.030)
         plus = Self.plus(size: 96)
         windLane = Self.windLane(width: 128, height: 16)
+        wormholeSignal = Self.dashedRing(size: 96, color: BrandColors.UI.signal)
+        wormholeInk = Self.dashedRing(size: 96, color: BrandColors.UI.ink)
+        wormholeInk30 = Self.dashedRing(size: 96, color: BrandColors.UI.ink30)
         let circle = Self.filledCircle(size: 96)
         let square = Self.square(size: 96)
         let hole = Self.hole(size: 96)
@@ -52,7 +59,7 @@ final class BakePipeline {
             .sweep: Self.blade(width: 256, height: 32),
             .slab: Self.slab(width: 32, height: 256),
             .drift: Self.windDash(width: 256, height: 16),
-            .wormhole: Self.dashedRing(size: 96, color: BrandColors.UI.signal),
+            .wormhole: wormholeSignal,
             .repulsor: Self.repulsor(size: 128),
             .blackhole: hole,
             .projectile: circle
@@ -72,13 +79,9 @@ final class BakePipeline {
     }
 
     func wormhole(isExit: Bool, paired: Bool) -> SKTexture {
-        if paired { return Self.dashedRingCachedInk30 }
-        return isExit ? Self.dashedRingCachedInk : Self.dashedRingCachedSignal
+        if paired { return wormholeInk30 }
+        return isExit ? wormholeInk : wormholeSignal
     }
-
-    private static let dashedRingCachedSignal = dashedRing(size: 96, color: BrandColors.UI.signal)
-    private static let dashedRingCachedInk = dashedRing(size: 96, color: BrandColors.UI.ink)
-    private static let dashedRingCachedInk30 = dashedRing(size: 96, color: BrandColors.UI.ink30)
 
     private static func filledCircle(size: CGFloat) -> SKTexture {
         image(size: size) { cg, mid, r in
@@ -264,14 +267,16 @@ final class BakePipeline {
         }
     }
 
+    /// Android hairlines: ring `max(1, baseUnit*0.06)`, ticks `max(1.25, baseUnit*0.07)`.
     private static func repulsor(size: CGFloat) -> SKTexture {
         image(size: size) { cg, mid, r in
             cg.setStrokeColor(BrandColors.UI.ink30.cgColor)
-            cg.setLineWidth(max(1.5, r * 0.08))
+            cg.setLineWidth(max(1.0, r * 0.025))
             cg.setLineDash(phase: 0, lengths: [r * 0.35, r * 0.22])
             let ringR = r * 0.95
             cg.strokeEllipse(in: CGRect(x: mid - ringR, y: mid - ringR, width: ringR * 2, height: ringR * 2))
             cg.setLineDash(phase: 0, lengths: [])
+            cg.setLineWidth(max(1.25, r * 0.026))
             for i in 0..<8 {
                 let a = CGFloat(i) / 8 * .pi * 2
                 let r0 = r * 0.42

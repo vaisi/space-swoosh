@@ -1,5 +1,5 @@
 // HazardCollision.swift
-// Changes: Portal hop grants shield via RunState.grantShield.
+// Changes: Phase piece local Y is SpriteKit-up (Canvas Y-down). Portal hop grants shield.
 
 import Foundation
 import CoreGraphics
@@ -171,7 +171,8 @@ enum HazardCollision {
     static func pieceLocal(_ o: ObstacleState, index: Int) -> (x: CGFloat, y: CGFloat) {
         let angle = (CGFloat(index) / 4) * .pi * 2 - .pi / 2
         let r = max(0, o.displaySpread)
-        return (cos(angle) * r, sin(angle) * r)
+        // Canvas +Y is down; SpriteKit +Y is up — flip so N stays on-screen north.
+        return (cos(angle) * r, -sin(angle) * r)
     }
 
     static func pieceSpin(_ o: ObstacleState, index: Int) -> CGFloat {

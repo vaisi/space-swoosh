@@ -1,5 +1,6 @@
 // PooledSpriteField.swift
-// Changes: Sparkle halo is a filled signalDisc (alpha blend, signalSoft).
+// Changes: Wormhole dashes spin via phase rotation. Phase core fades fully
+// (Android mergeFactor). Piece Y is SpriteKit-up.
 
 import SpriteKit
 
@@ -100,7 +101,7 @@ final class PooledSpriteField: SKNode {
             let y = screenY + (o.y - cameraY)
             let merge = HazardCollision.mergeFactor(o)
 
-            if o.kind == .drift || (o.kind == .phase && merge < 0.05) {
+            if o.kind == .drift || (o.kind == .phase && merge < 0.001) {
                 node.isHidden = true
             } else {
                 node.isHidden = false
@@ -110,9 +111,13 @@ final class PooledSpriteField: SKNode {
                     node.texture = bake.part(for: o.kind)
                 }
                 node.position = CGPoint(x: o.x, y: y)
-                node.zRotation = o.kind == .slab || o.kind == .drift ? 0 : o.rotation
+                if o.kind == .wormhole {
+                    node.zRotation = o.phase
+                } else {
+                    node.zRotation = o.kind == .slab || o.kind == .drift ? 0 : o.rotation
+                }
                 node.size = bodySize(o)
-                node.alpha = o.kind == .phase ? max(0.15, merge) : 1
+                node.alpha = o.kind == .phase ? merge : 1
                 node.colorBlendFactor = 0
             }
 
@@ -211,7 +216,8 @@ final class PooledSpriteField: SKNode {
             let s = o.radius * 0.7 * 2
             return CGSize(width: s, height: s)
         case .phase:
-            let s = o.radius * 0.72 * 2
+            let pack = 0.9 + 0.1 * HazardCollision.mergeFactor(o)
+            let s = o.radius * 0.72 * 2 * pack
             return CGSize(width: s, height: s)
         case .sweep:
             return CGSize(width: o.halfW * 2, height: max(2, o.halfH * 2))

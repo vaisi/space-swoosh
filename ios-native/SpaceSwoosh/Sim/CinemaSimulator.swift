@@ -1,5 +1,6 @@
 // CinemaSimulator.swift
-// Changes: L42 fade hands off to the written epilogue overlay (no ENDING_BEATS).
+// Changes: After fly-in, steering unlocks for NAV title / wait (Android title
+// phase). L42 fade hands off to the written epilogue overlay (no ENDING_BEATS).
 // Day 42 skips intro captions; those play in the epilogue after the dark hold.
 
 import Foundation
@@ -90,10 +91,13 @@ enum CinemaSimulator {
         command _: SteerCommand
     ) -> Bool {
         switch run.cinema {
-        case .introArrive, .introSettle, .introTitle, .introWait:
+        case .introArrive, .introSettle:
             tickIntro(world: &world, run: &run, dt: dt)
             FloatPopupBuffer.tick(&run.popups, dt: dt)
             return true
+        case .introTitle, .introWait:
+            tickIntro(world: &world, run: &run, dt: dt)
+            return false
         case .clearHold, .clearBoost, .clearFade:
             tickHudReveal(run: &run, dt: dt)
             tickClear(world: &world, run: &run, dt: dt)
@@ -161,6 +165,7 @@ enum CinemaSimulator {
         run.cinemaBoost = 1
         run.seatY = CinematicFlight.cruiseSeat
         run.streakAlpha = 0
+        run.inputLocked = false
         if run.profile.introBeats.isEmpty
             || (run.profile.mode == .journey && run.profile.level >= JourneyConfig.totalLevels) {
             run.cinema = .introWait
