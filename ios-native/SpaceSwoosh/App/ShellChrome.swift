@@ -1,5 +1,5 @@
 // ShellChrome.swift
-// Changes: brandButton accepts labelSize for paired half-width actions;
+// Changes: framedTile can fillHeight for tall PLAY cards; brandButton labelSize;
 // ruledLabel matches Android's dotted section header.
 
 import SwiftUI
@@ -144,11 +144,12 @@ enum ShellChrome {
     static func framedTile<Content: View>(
         signal: Bool = false,
         selected: Bool = false,
+        fillHeight: Bool = false,
         @ViewBuilder content: () -> Content
     ) -> some View {
         content()
             .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: fillHeight ? CGFloat.infinity : nil, alignment: .topLeading)
             .background(selected ? BrandColors.paperDeep : BrandColors.paperTint)
             .overlay {
                 Rectangle()

@@ -1,16 +1,9 @@
 // CombatSimulator.swift
-// Changes: Play catch-up camera (Android Camera.js); KM from ΔcameraY; BOOP edge clamp.
-// Wormhole gates spawn without additive glow (Android stroke-only).
-// Fuel-out sparkle salvage while the ship is still moving; death
-// only after the coast elapses and displacement is noise.
-// L6+ pairing and Open Space KM storms read GeneratedJourneyData
-// (catalog + weather + belt table). Delay at maxOnScreen instead of skip-holes.
-// Corridor mid-fill, family picker, comboTheme belt.
-// Wormholes are helpers (occasional gift hop), not weather identity.
-// Open Space storm quiet is short; dual patches chain without half-screen holes.
-// Open World steer cue is overlay-only (no second milestone line).
-// Atmosphere still at 200 KM. L42 empty space past the gate; playEpilogue.
-// Intro title: ship flies and steers (KM frozen). Phase bloom has magnetic lock.
+// Changes: First-boop voice waits until LEVEL N is done (Android
+// isLevelIntroVoiceBlocking) — synth BOOP + popup still fire. Play catch-up
+// camera; KM from ΔcameraY; BOOP edge clamp. Wormhole gates stroke-only.
+// Fuel-out sparkle salvage; L6+ pairing and Open Space storms; L42 epilogue.
+// Intro title: ship flies and steers (KM frozen).
 
 import Foundation
 import CoreGraphics
@@ -324,11 +317,16 @@ enum CombatSimulator {
         FloatPopupBuffer.spawn(&run.popups, kind: .boop, x: x, y: y, vy: -1.6)
         run.sfxBoop = true
         world.wallBoopSide = 0
-        if !run.firstBoopDone, run.cinema == .play {
+        if !run.firstBoopDone, run.cinema == .play, !Self.isIntroVoiceBlocking(run) {
             run.firstBoopDone = true
             run.sfxFirstBoop = true
-            run.logbookMarks.append(.interact("spaceBoop"))
         }
+    }
+
+    /// Android WallBoopManager.isLevelIntroVoiceBlocking — do not spend the
+    /// session first-boop cue while LEVEL N still owns the NAV slot.
+    private static func isIntroVoiceBlocking(_ run: RunState) -> Bool {
+        run.cinema == .introTitle || VoicePlayer.shared.isSpeaking
     }
 
     /// Android WallBoopManager.safeLabelX — keep the full tracked "BOOP" on-screen.

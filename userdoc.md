@@ -1,4 +1,6 @@
-<!-- Changes: iOS ship halo rings match Android — soft translucent wash, not a solid white ring. -->
+<!-- Changes: iOS PLAY cards are taller and vertically centered; Journey map is
+     5 tiles per row and taller (same as Android); shield rings match Android
+     size; LEVEL N and wall boop can both be heard. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -16,7 +18,7 @@
 > app. TestFlight menus use the same paper/ink framed chrome as Android (Space
 > Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
 > Options is a hub (Ship, Controls, Sound, Light/Dark Mode). Play offers Journey
-> then Open Space; Hazard Lab is the **LAB** tile on the Journey map. High Scores
+> then Open Space on two tall, centered cards; Hazard Lab is the **LAB** tile on the Journey map. High Scores
 > is the same online SPACE BOARD as Android (Zigzag/Arc, distance or obstacles).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
 > Cycle ships on the home screen (◀ / ▶) or pick one under
@@ -36,7 +38,8 @@
 > sits under Options → Controls as out of service until the Journey is finished.
 > Wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,
-> flowing wind dashes, a pulsing two-ring shield (about four seconds),
+> flowing wind dashes, a pulsing two-ring shield that matches Android’s size
+> (about four seconds on iPhone),
 > the same four-point sparkle as Android with a soft blue disc behind it, blue `+FUEL`,
 > NAV captions, a Space Log, and the same
 > run-start roll / finish
@@ -44,6 +47,8 @@
 > when those clips are in the build. After the navigator line, the compact
 > icon HUD eases in (route, then pause, then smash). Voice lines play if the
 > build includes them; turn Voice off in Options if you want captions only.
+> At the start of a Journey level you hear the day line; a wall BOOP still
+> sounds under it, and the spoken first-boop waits until that line is done.
 > Wall hits, turns, pickups, and crashes should make sound on the **newest**
 > TestFlight even if the Silent switch is on (pause → Sound still
 > mutes everything; Options → Sound isolates Music / Sound FX / Voice). The turn cue is the same clip as Android when `turn.mp3` is in the
@@ -216,7 +221,7 @@ roster — owned ships equip and save. Playtest builds currently treat every
 ship as owned. On store builds, locked ships show a price (tap the ship
 to unlock on the apps). Options → Ship has the same roster in a grid.
 
-- **Play** — Journey (recommended) then Open Space. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
+- **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases.
 - **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS and Android share the same online board (call sign + ship). Android pages 10 scores at a time (up to 100).
@@ -258,10 +263,12 @@ triangular, and square simple asteroids each get their own entry.
 
 ## The Journey map
 
-Choosing Journey opens the level map: chapter by chapter, a numbered tile per
-level with its three stars underneath. It opens roughly where you left off.
+Choosing Journey opens the level map: chapter by chapter, **five** numbered
+tiles per row (taller than they are wide) with star pips underneath. It opens
+roughly where you left off.
 
-- **Hazard Lab** sits at the top — always unlocked. Tap **LAB** to practice the
+- **Hazard Lab** sits at the top — always unlocked. Tap the centered **LAB**
+  tile (same size as a day tile) to practice the
   newer hazards (square blooms, sweeps, push nodes, wind currents, portals,
   black holes) without touching Journey progress. Lab runs are longer (~12,000 KM).
   If a portal or well leaves the ship sitting low, the camera eases it back

@@ -1,5 +1,7 @@
 // SfxPlayer.swift
-// Changes: Turn SFX is original turn.mp3 only — turn1.mp3 is not the cue.
+// Changes: Pre-decode level-1…level-42 NAV clips onto the voice node so LEVEL N
+// and synth boop share AVAudioEngine (Android Web Audio mix). Turn SFX is
+// original turn.mp3 only.
 
 import AVFoundation
 import Foundation
@@ -26,6 +28,7 @@ final class SfxPlayer {
     private var firstBoopVoice: AVAudioPCMBuffer?
     private var swooshVoice: AVAudioPCMBuffer?
     private var fuelLowVoice: [AVAudioPCMBuffer?] = [nil, nil, nil]
+    private var levelVoice: [Int: AVAudioPCMBuffer] = [:]
     private var lastFuelLow = -1
     private var next = 0
     private var started = false
@@ -62,6 +65,11 @@ final class SfxPlayer {
         }
         if let decoded = Self.decodeNamed("swoosh-voice", into: format) {
             swooshVoice = Self.scaled(decoded, volume: 0.85)
+        }
+        for i in 1...JourneyConfig.totalLevels {
+            if let decoded = Self.decodeNamed("level-\(i)", into: format) {
+                levelVoice[i] = Self.scaled(decoded, volume: 0.85)
+            }
         }
         for i in 1...3 {
             if let decoded = Self.decodeNamed("fuel-low-\(i)", into: format) {
@@ -139,6 +147,10 @@ final class SfxPlayer {
 
     func playFuelOut() {
         play(fuelOut)
+    }
+
+    func playLevelVoice(_ level: Int, onEnded: (() -> Void)? = nil) {
+        playVoice(levelVoice[level], onEnded: onEnded)
     }
 
     func playFirstBoopVoice(onEnded: (() -> Void)? = nil) {

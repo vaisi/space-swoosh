@@ -1,8 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS wakes match Android density — Bloom/Argus/Koi/Chime
-     subdiv-1 marks, FilamentWake plankton pool is slots×(5×density+2) newest-first
-     (no 600 cap), live hull SKEffectNode is not rasterized. -->
+<!-- Changes: iOS/Android parity — shield ring sprites add Canvas half-stroke;
+     LEVEL N on SfxPlayer voice node; first-boop waits for intro voice; Journey
+     map 5 columns at tileH = tileW×1.15; PLAY cards unit×17 and vertically centered. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -34,12 +34,20 @@
 > `Voice/` also packs looping `background.mp3` (0.40, ducks to 0.14 under NAV
 > intros / first-boop; style swoosh and fuel-low sit on top at full volume)
 > plus `crash` / `crash_with_shield` / `shield` / `turn`. Those four plus turn
-> play as pre-decoded engine buffers (no `AVAudioPlayer` hitch). Synth fallback
+> play as pre-decoded engine buffers (no `AVAudioPlayer` hitch). **LEVEL N**
+> intros (`level-1`…`level-42`) also decode once onto `SfxPlayer.voiceNode` so
+> synth wall-boop can mix under NAV (Android Web Audio mix). Spoken
+> `first-boop` waits until intro title / `VoicePlayer.isSpeaking` is clear
+> (`CombatSimulator.isIntroVoiceBlocking`, same as JS
+> `WallBoopManager.isLevelIntroVoiceBlocking`). Synth fallback
 > if a file is missing. Boop, collect, portal hop, and style-swoosh whoosh stay
 > baked synths. After NAV/title, mockup-C HUD staggers like Android: route/fuel
 > at 2s, pause at 3s, smash after the first smash. Shield is two Signal rings
 > for **4s** (`Flicker.shieldSeconds`; Android stays 5s) with a last-1.5s
-> warning pulse. Sparkles are the 8-vertex 4-point star at Android radius
+> warning pulse. Visual ring size matches Android Canvas: sprite diameter
+> includes the half-stroke (`1.5r + 0.1r` inner, `1.65r + 0.05r` outer) so the
+> outer edge is not smaller than the JS `stroke` centered on `1.5r`. Hitbox
+> stays `shieldHitboxScale` 1.5. Sparkles are the 8-vertex 4-point star at Android radius
 > `1.15×` unit (sprite diameter `2r`) plus a filled `signalDisc` halo of
 > diameter `3.8r` (`signalSoft` alpha, alpha-blend). Wormholes are Android’s
 > spinning dashed stroke only (signal / ink / ink30, path diameter `2×size×pulse`,
@@ -67,11 +75,13 @@
 > lines come from `LEVEL_MESSAGES`; all levels use `LEVEL_INTRO_BEATS` (one
 > sentence at a time; L6+ carry `gapAfterMs` from ElevenLabs breaks). Navigator
 > MP3s for levels **1–41** play at intro (`public/sounds/voice/level-N.mp3` via
-> `SoundManager.playLevelVoice`). **Day 42** has no intro text or voice;
+> `SoundManager.playLevelVoice`; native iOS `SfxPlayer.playLevelVoice` on the
+> engine voice node). **Day 42** has no intro text or voice;
 > `level-42.mp3` and its captions play after the gate, then a **3s** black gap, then `epilogue-open.mp3`.
 > 11/19/21/22/40 currently use old clips as
 > placeholders — replace in place; old L36 is not the final L40 sun line).
-> `first-boop.mp3` (first sidewall hit per app session + milestone beats from
+> `first-boop.mp3` (first sidewall hit per app session after LEVEL N intro
+> voice/title is done + milestone beats from
 > `FIRST_BOOP_BEATS`) and `swoosh-voice.mp3` (every style swoosh, voice only).
 > App icon source: `assets/store/app-icon-512.png` (`npm run assets:sync` →
 > iOS/Android/PWA). Level logbook entries unlock to KNOWN on level start (intro heard).
@@ -283,7 +293,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `ui/screens/LogbookScreen.js` | Space Log screen: category tabs; Journey rows text-only; other tabs keep icon cards. |
 | `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
-| `ui/screens/JourneyMapScreen.js` | Scrollable level select: chapter bands of level tiles; lives chip when `LIVES_ENABLED`. |
+| `ui/screens/JourneyMapScreen.js` | Scrollable level select: **5 columns**, `tileH = tileW × 1.15`; chapter bands of level tiles; lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
 | `ui/screens/ProPaywallScreen.js` | Empty lives → weekly / yearly Pro offers + restore (only when `LIVES_ENABLED`). |
 | `ui/screens/AnnualShipPickScreen.js` | Yearly Pro one-time pick of up to 3 premium ships. |
@@ -323,7 +333,7 @@ game build env. Journey progress and Open Space personal best stay in
 | Screen | Role |
 | --- | --- |
 | `menu` | Title, ship preview with ▶/◀ browse of full roster (`menuShipBrowseId`); locked shows price + tap-to-buy; Play / Space Log / Options / High Scores. |
-| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
+| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Cards are `cardH = min(unit×17, (area−gap)/2)` and vertically centered between header and footnote (iOS `RootView.modeSelect` matches). Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
@@ -1240,14 +1250,14 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards, Lab on map. Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` with a centered same-size LAB tile. Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
 | `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity. `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
-| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn (`turn.mp3`) / crash/shield on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; file BGM/voice including L4 NAV. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
+| `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings, scrolling drift dashes, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Chime), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
 

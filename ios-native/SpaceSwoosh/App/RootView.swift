@@ -1,5 +1,6 @@
 // RootView.swift
-// Changes: Options hub Restore Purchases row (Android IAP parity).
+// Changes: PLAY Journey / Open Space cards use Android cardH (unit×17) and
+// sit vertically centered between the header and footnote.
 
 import SwiftUI
 
@@ -121,33 +122,46 @@ struct RootView: View {
     }
 
     private var modeSelect: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            ShellChrome.header("PLAY", back: { screen = .menu })
-            modeCard(
-                title: "Journey",
-                blurb: journeyBlurb,
-                tag: "RECOMMENDED",
-                signal: true,
-                footer: journeyFooter
-            ) {
-                screen = journey.snapshot.loreSeen ? .journeyMap : .lore
+        GeometryReader { full in
+            let unit = GameConfig.Playfield.baseUnit(width: full.size.width, height: full.size.height)
+            VStack(alignment: .leading, spacing: 0) {
+                ShellChrome.header("PLAY", back: { screen = .menu })
+                GeometryReader { geo in
+                    let gap = unit * 2.2
+                    let cardH = min(unit * 17, max(0, geo.size.height - gap) / 2)
+                    VStack(spacing: gap) {
+                        modeCard(
+                            title: "Journey",
+                            blurb: journeyBlurb,
+                            tag: "RECOMMENDED",
+                            signal: true,
+                            footer: journeyFooter,
+                            height: cardH
+                        ) {
+                            screen = journey.snapshot.loreSeen ? .journeyMap : .lore
+                        }
+                        modeCard(
+                            title: "Open Space",
+                            blurb: openBlurb,
+                            tag: "ENDLESS",
+                            signal: false,
+                            footer: pbLine,
+                            height: cardH
+                        ) {
+                            launch = .openSpace
+                            screen = .play
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
+                ShellChrome.footnote("SAME SHIP. SAME CONTROLS.")
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 20)
             }
-            modeCard(
-                title: "Open Space",
-                blurb: openBlurb,
-                tag: "ENDLESS",
-                signal: false,
-                footer: pbLine
-            ) {
-                launch = .openSpace
-                screen = .play
-            }
-            Spacer()
-            ShellChrome.footnote("SAME SHIP. SAME CONTROLS.")
-                .padding(.bottom, 20)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .frame(width: full.size.width, height: full.size.height)
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 20)
     }
 
     private var options: some View {
@@ -260,10 +274,11 @@ struct RootView: View {
         tag: String,
         signal: Bool,
         footer: String?,
+        height: CGFloat,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            ShellChrome.framedTile(signal: signal) {
+            ShellChrome.framedTile(signal: signal, fillHeight: true) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .firstTextBaseline) {
                         Text(title.uppercased())
@@ -279,6 +294,7 @@ struct RootView: View {
                         .font(BrandType.body(14))
                         .foregroundStyle(BrandColors.ink55)
                         .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
                     if let footer {
                         Text(footer.uppercased())
                             .font(BrandType.label(10))
@@ -287,8 +303,11 @@ struct RootView: View {
                     }
                 }
                 .foregroundStyle(BrandColors.ink)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: height)
         .buttonStyle(.plain)
     }
 }

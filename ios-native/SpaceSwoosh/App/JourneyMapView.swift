@@ -1,5 +1,6 @@
 // JourneyMapView.swift
-// Changes: Android map chrome — sparkle pips, chapter rules, signal LAB tile.
+// Changes: 5-column grid and tileH = tileW × 1.15 (Android JourneyMapScreen).
+// Hazard Lab is a same-size centered LAB tile, not a full-width banner.
 
 import SwiftUI
 
@@ -10,7 +11,8 @@ struct JourneyMapView: View {
 
     @ObservedObject private var store = JourneyStore.shared
 
-    private let columns = [GridItem(.adaptive(minimum: 72), spacing: 10)]
+    private let tileGap: CGFloat = 10
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 5)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -43,11 +45,11 @@ struct JourneyMapView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    labTile
+                    labSection
                     ForEach(JourneyConfig.chapters, id: \.id) { chapter in
                         VStack(alignment: .leading, spacing: 10) {
                             chapterHeading(chapter)
-                            LazyVGrid(columns: columns, spacing: 10) {
+                            LazyVGrid(columns: columns, spacing: tileGap) {
                                 ForEach(chapter.from...chapter.to, id: \.self) { level in
                                     levelTile(level)
                                 }
@@ -63,16 +65,35 @@ struct JourneyMapView: View {
     }
 
     private func chapterHeading(_ chapter: JourneyChapter) -> some View {
-        let locked = !JourneyProgress.isUnlocked(store.snapshot, level: chapter.from)
-        return HStack(spacing: 8) {
-            Text(chapter.name.uppercased())
+        sectionHeading(
+            chapter.name.uppercased(),
+            range: "\(chapter.from)–\(chapter.to)",
+            locked: !JourneyProgress.isUnlocked(store.snapshot, level: chapter.from)
+        )
+    }
+
+    private func sectionHeading(_ name: String, range: String, locked: Bool) -> some View {
+        HStack(spacing: 8) {
+            Text(name)
                 .font(BrandType.label(11))
                 .tracking(BrandType.labelTracking(11))
                 .foregroundStyle(locked ? BrandColors.ink.opacity(0.30) : BrandColors.ink)
             ShellChrome.dottedRule()
-            Text("\(chapter.from)–\(chapter.to)")
+            Text(range)
                 .font(BrandType.mono(10, bold: false))
                 .foregroundStyle(BrandColors.ink.opacity(0.30))
+        }
+    }
+
+    private var labSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeading("HAZARD LAB", range: "LAB", locked: false)
+            HStack {
+                Spacer(minLength: 0)
+                labTile
+                    .containerRelativeFrame(.horizontal, count: 5, span: 1, spacing: tileGap)
+                Spacer(minLength: 0)
+            }
         }
     }
 
@@ -80,30 +101,31 @@ struct JourneyMapView: View {
         Button {
             onPlay(.hazardLab)
         } label: {
-            ShellChrome.framedTile(signal: true) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("HAZARD LAB")
-                            .font(BrandType.label(14))
-                            .tracking(BrandType.labelTracking(14))
-                        Text("Practice only — nothing counts.")
-                            .font(BrandType.body(12))
-                            .foregroundStyle(BrandColors.ink55)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("LAB")
-                            .font(BrandType.mono(12))
-                        Text("TEST")
-                            .font(BrandType.label(9))
-                            .tracking(BrandType.labelTracking(9))
-                            .foregroundStyle(BrandColors.signal)
-                    }
-                }
-                .foregroundStyle(BrandColors.ink)
+            VStack(spacing: 4) {
+                Spacer(minLength: 0)
+                Text("LAB")
+                    .font(BrandType.mono(18))
+                Text("TEST")
+                    .font(BrandType.label(9))
+                    .tracking(BrandType.labelTracking(9))
+                    .foregroundStyle(BrandColors.signal)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .foregroundStyle(BrandColors.ink)
+            .background(BrandColors.paperTint)
+            .overlay {
+                Rectangle()
+                    .stroke(BrandColors.signal, lineWidth: 1.5)
+            }
+            .overlay {
+                Rectangle()
+                    .stroke(BrandColors.signal, lineWidth: 2)
+                    .padding(3)
             }
         }
         .buttonStyle(.plain)
+        .aspectRatio(1 / 1.15, contentMode: .fit)
     }
 
     private func levelTile(_ level: Int) -> some View {
@@ -115,22 +137,26 @@ struct JourneyMapView: View {
             if unlocked { onPlay(.journey(level)) }
         } label: {
             VStack(spacing: 6) {
+                Spacer(minLength: 0)
                 Text("\(level)")
-                    .font(BrandType.mono(16))
+                    .font(BrandType.mono(20))
                 HStack(spacing: 3) {
                     ForEach(0..<spec.starSlots, id: \.self) { i in
                         SparkleIcon()
                             .fill(stars[i] ? BrandColors.signal : Color.clear)
                             .overlay(
-                                SparkleIcon().stroke(stars[i] ? BrandColors.signal : BrandColors.ink.opacity(0.30), lineWidth: 1)
+                                SparkleIcon().stroke(
+                                    stars[i] ? BrandColors.signal : BrandColors.ink.opacity(unlocked ? 0.30 : 0.12),
+                                    lineWidth: 1
+                                )
                             )
-                            .frame(width: 8, height: 8)
+                            .frame(width: 9, height: 9)
                     }
                 }
+                Spacer(minLength: 0)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .foregroundStyle(unlocked ? BrandColors.ink : BrandColors.ink.opacity(0.30))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
             .background(unlocked ? (current ? BrandColors.paperDeep : BrandColors.paperTint) : BrandColors.paper)
             .overlay {
                 Rectangle()
@@ -149,5 +175,6 @@ struct JourneyMapView: View {
         }
         .disabled(!unlocked)
         .buttonStyle(.plain)
+        .aspectRatio(1 / 1.15, contentMode: .fit)
     }
 }

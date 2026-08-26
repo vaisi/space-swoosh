@@ -1,8 +1,8 @@
 // VoicePlayer.swift
-// Changes: playSwoosh does not duck BGM (casual overlay, same as fuel-low).
-// playEpilogueOpen / playEpilogueSkip for the written ending; missing
-// clips finish immediately so captions can still run. Level clips 1–41 at intro;
-// level-42.mp3 plays with its captions after the L42 dark hold.
+// Changes: LEVEL N intros play on the SFX engine voice node (same bus as
+// first-boop) so synth wall-boop can mix under them. First-boop will not start
+// while another clip is speaking and does not consume its once-flag if blocked.
+// playSwoosh does not duck BGM. Epilogue open/skip still use AVAudioPlayer.
 
 import AVFoundation
 import Foundation
@@ -23,7 +23,16 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     }
 
     func playLevel(_ level: Int, onEnded: (() -> Void)? = nil) {
-        playNamed("level-\(level)", onEnded: onEnded)
+        guard enabled, !SettingsStore.shared.muted else {
+            onEnded?()
+            return
+        }
+        playEngineCue { done in
+            SfxPlayer.shared.playLevelVoice(level) {
+                done()
+                onEnded?()
+            }
+        }
     }
 
     func playEpilogueOpen(onEnded: (() -> Void)? = nil) {
@@ -34,10 +43,13 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         playNamed("epilogue-skip", onEnded: onEnded)
     }
 
-    func playFirstBoop() {
-        guard !playedFirstBoop else { return }
+    /// False if the once-flag is spent or LEVEL N still owns the voice slot.
+    @discardableResult
+    func playFirstBoop() -> Bool {
+        guard !playedFirstBoop, !isSpeaking else { return false }
         playedFirstBoop = true
         playEngineCue { SfxPlayer.shared.playFirstBoopVoice(onEnded: $0) }
+        return true
     }
 
     func playSwoosh() {

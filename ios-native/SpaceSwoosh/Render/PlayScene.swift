@@ -1,7 +1,8 @@
 // PlayScene.swift
-// Changes: Present interpolates play cameraY; baseUnit matches Android mobile.
-// L42 skips intro voice; smash haptic.
-// L42 written epilogue keeps MusicPlayer running (do not stop on completed).
+// Changes: Shield ring sprites add Android Canvas half-stroke so the visible
+// outer edge matches radius×1.6 / ×1.7 (hitbox stays 1.5×). Present interpolates
+// play cameraY; baseUnit matches Android mobile. L42 skips intro voice; smash
+// haptic. L42 written epilogue keeps MusicPlayer running.
 
 import SpriteKit
 import QuartzCore
@@ -258,8 +259,12 @@ final class PlayScene: SKScene {
         }
         if run.sfxFirstBoop {
             run.sfxFirstBoop = false
-            VoicePlayer.shared.playFirstBoop()
-            CinemaSimulator.enqueueBeats(GeneratedJourneyData.firstBoopBeats, run: &run)
+            if VoicePlayer.shared.playFirstBoop() {
+                CinemaSimulator.enqueueBeats(GeneratedJourneyData.firstBoopBeats, run: &run)
+                run.logbookMarks.append(.interact("spaceBoop"))
+            } else {
+                run.firstBoopDone = false
+            }
         }
         if run.sfxSwooshVoice {
             run.sfxSwooshVoice = false
@@ -330,8 +335,10 @@ final class PlayScene: SKScene {
             let wave = warning ? sin(run.shieldPulse * 2) : sin(run.shieldPulse)
             let pulseScale = 1 + wave * (warning ? 0.3 : 0.2)
             let opacity = (warning ? 0.7 : 0.5) + wave * (warning ? 0.3 : 0.2)
-            let innerR = radius * 1.5 * pulseScale
-            let outerR = innerR * 1.1
+            // Android Canvas strokes are centered on 1.5×r; baked sprites pin
+            // the outer edge, so add half the JS line widths (0.2r / 0.1r).
+            let innerR = radius * 1.5 * pulseScale + radius * 0.1
+            let outerR = radius * 1.5 * pulseScale * 1.1 + radius * 0.05
             let pos = CGPoint(x: ship.x, y: screenY)
             shieldRingInner?.isHidden = false
             shieldRingOuter?.isHidden = false

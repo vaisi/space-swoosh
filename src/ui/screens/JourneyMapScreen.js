@@ -17,6 +17,7 @@
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Tile star pips are solid when earned and hollow when not (they used to be a
 //   faint fill), matching the outcome screen's objective rows.
+// - Map is always 5 columns (same as native iOS); tiles stay tileH = tileW × 1.15.
 // - Created file.
 
 import { color } from '../../brand/tokens.js';
@@ -83,7 +84,7 @@ export function renderJourneyMap(game) {
     const viewBottom = L.bottom - unit * 1.6;
     const viewportHeight = viewBottom - viewTop;
 
-    const columns = L.isMobile ? 4 : 5;
+    const columns = 5;
     const gap = unit * 1.2;
     const tileW = Math.min(unit * 8, (L.width - gap * (columns - 1)) / columns);
     const tileH = tileW * 1.15;
