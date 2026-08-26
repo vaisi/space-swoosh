@@ -1,6 +1,5 @@
-<!-- Changes: iOS PLAY cards are taller and vertically centered; Journey map is
-     5 tiles per row and taller (same as Android); shield rings match Android
-     size; LEVEL N and wall boop can both be heard. -->
+<!-- Changes: BOOP sits beside the hull on the open side; Space Log Obstacles
+     and Boosts show only observed/known cards; no breaking-atmosphere HUD. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -258,8 +257,10 @@ Categories:
 | From the Void | Reserved for future transmissions — empty for now |
 
 Entries are tall cards: the real obstacle silhouette on the left, name and notes
-on the right. Scroll the list. Locked cards show as **Unknown contact**. Round,
-triangular, and square simple asteroids each get their own entry.
+on the right. Scroll the list. Obstacles and Boosts only list things you have
+already seen or touched — there are no empty Unknown contact placeholders.
+Journey days still appear as a chapter list. Round, triangular, and square
+simple asteroids each get their own entry.
 
 ## The Journey map
 
@@ -397,8 +398,9 @@ Every ship’s wake also reacts to a wall hit. Same bounce clock, different
 signature per vessel — pile, spring, whip, scatter, shatter, bubble, blot, and
 more.
 
-Any ship that kisses a side wall gets a little ink **BOOP** under the hull (next
-to the wall, not on it). The word fades away after the bounce. You also get a
+Any ship that kisses a side wall gets a little ink **BOOP** beside the hull on
+the open side (hit the left wall, the word appears to the right; hit the right
+wall, it appears to the left). The word fades away after the bounce. You also get a
 soft space-boop sound and a light phone buzz on devices that support haptics
 (not in the browser App Preview). The first wall touch of a session (after any level
 opening voice finishes) also plays a short navigator line on screen (“The walls

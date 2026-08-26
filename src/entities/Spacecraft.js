@@ -22,7 +22,7 @@
 // - `startMovement(direction)` param name restored (was `_direction` while the
 //   body still used `direction`, which broke arc banks).
 // - Sidewall bounces (arc + zigzag) fire WallBoopManager + playBoop for every
-//   skin — ink "BOOP" popup below the hull beside the wall.
+//   skin — ink "BOOP" popup beside the hull on the open side.
 // - Wall bounce sets `wallJelly` ({ t0, side }) so every hull can squash/shake
 //   against the wall via beginHullFrame — visual only; hitbox stays undeformed.
 // - `wormholeTransit` freezes motion + marks invuln during portal hops so the

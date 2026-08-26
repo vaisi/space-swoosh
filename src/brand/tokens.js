@@ -3,7 +3,7 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
-// - Night-paper signal in theme.js is ice blue `#5CC8FF` (not mint).
+// - Dropped the 1000 KM "Atmosphere cleared" HUD line (no atmosphere overlay).
 // - Added `argusTeal` / `argusTealRgb` — theme-aware peacock rim for the
 //   Argus wake (deep on cream, electric on night paper). Never HUD.
 // - Motif `repulsor` (push node) and `drift` (lateral current band).
@@ -276,7 +276,6 @@ export const voice = {
     ],
     // Milestone copy, rewritten in-persona (mirrors GameConfig.milestones).
     milestones: {
-        1000:  'Atmosphere cleared. Ascent nominal.',
         2000:  'Complex asteroids detected. Recalculating trajectory.',
         5000:  'Asteroid belt ahead. Collision: probable.',
         12500: 'Deep space. No signs of life.',

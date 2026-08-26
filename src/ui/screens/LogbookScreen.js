@@ -1,6 +1,8 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - Obstacles / Boosts list only observed or known entries (no UNKNOWN CONTACT
+//   placeholders, no blank scroll gap). Empty category copy when none logged.
 // - Icons for phase (square bloom), sweepGate (slim line), repulsor, driftCurrent.
 // - Finish Gate icon: blue jet + emitter stubs (matches in-run gate).
 // - Screen title SPACE LOG (was LOGBOOK).
@@ -31,7 +33,6 @@ import {
 } from '../../config/LogbookEntries.js';
 import {
     getEntryState,
-    hasAnyEntries,
 } from '../../services/LogbookProgress.js';
 
 function pendingLine(id) {
@@ -97,24 +98,23 @@ export function renderLogbook(game) {
         return buttons;
     }
 
-    if (!progress || !hasAnyEntries(progress)) {
-        const bannerPx = Math.max(12, unit * 1.15);
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = `500 ${bannerPx}px ${font.ui}`;
-        ctx.fillStyle = color.ink55;
-        const bannerLines = wrapLines(ctx, EMPTY_LOGBOOK_COPY, L.width * 0.92, 3);
-        bannerLines.forEach((line, i) => {
-            ctx.fillText(line, L.centerX, viewTop + bannerPx * 0.6 + i * bannerPx * 1.4);
-        });
-        ctx.restore();
-        viewTop += bannerLines.length * bannerPx * 1.4 + L.block;
+    const journeyTab = category === 'levels';
+    const catalog = entriesForCategory(category);
+    const entries = journeyTab
+        ? catalog
+        : catalog.filter((entry) => progress && getEntryState(progress, entry.id) !== 'locked');
+
+    if (entries.length === 0) {
+        drawEmptyState(
+            ctx, L, unit, viewTop, viewBottom,
+            EMPTY_CATEGORY_COPY[category] || EMPTY_LOGBOOK_COPY,
+        );
+        buttons.metrics = { contentHeight: 0, viewportHeight, viewTop };
+        return buttons;
     }
 
     const listTop = viewTop;
     const listH = viewBottom - listTop;
-    const entries = entriesForCategory(category);
     const rowH = Math.max(unit * 11, L.isMobile ? 118 : 130);
     const gap = unit * 1.1;
     const contentHeight = entries.length * (rowH + gap) - gap;
@@ -126,11 +126,9 @@ export function renderLogbook(game) {
     ctx.clip();
     ctx.translate(0, -scroll);
 
-    const journeyTab = category === 'levels';
-
     let y = listTop;
     for (const entry of entries) {
-        const state = getEntryState(progress, entry.id);
+        const state = progress ? getEntryState(progress, entry.id) : 'locked';
         const screenY = y - scroll;
 
         if (state !== 'locked') {

@@ -24,6 +24,8 @@
 //   and the belt felt empty until well past 2,000 KM.
 // - Journey action-from-0: teach hints still run, but only the atmosphere
 //   cutscene holds spawns (tutorial phase no longer blanks the belt).
+// - 200 KM atmosphere cutscene still runs (speed burst + motion lines); the
+//   "Breaking the atmosphere!" overlay is no longer shown.
 // - Tutorial distances are HUD KM (`game.score`). Hint re-show checks the
 //   milestone manager (not a missing local `currentMessage`).
 // - Journey level-clear flyout smashes now award points / score / DESTROYED like
@@ -1644,11 +1646,12 @@ export class ObstacleManager {
 
     buildSteerTutorial() {
         // Steer copy is the ControlHint overlay — duplicating it here stacked
-        // two labels on screen. This list only drives the 200 KM cutscene.
+        // two labels on screen. This list only drives the 200 KM cutscene
+        // (speed burst + motion lines). No HUD text.
         return [
             {
                 distance: 200,
-                message: 'Breaking the atmosphere!',
+                message: '',
                 requirement: () => true,
                 completed: false,
                 triggerCutscene: true,
@@ -1691,7 +1694,6 @@ export class ObstacleManager {
                     if (msg.requirement()) {
                         msg.completed = true;
                         if (msg.triggerCutscene) {
-                            this.showTutorialMessage(msg.message);
                             this.inCutscene = true;
                             this.cutsceneStartTime = performance.now();
                             this.game.camera.speed *= 3;

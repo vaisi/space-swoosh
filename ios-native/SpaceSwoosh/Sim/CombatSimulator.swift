@@ -1,9 +1,10 @@
 // CombatSimulator.swift
 // Changes: First-boop voice waits until LEVEL N is done (Android
 // isLevelIntroVoiceBlocking) — synth BOOP + popup still fire. Play catch-up
-// camera; KM from ΔcameraY; BOOP edge clamp. Wormhole gates stroke-only.
-// Fuel-out sparkle salvage; L6+ pairing and Open Space storms; L42 epilogue.
-// Intro title: ship flies and steers (KM frozen).
+// camera; KM from ΔcameraY; BOOP on the open side of the hull. Wormhole gates
+// stroke-only. Fuel-out sparkle salvage; L6+ pairing and Open Space storms;
+// L42 epilogue. Intro title: ship flies and steers (KM frozen).
+// 200 KM atmosphere cutscene flag still arms; no "Breaking the atmosphere!" HUD.
 
 import Foundation
 import CoreGraphics
@@ -310,10 +311,15 @@ enum CombatSimulator {
     private static func emitBoop(world: inout WorldState, run: inout RunState) {
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let sign = world.wallBoopSide
-        let preferredX = world.ship.x - sign * (radius * 0.25)
-        let x = safeBoopX(preferredX: preferredX, width: world.width, unit: world.baseUnit)
-        let y = world.ship.y - radius * 1.75
-        // SpriteKit Y-up: -1.6 drifts away from the hull (JS Y-down uses +1.6).
+        let unit = world.baseUnit
+        let fontPx = max(11, unit * 1.05)
+        let halfW = fontPx * (4 * 0.72 + 3 * 0.18) * 0.5
+        let pad = max(unit * 0.35, 4)
+        // Beside the hull on the open side (left wall → right of ship).
+        let preferredX = world.ship.x - sign * (radius + halfW + pad)
+        let x = safeBoopX(preferredX: preferredX, width: world.width, unit: unit)
+        let y = world.ship.y
+        // SpriteKit Y-up: -1.6 drifts slightly off the hull (JS Y-down uses +1.6).
         FloatPopupBuffer.spawn(&run.popups, kind: .boop, x: x, y: y, vy: -1.6)
         run.sfxBoop = true
         world.wallBoopSide = 0
@@ -580,7 +586,6 @@ enum CombatSimulator {
         }
         if !run.taughtAtmosphere, run.scoreKm >= GameConfig.Milestones.atmosphereKm, run.taughtSteer {
             run.taughtAtmosphere = true
-            showMilestone(run: &run, "Breaking the atmosphere!")
         }
         for (i, entry) in GameConfig.Unlocks.table.enumerated() {
             let bit = UInt16(1 << i)

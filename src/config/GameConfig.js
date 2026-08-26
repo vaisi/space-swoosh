@@ -3,7 +3,7 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
-// - Open Space Deep space milestone at 12,500 KM (Day 33 belt), not 10,000.
+// - Dropped the 1000 KM "Breaking atmosphere..." HUD line.
 // - Camera reseat knobs (all JS platforms): after 5s below the
 //   ideal seat, an 8s ease-in-out creeps the ship back.
 // - Soft sparkle magnet: radius 4.25× ship + magnetPull 0.15 so near-miss
@@ -119,7 +119,6 @@ export const GameConfig = {
         return Math.abs(dy) * scale * this.kmPerPixel;
     },
     milestones: [
-        { score: 1000, message: "Breaking atmosphere..." },
         { score: 2000, message: "Warning: Complex asteroids detected..." },
         { score: 5000, message: "Caution: Asteroid belts ahead..." },
         { score: 12500, message: "Deep space detected..." },

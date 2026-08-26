@@ -1,8 +1,10 @@
 // WallBoopManager.js
 // Short ink "BOOP" popup when the ship bounces off a screen sidewall. Mirrors
-// StyleSwooshManager's popup lifecycle, but sits below the hull beside the
-// wall (never overlapping ship or edge) — label only, no glow / blot.
+// StyleSwooshManager's popup lifecycle, but sits beside the hull on the open
+// side (left-wall hit → right of ship; right-wall hit → left) — label only,
+// no glow / blot.
 // Changes:
+// - BOOP sits at ship Y on the interior side (not under the hull).
 // - First-boop cue waits until level intro voice / title phase are done so it
 //   never overlaps LEVEL N audio (hits during intro are ignored for the cue).
 // - First sidewall hit per app session (Journey or Open Space) plays first-boop
@@ -77,12 +79,11 @@ export class WallBoopManager {
 
         const sign = side < 0 ? -1 : 1;
         const unit = this.game.baseUnit;
-        // Below the hull; preferred X hugs the wall side of the ship, then
-        // clamped so the full word (not half) stays on-screen.
-        const clearHull = ship.radius * 1.75;
-        const preferredX = ship.x - sign * (ship.radius * 0.25);
+        // Beside the hull on the open side; clamped so the full word stays on-screen.
+        const pad = Math.max(unit * 0.35, 4);
+        const preferredX = ship.x - sign * (ship.radius + labelHalfWidth(unit) + pad);
         const x = this.safeLabelX(preferredX, unit);
-        const y = ship.y + clearHull;
+        const y = ship.y;
 
         this.popups.push({
             x,

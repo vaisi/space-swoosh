@@ -1,8 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: iOS/Android parity — shield ring sprites add Canvas half-stroke;
-     LEVEL N on SfxPlayer voice node; first-boop waits for intro voice; Journey
-     map 5 columns at tileH = tileW×1.15; PLAY cards unit×17 and vertically centered. -->
+<!-- Changes: no atmosphere HUD at 200/1000 KM; BOOP on the open side of the
+     hull; Space Log Obstacles/Boosts hide locked UNKNOWN CONTACT rows. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -290,7 +289,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
-| `ui/screens/LogbookScreen.js` | Space Log screen: category tabs; Journey rows text-only; other tabs keep icon cards. |
+| `ui/screens/LogbookScreen.js` | Space Log: Obstacles/Boosts list only observed/known cards; Journey rows text-only. |
 | `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: **5 columns**, `tileH = tileW × 1.15`; chapter bands of level tiles; lives chip when `LIVES_ENABLED`. |
@@ -316,7 +315,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
 | `managers/CollectibleManager.js` | Fuel diamonds: spawn cadence, collect → clamped fuel refill + `sparklesCollected`, `+FUEL` popup + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
-| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text popup, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
+| `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text beside the hull on the open side, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playSwooshVoice` and `playFuelLowVoice`; `recoverBgmIfInterrupted` restarts HTMLAudio if WebKit pauses it under Web Audio; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
@@ -577,9 +576,11 @@ only (no URL). Localhost epilogue skip: **`?level=42&nearend=1`** boots Day 42
 ### Open Space unlock ladder (`OPEN_WORLD_UNLOCKS`)
 
 Types still unlock at these KM marks. `message` is `null` on every row — Open
-Space no longer flashes hazard-name banners. Tutorial steer / atmosphere lines
-and Journey intros stay. iOS `CombatSimulator` matches: unlock `showMilestone`
-is skipped; distance lines at 2000 / 5000 KM (asteroid warnings) are silent.
+Space no longer flashes hazard-name banners. The 200 KM atmosphere cutscene
+(speed burst + motion lines) still runs on Open Space tutorial; it no longer
+shows "Breaking the atmosphere!" Journey intros stay. iOS `CombatSimulator`
+matches: unlock `showMilestone` is skipped; the 200 KM atmosphere HUD is gone;
+distance lines at 1000 / 2000 / 5000 KM (atmosphere + asteroid warnings) are silent.
 
 | KM | Type |
 | --- | --- |
@@ -651,7 +652,7 @@ run starts. Open Space never updates the logbook. Menu item is always available.
 | `managers/LogbookToastManager.js` | Top-center chip, independent of MilestoneManager. |
 | `SoundManager.playLogbook()` | Soft Enterprise-style bridge chirp (two quiet filtered sines) on update. |
 
-**State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`signalCall`, `spaceBoop`, `styleSwoosh`, `deflectorSmash`) jump straight to `known`.
+**State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`signalCall`, `spaceBoop`, `styleSwoosh`, `deflectorSmash`) jump straight to `known`. Obstacles/Boosts tabs hide `locked` rows so the list is only what you have logged.
 
 **Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash → instant. Lore Continue → instant `signalCall`.
 
@@ -1273,7 +1274,8 @@ like Android `denseTrailMarks`. Live-hull `SKEffectNode` is **not** rasterized; 
 3.2r pad sprite keeps Bloom satellites and Luna dust inside the warp frame. Sim at
 1/60 with interpolated presentation; `preferredFramesPerSecond = 120` +
 `CADisableMinimumFrameDurationOnPhone`; DEBUG HUD gates on p99, not average FPS.
-Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); fade is
+Wall BOOP is one-shot (`wallBoopSide` cleared in `emitBoop`); the label sits
+at ship Y on the open side of the hull; fade is
 `0.028 * dt * 60` like `WallBoopManager`. Zigzag lean eases like Android
 `BANK_SMOOTHING`; hull stretch uses `|tangent|` so a tap does not shrink
 the tear. Wall jelly applies the skin’s `wallTrailDeform` mode (ripple / spring /

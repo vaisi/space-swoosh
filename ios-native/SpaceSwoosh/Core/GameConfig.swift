@@ -3,6 +3,7 @@
 // feelSpeed 1.0 so native iOS cruise matches Android/web snappy tick.
 // Fuel.dyingStopSpeed 0.01 so fuel-out waits until the hull stops.
 // Fuel.voiceLowThreshold 0.20 for NAV low-fuel lines (HUD stays 0.28).
+// Dropped 1000 KM "Breaking atmosphere..." HUD line.
 
 import Foundation
 import CoreGraphics
@@ -144,7 +145,6 @@ enum GameConfig {
 
     enum Milestones {
         static let table: [(score: CGFloat, message: String)] = [
-            (1000, "Breaking atmosphere..."),
             (2000, "Warning: Complex asteroids detected..."),
             (5000, "Caution: Asteroid belts ahead..."),
             (12500, "Deep space detected..."),

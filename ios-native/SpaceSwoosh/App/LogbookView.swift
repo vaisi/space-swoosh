@@ -1,5 +1,7 @@
 // LogbookView.swift
 // Changes: SPACE LOG header + Grotesk/Mono chrome matching Android logbook.
+// Obstacles/Boosts (and all tabs) list only unlocked cards — filter before
+// ForEach so locked EmptyViews do not add VStack gaps.
 
 import SwiftUI
 
@@ -35,8 +37,10 @@ struct LogbookView: View {
                 }
             }
 
-            let rows = LogbookCatalog.entries(in: category)
-            if rows.allSatisfy({ LogbookProgress.state(store.snapshot, id: $0.id) == .locked }) {
+            let rows = LogbookCatalog.entries(in: category).filter {
+                LogbookProgress.state(store.snapshot, id: $0.id) != .locked
+            }
+            if rows.isEmpty {
                 Text(GeneratedJourneyData.emptyCategory[category] ?? GeneratedJourneyData.emptyLogbook)
                     .font(BrandType.body(14))
                     .foregroundStyle(BrandColors.ink55)
