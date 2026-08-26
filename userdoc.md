@@ -1,4 +1,4 @@
-<!-- Changes: iOS level-failed actions match Android — Retry full width, Level Select and Menu side by side. -->
+<!-- Changes: Playtest hangar — all ships free on native iOS (UNLOCK_ALL_SKINS). -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -28,9 +28,10 @@
 > Android. Each hangar card also shows a short sample of that ship’s wake
 > under the hull — chevrons, rings, stamps, dashes, and the rest of the
 > family, not a column of dots. The
-> four free ships are **Focus**, **Flicker**, **Ember**, and **Saber** — the
-> rest show a store price (or LOCKED) until you buy or Restore Purchases.
-> Journey tiles are still all open
+> four always-free ships are **Focus**, **Flicker**, **Ember**, and **Saber**.
+> Playtest builds currently open the whole hangar (`UNLOCK_ALL_SKINS`) so every
+> ship is free to fly; store builds will gate the rest behind a price or Restore
+> Purchases. Journey tiles are still all open
 > (`UNLOCK_ALL_LEVELS`) so you can tap any level. Zigzag from the start; Arc
 > sits under Options → Controls as out of service until the Journey is finished.
 > Wall BOOP (the word
@@ -211,7 +212,8 @@ screens do the same with their own lines.
 
 Under the title, your ship is shown with its name. Tap the triangle arrows
 beside it (or press **Left** / **Right** on a keyboard) to browse the full
-roster — owned ships equip and save; locked ships show a price (tap the ship
+roster — owned ships equip and save. Playtest builds currently treat every
+ship as owned. On store builds, locked ships show a price (tap the ship
 to unlock on the apps). Options → Ship has the same roster in a grid.
 
 - **Play** — Journey (recommended) then Open Space. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
@@ -299,7 +301,7 @@ Options opens a short list:
 
 | Item | Status |
 | --- | --- |
-| **Ship** | Browse the full roster; owned ships equip, locked show a price (tap to buy on the apps). |
+| **Ship** | Browse the full roster; owned ships equip. Playtest builds unlock every ship; store builds show a price on locked tiles (tap to buy). |
 | **Controls** | Flight style (Zigzag now; Arc shows as out of service until you finish the Journey). |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |

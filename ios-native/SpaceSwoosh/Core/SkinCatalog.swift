@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: UNLOCK_ALL_SKINS false; isOwned reads EntitlementsStore; full-roster browse.
+// Changes: UNLOCK_ALL_SKINS true for playtest hangar (flip false before store).
 
 import Foundation
 import CoreGraphics
@@ -73,8 +73,8 @@ struct SkinDef {
 }
 
 enum SkinCatalog {
-    /// Store hangar — premium ships need IAP. Flip true only for local art tests.
-    static let UNLOCK_ALL_SKINS = false
+    /// Playtest hangar — every ship is owned. Flip false before store.
+    static let UNLOCK_ALL_SKINS = true
 
     static let roster: [SkinId] = SkinId.allCases
     static let free: [SkinId] = [.focus, .flicker, .ember, .saber]
