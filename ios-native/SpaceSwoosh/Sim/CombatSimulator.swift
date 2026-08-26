@@ -657,7 +657,13 @@ enum CombatSimulator {
     }
 
     private static func showMilestone(run: inout RunState, _ text: String) {
-        run.milestoneText = text
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let lower = trimmed.lowercased()
+        if lower.contains("breaking the atmosphere") || lower.contains("breaking atmosphere") {
+            return
+        }
+        run.milestoneText = trimmed
         run.milestoneT = 0
         run.milestoneOpacity = 0
     }

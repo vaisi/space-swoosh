@@ -1,7 +1,8 @@
 // LogbookView.swift
 // Changes: SPACE LOG header + Grotesk/Mono chrome matching Android logbook.
-// Obstacles/Boosts (and all tabs) list only unlocked cards — filter before
-// ForEach so locked EmptyViews do not add VStack gaps.
+// Obstacles/Boosts list only observed/known cards (no locked placeholders or
+// EmptyView gaps). Journey still lists named days. Tabs are filled ink rects
+// like Android LogbookScreen.
 
 import SwiftUI
 
@@ -14,32 +15,31 @@ struct LogbookView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             ShellChrome.header("SPACE LOG", back: onBack)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(LogbookCatalog.categories, id: \.id) { item in
-                        Button {
-                            category = item.id
-                        } label: {
-                            VStack(spacing: 4) {
-                                Text(item.label.uppercased())
-                                    .font(BrandType.label(11))
-                                    .tracking(BrandType.labelTracking(11))
-                                    .foregroundStyle(category == item.id ? BrandColors.ink : BrandColors.ink55)
-                                if category == item.id {
-                                    ShellChrome.dottedRule().frame(width: 48)
-                                } else {
-                                    Color.clear.frame(height: 4)
-                                }
+            HStack(spacing: 6) {
+                ForEach(LogbookCatalog.categories, id: \.id) { item in
+                    let active = category == item.id
+                    Button {
+                        category = item.id
+                    } label: {
+                        Text(shortLabel(item))
+                            .font(BrandType.label(10))
+                            .tracking(BrandType.labelTracking(10))
+                            .foregroundStyle(active ? BrandColors.paper : BrandColors.ink55)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(active ? BrandColors.ink : BrandColors.paperTint)
+                            .overlay {
+                                Rectangle()
+                                    .stroke(BrandColors.ink, lineWidth: 1.5)
                             }
-                        }
-                        .buttonStyle(.plain)
                     }
+                    .buttonStyle(.plain)
                 }
             }
 
-            let rows = LogbookCatalog.entries(in: category).filter {
-                LogbookProgress.state(store.snapshot, id: $0.id) != .locked
-            }
+            let rows = visibleRows(in: category)
             if rows.isEmpty {
                 Text(GeneratedJourneyData.emptyCategory[category] ?? GeneratedJourneyData.emptyLogbook)
                     .font(BrandType.body(14))
@@ -61,36 +61,54 @@ struct LogbookView: View {
         .padding(.top, 20)
     }
 
+    /// Journey keeps named day rows; Obstacles/Boosts hide locked placeholders.
+    private func visibleRows(in category: String) -> [LogbookEntrySpec] {
+        let catalog = LogbookCatalog.entries(in: category)
+        if category == "levels" {
+            return catalog
+        }
+        return catalog.filter { LogbookProgress.state(store.snapshot, id: $0.id) != .locked }
+    }
+
+    private func shortLabel(_ item: LogbookCategorySpec) -> String {
+        if item.id == "void" { return "VOID" }
+        return item.label.uppercased()
+    }
+
     @ViewBuilder
     private func entryCard(_ entry: LogbookEntrySpec) -> some View {
         let state = LogbookProgress.state(store.snapshot, id: entry.id)
-        if state != .locked {
-            ShellChrome.framedTile {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(entry.name.uppercased())
-                            .font(BrandType.label(12))
-                            .tracking(BrandType.labelTracking(12))
-                        Spacer()
+        let journeyTab = category == "levels"
+        ShellChrome.framedTile(signal: state == .known) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(entry.name.uppercased())
+                        .font(BrandType.label(12))
+                        .tracking(BrandType.labelTracking(12))
+                        .foregroundStyle(state == .locked ? BrandColors.ink.opacity(0.30) : BrandColors.ink)
+                    Spacer()
+                    if !journeyTab, state != .locked {
                         Text(state == .known ? "KNOWN" : "OBSERVED")
                             .font(BrandType.label(9))
                             .tracking(BrandType.labelTracking(9))
                             .foregroundStyle(BrandColors.signal)
                     }
-                    if state == .known {
-                        Text(entry.definition)
-                            .font(BrandType.body(14))
+                }
+                if state == .known {
+                    Text(entry.definition)
+                        .font(BrandType.body(14))
+                    if !journeyTab {
                         Text(entry.remark)
                             .font(BrandType.body(13))
                             .foregroundStyle(BrandColors.ink55)
-                    } else {
-                        Text(pendingLine(for: entry.id))
-                            .font(BrandType.body(14))
-                            .foregroundStyle(BrandColors.ink55)
                     }
+                } else if state != .locked {
+                    Text(pendingLine(for: entry.id))
+                        .font(BrandType.body(14))
+                        .foregroundStyle(BrandColors.ink55)
                 }
-                .foregroundStyle(BrandColors.ink)
             }
+            .foregroundStyle(BrandColors.ink)
         }
     }
 

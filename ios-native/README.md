@@ -1,8 +1,7 @@
 <!--
   ios-native/README.md
-  Changes: LEVEL N intros decode onto the engine voice node; first-boop waits
-  for intro voice; shield rings add Canvas half-stroke; PLAY cards unit×17
-  centered; Journey map 5-column taller tiles.
+  Changes: no breaking-atmosphere HUD; BOOP beside the hull on the open side;
+  Space Log Obstacles/Boosts hide locked placeholders (Android tab chrome).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -49,7 +48,11 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Drift / wind: 7 thin ink30 dashes, `baseUnit`-scaled period, scrolled by phase × direction
 - Cruise: Android snappy tick × **1.0** (`GameConfig.feelSpeed`)
 - Menu / pause / outcome: Space Grotesk/Mono, framed ink buttons, paper wash, two-bar **MISSION PAUSED**. Open Space game over includes High Scores
-- Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick
+- Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick.
+  The ink label sits at hull height on the **open** side (left wall → right of
+  ship). Open Space does **not** show “Breaking the atmosphere!” / “Breaking
+  atmosphere…” HUD lines. Space Log Obstacles/Boosts list only observed/known
+  cards — rebuild this Xcode target (`ios-native/`), not `npm run build:native`.
 - Zigzag path flips instantly; hull lean eases (`bankSmoothing` 0.34). Stretch follows `|tangent|`
 
 Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `epilogue-open.mp3`, `epilogue-skip.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`). Gameplay file cues (including **level-N**, first-boop, and swoosh-voice) decode once into engine buffers. If a clip is missing, turn/crash/shield fall back to synth. Boop / collect / portal / swoosh stay synthesized on both platforms. Epilogue open/skip still use `AVAudioPlayer`. The packer matches those names case-insensitively so a Windows `Level-4.mp3` cannot drop out of the IPA.
