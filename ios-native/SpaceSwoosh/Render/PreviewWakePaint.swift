@@ -1,5 +1,6 @@
 // PreviewWakePaint.swift
-// Changes: Dusk hangar cloud uses saber violet; family stills match play drawers.
+// Changes: Plume hangar sample adds gold/ember scale ellipses (Koi-like stamps).
+// Dusk hangar cloud uses saber violet; family stills match play drawers.
 
 import CoreGraphics
 import UIKit
@@ -80,6 +81,13 @@ enum PreviewWakePaint {
             horizon(cg, pts, &left, &right, radius, bands: BrandColors.UI.plumeBands, widthScale: 0.7, alpha: 0.78)
             filamentPair(cg, pts, &fil, &left, &right, radius, offsets: [-0.42, 0.42], colors: [BrandColors.UI.lanternGold, BrandColors.UI.ember])
             sparks(cg, pts, radius, colors: [BrandColors.UI.lanternGold, BrandColors.UI.ember], chance: 1, step: 1)
+            for (i, p) in pts.enumerated() {
+                let rx = radius * (0.08 + 0.1 * p.opacity)
+                let ry = rx * 0.62
+                cg.setStrokeColor(BrandColors.UI.plumeBands[i % BrandColors.UI.plumeBands.count].withAlphaComponent(p.opacity * 0.7).cgColor)
+                cg.setLineWidth(max(0.8, radius * 0.045))
+                cg.strokeEllipse(in: CGRect(x: p.x - rx, y: p.y - ry, width: rx * 2, height: ry * 2))
+            }
         case .koi:
             koi(cg, pts, &left, &right, radius)
         case .boreal:

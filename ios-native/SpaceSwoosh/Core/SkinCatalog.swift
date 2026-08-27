@@ -1,5 +1,6 @@
 // SkinCatalog.swift
-// Changes: UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
+// Changes: Plume wall-trail mode is Koi `whip` (gold/ember scale squash on boop).
+// UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
 
 import Foundation
 import CoreGraphics
@@ -195,7 +196,7 @@ enum SkinCatalog {
           pad: 3.2, half: 0.85, jelly: .lyra, iap: true, pts: longPts, fade: longFade, live: true, tail: 0),
         s(.sprout, "Sprout", "A living seed. Pollen on the wind.", H.sprout, .cloud, .seed, .lantern,
           pad: 3.2, half: 0.85, jelly: .sprout, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.45),
-        s(.plume, "Plume", "A firebird. Embers rise, then cool.", H.plume, .cinder, .wing, .plume,
+        s(.plume, "Plume", "A firebird. Embers rise, then cool.", H.plume, .whip, .wing, .plume,
           pad: 3.4, half: 0.75, jelly: .plume, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.28),
         s(.koi, "Koi", "A river spirit. Scales in the current.", H.koi, .whip, .koi, .koi,
           pad: 3.2, half: 0.8, jelly: .koi, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.5),

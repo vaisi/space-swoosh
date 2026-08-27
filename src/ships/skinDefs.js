@@ -2,6 +2,7 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Plume wall-boop uses Koi `whip` + gold/ember scale stamps (Cinder stays `cinder`).
 // - Darner, Puff, Argus, Chime — premium IAP; long wake; skipHullCache.
 // - Luna (lunar moth + moon heart + scale dust) and Wish (comet + constellation).
 //   Premium IAP; long wake; skipHullCache.
@@ -2125,7 +2126,7 @@ const plume = {
     name: 'Plume',
     blurb: 'A firebird. Embers rise, then cool.',
     hitbox: PLUME_HITBOX,
-    wallTrailMode: 'cinder',
+    wallTrailMode: 'whip',
     skipHullCache: true,
     ...iap('plume'),
     ...LONG_WAKE,

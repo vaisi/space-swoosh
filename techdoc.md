@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: native iOS UNLOCK_ALL_SKINS is false (RevenueCat hangar gate). -->
+<!-- Changes: Plume boop is Koi-like whip + gold/ember scale stamps (Cinder stays cinder). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -903,7 +903,7 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `bloom` | Overlapping soap films (`bloomPath`) + orbiting bubbles | Iridescent rings + prism motes, long wake | `pile` inflate/pop; swell jelly; `skipHullCache` |
 | `lyra` | 4-point star (`starPath`) + twinkles | Aurora strata + star motes | `flare`; orbital jelly; `skipHullCache` |
 | `sprout` | Seed oval (`seedPath`) + breathing leaves | Green/gold filaments + pollen (Lantern renderer) | `cloud` puff; unfurl jelly; `skipHullCache` |
-| `plume` | Firebird wings (`wingPath`) + flame core | Twin flame ribbons + rising embers | `cinder` burst; wing flare; `skipHullCache` |
+| `plume` | Firebird wings (`wingPath`) + flame core | Twin flame ribbons + rising embers + gold/ember scale stamps | `whip` flick (Koi-like); wing flare; `skipHullCache` |
 | `koi` | Fish body (`koiPath`) + waving tail | Vermillion ribbon + scale stamps | `whip` flick; S-curve jelly; `skipHullCache` |
 | `spore` | Mushroom cap (`capPath`) + gills + amber heart | Denser amber/violet spore cloud (Lantern cousin) | `cloud` puff; soft cap jelly; `skipHullCache` |
 | `boreal` | Flowing aurora ribbon (`curtainPath`) | Side-by-side waving aurora curtains | `spring`; shear wave; `skipHullCache` |
@@ -941,14 +941,14 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 | `desync` | Echo |
 | `flare` | Wisp, Lyra, Wish, Darner |
 | `spring` | Flicker, Quill, Nyan, Trace, Boreal |
-| `whip` | Needle, Saber, Koi |
+| `whip` | Needle, Saber, Koi, Plume |
 | `crease` | Fold |
 | `cloud` | Lantern, Sprout, Spore, Luna, Puff — isotropic puff |
 | `ladder` | Spine |
 | `lag` | Orbit |
 | `script` | Ink — calligraphic reverse/whip on mid+tip (hull locked); `reverseBoop` adds pressure pulse + tip flecks |
 | `flick` | Flux |
-| `cinder` | Cinder, Plume |
+| `cinder` | Cinder |
 
 Trail color accents: Signal Blue (`color.signalRgb`) on Pulse / Quill / Flux
 dashes / Cinder glints; warm Ember (`color.emberRgb`) on Cinder wakes only;
@@ -960,7 +960,7 @@ night-paper lifts in `theme.js`) on **Lantern** (`drawLanternTrail` — filament
 (`drawBloomTrail` — iridescent rings + prism motes, pile inflate/pop, not HUD);
 **Spore** / **Sprout** reuse `drawLanternTrail` with amber-violet / leaf-gold palettes
 (theme lifts in `theme.js`); **Lyra** / **Boreal** share ship-local aurora bands;
-**Plume** uses ember+gold flame strata; **Koi** vermillion scale stamps;
+**Plume** uses ember+gold flame strata plus Koi-like scale stamps (`whip` on boop); **Koi** vermillion scale stamps;
 **Darner** uses ship-local teal/gold/violet mosaic diamonds (`drawDarnerTrail`);
 **Puff** draws an ink ribbon plus denser gold/teal parachute umbrellas with
 ink outlines (`drawPuffTrail`);
@@ -1268,7 +1268,7 @@ plus a spark pool. Focus / Ember use pooled discs. The 17 live ships reuse a
 fixed fill/stroke/disc pool (16 / 24 / 24) and rewrite `path` / position each frame; lantern-family
 wakes reuse 3 filament `SKShapeNode`s plus a plankton sprite pool sized to
 `slots × (5×density + 2)` (Luna ~2000), painted **newest-first** so the near-hull
-cloud is never starved. Bloom / Argus / Koi / Chime call `WakeCollect.dense(..., subdiv: 1)`
+cloud is never starved. Bloom / Argus / Koi / Plume / Chime call `WakeCollect.dense(..., subdiv: 1)`
 like Android `denseTrailMarks`. Live-hull `SKEffectNode` is **not** rasterized; a
 3.2r pad sprite keeps Bloom satellites and Luna dust inside the warp frame. Sim at
 1/60 with interpolated presentation; `preferredFramesPerSecond = 120` +

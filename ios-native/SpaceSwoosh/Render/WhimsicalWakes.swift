@@ -1,5 +1,6 @@
 // WhimsicalWakes.swift
-// Changes: Bloom/Argus/Koi use Android subdiv-1 dense marks; 2x sprite pools.
+// Changes: Plume wake uses Koi whip + gold/ember scale stamps (dense subdiv-1).
+// Bloom/Argus/Koi use Android subdiv-1 dense marks; 2x sprite pools.
 
 import QuartzCore
 import SpriteKit
@@ -28,13 +29,13 @@ final class HorizonRibbon: SKNode {
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) not used") }
 
-    func paint(pts: [WakeSample], count: Int, radius: CGFloat) {
+    func paint(pts: [WakeSample], count: Int, radius: CGFloat, energy: CGFloat = 0) {
         guard count >= 3 else {
             for n in nodes { n.isHidden = true; n.path = nil }
             return
         }
         let last = count - 1
-        let maxWidth = radius * 0.6 * widthScale
+        let maxWidth = radius * 0.6 * widthScale * (1 + energy * 0.35)
         let widthAt: (Int) -> CGFloat = { i in
             let t = CGFloat(i) / CGFloat(last)
             return maxWidth * pow(t, 0.6) * (0.45 + 0.55 * pts[i].opacity)
@@ -308,25 +309,39 @@ final class PlumeWake: SKNode, SkinTrail {
     private let horizon: HorizonRibbon
     private let filaments: [SKShapeNode]
     private let embers: [SKSpriteNode]
+    private let scales: [SKShapeNode]
     private var wake: [WakeSample]
     private var fil: [WakeSample]
+    private var marks: [WakeSample]
     private var left: [CGPoint]
     private var right: [CGPoint]
     private let maxPoints: Int
 
     init(disc: SKTexture, slots: Int) {
         maxPoints = max(slots, 8)
+        let markSlots = maxPoints * 2
         horizon = HorizonRibbon(maxPoints: slots + 2, colors: BrandColors.UI.plumeBands, widthScale: 0.7, alpha: 0.92 * 0.85)
         filaments = (0..<2).map { WakeCollect.shapeNode(z: 5.1 + CGFloat($0) * 0.01) }
         embers = (0..<maxPoints).map { _ in WakeCollect.sprite(disc, z: 5.3) }
+        scales = (0..<markSlots).map { _ in
+            let n = SKShapeNode()
+            n.fillColor = .clear
+            n.lineCap = .round
+            n.isAntialiased = true
+            n.zPosition = 5.4
+            n.isHidden = true
+            return n
+        }
         wake = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: maxPoints)
         fil = wake
+        marks = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: markSlots)
         left = Array(repeating: .zero, count: maxPoints)
         right = Array(repeating: .zero, count: maxPoints)
         super.init()
         addChild(horizon)
         for n in filaments { addChild(n) }
         for n in embers { addChild(n) }
+        for n in scales { addChild(n) }
     }
 
     @available(*, unavailable)
@@ -334,14 +349,15 @@ final class PlumeWake: SKNode, SkinTrail {
 
     func sync(_ ctx: TrailSyncContext) {
         let n = WakeCollect.points(ctx, into: &wake, capacity: maxPoints)
-        horizon.paint(pts: wake, count: n, radius: ctx.shipRadius)
+        let energy = WallJelly.energy(elapsedMs: ctx.jellyElapsedMs)
+        horizon.paint(pts: wake, count: n, radius: ctx.shipRadius, energy: energy)
         guard n >= 3 else {
             for f in filaments { f.isHidden = true }
             for e in embers { e.isHidden = true }
+            for s in scales { s.isHidden = true }
             return
         }
         let r = ctx.shipRadius
-        let energy = WallJelly.energy(elapsedMs: ctx.jellyElapsedMs)
         let denom = CGFloat(max(n - 1, 1))
         let alpha: CGFloat = 0.92
         let offsets: [CGFloat] = [-0.42, 0.42]
@@ -350,7 +366,7 @@ final class PlumeWake: SKNode, SkinTrail {
             WakeCollect.filament(from: wake, count: n, r: r, offsetScale: offsets[f], energy: energy, into: &fil)
             filaments[f].path = WakeCollect.ribbonPath(pts: fil, count: n, widthAt: { i in
                 let t = CGFloat(i) / denom
-                return r * (0.04 + 0.1 * t) * self.fil[i].opacity * (1 + energy * 0.4 * t)
+                return r * (0.04 + 0.1 * t) * self.fil[i].opacity * (1 + energy * 0.8 * t)
             }, left: &left, right: &right)
             filaments[f].fillColor = colors[f]
             filaments[f].alpha = alpha * (0.38 + energy * 0.2)
@@ -378,11 +394,34 @@ final class PlumeWake: SKNode, SkinTrail {
             used += 1
             node.isHidden = false
             node.position = CGPoint(x: p.x + nx * side, y: p.y + ny * side)
-            node.size = CGSize(width: size * 2, height: size * 2)
+            node.size = CGSize(width: size * 2 * p.sx, height: size * 2 * p.sy)
+            node.zRotation = -p.angle
             node.color = leave > 0.55 ? BrandColors.UI.lanternGold : BrandColors.UI.ember
             node.alpha = alpha * p.opacity * (0.3 + 0.45 * leave)
         }
         for k in used..<embers.count { embers[k].isHidden = true }
+
+        let bands = BrandColors.UI.plumeBands
+        let m = WakeCollect.dense(ctx, into: &marks, capacity: marks.count, subdiv: 1)
+        var stamped = 0
+        for i in stride(from: m - 1, through: 0, by: -1) {
+            let p = marks[i]
+            if p.opacity < 0.2 { continue }
+            guard stamped < scales.count else { break }
+            let leave = 1 - p.along
+            let rx = r * (0.08 + 0.1 * p.opacity) * p.sx
+            let ry = rx * 0.62 * p.sy
+            let node = scales[stamped]
+            stamped += 1
+            node.position = CGPoint(x: p.x, y: p.y)
+            node.path = CGPath(ellipseIn: CGRect(x: -rx, y: -ry, width: rx * 2, height: ry * 2), transform: nil)
+            node.strokeColor = bands[i % bands.count]
+            node.lineWidth = max(0.8, r * 0.045)
+            node.alpha = alpha * p.opacity * (0.4 + 0.4 * leave + energy * 0.25)
+            node.zRotation = -p.angle
+            node.isHidden = false
+        }
+        for k in stamped..<scales.count { scales[k].isHidden = true }
     }
 }
 

@@ -2,6 +2,7 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Plume boop: Koi-like whip + gold/ember scale ellipses; stronger jelly energy.
 // - Puff / Argus / Chime wake visibility: ink ribbon + denser umbrellas
 //   (Puff), theme-aware peacock rims (Argus), denser gold/ink arcs+notes
 //   (Chime). All three read on cream and night paper.
@@ -1894,12 +1895,14 @@ export function drawLyraTrail(ctx, ship, trail, toScreenY, opts = {}) {
 
 /**
  * Plume wake — twin flame ribbons + rising embers (hot near hull).
+ * Wall hits whip the tip (Koi `whip`) and squash gold/ember scale stamps.
  */
 export function drawPlumeTrail(ctx, ship, trail, toScreenY, opts = {}) {
     const {
         alpha = 0.92,
         emberRgb = color.emberRgb,
         goldRgb = color.lanternGoldRgb,
+        bands = PLUME_RGB,
     } = opts;
     const pts = wakePoints(ship, trail, toScreenY);
     const n = pts.length;
@@ -1912,9 +1915,9 @@ export function drawPlumeTrail(ctx, ship, trail, toScreenY, opts = {}) {
     ctx.save();
     const baseAlpha = ctx.globalAlpha;
     drawHorizonRibbonTrail(ctx, ship, trail, toScreenY, {
-        widthScale: 0.7,
+        widthScale: 0.7 * (1 + energy * 0.35),
         alpha: alpha * 0.85,
-        bands: PLUME_RGB,
+        bands,
     });
 
     const offsets = lod ? [-0.38, 0.38] : [-0.42, 0.42];
@@ -1922,7 +1925,7 @@ export function drawPlumeTrail(ctx, ship, trail, toScreenY, opts = {}) {
         const fil = filamentOffset(pts, r, offsets[f], energy);
         const widthAt = (i) => {
             const t = i / denom;
-            return r * (0.04 + 0.1 * t) * fil[i].opacity * (1 + energy * 0.4 * t);
+            return r * (0.04 + 0.1 * t) * fil[i].opacity * (1 + energy * 0.8 * t);
         };
         ribbonPath(ctx, fil, widthAt);
         ctx.globalAlpha = baseAlpha * alpha * (0.38 + energy * 0.2);
@@ -1950,8 +1953,33 @@ export function drawPlumeTrail(ctx, ship, trail, toScreenY, opts = {}) {
         ctx.fillStyle = `rgba(${rgb}, 1)`;
         ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.3 + 0.45 * leave);
         ctx.beginPath();
-        ctx.arc(p.x + nx * side, p.y + ny * side, size, 0, Math.PI * 2);
+        ctx.ellipse(
+            p.x + nx * side,
+            p.y + ny * side,
+            size * (p.sx ?? 1),
+            size * (p.sy ?? 1),
+            p.angle ?? 0,
+            0,
+            Math.PI * 2,
+        );
         ctx.fill();
+    }
+
+    const marks = denseTrailMarks(ship, trail, toScreenY);
+    ctx.lineCap = 'round';
+    for (let i = 0; i < marks.length; i += step) {
+        const p = marks[i];
+        if (p.opacity < 0.2) continue;
+        const rgb = bands[i % bands.length];
+        const leave = 1 - (p.along ?? 0.5);
+        const rx = r * (0.08 + 0.1 * p.opacity) * (p.sx ?? 1);
+        const ry = rx * 0.62 * (p.sy ?? 1);
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.4 + 0.4 * leave + energy * 0.25);
+        ctx.lineWidth = Math.max(0.8, r * 0.045);
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, rx, ry, p.angle ?? 0, 0, Math.PI * 2);
+        ctx.stroke();
     }
     ctx.restore();
 }

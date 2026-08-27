@@ -1,4 +1,4 @@
-<!-- Changes: iOS hangar now gates premium ships; four free ships stay free. -->
+<!-- Changes: Plume wall hits whip the wake with gold/ember feather stamps. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -362,7 +362,7 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Bloom** | Overlapping soap-film spheres with tiny orbiting bubbles. The wake is iridescent rings and prism sparkles that inflate and pop on a wall hit. The little bubbles are looks only. |
 | **Lyra** | A four-point star with twinkling motes. The wake is aurora colour stacked along the path, plus tiny star sparkles. |
 | **Sprout** | A living seed with two breathing leaves. Green-and-gold filaments and pollen puff out on a wall hit. Leaves are looks only. |
-| **Plume** | A firebird with a gold flame heart. Twin flame ribbons and rising embers cool toward the old wake. |
+| **Plume** | A firebird with a gold flame heart. Twin flame ribbons, rising embers, and gold/ember feather stamps; a wall hit whips the wake like Koi. |
 | **Koi** | A river-spirit fish with a waving tail. Vermillion water ribbon and scale stamps; the tail flicks on a wall hit. Tail is looks only. |
 | **Spore** | Lantern’s mushroom cousin — a wide cap, glowing gills, amber heart. A denser cloud of amber and violet spores puffs on a wall hit. |
 | **Boreal** | A flowing ribbon of northern light. Side-by-side aurora curtains wave, and the hull shears on a wall hit. |
