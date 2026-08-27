@@ -1,7 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: no atmosphere HUD at 200/1000 KM; BOOP on the open side of the
-     hull; Space Log Obstacles/Boosts hide locked UNKNOWN CONTACT rows. -->
+<!-- Changes: native iOS UNLOCK_ALL_SKINS is false (RevenueCat hangar gate). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -10,7 +9,7 @@
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
 > Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Native iOS
-> `UNLOCK_ALL_SKINS = true` (playtest hangar — flip false before store);
+> `UNLOCK_ALL_SKINS = false` (premium hangar tiles go through RevenueCat);
 > Options still has Restore Purchases. Playtest flag
 > `UNLOCK_ALL_LEVELS = true` opens every Journey tile (flip false before store;
 > web also `?unlocklevels=1|0`). Free forever (no
@@ -265,7 +264,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
 | `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor Android (`logEvent`). Params sanitized to string/number (booleans → 0/1). Config: `android/app/google-services.json` (gitignored). Native iOS uses `ios-native/.../Analytics.swift` (same event names). Android: AD ID collection off + `AD_ID` permission stripped. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). Android and native iOS **`UNLOCK_ALL_SKINS` are true for playtest** (`Entitlements.js` / `SkinCatalog` + `EntitlementsStore`). `UNLOCK_PRO` stays **false**. |
+| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). Android **`UNLOCK_ALL_SKINS` is still true for playtest**. Native iOS `SkinCatalog.UNLOCK_ALL_SKINS` is **false** so hangar purchases hit RevenueCat. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
@@ -1291,7 +1290,7 @@ matching hull bakes / `LiveHullPaint` (play + picker), and Android trail + `wall
 modes (incl. Focus ripple + Ember twin-dots). The 17 live ships use dedicated wake
 drawers and `trailTailOffset`. Hull jelly does not
 deform the hitbox. Shield smash stays a scaled circle. Ship IAP / Restore
-uses RevenueCat (`UNLOCK_ALL_SKINS` true for playtest). Slice D feel remains: Arc/zigzag, overlap spawn, cluster
+uses RevenueCat (`UNLOCK_ALL_SKINS` false — store hangar). Slice D feel remains: Arc/zigzag, overlap spawn, cluster
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,
 milestones, local PB, night paper. C.5 combat remains:
 `CombatSimulator` fills pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see

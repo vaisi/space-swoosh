@@ -1,5 +1,5 @@
 // EntitlementsStore.swift
-// Changes: prefetchPrices copies prices onto MainActor without capturing a var.
+// Changes: UNLOCK_ALL_SKINS is off; owns() only grants free skins + store entitlements.
 
 import Foundation
 import Combine

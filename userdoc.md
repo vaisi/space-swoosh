@@ -1,5 +1,4 @@
-<!-- Changes: BOOP sits beside the hull on the open side; Space Log Obstacles
-     and Boosts show only observed/known cards; no breaking-atmosphere HUD. -->
+<!-- Changes: iOS hangar now gates premium ships; four free ships stay free. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -30,8 +29,7 @@
 > under the hull — chevrons, rings, stamps, dashes, and the rest of the
 > family, not a column of dots. The
 > four always-free ships are **Focus**, **Flicker**, **Ember**, and **Saber**.
-> Playtest builds currently open the whole hangar (`UNLOCK_ALL_SKINS`) so every
-> ship is free to fly; store builds will gate the rest behind a price or Restore
+> The rest of the hangar is locked until you buy (price on the tile) or Restore
 > Purchases. Journey tiles are still all open
 > (`UNLOCK_ALL_LEVELS`) so you can tap any level. Zigzag from the start; Arc
 > sits under Options → Controls as out of service until the Journey is finished.

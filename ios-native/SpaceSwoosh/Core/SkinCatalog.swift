@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: UNLOCK_ALL_SKINS true for playtest hangar (flip false before store).
+// Changes: UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
 
 import Foundation
 import CoreGraphics
@@ -73,8 +73,8 @@ struct SkinDef {
 }
 
 enum SkinCatalog {
-    /// Playtest hangar — every ship is owned. Flip false before store.
-    static let UNLOCK_ALL_SKINS = true
+    /// Store hangar — premium ships require a RevenueCat entitlement.
+    static let UNLOCK_ALL_SKINS = false
 
     static let roster: [SkinId] = SkinId.allCases
     static let free: [SkinId] = [.focus, .flicker, .ember, .saber]

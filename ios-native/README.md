@@ -10,7 +10,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 
 ## Hangar (current)
 
-- **41 ships** in Android `SKIN_DEFS` order. `UNLOCK_ALL_SKINS = true` for playtest (flip false before store) — every hangar tile is owned and tappable. Store path still: premium tiles show price and tap-to-buy via RevenueCat. Free forever: Focus, Flicker, Ember, Saber
+- **41 ships** in Android `SKIN_DEFS` order. `UNLOCK_ALL_SKINS = false` — premium tiles show price and tap-to-buy via RevenueCat. Free forever: Focus, Flicker, Ember, Saber
 - Playtest flag `UNLOCK_ALL_LEVELS = true` (flip false before store) opens every Journey map tile without rewriting saved `unlocked`
 - Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for RevenueCat
 - Home: **SPACE SWOOSH** + flavor + ◀ hull ▶, then Play / Space Log / Options / High Scores (Android tags ▶ □ ⚙ #)
