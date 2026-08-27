@@ -1,5 +1,5 @@
 // SkinTrail.swift
-// Changes: Merlin spectacular WishWake (hairline comet + dense stars); ParticleWakeField unused on the 40-ship roster.
+// Changes: Rook twin bronze/gold filaments (theme-aware bands); Merlin spectacular WishWake.
 
 import SpriteKit
 
@@ -73,6 +73,8 @@ enum SkinTrailFactory {
             return ChimeWake(disc: disc, slots: slots)
         case .merlin:
             return WishWake(disc: disc, slots: slots * 3, spectacular: true)
+        case .rook:
+            return DarnerWake(slots: slots, bands: BrandColors.UI.rookBands, offsets: [-0.55, 0.55], slim: 0.72)
         case .wisp:
             return WispTrailNode(disc: disc, maxPoints: slots + 2)
         case .chevron:

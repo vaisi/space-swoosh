@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: Merlin prism bands (gold, cream, cyan, rose, lilac); dark signal is ice blue #5CC8FF.
+// Changes: Rook theme-aware copper/spark (bronze on cream, gold on night); Merlin prism bands; dark signal is ice blue #5CC8FF.
 
 import SwiftUI
 import UIKit
@@ -89,6 +89,12 @@ enum BrandColors {
         static var argusTeal: UIColor {
             BrandColors.dark ? rgb(64, 228, 196) : rgb(16, 92, 88)
         }
+        static var rookCopper: UIColor {
+            BrandColors.dark ? rgb(245, 208, 106) : rgb(138, 74, 22)
+        }
+        static var rookSpark: UIColor {
+            BrandColors.dark ? rgb(255, 228, 176) : rgb(196, 90, 40)
+        }
         static var lanternCyan: UIColor { rgb(90, 210, 200) }
         static var koiVermillion: UIColor { rgb(210, 72, 58) }
         static var wishCore: UIColor { rgb(255, 248, 230) }
@@ -107,6 +113,9 @@ enum BrandColors {
         static let koiBands: [UIColor] = [
             rgb(210, 72, 58), rgb(236, 214, 168), rgb(46, 110, 118)
         ]
+        static var rookBands: [UIColor] {
+            [ink, ink, rookCopper, rookSpark, ember]
+        }
         static let merlinBands: [UIColor] = [
             rgb(232, 184, 74), rgb(255, 248, 230), rgb(90, 210, 200),
             rgb(255, 140, 180), rgb(180, 150, 255)

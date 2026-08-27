@@ -1,5 +1,5 @@
 // WhimsicalWakes.swift
-// Changes: Merlin spectacular WishWake (hairline comet + dense prism stars).
+// Changes: Rook reuses DarnerWake with gold-dust bands; Merlin spectacular WishWake.
 // Plume wake uses Koi whip + gold/ember scale stamps (dense subdiv-1).
 // Bloom/Argus/Koi use Android subdiv-1 dense marks; 2x sprite pools.
 
@@ -740,9 +740,15 @@ final class DarnerWake: SKNode, SkinTrail {
     private var fil: [WakeSample]
     private var left: [CGPoint]
     private var right: [CGPoint]
+    private let bands: [UIColor]
+    private let offsets: [CGFloat]
+    private let slim: CGFloat
     private let maxPoints: Int
 
-    init(slots: Int) {
+    init(slots: Int, bands: [UIColor] = BrandColors.UI.darnerBands, offsets: [CGFloat] = [-0.46, 0.46], slim: CGFloat = 1) {
+        self.bands = bands
+        self.offsets = offsets
+        self.slim = slim
         maxPoints = max(slots, 8)
         filaments = (0..<2).map { WakeCollect.shapeNode(z: 5 + CGFloat($0) * 0.01) }
         specks = (0..<maxPoints).map { _ in
@@ -775,20 +781,22 @@ final class DarnerWake: SKNode, SkinTrail {
         let r = ctx.shipRadius
         let energy = WallJelly.energy(elapsedMs: ctx.jellyElapsedMs)
         let denom = CGFloat(max(n - 1, 1))
-        let bands = BrandColors.UI.darnerBands
-        let alpha: CGFloat = 0.9
-        let offsets: [CGFloat] = [-0.46, 0.46]
-        for f in 0..<2 {
+        let bands = self.bands
+        let alpha: CGFloat = slim < 1 ? 0.94 : 0.9
+        let offsets = self.offsets
+        for f in 0..<min(2, offsets.count) {
             WakeCollect.filament(from: wake, count: n, r: r, offsetScale: offsets[f], energy: energy, into: &fil)
             filaments[f].path = WakeCollect.ribbonPath(pts: fil, count: n, widthAt: { i in
                 let t = CGFloat(i) / denom
-                return r * (0.04 + 0.11 * t) * self.fil[i].opacity * (1 + energy * 0.45 * t)
+                return r * (0.04 + 0.11 * t) * self.slim * self.fil[i].opacity * (1 + energy * 0.45 * t)
             }, left: &left, right: &right)
             filaments[f].fillColor = bands[f % bands.count]
             filaments[f].alpha = alpha * (0.4 + energy * 0.22)
             filaments[f].isHidden = false
         }
-        let chance: CGFloat = energy > 0.08 ? 0.9 : 0.55
+        let chance: CGFloat = slim < 1
+            ? (energy > 0.08 ? 0.96 : 0.78)
+            : (energy > 0.08 ? 0.9 : 0.55)
         var used = 0
         for i in 0..<n {
             let p = wake[i]

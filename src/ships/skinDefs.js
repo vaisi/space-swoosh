@@ -2,6 +2,7 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Rook — four-vane spark-skiff; theme-aware bronze/gold vanes + dust wake; flare boop.
 // - Merlin — ultra-slim spark-falcon; prism heart + orbiting 4-point stars; hairline comet + dense star cascade; flare boop.
 // - Plume wall-boop uses Koi `whip` + gold/ember scale stamps (Cinder stays `cinder`).
 // - Darner, Puff, Argus, Chime — premium IAP; long wake; skipHullCache.
@@ -19,7 +20,7 @@
 //   dust scatter (no polar rings), milder ripple than Mote.
 // - Long in-game wakes (Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote,
 //   Pulse, Echo, Dusk, Ink, Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi,
-//   Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin). Menu preview stays short so it never covers title.
+//   Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, Rook). Menu preview stays short so it never covers title.
 // - Free Saber: Needle hull + slim purple lightsaber wake (long trail, whip).
 // - Free forever: Focus / Flicker / Ember / Saber. Every other skin has productId +
 //   entitlementId (com.orbi.spaceswoosh.skin.<id> / skin_<id>) for IAP.
@@ -74,6 +75,7 @@ import {
     argusPath,
     chimePath,
     merlinPath,
+    rookPath,
     beginHullFrame,
     drawCircleHull,
 } from './hulls.js';
@@ -110,6 +112,7 @@ import {
     drawArgusTrail,
     drawChimeTrail,
     drawMerlinTrail,
+    drawRookTrail,
 } from './trails.js';
 
 /** Extra-long wake: tip should leave the camera, not fade in-view. */
@@ -323,6 +326,15 @@ const MERLIN_HITBOX = [
     { x: 0, y: 0.05, r: 0.06 },
     { x: 0, y: 0.50, r: 0.04 },
     { x: 0, y: 0.95, r: 0.04 },
+];
+
+// Rook fuselage only; four vanes and vane-tip glitter are decorative.
+const ROOK_HITBOX = [
+    { x: 0, y: -0.82, r: 0.06 },
+    { x: 0, y: -0.36, r: 0.055 },
+    { x: 0, y: 0.08, r: 0.05 },
+    { x: 0, y: 0.48, r: 0.048 },
+    { x: 0, y: 0.90, r: 0.042 },
 ];
 
 // Vertical bar — stacked circles down the spine only.
@@ -1776,6 +1788,104 @@ function drawMerlinHull(ctx, ship, screenY, time = performance.now()) {
     ctx.restore();
 }
 
+/** Thin gold blade from root to tip. */
+function rookVane(ctx, x0, y0, x1, y1, half) {
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = (-dy / len) * half;
+    const ny = (dx / len) * half;
+    ctx.beginPath();
+    ctx.moveTo(x0 + nx, y0 + ny);
+    ctx.lineTo(x1 + nx * 0.45, y1 + ny * 0.45);
+    ctx.lineTo(x1 - nx * 0.45, y1 - ny * 0.45);
+    ctx.lineTo(x0 - nx, y0 - ny);
+    ctx.closePath();
+}
+
+/** Spark-skiff — chisel beak, four bronze/gold vanes, slit heart, tip glitter. */
+function drawRookHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.92 + 0.05 * Math.sin(time * 0.005);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.12 * turn;
+    const lod = !!ship.game?.iosDrawLod;
+    const pulse = 0.82 + 0.18 * Math.sin(time * 0.007);
+    const ry = r * stretch;
+    const flutter = 1 + 0.06 * Math.sin(time * 0.0062);
+
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.55, 'rook');
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    const vanes = [
+        { x0: -r * 0.06, y0: ry * 0.06, x1: -r * 0.78 * flutter, y1: ry * 0.18 },
+        { x0: r * 0.06, y0: ry * 0.06, x1: r * 0.78 * flutter, y1: ry * 0.18 },
+        { x0: -r * 0.04, y0: ry * 0.48, x1: -r * 0.34 * flutter, y1: ry * 0.98 },
+        { x0: r * 0.04, y0: ry * 0.48, x1: r * 0.34 * flutter, y1: ry * 0.98 },
+    ];
+    ctx.fillStyle = color.ink;
+    ctx.strokeStyle = color.ink;
+    ctx.lineWidth = Math.max(0.7, r * 0.032);
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    for (const v of vanes) {
+        ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+        rookVane(ctx, v.x0, v.y0, v.x1, v.y1, r * 0.034);
+        ctx.fill();
+        ctx.globalAlpha = baseAlpha * (jelly ? 0.78 : breath * 0.92);
+        rookVane(ctx, v.x0, v.y0, v.x1, v.y1, r * 0.034);
+        ctx.stroke();
+    }
+
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+    rookPath(ctx, 0, 0, r, stretch);
+    ctx.fillStyle = color.ink;
+    ctx.fill();
+    ctx.strokeStyle = color.ink;
+    ctx.lineWidth = Math.max(0.85, r * 0.038);
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.72 : breath * 0.9);
+    rookPath(ctx, 0, 0, r, stretch);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(${color.rookCopperRgb}, 1)`;
+    ctx.lineWidth = Math.max(0.7, r * 0.036);
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.75 : breath * 0.88);
+    ctx.beginPath();
+    ctx.moveTo(0, -ry * 0.92);
+    ctx.lineTo(0, ry * 0.52);
+    ctx.stroke();
+
+    const heartA = jelly ? baseAlpha * 0.95 : baseAlpha * breath * pulse;
+    ctx.globalAlpha = heartA;
+    ctx.fillStyle = `rgba(${color.rookCopperRgb}, 1)`;
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.02, -ry * 0.96, r * 0.06, r * 0.1 * pulse, 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(${color.rookSparkRgb}, 1)`;
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.02, -ry * 0.96, r * 0.024, r * 0.042, 0.18, 0, Math.PI * 2);
+    ctx.fill();
+
+    const tipRgb = [color.rookCopperRgb, color.rookSparkRgb, color.emberRgb, color.rookCopperRgb];
+    const tipN = lod ? 4 : vanes.length;
+    ctx.lineWidth = Math.max(0.45, r * 0.02);
+    for (let i = 0; i < tipN; i++) {
+        const v = vanes[i];
+        const tw = 0.45 + 0.55 * Math.sin(time * 0.014 + i * 1.6);
+        ctx.globalAlpha = baseAlpha * tw * (jelly ? 0.8 : breath);
+        ctx.fillStyle = `rgba(${tipRgb[i % tipRgb.length]}, 1)`;
+        ctx.strokeStyle = `rgba(${tipRgb[i % tipRgb.length]}, 1)`;
+        merlinSparkle(ctx, v.x1, v.y1, r * (0.05 + 0.025 * tw));
+    }
+
+    ctx.restore();
+}
+
 const focus = {
     id: 'focus',
     name: 'Focus',
@@ -2433,6 +2543,22 @@ const merlin = {
     },
 };
 
+const rook = {
+    id: 'rook',
+    name: 'Rook',
+    blurb: 'Four gold vanes. Dust pours from its wake.',
+    hitbox: ROOK_HITBOX,
+    wallTrailMode: 'flare',
+    skipHullCache: true,
+    ...iap('rook'),
+    ...LONG_WAKE,
+    trailTailOffset: 0.28,
+    drawHull: drawRookHull,
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawRookTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
 export const SKIN_DEFS = [
     focus, flicker, ember, saber, wisp, pulse, quill, fletch, nyan,
     shard, halo, needle, echo, dusk,
@@ -2440,5 +2566,5 @@ export const SKIN_DEFS = [
     fold, mote, spine, orbit, ink,
     flux, cinder, lantern, bloom,
     lyra, sprout, plume, koi, spore, boreal,
-    luna, wish, darner, puff, argus, chime, merlin,
+    luna, wish, darner, puff, argus, chime, merlin, rook,
 ];

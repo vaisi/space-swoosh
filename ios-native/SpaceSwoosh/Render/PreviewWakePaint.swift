@@ -1,5 +1,5 @@
 // PreviewWakePaint.swift
-// Changes: Merlin hangar sample is a hairline gold comet + dense prism 4-point stars.
+// Changes: Rook hangar sample is twin bronze/gold filaments + ember diamonds.
 
 import CoreGraphics
 import UIKit
@@ -105,6 +105,9 @@ enum PreviewWakePaint {
             chime(cg, pts, radius)
         case .merlin:
             merlin(cg, pts, radius)
+        case .rook:
+            filamentPair(cg, pts, &fil, &left, &right, radius, offsets: [-0.55, 0.55], colors: BrandColors.UI.rookBands)
+            diamonds(cg, pts, radius, colors: BrandColors.UI.rookBands)
         }
     }
 

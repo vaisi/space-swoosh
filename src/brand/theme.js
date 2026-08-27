@@ -3,6 +3,7 @@
 // SPACE SWOOSH — Light / dark (night paper) theme switching.
 //
 // Changes:
+// - Rook copper/spark lift on night paper (deep bronze → gold).
 // - Dark signal is ice blue `#5CC8FF` (was vivid mint `#3DFF9A`).
 // - Argus peacock rim lifts on night paper (deep teal → electric mint).
 // - Luna mothLavender lifts on night paper.
@@ -62,6 +63,10 @@ const DARK = {
     mothLavenderRgb: '201, 166, 240',
     argusTeal:       '#40E4C4',
     argusTealRgb:    '64, 228, 196',
+    rookCopper:      '#F5D06A',
+    rookCopperRgb:   '245, 208, 106',
+    rookSpark:       '#FFE4B0',
+    rookSparkRgb:    '255, 228, 176',
 };
 
 /** Classic cream paper — warm ground, near-black ink, Signal Blue. */
@@ -99,6 +104,10 @@ const LIGHT = {
     mothLavenderRgb: '139, 107, 176',
     argusTeal:       '#105C58',
     argusTealRgb:    '16, 92, 88',
+    rookCopper:      '#8A4A16',
+    rookCopperRgb:   '138, 74, 22',
+    rookSpark:       '#C45A28',
+    rookSparkRgb:    '196, 90, 40',
 };
 
 const PALETTES = {

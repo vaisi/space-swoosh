@@ -3,6 +3,8 @@
 // SPACE SWOOSH — Brand design tokens (single source of truth).
 //
 // Changes:
+// - Added `rookCopper` / `rookSpark` — theme-aware Rook hull+wake (deep bronze
+//   on cream, gold on night paper). Never HUD.
 // - Dropped the 1000 KM "Atmosphere cleared" HUD line (no atmosphere overlay).
 // - Added `argusTeal` / `argusTealRgb` — theme-aware peacock rim for the
 //   Argus wake (deep on cream, electric on night paper). Never HUD.
@@ -93,6 +95,12 @@ export const color = {
     // Argus — peacock eyespot rim for the wake only (never HUD).
     argusTeal:       '#105C58',
     argusTealRgb:    '16, 92, 88',
+
+    // Rook — bronze vanes / dust (deep on cream, gold on night). Never HUD.
+    rookCopper:      '#8A4A16',
+    rookCopperRgb:   '138, 74, 22',
+    rookSpark:       '#C45A28',
+    rookSparkRgb:    '196, 90, 40',
 
     // Saber — bright purple lightsaber wake (Saber ship only; never HUD).
     saber:        '#A855FF',

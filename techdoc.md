@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Merlin ultra-slim spark-falcon added (40-ship roster, 18 live hulls). -->
+<!-- Changes: Rook bronze/gold tokens are theme-aware (cream + night paper). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -8,7 +8,7 @@
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
-> Lab fly the **full 40-ship roster** (Android `SKIN_DEFS` order). Native iOS
+> Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Native iOS
 > `UNLOCK_ALL_SKINS = false` (premium hangar tiles go through RevenueCat);
 > Options still has Restore Purchases. Playtest flag
 > `UNLOCK_ALL_LEVELS = true` opens every Journey tile (flip false before store;
@@ -21,7 +21,7 @@
 > `shipSkinId` persists (unknown id stays **Flicker**).
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
-> 18 `skipHullCache` hulls (Nyan, Halo, Orbit, plus `Lantern`…`Merlin`) share
+> 19 `skipHullCache` hulls (Nyan, Halo, Orbit, plus `Lantern`…`Rook`) share
 > `LiveHullPaint` / `ClassicHullPaint` for play and hangar stills (t = 1400 ms).
 > Other ink hulls bake Android wash + highlight + crease. Native hangar tiles bake Android’s
 > short `previewWake` (12 pts, span 3.4r) under a banked hull. Dedicated wakes (filaments, soap rings,
@@ -268,7 +268,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | Ship roster (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin) composed from hulls + trails + boop signatures. |
+| `ships/skinDefs.js` | Ship roster (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin…Rook) composed from hulls + trails + boop signatures. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
@@ -914,6 +914,7 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `argus` | Peacock teardrop (`argusPath`) + pulsing eyespots | Teal-rim / gold-pupil eyespot stamps | `pile` fan flare; fan-spread jelly; `skipHullCache` |
 | `chime` | Temple bell (`chimePath`) + swaying side bells | Expanding sound arcs + gold/ink note motes | `ripple` ring pulse; Halo-like wobble; `skipHullCache` |
 | `merlin` | Ultra-slim spark-falcon (`merlinPath`) + prism heart + orbiting 4-point stars | Hairline gold comet + dense prism stars + glitter dust, long wake | `flare` burst; glitter wobble; `skipHullCache` |
+| `rook` | Four-vane spark-skiff (`rookPath`) + bronze/gold slit + vane-tip glitter | Twin bronze/gold filaments + ember diamonds, long wake | `flare` burst; vane flash; `skipHullCache` |
 
 Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circles
 filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
@@ -922,7 +923,7 @@ local scale / shear); the hitbox does not deform.
 
 **Jelly profiles** (optional 7th arg to `beginHullFrame` / `wallJellyDeform`):
 `default`, `needle`, `halo`, `shard`, `stamp`, `fold`, `spine`, `mote`, `orbit`,
-`flux`, `cinder`, `lantern`, `bloom`, `lyra`, `sprout`, `plume`, `koi`, `spore`, `boreal`, `luna`, `wish`, `darner`, `puff`, `argus`, `chime`.
+`flux`, `cinder`, `lantern`, `bloom`, `lyra`, `sprout`, `plume`, `koi`, `spore`, `boreal`, `luna`, `wish`, `darner`, `puff`, `argus`, `chime`, `merlin`, `rook`.
 
 Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 `hulls.js` shoves the wake at render time. Discrete marks also squash via
@@ -940,7 +941,7 @@ Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
 | `scatter` | (unused; Ember moved to `ripple`) |
 | `shatter` | Shard |
 | `desync` | Echo |
-| `flare` | Wisp, Lyra, Wish, Darner, Merlin |
+| `flare` | Wisp, Lyra, Wish, Darner, Merlin, Rook |
 | `spring` | Flicker, Quill, Nyan, Trace, Boreal |
 | `whip` | Needle, Saber, Koi, Plume |
 | `crease` | Fold |
@@ -968,6 +969,9 @@ ink outlines (`drawPuffTrail`);
 **Argus** stamps theme-aware peacock-rim / gold-pupil eyespots (`drawArgusTrail`,
 `color.argusTealRgb` lifts on night paper);
 **Chime** draws dense gold/ink sound arcs + paired note motes (`drawChimeTrail`);
+**Merlin** uses a hairline gold comet + prism stars (`drawMerlinTrail`);
+**Rook** uses theme-aware bronze/gold filaments + ember diamonds (`drawRookTrail`,
+`color.rookCopperRgb` / `rookSparkRgb` lift on night paper);
 **Nyan** uses `drawRainbowRibbonTrail` (six stacked pop-stripe
 bands, not HUD/UI) and `drawNyanHull` — Echo’s `crescentPath` sparrow wings in
 dark gray with two clipped pink spots (`CRESCENT_HITBOX`); `trailTailOffset: 0`
@@ -977,13 +981,13 @@ along the path (dawn: indigo tip → persimmon hull) and `fletchPath` ogive arro
 (`trailTailOffset` 0.32 into the nock). Optional skin fields
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
 `1/360`; Quill / Fletch / Shard / Seal / Hatch / Trace / Fold / Spine / Mote / Pulse /
-Echo / Dusk / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime / Merlin: 200 pts, fade `1/420` so the tip leaves the viewport).
+Echo / Dusk / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime / Merlin / Rook: 200 pts, fade `1/420` so the tip leaves the viewport).
 Menu preview always uses the short sample wake so it never covers the title
 (native iOS hangar tiles bake the same `previewWake` via `PreviewWakePaint`).
 iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
-Fold, Needle, Halo, Square, Mote, Spine, Orbit, Nyan, Fletch, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, and Merlin have dedicated drawers.
+Fold, Needle, Halo, Square, Mote, Spine, Orbit, Nyan, Fletch, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, and Rook have dedicated drawers.
 **Orbit** hitbox is the solid oval body only (ring/satellite decorative).
 **Lantern** hitbox is the bell only (tentacles decorative). **Bloom** hitbox is
 the central soap disc (`r` 0.70; films / satellites decorative). **Sprout** is the
@@ -992,8 +996,9 @@ seed only (leaves decorative). **Koi** is the body only (tail decorative).
 only (stem / ticks decorative). **Argus** is the body + inner fan (feather tips
 decorative). **Chime** is the central bell only (side bells / clappers decorative).
 **Merlin** is the needle body only (winglets / orbiting stars decorative).
+**Rook** is the fuselage only (four vanes / tip glitter decorative).
 Animated colour hulls set `skipHullCache` so live paint keeps moving on cheap Canvas.
-Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Merlin; other Focus–Cinder hulls bake Android wash + highlight + crease (`ClassicHullPaint`, t = 1400 ms). Hull paint multiplies extra α with the color's own α (Canvas `globalAlpha`) so `ink12` / `ink30` halos stay a light wash — `UIColor.withAlphaComponent` was replacing 0.12 with ~1 and painting solid bone. Classic wakes (Wisp–Cinder) are dedicated SpriteKit drawers, not `ParticleWakeField`.
+Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Rook; other Focus–Cinder hulls bake Android wash + highlight + crease (`ClassicHullPaint`, t = 1400 ms). Hull paint multiplies extra α with the color's own α (Canvas `globalAlpha`) so `ink12` / `ink30` halos stay a light wash — `UIColor.withAlphaComponent` was replacing 0.12 with ~1 and painting solid bone. Classic wakes (Wisp–Cinder) are dedicated SpriteKit drawers, not `ParticleWakeField`.
 **Spine** is stacked circles down the bar only.
 
 - Registry: `ships/skins.js` (`getSkin`, `drawSkinPreview`, `loadShipSkinId` / `saveShipSkinId`).
@@ -1257,16 +1262,16 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
-| `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (40 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
+| `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Merlin), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), scrolling drift dashes, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), scrolling drift dashes, popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
 (smudge + body). Saber wake: three **reused** ribbons (bloom / body / core)
-plus a spark pool. Focus / Ember use pooled discs. The 18 live ships reuse a
+plus a spark pool. Focus / Ember use pooled discs. The 19 live ships reuse a
 fixed fill/stroke/disc pool (16 / 24 / 24) and rewrite `path` / position each frame; lantern-family
 wakes reuse 3 filament `SKShapeNode`s plus a plankton sprite pool sized to
 `slots × (5×density + 2)` (Luna ~2000), painted **newest-first** so the near-hull
@@ -1287,9 +1292,9 @@ Turn / crash / shield / shield-crash decode into `AVAudioPCMBuffer`s (no
 and smash haptic are gated to 120 ms.
 Cruise travel is `snappyHz * feelSpeed` (1.0, matches Android/web). Do not retune input or
 `maxStepsPerFrame` from App Preview lag.
-Phase B stress scene held 120 Hz. Full roster: 40 ships with JS circle packs,
+Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,
 matching hull bakes / `LiveHullPaint` (play + picker), and Android trail + `wallTrailDeform`
-modes (incl. Focus ripple + Ember twin-dots). The 18 live ships use dedicated wake
+modes (incl. Focus ripple + Ember twin-dots). The 19 live ships use dedicated wake
 drawers and `trailTailOffset`. Hull jelly does not
 deform the hitbox. Shield smash stays a scaled circle. Ship IAP / Restore
 uses RevenueCat (`UNLOCK_ALL_SKINS` false — store hangar). Slice D feel remains: Arc/zigzag, overlap spawn, cluster

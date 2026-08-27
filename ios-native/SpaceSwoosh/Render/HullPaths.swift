@@ -1,5 +1,5 @@
 // HullPaths.swift
-// Changes: Merlin ultra-slim spark-falcon needle for live hangar / play hulls.
+// Changes: Rook chisel-nose bar for live hangar / play hulls.
 
 import CoreGraphics
 import SpriteKit
@@ -194,6 +194,14 @@ enum HullPaths {
             path.addQuadCurve(to: CGPoint(x: cx - r * 0.042, y: cy + ry * 0.50), control: CGPoint(x: cx - r * 0.018, y: cy + ry * 0.90))
             path.addQuadCurve(to: CGPoint(x: cx - r * 0.22, y: cy + ry * 0.04), control: CGPoint(x: cx - r * 0.07, y: cy + ry * 0.10))
             path.addQuadCurve(to: CGPoint(x: cx, y: cy - ry * 1.42), control: CGPoint(x: cx - r * 0.045, y: cy - ry * 0.22))
+            path.closeSubpath()
+        case .rook:
+            path.move(to: CGPoint(x: cx, y: cy - ry * 1.32))
+            path.addLine(to: CGPoint(x: cx + r * 0.11, y: cy - ry * 0.88))
+            path.addQuadCurve(to: CGPoint(x: cx + r * 0.052, y: cy + ry * 0.42), control: CGPoint(x: cx + r * 0.07, y: cy - ry * 0.10))
+            path.addQuadCurve(to: CGPoint(x: cx, y: cy + ry * 1.18), control: CGPoint(x: cx + r * 0.028, y: cy + ry * 0.88))
+            path.addQuadCurve(to: CGPoint(x: cx - r * 0.052, y: cy + ry * 0.42), control: CGPoint(x: cx - r * 0.028, y: cy + ry * 0.88))
+            path.addQuadCurve(to: CGPoint(x: cx - r * 0.11, y: cy - ry * 0.88), control: CGPoint(x: cx - r * 0.07, y: cy - ry * 0.10))
             path.closeSubpath()
         }
     }

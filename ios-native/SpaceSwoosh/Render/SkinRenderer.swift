@@ -77,7 +77,7 @@ final class SkinRenderer {
         let pad = radius * scale * skin.hullDrawPad
         let shakeScale: CGFloat
         switch skin.jellyProfile {
-        case .bloom, .lyra, .boreal, .wish, .puff, .chime, .halo, .orbit, .merlin:
+        case .bloom, .lyra, .boreal, .wish, .puff, .chime, .halo, .orbit, .merlin, .rook:
             shakeScale = 0.7
         case .needle:
             shakeScale = 0.55

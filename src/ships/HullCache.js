@@ -1,6 +1,7 @@
 // HullCache.js
 // Phase 1: bake each skin's resting hull to an offscreen canvas; blit via drawImage.
 // Changes:
+// - Rook skipHullCache; HULL_META still listed for the jelly profile.
 // - Merlin skipHullCache; HULL_META still listed for the jelly profile.
 // - Darner / Puff / Argus / Chime plus Luna / Wish / Lantern / Bloom / Lyra /
 //   Sprout / Plume / Koi / Spore / Boreal skip the cache via skipHullCache;
@@ -61,6 +62,7 @@ const HULL_META = {
     argus: { profile: 'argus', halfScale: 0.75 },
     chime: { profile: 'chime', halfScale: 0.85 },
     merlin: { profile: 'merlin', halfScale: 0.55 },
+    rook: { profile: 'rook', halfScale: 0.55 },
 };
 
 // Mid breath / scale so the bake isn't at a trough or peak.

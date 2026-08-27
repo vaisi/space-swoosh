@@ -1,6 +1,6 @@
 <!--
   ios-native/README.md
-  Changes: 40-ship roster (Merlin spark-falcon); 18 live-draw hulls.
+  Changes: 41-ship roster (Rook spark-skiff after Merlin); 19 live-draw hulls.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -9,7 +9,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 
 ## Hangar (current)
 
-- **40 ships** in Android `SKIN_DEFS` order. `UNLOCK_ALL_SKINS = false` — premium tiles show price and tap-to-buy via RevenueCat. Free forever: Focus, Flicker, Ember, Saber
+- **41 ships** in Android `SKIN_DEFS` order. `UNLOCK_ALL_SKINS = false` — premium tiles show price and tap-to-buy via RevenueCat. Free forever: Focus, Flicker, Ember, Saber
 - Playtest flag `UNLOCK_ALL_LEVELS = true` (flip false before store) opens every Journey map tile without rewriting saved `unlocked`
 - Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for RevenueCat
 - Home: **SPACE SWOOSH** + flavor + ◀ hull ▶, then Play / Space Log / Options / High Scores (Android tags ▶ □ ⚙ #)
@@ -22,7 +22,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
 - Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
 - Hangar stills bake Android `previewWake` (12 pts, span 3.4r, never the long in-play wake) then a banked hull. Live hulls use `LiveHullPaint` / `ClassicHullPaint` at t=1400 ms. In play, live hull warp is **not** rasterized; a 3.2r pad keeps orbiting ornaments (Bloom satellites, Luna dust) in frame. Pools: 16 fills / 24 strokes / 24 discs.
-- One equipped renderer at `startRun` (do not allocate a trail node per ship). Richer baked silhouettes (wash + highlight + crease) for static ink hulls; wash/ring α is Canvas `globalAlpha × fillStyle.alpha` so `ink12`/`ink30` halos stay translucent. **18** live-draw (`skipHullCache`: Nyan, Halo, Orbit, Lantern…Merlin)
+- One equipped renderer at `startRun` (do not allocate a trail node per ship). Richer baked silhouettes (wash + highlight + crease) for static ink hulls; wash/ring α is Canvas `globalAlpha × fillStyle.alpha` so `ink12`/`ink30` halos stay translucent. **19** live-draw (`skipHullCache`: Nyan, Halo, Orbit, Lantern…Rook)
 - Classic wakes (Wisp sparks, Shard chevrons, Halo/Ring hollow rings, Dusk violet cloud at Android 6–9 dots/point, Seal stamps, Hatch ticks, Fold crease, Spine ladder, Orbit lag ellipses, Flux dashes, Cinder ember/ash) are dedicated drawers — not `ParticleWakeField`
 - Fletch wake tucks into the nock (`trailTailOffset` 0.32); Nyan rainbow starts under the hull (`0`)
 - Live-ship wakes are dedicated drawers (teal/gold filaments + plankton, soap rings, aurora strata, peacock stamps, …). Sprout/Spore/Luna reuse the lantern filament+cloud with Android palettes. Plankton pool is `slots × (5×density + 2)`, painted newest-first (no 600 cap). Bloom soap rings use `dense(..., subdiv: 1)` like Android.

@@ -1,6 +1,7 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Rook `rookPath` four-vane spark-skiff + vane-flash jelly.
 // - Merlin `merlinPath` ultra-slim spark-falcon + glitter jelly.
 // - Darner / Puff / Argus / Chime paths + jelly profiles.
 // - Luna `mothPath` + Wish `wishPath` + jelly profiles.
@@ -393,6 +394,19 @@ export function merlinPath(ctx, cx, cy, r, stretch = 1) {
     ctx.quadraticCurveTo(cx - r * 0.018, cy + ry * 0.90, cx - r * 0.042, cy + ry * 0.50);
     ctx.quadraticCurveTo(cx - r * 0.07, cy + ry * 0.10, cx - r * 0.22, cy + ry * 0.04);
     ctx.quadraticCurveTo(cx - r * 0.045, cy - ry * 0.22, cx, cy - ry * 1.42);
+    ctx.closePath();
+}
+
+/** Spark-skiff — chisel-nose bar; four vanes painted in skinDefs (Rook). */
+export function rookPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.32);
+    ctx.lineTo(cx + r * 0.11, cy - ry * 0.88);
+    ctx.quadraticCurveTo(cx + r * 0.07, cy - ry * 0.10, cx + r * 0.052, cy + ry * 0.42);
+    ctx.quadraticCurveTo(cx + r * 0.028, cy + ry * 0.88, cx, cy + ry * 1.18);
+    ctx.quadraticCurveTo(cx - r * 0.028, cy + ry * 0.88, cx - r * 0.052, cy + ry * 0.42);
+    ctx.quadraticCurveTo(cx - r * 0.07, cy - ry * 0.10, cx - r * 0.11, cy - ry * 0.88);
     ctx.closePath();
 }
 
@@ -805,6 +819,20 @@ export function wallJellyDeform(ship, time = performance.now(), profile = 'defau
         };
     }
 
+    // Rook: four vanes flash wide, stay needle-thin.
+    if (profile === 'rook') {
+        const damp = Math.exp(-1.9 * t);
+        const spread = Math.sin(t * Math.PI) * damp;
+        const glitter = Math.sin(t * Math.PI * 7.0) * Math.exp(-2.8 * t);
+        return {
+            sx: Math.min(1.22, 1 + 0.18 * spread),
+            sy: Math.max(0.92, 1 - 0.06 * spread),
+            side: j.side,
+            shake: glitter * 0.16,
+            shear: glitter * 0.12,
+        };
+    }
+
     // cos: +1 at impact (squish) → −1 (extend) → settle. Damped oscillation.
     const damp = Math.exp(-2.4 * t);
     const primary = Math.cos(t * Math.PI * 2.8) * damp;
@@ -1136,6 +1164,7 @@ const PLANT_BY_PROFILE = {
     argus: 0.6,
     chime: 0.35,
     merlin: 0.4,
+    rook: 0.45,
 };
 
 /**
@@ -1162,7 +1191,8 @@ export function beginHullFrame(
         ctx.translate(jelly.side * (half - half * jelly.sx) * plant, 0);
         const shakeScale = profile === 'halo' || profile === 'orbit' || profile === 'bloom'
             || profile === 'lyra' || profile === 'boreal' || profile === 'wish'
-            || profile === 'puff' || profile === 'chime' || profile === 'merlin' ? 0.7
+            || profile === 'puff' || profile === 'chime' || profile === 'merlin'
+            || profile === 'rook' ? 0.7
             : profile === 'needle' ? 0.55
             : 0.35;
         ctx.translate(jelly.shake * (ship.radius ?? 10) * jelly.side * shakeScale, 0);

@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: Merlin ultra-slim spark-falcon (prism stars + hairline comet wake) added to the roster.
+// Changes: Rook four-vane spark-skiff added after Merlin.
 // UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
 
 import Foundation
@@ -12,7 +12,7 @@ enum SkinId: String, CaseIterable, Hashable {
     case fold, mote, spine, orbit, ink
     case flux, cinder, lantern, bloom
     case lyra, sprout, plume, koi, spore, boreal
-    case luna, wish, darner, puff, argus, chime, merlin
+    case luna, wish, darner, puff, argus, chime, merlin, rook
 }
 
 enum WallTrailMode {
@@ -25,21 +25,21 @@ enum JellyProfile: String {
     case standard = "default"
     case needle, halo, shard, stamp, fold, spine, mote, orbit, flux, cinder
     case lantern, bloom, lyra, sprout, plume, koi, spore, boreal
-    case luna, wish, darner, puff, argus, chime, merlin
+    case luna, wish, darner, puff, argus, chime, merlin, rook
 }
 
 enum HullKind: Hashable {
     case circle, tear, dart, fletch, shard, needle, crescent, nyan
     case square, stamp, fold, spine, hex, petal, orbit, mote, halo
     case bell, bloom, star, seed, wing, koi, cap, curtain, moth
-    case wish, darner, puff, argus, chime, merlin
+    case wish, darner, puff, argus, chime, merlin, rook
 }
 
 enum TrailKind {
     case dots, twinDots, ribbon, rainbow, horizon, wisp, chevron
     case rings, hairline, saber, twin, stamp, tick, crease, cloud
     case ladder, lag, dash, cinder, lantern, bloom, lyra, plume
-    case koi, boreal, luna, wish, darner, puff, argus, chime, merlin
+    case koi, boreal, luna, wish, darner, puff, argus, chime, merlin, rook
 }
 
 struct HitCircle {
@@ -218,6 +218,8 @@ enum SkinCatalog {
           pad: 3.2, half: 0.85, jelly: .chime, iap: true, pts: longPts, fade: longFade, live: true, ripple: true, tail: 0.38),
         s(.merlin, "Merlin", "A spark-falcon. Stars pour from its wake.", H.merlin, .flare, .merlin, .merlin,
           pad: 3.6, half: 0.55, jelly: .merlin, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
+        s(.rook, "Rook", "Four gold vanes. Dust pours from its wake.", H.rook, .flare, .rook, .rook,
+          pad: 3.6, half: 0.55, jelly: .rook, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.28),
     ]
 
     private static func s(
@@ -383,6 +385,11 @@ private enum H {
         .init(x: 0, y: -0.85, r: 0.04), .init(x: 0, y: -0.40, r: 0.05),
         .init(x: 0, y: 0.05, r: 0.06), .init(x: 0, y: 0.50, r: 0.04),
         .init(x: 0, y: 0.95, r: 0.04),
+    ]
+    static let rook: [HitCircle] = [
+        .init(x: 0, y: -0.82, r: 0.06), .init(x: 0, y: -0.36, r: 0.055),
+        .init(x: 0, y: 0.08, r: 0.05), .init(x: 0, y: 0.48, r: 0.048),
+        .init(x: 0, y: 0.90, r: 0.042),
     ]
     static let spine: [HitCircle] = [
         .init(x: 0, y: -0.78, r: 0.16), .init(x: 0, y: -0.35, r: 0.2),

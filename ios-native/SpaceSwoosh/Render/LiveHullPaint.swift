@@ -1,5 +1,5 @@
 // LiveHullPaint.swift
-// Changes: Merlin ultra-slim spark-falcon (prism stars); Nyan / Halo / Orbit dispatch to ClassicHullPaint.
+// Changes: Rook uses theme-aware copper/spark (not lanternGold); four-vane spark-skiff.
 
 import CoreGraphics
 import UIKit
@@ -24,6 +24,7 @@ enum LiveHullPaint {
         case .argus: argus(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .chime: chime(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .merlin: merlin(canvas, radius, turn, nowMs, jellyLive, alpha)
+        case .rook: rook(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .nyan, .halo, .orbit:
             ClassicHullPaint.draw(id, onto: canvas, radius: radius, turn: turn, nowMs: nowMs, jellyLive: jellyLive, shake: shake, alpha: alpha)
         default: break
@@ -486,6 +487,62 @@ enum LiveHullPaint {
             let rgb = palettes[i % palettes.count]
             let x = (i % 2 == 0 ? 1 : -1) * r * 0.03
             sparkle(c, x: x, y: y, size: r * 0.028 * tw, color: rgb, alpha: ba * tw * (jelly ? 0.7 : breath * 0.85), width: max(0.4, r * 0.016))
+        }
+    }
+
+    private static func rookVane(_ c: LiveHullCanvas, x0: CGFloat, y0: CGFloat, x1: CGFloat, y1: CGFloat, half: CGFloat, fill: UIColor, stroke: UIColor, fillA: CGFloat, strokeA: CGFloat, width: CGFloat) {
+        let dx = x1 - x0
+        let dy = y1 - y0
+        let len = hypot(dx, dy)
+        let inv = len > 0.0001 ? 1 / len : 1
+        let nx = -dy * inv * half
+        let ny = dx * inv * half
+        let pts = [
+            CGPoint(x: x0 + nx, y: y0 + ny),
+            CGPoint(x: x1 + nx * 0.45, y: y1 + ny * 0.45),
+            CGPoint(x: x1 - nx * 0.45, y: y1 - ny * 0.45),
+            CGPoint(x: x0 - nx, y: y0 - ny),
+        ]
+        c.fillClosed(pts, color: fill, alpha: fillA)
+        c.strokeClosed(pts, color: stroke, alpha: strokeA, width: width)
+    }
+
+    private static func rook(_ c: LiveHullCanvas, _ radius: CGFloat, _ turn: CGFloat, _ t: CGFloat, _ jelly: Bool, _ a: CGFloat) {
+        let breath = 0.92 + 0.05 * sin(t * 0.005)
+        let scale = 0.97 + 0.03 * sin(t * 0.0044)
+        let r = radius * 0.95 * scale
+        let stretch = 1 + 0.12 * turn
+        let pulse = 0.82 + 0.18 * sin(t * 0.007)
+        let flutter = 1 + 0.06 * sin(t * 0.0062)
+        let ba = a
+        let bodyA = jelly ? ba : ba * breath
+        let vanes: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+            (-r * 0.06, r * 0.06 * stretch, -r * 0.78 * flutter, r * 0.18 * stretch),
+            (r * 0.06, r * 0.06 * stretch, r * 0.78 * flutter, r * 0.18 * stretch),
+            (-r * 0.04, r * 0.48 * stretch, -r * 0.34 * flutter, r * 0.98 * stretch),
+            (r * 0.04, r * 0.48 * stretch, r * 0.34 * flutter, r * 0.98 * stretch),
+        ]
+        for v in vanes {
+            rookVane(c, x0: v.0, y0: v.1, x1: v.2, y1: v.3, half: r * 0.034,
+                     fill: BrandColors.UI.ink, stroke: BrandColors.UI.ink,
+                     fillA: bodyA, strokeA: ba * (jelly ? 0.78 : breath * 0.92), width: max(0.7, r * 0.032))
+        }
+        c.fillHull(.rook, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink, alpha: bodyA)
+        c.strokeHull(.rook, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink,
+                     alpha: ba * (jelly ? 0.72 : breath * 0.9), width: max(0.85, r * 0.038))
+        c.strokeLine(from: CGPoint(x: 0, y: -r * 0.92 * stretch), to: CGPoint(x: 0, y: r * 0.52 * stretch),
+                     color: BrandColors.UI.rookCopper, width: max(0.7, r * 0.036), alpha: ba * (jelly ? 0.75 : breath * 0.88))
+        let heartA = jelly ? ba * 0.95 : ba * breath * pulse
+        c.fillRotatedEllipse(x: -r * 0.02, y: -r * 0.96 * stretch, rx: r * 0.06, ry: r * 0.1 * pulse,
+                             rotation: 0.18, color: BrandColors.UI.rookCopper, alpha: heartA)
+        c.fillRotatedEllipse(x: -r * 0.02, y: -r * 0.96 * stretch, rx: r * 0.024, ry: r * 0.042,
+                             rotation: 0.18, color: BrandColors.UI.rookSpark, alpha: heartA)
+        let tipRgb = BrandColors.UI.rookBands
+        for i in 0..<vanes.count {
+            let v = vanes[i]
+            let tw = 0.45 + 0.55 * sin(t * 0.014 + CGFloat(i) * 1.6)
+            sparkle(c, x: v.2, y: v.3, size: r * (0.05 + 0.025 * tw), color: tipRgb[i % tipRgb.count],
+                    alpha: ba * tw * (jelly ? 0.8 : breath), width: max(0.45, r * 0.02))
         }
     }
 }

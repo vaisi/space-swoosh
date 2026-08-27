@@ -4,6 +4,7 @@
   - Native iOS uses the same product / entitlement contract via RevenueCat iOS SDK.
   - Added store Display Name + Description for every premium skin (in-game
     blurbs; four shortened to App Store's 45-character Description limit).
+  - Added Rook (four-vane spark-skiff + theme-aware bronze/gold dust wake).
   - Added Merlin (ultra-slim spark-falcon + star cascade).
   - Added Darner (dragonfly), Puff (dandelion), Argus (peacock), Chime (temple bells).
   - Added Luna (lunar moth) and Wish (constellation comet).
@@ -68,6 +69,7 @@ blurb except four marked `*` (trimmed to fit Apple).
 | Argus | `com.orbi.spaceswoosh.skin.argus` | `skin_argus` | A peacock fan. Eyespots stamp the path. |
 | Chime | `com.orbi.spaceswoosh.skin.chime` | `skin_chime` | Temple bells. Sound rings down the wake. |
 | Merlin | `com.orbi.spaceswoosh.skin.merlin` | `skin_merlin` | A spark-falcon. Stars pour from its wake. |
+| Rook | `com.orbi.spaceswoosh.skin.rook` | `skin_rook` | Four gold vanes. Dust pours from its wake. |
 
 In-game blurbs that were trimmed for Apple (`*`):
 

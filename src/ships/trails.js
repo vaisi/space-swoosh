@@ -2,6 +2,7 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Rook `drawRookTrail`: twin bronze/gold filaments + ember diamonds (theme-aware).
 // - Merlin `drawMerlinTrail`: hairline gold comet + dense prism 4-point stars + glitter dust; flare boop.
 // - Plume boop: Koi-like whip + gold/ember scale ellipses; stronger jelly energy.
 // - Puff / Argus / Chime wake visibility: ink ribbon + denser umbrellas
@@ -126,6 +127,11 @@ const MERLIN_RGB = [
     '255, 140, 180',
     '180, 150, 255',
 ];
+
+/** Rook dust — ink ribbons plus bronze/ember diamonds (reads on cream and night). */
+function rookBands() {
+    return [color.inkRgb, color.inkRgb, color.rookCopperRgb, color.rookSparkRgb, color.emberRgb];
+}
 
 /** Wish prism motes — gold, white, rose, mint. */
 const WISH_RGB = [
@@ -2676,6 +2682,65 @@ export function drawMerlinTrail(ctx, ship, trail, toScreenY, opts = {}) {
                 ctx.stroke();
             }
         }
+    }
+
+    ctx.restore();
+}
+
+/** Twin bronze/gold filaments + ember diamonds — Rook. Flare boop flashes the vanes. */
+export function drawRookTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.94, bands = rookBands() } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+    const bandN = bands.length;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const offsets = lod ? [-0.46, 0.46] : [-0.55, 0.55];
+    for (let f = 0; f < offsets.length; f++) {
+        const fil = filamentOffset(pts, r, offsets[f], energy);
+        const widthAt = (i) => {
+            const t = i / denom;
+            return r * (0.032 + 0.08 * t) * fil[i].opacity * (1 + energy * 0.5 * t);
+        };
+        ribbonPath(ctx, fil, widthAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.62 + energy * 0.28);
+        ctx.fillStyle = `rgba(${bands[f % bandN]}, 1)`;
+        ctx.fill();
+    }
+
+    const step = lod ? 2 : 1;
+    const speckChance = energy > 0.08 ? 0.96 : 0.78;
+    for (let i = 0; i < n; i += step) {
+        const p = pts[i];
+        if (p.opacity < 0.1) continue;
+        const u = fract((p.seed ?? 0.5) * 12.99 + i * 0.31);
+        if (u > speckChance) continue;
+        const v = fract((p.seed ?? 0.5) * 78.23 + i * 0.19);
+        const w = fract((p.seed ?? 0.5) * 4.14 + i * 0.11);
+        const leave = 1 - i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const side = (u * 2 - 1) * r * (0.16 + 1.05 * leave) * (1 + energy * 1.2);
+        const size = r * (0.022 + 0.048 * leave) * (0.5 + v * 0.6) * (1 + energy * 0.65);
+        const rgb = bands[(i + ((w * bandN) | 0)) % bandN];
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity
+            * (0.38 + 0.48 * leave + energy * 0.42);
+        fillDiamond(ctx, p.x + nx * side, p.y + ny * side, size);
     }
 
     ctx.restore();
