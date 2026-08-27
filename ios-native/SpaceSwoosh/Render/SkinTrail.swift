@@ -1,5 +1,5 @@
 // SkinTrail.swift
-// Changes: Exhaustive TrailKind switch; ParticleWakeField is unused on the 41-ship roster.
+// Changes: Merlin spectacular WishWake (hairline comet + dense stars); ParticleWakeField unused on the 40-ship roster.
 
 import SpriteKit
 
@@ -71,6 +71,8 @@ enum SkinTrailFactory {
             return ArgusWake(ring: bake.ring, disc: disc, slots: slots)
         case .chime:
             return ChimeWake(disc: disc, slots: slots)
+        case .merlin:
+            return WishWake(disc: disc, slots: slots * 3, spectacular: true)
         case .wisp:
             return WispTrailNode(disc: disc, maxPoints: slots + 2)
         case .chevron:

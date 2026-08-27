@@ -1,6 +1,5 @@
 // PreviewWakePaint.swift
-// Changes: Plume hangar sample adds gold/ember scale ellipses (Koi-like stamps).
-// Dusk hangar cloud uses saber violet; family stills match play drawers.
+// Changes: Merlin hangar sample is a hairline gold comet + dense prism 4-point stars.
 
 import CoreGraphics
 import UIKit
@@ -104,6 +103,8 @@ enum PreviewWakePaint {
             argus(cg, pts, radius)
         case .chime:
             chime(cg, pts, radius)
+        case .merlin:
+            merlin(cg, pts, radius)
         }
     }
 
@@ -365,6 +366,25 @@ enum PreviewWakePaint {
             cg.fill(CGRect(x: -half, y: -half, width: half * 2, height: half * 2))
             cg.restoreGState()
         }
+    }
+
+    private static func merlin(_ cg: CGContext, _ pts: [WakeSample], _ r: CGFloat) {
+        var left = Array(repeating: CGPoint.zero, count: pts.count)
+        var right = Array(repeating: CGPoint.zero, count: pts.count)
+        let last = CGFloat(max(pts.count - 1, 1))
+        fillRibbon(cg, pts, &left, &right, widthAt: { i in
+            let t = CGFloat(i) / last
+            return r * (0.038 + 0.08 * t) * (0.5 + 0.5 * pts[i].opacity)
+        }, color: BrandColors.UI.lanternGold, alpha: 0.28)
+        fillRibbon(cg, pts, &left, &right, widthAt: { i in
+            let t = CGFloat(i) / last
+            return r * (0.014 + 0.046 * t) * pts[i].opacity
+        }, color: BrandColors.UI.lanternGold, alpha: 0.86)
+        fillRibbon(cg, pts, &left, &right, widthAt: { i in
+            let t = CGFloat(i) / last
+            return r * (0.006 + 0.018 * t) * pts[i].opacity
+        }, color: BrandColors.UI.wishCore, alpha: 0.96)
+        stars(cg, pts, r, colors: BrandColors.UI.merlinBands, chance: 0.92)
     }
 
     private static func ticks(_ cg: CGContext, _ pts: [WakeSample], _ r: CGFloat) {

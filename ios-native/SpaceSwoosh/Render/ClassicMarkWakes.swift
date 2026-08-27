@@ -1,5 +1,5 @@
 // ClassicMarkWakes.swift
-// Changes: Cloud trail uses Android 6–9 dots/point (no 600 cap); newest-first.
+// Changes: Cloud trail uses Android 6–9 dots/point. Merlin wake lives in WishWake.
 
 import SpriteKit
 

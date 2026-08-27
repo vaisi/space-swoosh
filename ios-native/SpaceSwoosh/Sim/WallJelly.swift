@@ -1,5 +1,5 @@
 // WallJelly.swift
-// Changes: Spring deform uses seed×2π; plantFactor matches Android PLANT_BY_PROFILE.
+// Changes: Merlin glitter wobble (needle-thin); spring deform uses seed×2π; plantFactor matches Android PLANT_BY_PROFILE.
 
 import Foundation
 import CoreGraphics
@@ -187,6 +187,15 @@ enum WallJelly {
             let settle = cos(t * .pi * 6.5) * exp(-3.2 * t)
             return HullJelly(sx: max(0.9, 1 + orbit * 0.07), sy: max(0.9, 1 - orbit * 0.05),
                              side: s, shake: settle * 0.16, shear: orbit * 0.2)
+        case .merlin:
+            let damp = exp(-2.0 * t)
+            let spark = sin(t * .pi * 7.2) * damp
+            let settle = cos(t * .pi * 8.4) * exp(-3.2 * t)
+            return HullJelly(
+                sx: max(0.90, 1 + spark * 0.05),
+                sy: min(1.22, 1 + abs(spark) * 0.12),
+                side: s, shake: settle * 0.22, shear: spark * 0.18
+            )
         case .standard:
             let damp = exp(-2.4 * t)
             let primary = cos(t * .pi * 2.8) * damp
@@ -251,6 +260,7 @@ enum WallJelly {
         case .puff: return 0.35
         case .argus: return 0.6
         case .chime: return 0.35
+        case .merlin: return 0.4
         }
     }
 

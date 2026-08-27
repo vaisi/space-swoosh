@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: Plume wall-trail mode is Koi `whip` (gold/ember scale squash on boop).
+// Changes: Merlin ultra-slim spark-falcon (prism stars + hairline comet wake) added to the roster.
 // UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
 
 import Foundation
@@ -12,7 +12,7 @@ enum SkinId: String, CaseIterable, Hashable {
     case fold, mote, spine, orbit, ink
     case flux, cinder, lantern, bloom
     case lyra, sprout, plume, koi, spore, boreal
-    case luna, wish, darner, puff, argus, chime
+    case luna, wish, darner, puff, argus, chime, merlin
 }
 
 enum WallTrailMode {
@@ -25,21 +25,21 @@ enum JellyProfile: String {
     case standard = "default"
     case needle, halo, shard, stamp, fold, spine, mote, orbit, flux, cinder
     case lantern, bloom, lyra, sprout, plume, koi, spore, boreal
-    case luna, wish, darner, puff, argus, chime
+    case luna, wish, darner, puff, argus, chime, merlin
 }
 
 enum HullKind: Hashable {
     case circle, tear, dart, fletch, shard, needle, crescent, nyan
     case square, stamp, fold, spine, hex, petal, orbit, mote, halo
     case bell, bloom, star, seed, wing, koi, cap, curtain, moth
-    case wish, darner, puff, argus, chime
+    case wish, darner, puff, argus, chime, merlin
 }
 
 enum TrailKind {
     case dots, twinDots, ribbon, rainbow, horizon, wisp, chevron
     case rings, hairline, saber, twin, stamp, tick, crease, cloud
     case ladder, lag, dash, cinder, lantern, bloom, lyra, plume
-    case koi, boreal, luna, wish, darner, puff, argus, chime
+    case koi, boreal, luna, wish, darner, puff, argus, chime, merlin
 }
 
 struct HitCircle {
@@ -216,6 +216,8 @@ enum SkinCatalog {
           pad: 3.4, half: 0.75, jelly: .argus, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
         s(.chime, "Chime", "Temple bells. Sound rings down the wake.", H.chime, .ripple, .chime, .chime,
           pad: 3.2, half: 0.85, jelly: .chime, iap: true, pts: longPts, fade: longFade, live: true, ripple: true, tail: 0.38),
+        s(.merlin, "Merlin", "A spark-falcon. Stars pour from its wake.", H.merlin, .flare, .merlin, .merlin,
+          pad: 3.6, half: 0.55, jelly: .merlin, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
     ]
 
     private static func s(
@@ -376,6 +378,11 @@ private enum H {
     static let chime: [HitCircle] = [
         .init(x: 0, y: -0.48, r: 0.26), .init(x: 0, y: -0.04, r: 0.38),
         .init(x: 0, y: 0.28, r: 0.28),
+    ]
+    static let merlin: [HitCircle] = [
+        .init(x: 0, y: -0.85, r: 0.04), .init(x: 0, y: -0.40, r: 0.05),
+        .init(x: 0, y: 0.05, r: 0.06), .init(x: 0, y: 0.50, r: 0.04),
+        .init(x: 0, y: 0.95, r: 0.04),
     ]
     static let spine: [HitCircle] = [
         .init(x: 0, y: -0.78, r: 0.16), .init(x: 0, y: -0.35, r: 0.2),

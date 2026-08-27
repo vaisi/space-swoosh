@@ -2,6 +2,7 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Merlin — ultra-slim spark-falcon; prism heart + orbiting 4-point stars; hairline comet + dense star cascade; flare boop.
 // - Plume wall-boop uses Koi `whip` + gold/ember scale stamps (Cinder stays `cinder`).
 // - Darner, Puff, Argus, Chime — premium IAP; long wake; skipHullCache.
 // - Luna (lunar moth + moon heart + scale dust) and Wish (comet + constellation).
@@ -18,7 +19,7 @@
 //   dust scatter (no polar rings), milder ripple than Mote.
 // - Long in-game wakes (Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote,
 //   Pulse, Echo, Dusk, Ink, Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi,
-//   Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime). Menu preview stays short so it never covers title.
+//   Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin). Menu preview stays short so it never covers title.
 // - Free Saber: Needle hull + slim purple lightsaber wake (long trail, whip).
 // - Free forever: Focus / Flicker / Ember / Saber. Every other skin has productId +
 //   entitlementId (com.orbi.spaceswoosh.skin.<id> / skin_<id>) for IAP.
@@ -72,6 +73,7 @@ import {
     puffPath,
     argusPath,
     chimePath,
+    merlinPath,
     beginHullFrame,
     drawCircleHull,
 } from './hulls.js';
@@ -107,6 +109,7 @@ import {
     drawPuffTrail,
     drawArgusTrail,
     drawChimeTrail,
+    drawMerlinTrail,
 } from './trails.js';
 
 /** Extra-long wake: tip should leave the camera, not fade in-view. */
@@ -311,6 +314,15 @@ const CHIME_HITBOX = [
     { x: 0, y: -0.48, r: 0.26 },
     { x: 0, y: -0.04, r: 0.38 },
     { x: 0, y: 0.28, r: 0.28 },
+];
+
+// Merlin needle body only; winglets and orbiting stars are decorative.
+const MERLIN_HITBOX = [
+    { x: 0, y: -0.85, r: 0.04 },
+    { x: 0, y: -0.40, r: 0.05 },
+    { x: 0, y: 0.05, r: 0.06 },
+    { x: 0, y: 0.50, r: 0.04 },
+    { x: 0, y: 0.95, r: 0.04 },
 ];
 
 // Vertical bar — stacked circles down the spine only.
@@ -1644,6 +1656,126 @@ function drawChimeHull(ctx, ship, screenY, time = performance.now()) {
     ctx.restore();
 }
 
+/** Four-point sparkle (diamond + cross) — Merlin hull glitter. */
+function merlinSparkle(ctx, x, y, size) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - size);
+    ctx.lineTo(x + size * 0.28, y);
+    ctx.lineTo(x, y + size);
+    ctx.lineTo(x - size * 0.28, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x - size * 1.7, y);
+    ctx.lineTo(x + size * 1.7, y);
+    ctx.moveTo(x, y - size * 1.7);
+    ctx.lineTo(x, y + size * 1.7);
+    ctx.stroke();
+}
+
+/** Spark-falcon — ultra-slim needle, prism heart, orbiting 4-point stars. */
+function drawMerlinHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.92 + 0.05 * Math.sin(time * 0.005);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.14 * turn;
+    const lod = !!ship.game?.iosDrawLod;
+    const pulse = 0.82 + 0.18 * Math.sin(time * 0.0074);
+    const ry = r * stretch;
+
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.55, 'merlin');
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 0.32, ry * 1.18, 0, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${color.lanternGoldRgb}, 0.22)`;
+    ctx.fill();
+    ctx.globalAlpha = (jelly ? baseAlpha : baseAlpha * breath) * 0.14;
+    ctx.beginPath();
+    ctx.ellipse(r * 0.08, 0, r * 0.16, ry * 0.95, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(90, 210, 200, 1)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.08, 0, r * 0.16, ry * 0.95, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 140, 180, 1)';
+    ctx.fill();
+
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+    merlinPath(ctx, 0, 0, r, stretch);
+    ctx.fillStyle = color.ink;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${color.lanternGoldRgb}, 1)`;
+    ctx.lineWidth = Math.max(0.7, r * 0.032);
+    ctx.lineJoin = 'round';
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.55 : breath * 0.7);
+    merlinPath(ctx, 0, 0, r, stretch);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(${color.lanternGoldRgb}, 1)`;
+    ctx.lineWidth = Math.max(0.7, r * 0.038);
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.5 : breath * 0.62);
+    ctx.beginPath();
+    ctx.moveTo(0, -ry * 1.02);
+    ctx.lineTo(0, ry * 0.48);
+    ctx.stroke();
+
+    const heartA = jelly ? baseAlpha * 0.9 : baseAlpha * breath * pulse;
+    const hx = 0;
+    const hy = -ry * 0.02;
+    ctx.globalAlpha = heartA * 0.42;
+    ctx.fillStyle = `rgba(${color.lanternGoldRgb}, 1)`;
+    ctx.strokeStyle = `rgba(${color.lanternGoldRgb}, 1)`;
+    ctx.lineWidth = Math.max(0.55, r * 0.026);
+    merlinSparkle(ctx, hx, hy, r * 0.16 * pulse);
+    ctx.globalAlpha = heartA;
+    ctx.fillStyle = 'rgba(255, 248, 230, 1)';
+    ctx.strokeStyle = 'rgba(255, 248, 230, 1)';
+    merlinSparkle(ctx, hx, hy, r * 0.07 * pulse);
+
+    const palettes = [
+        color.lanternGoldRgb,
+        '90, 210, 200',
+        '255, 140, 180',
+        '180, 150, 255',
+        '255, 248, 230',
+        color.lanternGoldRgb,
+        '90, 210, 200',
+    ];
+    const wobble = jelly ? jelly.shake * 2.4 : 0;
+    const starN = lod ? 4 : 7;
+    for (let i = 0; i < starN; i++) {
+        const a = time * 0.0036 + i * (Math.PI * 2 / starN) + wobble;
+        const orbit = r * (0.42 + 0.08 * (i % 4));
+        const sx = Math.cos(a) * orbit * 0.55;
+        const sy = Math.sin(a * 1.15) * orbit * 0.28 * stretch;
+        const tw = 0.45 + 0.55 * Math.sin(time * 0.014 + i * 1.7);
+        const rgb = palettes[i % palettes.length];
+        ctx.globalAlpha = baseAlpha * tw * (jelly ? 0.82 : breath);
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.lineWidth = Math.max(0.5, r * 0.022);
+        merlinSparkle(ctx, sx, sy, r * (0.055 + 0.03 * tw));
+    }
+
+    const moteN = lod ? 3 : 6;
+    for (let i = 0; i < moteN; i++) {
+        const y = -ry * 0.78 + i * ry * 0.26;
+        const tw = 0.35 + 0.65 * Math.sin(time * 0.02 + i * 2.1);
+        const rgb = palettes[i % palettes.length];
+        ctx.globalAlpha = baseAlpha * tw * (jelly ? 0.7 : breath * 0.85);
+        ctx.fillStyle = `rgba(${rgb}, 1)`;
+        ctx.strokeStyle = `rgba(${rgb}, 1)`;
+        ctx.lineWidth = Math.max(0.4, r * 0.016);
+        merlinSparkle(ctx, (i % 2 === 0 ? 1 : -1) * r * 0.03, y, r * 0.028 * tw);
+    }
+
+    ctx.restore();
+}
+
 const focus = {
     id: 'focus',
     name: 'Focus',
@@ -2285,6 +2417,22 @@ const chime = {
     },
 };
 
+const merlin = {
+    id: 'merlin',
+    name: 'Merlin',
+    blurb: 'A spark-falcon. Stars pour from its wake.',
+    hitbox: MERLIN_HITBOX,
+    wallTrailMode: 'flare',
+    skipHullCache: true,
+    ...iap('merlin'),
+    ...LONG_WAKE,
+    trailTailOffset: 0.22,
+    drawHull: drawMerlinHull,
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawMerlinTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
 export const SKIN_DEFS = [
     focus, flicker, ember, saber, wisp, pulse, quill, fletch, nyan,
     shard, halo, needle, echo, dusk,
@@ -2292,5 +2440,5 @@ export const SKIN_DEFS = [
     fold, mote, spine, orbit, ink,
     flux, cinder, lantern, bloom,
     lyra, sprout, plume, koi, spore, boreal,
-    luna, wish, darner, puff, argus, chime,
+    luna, wish, darner, puff, argus, chime, merlin,
 ];

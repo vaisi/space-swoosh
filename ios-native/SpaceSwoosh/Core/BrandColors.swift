@@ -1,5 +1,5 @@
 // BrandColors.swift
-// Changes: Dark signal is ice blue #5CC8FF (Android night token; was mint).
+// Changes: Merlin prism bands (gold, cream, cyan, rose, lilac); dark signal is ice blue #5CC8FF.
 
 import SwiftUI
 import UIKit
@@ -106,6 +106,10 @@ enum BrandColors {
         ]
         static let koiBands: [UIColor] = [
             rgb(210, 72, 58), rgb(236, 214, 168), rgb(46, 110, 118)
+        ]
+        static let merlinBands: [UIColor] = [
+            rgb(232, 184, 74), rgb(255, 248, 230), rgb(90, 210, 200),
+            rgb(255, 140, 180), rgb(180, 150, 255)
         ]
         static let wishBands: [UIColor] = [
             rgb(232, 184, 74), rgb(255, 248, 230), rgb(255, 140, 180), rgb(120, 220, 190)

@@ -1,5 +1,5 @@
 // ParticleWakeField.swift
-// Changes: Last-resort pooled sprite wake — unused on the 41-ship roster.
+// Changes: Last-resort pooled sprite wake — unused on the 40-ship roster.
 
 import SpriteKit
 

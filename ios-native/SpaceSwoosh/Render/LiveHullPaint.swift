@@ -1,5 +1,5 @@
 // LiveHullPaint.swift
-// Changes: Nyan / Halo / Orbit dispatch to ClassicHullPaint.
+// Changes: Merlin ultra-slim spark-falcon (prism stars); Nyan / Halo / Orbit dispatch to ClassicHullPaint.
 
 import CoreGraphics
 import UIKit
@@ -23,6 +23,7 @@ enum LiveHullPaint {
         case .puff: puff(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .argus: argus(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .chime: chime(canvas, radius, turn, nowMs, jellyLive, alpha)
+        case .merlin: merlin(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .nyan, .halo, .orbit:
             ClassicHullPaint.draw(id, onto: canvas, radius: radius, turn: turn, nowMs: nowMs, jellyLive: jellyLive, shake: shake, alpha: alpha)
         default: break
@@ -433,6 +434,58 @@ enum LiveHullPaint {
                          alpha: ba * (jelly ? 0.55 : breath * 0.65))
             c.fillEllipse(x: bx + cl.3 * br, y: by + br * 0.48 * stretch, rx: br * 0.09, ry: br * 0.09,
                           color: BrandColors.UI.lanternGold, alpha: ba * (jelly ? 0.55 : breath * 0.65))
+        }
+    }
+
+    private static func sparkle(_ c: LiveHullCanvas, x: CGFloat, y: CGFloat, size: CGFloat, color: UIColor, alpha: CGFloat, width: CGFloat) {
+        c.fillClosed([
+            CGPoint(x: x, y: y - size),
+            CGPoint(x: x + size * 0.28, y: y),
+            CGPoint(x: x, y: y + size),
+            CGPoint(x: x - size * 0.28, y: y),
+        ], color: color, alpha: alpha)
+        c.strokeLine(from: CGPoint(x: x - size * 1.7, y: y), to: CGPoint(x: x + size * 1.7, y: y),
+                     color: color, width: width, alpha: alpha)
+        c.strokeLine(from: CGPoint(x: x, y: y - size * 1.7), to: CGPoint(x: x, y: y + size * 1.7),
+                     color: color, width: width, alpha: alpha)
+    }
+
+    private static func merlin(_ c: LiveHullCanvas, _ radius: CGFloat, _ turn: CGFloat, _ t: CGFloat, _ jelly: Bool, _ a: CGFloat) {
+        let breath = 0.92 + 0.05 * sin(t * 0.005)
+        let scale = 0.97 + 0.03 * sin(t * 0.0044)
+        let r = radius * 0.95 * scale
+        let stretch = 1 + 0.14 * turn
+        let pulse = 0.82 + 0.18 * sin(t * 0.0074)
+        let ba = a
+        let bodyA = jelly ? ba : ba * breath
+        c.fillEllipse(x: 0, y: 0, rx: r * 0.32, ry: r * 1.18 * stretch, color: BrandColors.UI.lanternGold, alpha: bodyA * 0.22)
+        c.fillEllipse(x: r * 0.08, y: 0, rx: r * 0.16, ry: r * 0.95 * stretch, color: BrandColors.UI.merlinBands[2], alpha: bodyA * 0.14)
+        c.fillEllipse(x: -r * 0.08, y: 0, rx: r * 0.16, ry: r * 0.95 * stretch, color: BrandColors.UI.merlinBands[3], alpha: bodyA * 0.14)
+        c.fillHull(.merlin, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink, alpha: bodyA)
+        c.strokeHull(.merlin, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.lanternGold,
+                     alpha: ba * (jelly ? 0.55 : breath * 0.7), width: max(0.7, r * 0.032))
+        c.strokeLine(from: CGPoint(x: 0, y: -r * 1.02 * stretch), to: CGPoint(x: 0, y: r * 0.48 * stretch),
+                     color: BrandColors.UI.lanternGold, width: max(0.7, r * 0.038), alpha: ba * (jelly ? 0.5 : breath * 0.62))
+        let heartA = jelly ? ba * 0.9 : ba * breath * pulse
+        sparkle(c, x: 0, y: -r * 0.02 * stretch, size: r * 0.16 * pulse, color: BrandColors.UI.lanternGold, alpha: heartA * 0.42, width: max(0.55, r * 0.026))
+        sparkle(c, x: 0, y: -r * 0.02 * stretch, size: r * 0.07 * pulse, color: BrandColors.UI.wishCore, alpha: heartA, width: max(0.5, r * 0.02))
+        let palettes = BrandColors.UI.merlinBands
+        let starN = 7
+        for i in 0..<starN {
+            let ang = t * 0.0036 + CGFloat(i) * (.pi * 2 / CGFloat(starN))
+            let orbit = r * (0.42 + 0.08 * CGFloat(i % 4))
+            let sx = cos(ang) * orbit * 0.55
+            let sy = sin(ang * 1.15) * orbit * 0.28 * stretch
+            let tw = 0.45 + 0.55 * sin(t * 0.014 + CGFloat(i) * 1.7)
+            let rgb = palettes[i % palettes.count]
+            sparkle(c, x: sx, y: sy, size: r * (0.055 + 0.03 * tw), color: rgb, alpha: ba * tw * (jelly ? 0.82 : breath), width: max(0.5, r * 0.022))
+        }
+        for i in 0..<6 {
+            let y = -r * 0.78 * stretch + CGFloat(i) * r * 0.26 * stretch
+            let tw = 0.35 + 0.65 * sin(t * 0.02 + CGFloat(i) * 2.1)
+            let rgb = palettes[i % palettes.count]
+            let x = (i % 2 == 0 ? 1 : -1) * r * 0.03
+            sparkle(c, x: x, y: y, size: r * 0.028 * tw, color: rgb, alpha: ba * tw * (jelly ? 0.7 : breath * 0.85), width: max(0.4, r * 0.016))
         }
     }
 }

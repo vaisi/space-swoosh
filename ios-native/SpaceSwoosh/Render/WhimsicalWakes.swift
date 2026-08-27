@@ -1,5 +1,6 @@
 // WhimsicalWakes.swift
-// Changes: Plume wake uses Koi whip + gold/ember scale stamps (dense subdiv-1).
+// Changes: Merlin spectacular WishWake (hairline comet + dense prism stars).
+// Plume wake uses Koi whip + gold/ember scale stamps (dense subdiv-1).
 // Bloom/Argus/Koi use Android subdiv-1 dense marks; 2x sprite pools.
 
 import QuartzCore
@@ -597,8 +598,10 @@ final class WishWake: SKNode, SkinTrail {
     private var left: [CGPoint]
     private var right: [CGPoint]
     private let maxPoints: Int
+    private let spectacular: Bool
 
-    init(disc: SKTexture, slots: Int) {
+    init(disc: SKTexture, slots: Int, spectacular: Bool = false) {
+        self.spectacular = spectacular
         maxPoints = max(slots, 8)
         bloom = WakeCollect.shapeNode(z: 4.9)
         body = WakeCollect.shapeNode(z: 5)
@@ -640,75 +643,87 @@ final class WishWake: SKNode, SkinTrail {
         let r = ctx.shipRadius
         let energy = WallJelly.energy(elapsedMs: ctx.jellyElapsedMs)
         let denom = CGFloat(max(n - 1, 1))
-        let alpha: CGFloat = 0.94
+        let alpha: CGFloat = spectacular ? 0.96 : 0.94
         let gold = BrandColors.UI.lanternGold
-        let bands = BrandColors.UI.wishBands
+        let bands = spectacular ? BrandColors.UI.merlinBands : BrandColors.UI.wishBands
+        let slim: CGFloat = spectacular ? 0.42 : 1
         bloom.path = WakeCollect.ribbonPath(pts: wake, count: n, widthAt: { i in
             let t = CGFloat(i) / denom
-            return r * (0.1 + 0.22 * t) * (0.5 + 0.5 * self.wake[i].opacity) * (1 + energy * 0.45)
+            return r * (0.1 + 0.22 * t) * slim * (0.5 + 0.5 * self.wake[i].opacity) * (1 + energy * (self.spectacular ? 0.7 : 0.45))
         }, left: &left, right: &right)
         bloom.fillColor = gold
-        bloom.alpha = alpha * (0.28 + energy * 0.22)
+        bloom.alpha = alpha * (0.28 + energy * (spectacular ? 0.32 : 0.22))
         bloom.isHidden = false
         body.path = WakeCollect.ribbonPath(pts: wake, count: n, widthAt: { i in
             let t = CGFloat(i) / denom
-            return r * (0.045 + 0.12 * t) * self.wake[i].opacity * (1 + energy * 0.25 * t)
+            return r * (0.045 + 0.12 * t) * slim * self.wake[i].opacity * (1 + energy * (self.spectacular ? 0.32 : 0.25) * t)
         }, left: &left, right: &right)
         body.fillColor = gold
-        body.alpha = alpha * (0.78 + energy * 0.16)
+        body.alpha = alpha * (spectacular ? (0.86 + energy * 0.12) : (0.78 + energy * 0.16))
         body.isHidden = false
         core.path = WakeCollect.ribbonPath(pts: wake, count: n, widthAt: { i in
             let t = CGFloat(i) / denom
-            return r * (0.016 + 0.045 * t) * self.wake[i].opacity * (1 + energy * 0.2)
+            return r * (0.016 + 0.045 * t) * slim * self.wake[i].opacity * (1 + energy * (self.spectacular ? 0.28 : 0.2))
         }, left: &left, right: &right)
         core.fillColor = BrandColors.UI.wishCore
-        core.alpha = alpha * 0.92
+        core.alpha = alpha * (spectacular ? 0.96 : 0.92)
         core.isHidden = false
 
-        let starChance: CGFloat = energy > 0.08 ? 0.88 : 0.52
+        let starChance: CGFloat = spectacular
+            ? (energy > 0.08 ? 0.99 : 0.92)
+            : (energy > 0.08 ? 0.88 : 0.52)
         var used = 0
-        for i in 0..<n {
-            let p = wake[i]
-            if p.opacity < 0.14 { continue }
-            let u = WakeCollect.fract(p.seed * 12.9898 + CGFloat(i) * 0.37)
-            if u > starChance { continue }
-            guard used < stars.count else { break }
-            let v = WakeCollect.fract(p.seed * 78.233 + CGFloat(i) * 0.19)
-            let w = WakeCollect.fract(p.seed * 4.1414 + CGFloat(i) * 0.11)
-            let leave = 1 - CGFloat(i) / denom
-            let prev = wake[max(0, i - 1)]
-            let next = wake[min(n - 1, i + 1)]
-            let dx = next.x - prev.x
-            let dy = next.y - prev.y
-            let len = hypot(dx, dy)
-            let inv = len > 0.0001 ? 1 / len : 1
-            let nx = -dy * inv
-            let ny = dx * inv
-            let side = (u * 2 - 1) * r * (0.15 + 0.85 * leave) * (1 + energy * 1.1)
-            let size = r * (0.035 + 0.055 * leave) * (0.55 + v * 0.6) * (1 + energy * 0.55)
-            let rgb = bands[(i + Int(w * CGFloat(bands.count))) % bands.count]
-            let sx = p.x + nx * side
-            let sy = p.y + ny * side
-            let fade = alpha * p.opacity * (0.38 + 0.4 * leave + energy * 0.4)
-            let star = stars[used]
-            star.isHidden = false
-            star.position = CGPoint(x: sx, y: sy)
-            star.size = CGSize(width: size * 0.9, height: size * 0.9)
-            star.color = rgb
-            star.alpha = fade
-            let armLen = size * (w > 0.45 || energy > 0.1 ? 2.6 : 1.8)
-            let path = CGMutablePath()
-            path.move(to: CGPoint(x: sx - armLen, y: sy))
-            path.addLine(to: CGPoint(x: sx + armLen, y: sy))
-            path.move(to: CGPoint(x: sx, y: sy - armLen))
-            path.addLine(to: CGPoint(x: sx, y: sy + armLen))
-            let arm = arms[used]
-            arm.path = path
-            arm.strokeColor = rgb
-            arm.lineWidth = max(0.6, r * 0.03)
-            arm.alpha = fade
-            arm.isHidden = false
-            used += 1
+        for pass in 0..<(spectacular ? 2 : 1) {
+            let dust = pass == 1
+            for i in 0..<n {
+                let p = wake[i]
+                if p.opacity < 0.08 { continue }
+                let u = WakeCollect.fract(p.seed * 12.9898 + CGFloat(i) * 0.37 + CGFloat(pass) * 2.17)
+                if !dust && u > starChance { continue }
+                if dust && u > 0.78 { continue }
+                guard used < stars.count else { break }
+                let v = WakeCollect.fract(p.seed * 78.233 + CGFloat(i) * 0.19 + CGFloat(pass))
+                let w = WakeCollect.fract(p.seed * 4.1414 + CGFloat(i) * 0.11 + CGFloat(pass) * 0.7)
+                let leave = 1 - CGFloat(i) / denom
+                let prev = wake[max(0, i - 1)]
+                let next = wake[min(n - 1, i + 1)]
+                let dx = next.x - prev.x
+                let dy = next.y - prev.y
+                let len = hypot(dx, dy)
+                let inv = len > 0.0001 ? 1 / len : 1
+                let nx = -dy * inv
+                let ny = dx * inv
+                let spread: CGFloat = dust ? 1.55 : (spectacular ? 1.25 : 0.85)
+                let side = (u * 2 - 1) * r * (0.08 + spread * leave) * (1 + energy * (spectacular ? 1.5 : 1.1))
+                let size = r * (dust ? 0.016 : (0.028 + 0.055 * leave)) * (0.45 + v * 0.75) * (1 + energy * (spectacular ? 0.85 : 0.55))
+                let rgb = bands[(i + pass + Int(w * CGFloat(bands.count))) % bands.count]
+                let sx = p.x + nx * side
+                let sy = p.y + ny * side
+                let fade = alpha * p.opacity * (0.38 + 0.5 * leave + energy * 0.5)
+                let star = stars[used]
+                star.isHidden = false
+                star.position = CGPoint(x: sx, y: sy)
+                star.size = CGSize(width: size * (dust ? 0.7 : 0.85), height: size * (dust ? 0.7 : 0.85))
+                star.color = rgb
+                star.alpha = fade
+                let arm = arms[used]
+                if dust {
+                    arm.isHidden = true
+                } else {
+                    let armLen = size * (w > 0.28 || energy > 0.08 ? (spectacular ? 3.4 : 2.6) : (spectacular ? 2.4 : 1.8))
+                    let path = CGMutablePath()
+                    path.move(to: CGPoint(x: sx - armLen, y: sy))
+                    path.addLine(to: CGPoint(x: sx + armLen, y: sy))
+                    path.move(to: CGPoint(x: sx, y: sy - armLen))
+                    path.addLine(to: CGPoint(x: sx, y: sy + armLen))
+                    arm.path = path
+                    arm.strokeColor = rgb
+                    arm.lineWidth = max(0.5, r * 0.022)
+                    arm.alpha = fade
+                    arm.isHidden = false
+                }
+                used += 1
+            }
         }
         for k in used..<stars.count {
             stars[k].isHidden = true

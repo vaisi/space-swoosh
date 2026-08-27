@@ -2,6 +2,7 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Merlin `drawMerlinTrail`: hairline gold comet + dense prism 4-point stars + glitter dust; flare boop.
 // - Plume boop: Koi-like whip + gold/ember scale ellipses; stronger jelly energy.
 // - Puff / Argus / Chime wake visibility: ink ribbon + denser umbrellas
 //   (Puff), theme-aware peacock rims (Argus), denser gold/ink arcs+notes
@@ -116,6 +117,14 @@ const LUNA_RGB = [
     '139, 107, 176',
     '198, 192, 210',
     '232, 196, 118',
+];
+
+const MERLIN_RGB = [
+    '232, 184, 74',
+    '255, 248, 230',
+    '90, 210, 200',
+    '255, 140, 180',
+    '180, 150, 255',
 ];
 
 /** Wish prism motes — gold, white, rose, mint. */
@@ -2562,6 +2571,110 @@ export function drawChimeTrail(ctx, ship, trail, toScreenY, opts = {}) {
             ctx.moveTo(sx + size * 0.4, sy + size * 0.35);
             ctx.lineTo(sx + size * 0.4, sy - size * 1.35);
             ctx.stroke();
+        }
+    }
+
+    ctx.restore();
+}
+
+/** Hairline gold comet + a dense prism star cascade — Merlin. Flare boop bursts the sky. */
+export function drawMerlinTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const {
+        alpha = 0.96,
+        goldRgb = color.lanternGoldRgb,
+        coreRgb = '255, 248, 230',
+        bands = MERLIN_RGB,
+    } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    const n = pts.length;
+    if (n < 3) return;
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const lod = iosBudget(ship);
+    const denom = Math.max(1, n - 1);
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (!lod) {
+        const bloomAt = (i) => {
+            const t = i / denom;
+            return r * (0.038 + 0.08 * t) * (0.5 + 0.5 * pts[i].opacity) * (1 + energy * 0.7);
+        };
+        ribbonPath(ctx, pts, bloomAt);
+        ctx.globalAlpha = baseAlpha * alpha * (0.28 + energy * 0.32);
+        ctx.fillStyle = `rgba(${goldRgb}, 1)`;
+        ctx.fill();
+    }
+
+    const bodyAt = (i) => {
+        const t = i / denom;
+        return r * (0.014 + 0.046 * t) * pts[i].opacity * (1 + energy * 0.32 * t);
+    };
+    ribbonPath(ctx, pts, bodyAt);
+    ctx.globalAlpha = baseAlpha * alpha * (0.86 + energy * 0.12);
+    ctx.fillStyle = `rgba(${goldRgb}, 1)`;
+    ctx.fill();
+
+    const coreAt = (i) => {
+        const t = i / denom;
+        return r * (0.006 + 0.018 * t) * pts[i].opacity * (1 + energy * 0.28);
+    };
+    ribbonPath(ctx, pts, coreAt);
+    ctx.globalAlpha = baseAlpha * alpha * 0.96;
+    ctx.fillStyle = `rgba(${coreRgb}, 1)`;
+    ctx.fill();
+
+    const step = lod ? 2 : 1;
+    const starChance = energy > 0.08 ? 0.99 : 0.92;
+    for (let pass = 0; pass < (lod ? 1 : 2); pass++) {
+        const dust = pass === 1;
+        for (let i = 0; i < n; i += step) {
+            const p = pts[i];
+            if (p.opacity < 0.08) continue;
+            const u = fract((p.seed ?? 0.5) * 12.9898 + i * 0.37 + pass * 2.17);
+            if (!dust && u > starChance) continue;
+            if (dust && u > 0.78) continue;
+            const v = fract((p.seed ?? 0.5) * 78.233 + i * 0.19 + pass);
+            const w = fract((p.seed ?? 0.5) * 4.1414 + i * 0.11 + pass * 0.7);
+            const leave = 1 - i / denom;
+            const prev = pts[Math.max(0, i - 1)];
+            const next = pts[Math.min(n - 1, i + 1)];
+            const dx = next.x - prev.x;
+            const dy = next.y - prev.y;
+            const len = Math.hypot(dx, dy) || 1;
+            const nx = -dy / len;
+            const ny = dx / len;
+            const spread = dust ? 1.55 : 1.25;
+            const side = (u * 2 - 1) * r * (0.08 + spread * leave) * (1 + energy * 1.5);
+            const size = r * (dust ? 0.016 : 0.028 + 0.055 * leave)
+                * (0.45 + v * 0.75) * (1 + energy * 0.85);
+            const rgb = bands[(i + pass + ((w * bands.length) | 0)) % bands.length];
+            const sx = p.x + nx * side;
+            const sy = p.y + ny * side;
+            ctx.fillStyle = `rgba(${rgb}, 1)`;
+            ctx.strokeStyle = `rgba(${rgb}, 1)`;
+            ctx.globalAlpha = baseAlpha * alpha * p.opacity
+                * (0.38 + 0.5 * leave + energy * 0.5);
+            ctx.beginPath();
+            ctx.moveTo(sx, sy - size);
+            ctx.lineTo(sx + size * 0.28, sy);
+            ctx.lineTo(sx, sy + size);
+            ctx.lineTo(sx - size * 0.28, sy);
+            ctx.closePath();
+            ctx.fill();
+            if (!dust) {
+                const arm = size * (w > 0.28 || energy > 0.08 ? 3.4 : 2.4);
+                ctx.lineWidth = Math.max(0.5, r * 0.022);
+                ctx.beginPath();
+                ctx.moveTo(sx - arm, sy);
+                ctx.lineTo(sx + arm, sy);
+                ctx.moveTo(sx, sy - arm);
+                ctx.lineTo(sx, sy + arm);
+                ctx.stroke();
+            }
         }
     }
 

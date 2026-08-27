@@ -1,16 +1,17 @@
-<!-- Changes: Plume wall hits whip the wake with gold/ember feather stamps. -->
+<!-- Changes: Merlin ultra-slim spark-falcon added to the hangar. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
 >
-> **Privacy (Android + iOS store):** The game may send anonymous gameplay analytics
-> (for example which ship you flew). It does **not** use the device Advertising
-> ID for ads or tracking. Open Space scores use a public project key with
-> server-side row limits (read + submit only; no player accounts). Call signs
-> you submit are stored on the online board. If you finish the Journey, the
-> words you send (or that you left it unsaid) and the ship you flew are stored
-> privately — not on the public board. Journey progress and Open Space
-> personal bests stay on your device.
+> **Privacy (Android + iOS store):** Native apps send anonymous gameplay analytics
+> through Firebase (for example which ship you flew). That is **not** the device
+> Advertising ID and is **not** used for ads or tracking. Open Space scores use a
+> public project key with server-side row limits (read + submit only; no player
+> accounts). Call signs you submit are stored on the online board. If you finish
+> the Journey, the words you send (or that you left it unsaid) and the ship you
+> flew are stored privately — not on the public board. Journey progress and Open
+> Space personal bests stay on your device. Full policy:
+> https://spaceswoosh.app/privacy.html
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight menus use the same paper/ink framed chrome as Android (Space
@@ -21,7 +22,7 @@
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
 > Cycle ships on the home screen (◀ / ▶) or pick one under
 > Options → Ship; your choice is saved. The
-> whimsical ships (Lantern through Chime) show their colors on the hangar tile,
+> whimsical ships (Lantern through Merlin) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s satellite, and
 > **Nyan**’s gray crescent with pink spots match Android in play (hangar cards
 > freeze that pose). The other hulls show the same **soft** ink wash and crease as
@@ -372,9 +373,10 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Puff** | A dandelion clock with a short stem and breathing seed ticks. An ink path sheds gold and teal parachute umbrellas that puff on a wall hit. Stem and ticks are looks only. |
 | **Argus** | A peacock teardrop with a rear fan of pulsing eyespots. Peacock-rim, gold-pupil rings stamp the path; the fan flares on a wall hit. Thin feather tips are looks only. |
 | **Chime** | A temple bell with two smaller side bells and swaying clappers. Dense sound arcs and gold/ink notes ring down the wake. Side bells are looks only. |
+| **Merlin** | An ultra-slim spark-falcon with a prism heart and orbiting stars. A hairline gold comet sheds a cascade of 4-point stars; a wall hit bursts the sky. Stars and winglets are looks only. |
 
 Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Ink,
-Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, and Chime leave a longer wake in play so the far end runs off the screen. The
+Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, and Merlin leave a longer wake in play so the far end runs off the screen. The
 home-screen ship picture stays short so it does not cover the title.
 
 Seal, Hatch, Trace, and Ring collide as the box you see. **Orbit** collides on its solid
@@ -386,7 +388,8 @@ collides on the body (the tail is looks only). **Luna** collides on the inner mo
 are looks only). **Darner** collides on the needle body (wings are looks only).
 **Puff** collides on the seed head (stem and ticks are looks only). **Argus**
 collides on the body and inner fan (thin feather tips are looks only). **Chime**
-collides on the central bell (side bells and clappers are looks only). On a side-wall bounce,
+collides on the central bell (side bells and clappers are looks only). **Merlin**
+collides on the needle body (winglets and orbiting stars are looks only). On a side-wall bounce,
 **every** ship reacts —
 animation only; the hitbox does not squash. Each vessel has its own feel: some
 squash like jelly, Needle flexes, Halo wobbles in a tiny orbit, Shard cracks,

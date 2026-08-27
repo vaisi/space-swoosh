@@ -1,6 +1,7 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Merlin `merlinPath` ultra-slim spark-falcon + glitter jelly.
 // - Darner / Puff / Argus / Chime paths + jelly profiles.
 // - Luna `mothPath` + Wish `wishPath` + jelly profiles.
 // - Six more skins: starPath (Lyra), seedPath (Sprout), wingPath (Plume),
@@ -378,6 +379,20 @@ export function chimePath(ctx, cx, cy, r, stretch = 1) {
     ctx.quadraticCurveTo(cx + r * 0.42, cy + ry * 0.62, cx, cy + ry * 0.55);
     ctx.quadraticCurveTo(cx - r * 0.42, cy + ry * 0.62, cx - r * 0.62, cy + ry * 0.35);
     ctx.quadraticCurveTo(cx - r * 0.55, cy - ry * 0.55, cx, cy - ry * 0.92);
+    ctx.closePath();
+}
+
+/** Spark-falcon — ultra-slim needle with hairline swept winglets (Merlin). */
+export function merlinPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.42);
+    ctx.quadraticCurveTo(cx + r * 0.045, cy - ry * 0.22, cx + r * 0.22, cy + ry * 0.04);
+    ctx.quadraticCurveTo(cx + r * 0.07, cy + ry * 0.10, cx + r * 0.042, cy + ry * 0.50);
+    ctx.quadraticCurveTo(cx + r * 0.018, cy + ry * 0.90, cx, cy + ry * 1.22);
+    ctx.quadraticCurveTo(cx - r * 0.018, cy + ry * 0.90, cx - r * 0.042, cy + ry * 0.50);
+    ctx.quadraticCurveTo(cx - r * 0.07, cy + ry * 0.10, cx - r * 0.22, cy + ry * 0.04);
+    ctx.quadraticCurveTo(cx - r * 0.045, cy - ry * 0.22, cx, cy - ry * 1.42);
     ctx.closePath();
 }
 
@@ -776,6 +791,20 @@ export function wallJellyDeform(ship, time = performance.now(), profile = 'defau
         };
     }
 
+    // Merlin: spark-falcon — stay needle-thin, glitter wobble (Wish cousin).
+    if (profile === 'merlin') {
+        const damp = Math.exp(-2.0 * t);
+        const spark = Math.sin(t * Math.PI * 7.2) * damp;
+        const settle = Math.cos(t * Math.PI * 8.4) * Math.exp(-3.2 * t);
+        return {
+            sx: Math.max(0.90, 1 + spark * 0.05),
+            sy: Math.min(1.22, 1 + Math.abs(spark) * 0.12),
+            side: j.side,
+            shake: settle * 0.22,
+            shear: spark * 0.18,
+        };
+    }
+
     // cos: +1 at impact (squish) → −1 (extend) → settle. Damped oscillation.
     const damp = Math.exp(-2.4 * t);
     const primary = Math.cos(t * Math.PI * 2.8) * damp;
@@ -1106,6 +1135,7 @@ const PLANT_BY_PROFILE = {
     puff: 0.35,
     argus: 0.6,
     chime: 0.35,
+    merlin: 0.4,
 };
 
 /**
@@ -1132,7 +1162,7 @@ export function beginHullFrame(
         ctx.translate(jelly.side * (half - half * jelly.sx) * plant, 0);
         const shakeScale = profile === 'halo' || profile === 'orbit' || profile === 'bloom'
             || profile === 'lyra' || profile === 'boreal' || profile === 'wish'
-            || profile === 'puff' || profile === 'chime' ? 0.7
+            || profile === 'puff' || profile === 'chime' || profile === 'merlin' ? 0.7
             : profile === 'needle' ? 0.55
             : 0.35;
         ctx.translate(jelly.shake * (ship.radius ?? 10) * jelly.side * shakeScale, 0);
