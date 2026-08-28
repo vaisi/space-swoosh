@@ -1,7 +1,7 @@
 // JourneyEpilogueSequence.js
 // Written ending after L42: fade stays black, NAV speaks two open beats, the
 // player writes (or skips) a reply, words become a light, other lights bloom,
-// then the ordinal card and Follow @spacewoosh. First ending: Arc unlock card,
+// then the ordinal card and Follow @spaceswoosh.app. First ending: Arc unlock card,
 // then Controls with Arc on. Later endings return to title. No NAV after
 // the prompt. Offline still plays the lights with a local card.
 // Changes:
@@ -11,7 +11,8 @@
 //   with a birth sparkle. Sky lights are Signal-Blue cores + tight halos + spikes
 //   (smaller than the first HD pass, especially the player’s star).
 // - Keep BGM through the hold; skip captions are two beats (one per phrase).
-// - First-time Arc unlock card after Follow @spacewoosh.
+// - First-time Arc unlock card after Follow @spaceswoosh.app.
+// - Open Instagram → https://www.instagram.com/spaceswoosh.app
 // - One reply per device: replay skips the prompt and does not submit again.
 // - Submit also records the equipped ship (game.shipSkinId) next to the reply.
 // - Firebase: journey_epilogue_send / journey_epilogue_skip with ship_id.

@@ -2104,15 +2104,15 @@
       "skipLine": "Some things don't need words. A light appears for you either way.",
       "offlineCounterCard": "You answered the call.",
       "counterCard": "You are the {N} to answer the call.",
-      "footerCard": "Follow @spacewoosh to see what the others said.",
+      "footerCard": "Follow @spaceswoosh.app to see what the others said.",
       "arcUnlockLines": [
         "You've unlocked Arc mode.",
         "Everybody hates it.",
         "Enjoy."
       ],
       "arcUnlockLabel": "Take the controls",
-      "instagramHandle": "spacewoosh",
-      "instagramUrl": "https://instagram.com/spacewoosh"
+      "instagramHandle": "spaceswoosh.app",
+      "instagramUrl": "https://www.instagram.com/spaceswoosh.app"
     },
     "defaultBeatGapMs": 400,
     "encounterCatalog": [

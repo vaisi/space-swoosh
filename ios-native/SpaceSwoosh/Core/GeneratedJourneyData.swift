@@ -25,11 +25,11 @@ enum GeneratedJourneyData {
     static let epilogueSkipLine = "Some things don't need words. A light appears for you either way."
     static let epilogueOfflineCard = "You answered the call."
     static let epilogueCounterCard = "You are the {N} to answer the call."
-    static let epilogueFooterCard = "Follow @spacewoosh to see what the others said."
+    static let epilogueFooterCard = "Follow @spaceswoosh.app to see what the others said."
     static let epilogueArcUnlockLines = ["You've unlocked Arc mode.", "Everybody hates it.", "Enjoy."]
     static let epilogueArcUnlockLabel = "Take the controls"
-    static let epilogueInstagramHandle = "spacewoosh"
-    static let epilogueInstagramUrl = "https://instagram.com/spacewoosh"
+    static let epilogueInstagramHandle = "spaceswoosh.app"
+    static let epilogueInstagramUrl = "https://www.instagram.com/spaceswoosh.app"
 
     static let chapters: [JourneyChapter] = [
         JourneyChapter(

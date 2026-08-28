@@ -1,7 +1,8 @@
 // JourneyNarrative.js
 // Changes: skip captions are two beats (one phrase each); skipLine is the joined string.
 // L42 arrival (level-42.mp3) waits 3s on black before epilogue-open.
-// First L42 ending adds an Arc unlock card after Follow @spacewoosh.
+// First L42 ending adds an Arc unlock card after Follow @spaceswoosh.app.
+// Instagram CTA: https://www.instagram.com/spaceswoosh.app
 // THE REPLY — Signal Story copy for Journey: pre-Level-1 lore, first-BOOP cue,
 // per-level NAV voice lines (1–42), and the player-written ending epilogue.
 // Runtime imports this directly.
@@ -30,8 +31,8 @@
 export const DEFAULT_BEAT_GAP_MS = 400;
 
 /** Instagram handle on the epilogue footer card (doc spelling). */
-export const EPILOGUE_INSTAGRAM_HANDLE = 'spacewoosh';
-export const EPILOGUE_INSTAGRAM_URL = 'https://instagram.com/spacewoosh';
+export const EPILOGUE_INSTAGRAM_HANDLE = 'spaceswoosh.app';
+export const EPILOGUE_INSTAGRAM_URL = 'https://www.instagram.com/spaceswoosh.app';
 
 /** On-screen beats for the first Journey wall BOOP of an app session. */
 export const FIRST_BOOP_BEATS = [
@@ -322,7 +323,7 @@ export const ENDING_EPILOGUE = {
     offlineCounterCard: 'You answered the call.',
     // After submit/skip: NO NAV voice. Lights speak alone.
     counterCard: 'You are the {N} to answer the call.', // {N} = ordinal from DB, e.g. "4,102nd"
-    footerCard: 'Follow @spacewoosh to see what the others said.',
+    footerCard: 'Follow @spaceswoosh.app to see what the others said.',
     arcUnlockLines: [
         'You\'ve unlocked Arc mode.',
         'Everybody hates it.',

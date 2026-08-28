@@ -1,6 +1,8 @@
-<!-- Changes: Premium ships are locked again — Focus/Flicker/Ember/Saber stay
-     free; the rest show a price and unlock on the apps. Pause is two ink
-     bars. Hazard Lab tile not shown. Journey days unlock sequentially. -->
+<!-- Changes: Journey ending Open Instagram → @spaceswoosh.app
+     (https://www.instagram.com/spaceswoosh.app). Premium ships are locked
+     again — Focus/Flicker/Ember/Saber stay free; the rest show a price and
+     unlock on the apps. Pause is two ink bars. Hazard Lab tile not shown.
+     Journey days unlock sequentially. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -144,7 +146,8 @@ with hazards and boosts to fill your field manual. The opening Signal brief is
 the first Journey entry. After the last relay, you can write one thing into the
 dark — or leave it unsaid. That choice is once per device; later visits still
 play the ending, without another prompt. The ship you flew is saved with that
-reply. The lights that bloom there are the same
+reply. **Open Instagram** goes to [@spaceswoosh.app](https://www.instagram.com/spaceswoosh.app).
+The lights that bloom there are the same
 Signal Blue as the fuel sparkles, kept small so the field stays dark.
 
 ### Open Space

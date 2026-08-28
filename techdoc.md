@@ -1,7 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: UNLOCK_ALL_SKINS = false on Android/web (store hangar; iOS was
-     already false). Premium ships lock until RevenueCat buy / restore /
+<!-- Changes: Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app
+     (@spaceswoosh.app). UNLOCK_ALL_SKINS = false on Android/web (store hangar;
+     iOS was already false). Premium ships lock until RevenueCat buy / restore /
      yearly 3-ship pick. ownedSkinIds cache gen 2 drops the playtest "all
      owned" list. In-run pause is `.ss-pause` two ink bars. Hazard Lab tile
      gated off. UNLOCK_ALL_LEVELS = false (sequential Journey). -->
@@ -294,7 +295,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
 | `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. |
-| `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spacewoosh, first-time Arc card. Replay skips the prompt (one reply per device). Sky lights and the player star use Signal Blue with tight halos (same accent as fuel sparkles). |
+| `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spaceswoosh.app, first-time Arc card. Replay skips the prompt (one reply per device). Sky lights and the player star use Signal Blue with tight halos (same accent as fuel sparkles). |
 | `services/ReplyService.js` | RPC `submit_journey_reply(p_body, p_skipped, p_ship_id, p_platform)` → ordinal. Roster `ship_id` and client `platform` stored next to the message. Called once per device; replay does not insert again. Offline falls back to a local card. |
 | `services/ReplyFilter.js` | 140-char UGC filter for epilogue text (same blocklist as call signs). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
@@ -1137,7 +1138,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
   Default is **zigzag** when unset. **Arc is locked until Day 42 is actually
   cleared** (`isArcUnlocked`; `UNLOCK_ALL_LEVELS` / `?unlocklevels=1` does not unlock it).
   Controls still shows the Arc row as `OUT` / Finish the Journey. First L42
-  ending: after Follow @spacewoosh, a once-only card (`arcUnlockSeen`) then
+  ending: after Follow @spaceswoosh.app, a once-only card (`arcUnlockSeen`) then
   Options → Controls with Arc selected. Saved `arc` values coerce to zigzag
   while locked. Zigzag
   integrates a constant heading at `spacecraft.zigzagAngleDeg` from up at

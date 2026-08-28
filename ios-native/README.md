@@ -1,6 +1,7 @@
 <!--
  ios-native/README.md
- Changes: UNLOCK_ALL_LEVELS is false; Hazard Lab tile hidden (showHazardLab).
+ Changes: Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app.
+ UNLOCK_ALL_LEVELS is false; Hazard Lab tile hidden (showHazardLab).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -33,7 +34,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - **Hazard Lab:** 12k KM sandbox (phase / sweep / repulsor / drift / wormhole / blackhole)
 - Intro: 720/280 ms roll from below, 18 baked streaks, then NAV beats (Open Space waits 200 ms)
 - Clear: Android hold / ramp / min / cap / fade; lean preserved; hull leaves the top
-- L42 clear: written epilogue (NAV open → prompt/skip → lights → ordinal → Follow @spacewoosh → title)
+- L42 clear: written epilogue (NAV open → prompt/skip → lights → ordinal → Follow @spaceswoosh.app → title)
 - **Logbook** observe / interact / known
 - Options: nested hub (ship, controls, sound channels, night paper, Restore Purchases)
 - Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId`, `ownedSkinIds`, `soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`, `playerName` (same keys as Android)
