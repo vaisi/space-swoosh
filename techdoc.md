@@ -1,7 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: iOS native simple rocks pick circle/triangle/square independently
-     like Android SimpleAsteroid; Journey clusterCount adds density roll. -->
+<!-- Changes: Journey map header no longer draws the playtest TEST chip. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -577,9 +576,8 @@ frontier level advances `unlocked`. Journey never writes to Supabase.
 Playtest **`UNLOCK_ALL_LEVELS`** (JS + iOS `JourneyProgress`) opens every map
 tile so you can jump to any level. Saved `unlocked` is unchanged — turning the
 flag off restores the real lock cursor. Web override: `?unlocklevels=1` forces
-on, `?unlocklevels=0` forces the real lock even when the constant is true. The
-Journey map shows a **TEST** chip while the flag is on. iOS has the constant
-only (no URL). Localhost epilogue skip: **`?level=42&nearend=1`** boots Day 42
+on, `?unlocklevels=0` forces the real lock even when the constant is true. iOS
+has the constant only (no URL). Localhost epilogue skip: **`?level=42&nearend=1`** boots Day 42
 ~350 KM before the gate (`nearend=500` sets remaining KM). No intro captions;
 `level-42.mp3` plays with its captions after the fade and dark hold, then a 3s gap before `epilogue-open.mp3`.
 

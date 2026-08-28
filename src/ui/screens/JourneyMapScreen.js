@@ -4,8 +4,9 @@
 // level locked. The list is taller than the screen, so it scrolls (wheel or
 // drag — Game owns the gesture and hands us the offset).
 // Changes:
-// - Playtest UNLOCK_ALL_LEVELS / ?unlocklevels=1 paints every tile playable and
-//   shows a TEST chip in the header; saved journeyProgress.unlocked is unchanged.
+// - Header no longer draws a TEST chip when UNLOCK_ALL_LEVELS / ?unlocklevels=1
+//   is on; tiles still unlock for playtest. Saved journeyProgress.unlocked is
+//   unchanged.
 // - Lives chip in the header (hidden while LIVES_ENABLED is false); level
 //   starts use tryBeginJourneyLevel (lives gate only when the flag is on).
 // - Dropped chapter blurb lines under headings (clutter + story spoilers);
@@ -38,7 +39,6 @@ import {
     levelStars,
     nextPlayableLevel,
     totalStars,
-    unlockAllLevelsEnabled,
 } from '../../services/JourneyProgress.js';
 import { drawLivesChip } from '../LivesChip.js';
 import { ensureRegen } from '../../services/Lives.js';
@@ -71,11 +71,6 @@ export function renderJourneyMap(game) {
     setLabelType(ctx, tallyPx);
     ctx.fillStyle = color.ink55;
     ctx.fillText(tally, L.right - tallyPx * 1.9, tallyY);
-    if (unlockAllLevelsEnabled()) {
-        const tallyW = ctx.measureText(tally).width;
-        ctx.fillStyle = color.signal;
-        ctx.fillText('TEST', L.right - tallyPx * 1.9 - tallyW - tallyPx * 0.8, tallyY);
-    }
     resetType(ctx);
     drawSparkle(ctx, L.right - tallyPx * 0.7, tallyY, tallyPx * 0.62, { fill: color.signal });
     ctx.restore();

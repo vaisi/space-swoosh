@@ -1,5 +1,6 @@
 // JourneyMapView.swift
-// Changes: 5-column grid and tileH = tileW × 1.15 (Android JourneyMapScreen).
+// Changes: dropped the header TEST chip (UNLOCK_ALL_LEVELS still unlocks tiles).
+// 5-column grid and tileH = tileW × 1.15 (Android JourneyMapScreen).
 // Hazard Lab is a same-size centered LAB tile, not a full-width banner.
 
 import SwiftUI
@@ -27,12 +28,6 @@ struct JourneyMapView: View {
                 .buttonStyle(.plain)
                 Spacer()
                 HStack(spacing: 6) {
-                    if JourneyProgress.UNLOCK_ALL_LEVELS {
-                        Text("TEST")
-                            .font(BrandType.label(10))
-                            .tracking(BrandType.labelTracking(10))
-                            .foregroundStyle(BrandColors.signal)
-                    }
                     Text("\(JourneyProgress.totalStars(store.snapshot)) / \(JourneyConfig.totalStars)")
                         .font(BrandType.label(11))
                         .tracking(BrandType.labelTracking(11))
