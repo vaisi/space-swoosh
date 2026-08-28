@@ -50,7 +50,7 @@
 //   card keeps stats-above-field order and centers in the remaining viewport.
 // - Main menu: cycle full roster (menuShipBrowseId); owned equips, locked
 //   shows price + tap-to-buy; Play uses last owned shipSkinId.
-// - Options hub: Ship / Controls / Sound / Theme + Restore Purchases.
+// - Options hub: Ship / Controls / Sound / Theme + Rate (native) + Restore.
 // - Options → Sound: Music / Sound FX / Voice channel toggles (SoundManager);
 //   pause menu Sound stays master mute-all.
 // - Night paper: pause wash / goal-bar rest / crash particles / name-modal dim
@@ -58,7 +58,8 @@
 // - Submit Signal modal lightened: left-aligned value→label stacks in order
 //   distance → asteroids destroyed → rank with clearer vertical gaps;
 //   underline call sign + brand Submit. Dropped centered blue hero chrome.
-// - Crash → end screen: world fades under the blast (no blank paper flash),
+// - Journey / Hazard Lab end screen. Native Android may layer the enjoyment
+//   review card on a successful Day 6 (or Day 13 after Later) clear.
 //   Mission Failed crossfades in during the blast, submit modal opens only
 //   after the end screen has fully settled. Journey crashes still route to
 //   the level-outcome screen (not Open World game-over).
@@ -208,7 +209,7 @@ import {
     spendLife,
 } from '../services/Lives.js';
 import { drawLivesChip } from '../ui/LivesChip.js';
-import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme } from '../native/index.js';
+import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme, requestNativeReview, openStoreListing } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { color, font } from '../brand/tokens.js';
 import { themeLabel, toggleTheme, getTheme } from '../brand/theme.js';
@@ -272,6 +273,16 @@ import {
     handleLevelOutcomeClick,
 } from '../ui/screens/LevelOutcomeScreen.js';
 import {
+    renderReviewPrompt,
+    handleReviewPromptClick,
+} from '../ui/screens/ReviewPromptScreen.js';
+import {
+    markReviewPromptShown,
+    respondToReviewPrompt,
+    reviewTrigger,
+    trackReviewFromOptions,
+} from '../services/ReviewPrompt.js';
+import {
     renderLogbook,
     handleLogbookClick,
     clampLogbookScroll,
@@ -298,6 +309,7 @@ import {
 } from '../config/flightStyle.js';
 import {
     canvasMaxDpr,
+    isNativeApp,
     needsIosCanvasBudget,
     preferOpaqueCanvas,
 } from '../core/platform.js';
@@ -422,6 +434,10 @@ export class Game {
         this.levelOutcome = null;
         this.runOutcome = null; // 'crashed' | 'completed' while on the end screen
         this.levelClear = null; // the flyout cinematic, while it's running
+        this.reviewPromptLive = false;
+        this.reviewPromptShownEvent = false;
+        this.reviewPromptTrigger = null;
+        this.reviewPromptButtons = null;
         this.journeyEpilogue = null; // written ending after L42
         this.levelIntro = null; // short run-start fly-in, while it's running
         this.pendingIntroMessage = null; // legacy single-line handoff
@@ -1117,6 +1133,7 @@ export class Game {
                     this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
                     if (this.isLevelRun()) {
                         this.levelOutcomeButtons = renderLevelOutcome(this);
+                        this.paintReviewPromptIfNeeded();
                     } else if (this.gameOverScreen === 'highscores') {
                         this.renderHighScores();
                     } else {
@@ -1131,6 +1148,7 @@ export class Game {
             this.ctx.globalAlpha = Math.max(0, Math.min(1, this.gameOverAlpha));
             if (this.isLevelRun()) {
                 this.levelOutcomeButtons = renderLevelOutcome(this);
+                this.paintReviewPromptIfNeeded();
             } else if (this.gameOverScreen === 'highscores') {
                 this.renderHighScores();
             } else {
@@ -2012,7 +2030,7 @@ export class Game {
         );
     }
 
-    // Options hub — Ship / Controls / Sound / Theme / Restore Purchases.
+    // Options hub — Ship / Controls / Sound / Theme / Rate (native) / Restore.
     renderOptionsHub() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -2021,16 +2039,24 @@ export class Game {
         const header = this.drawScreenHeader('OPTIONS', { back: true });
         this.optionsHubButtons = { back: header.backRect };
 
+        const showRate = isNativeApp();
+        const rowCount = 5 + (showRate ? 1 : 0);
         const subPx = L.isMobile ? Math.min(unit * 1.35, 15) : unit * 1.2;
         const buttonWidth = Math.min(unit * 30, L.width);
-        const buttonHeight = L.isMobile ? unit * 5.0 : unit * 4.6;
         const buttonGap = unit * 1.2;
-        const buttonsH = buttonHeight * 5 + buttonGap * 4;
-        const subH = subPx * 1.4;
         const statusH = this.purchaseStatus ? subPx * 1.5 : 0;
-
-        const blockH = subH + L.section + buttonsH + statusH;
+        const subH = subPx * 1.4;
         const available = L.bottom - header.contentTop;
+        let buttonHeight = L.isMobile ? unit * 5.0 : unit * 4.6;
+        let buttonsH = buttonHeight * rowCount + buttonGap * (rowCount - 1);
+        let blockH = subH + L.section + buttonsH + statusH;
+        if (blockH > available && buttonsH > 0) {
+            const scale = Math.max(0.72, (available - subH - L.section - statusH) / buttonsH);
+            buttonHeight *= scale;
+            buttonsH = buttonHeight * rowCount + buttonGap * (rowCount - 1);
+            blockH = subH + L.section + buttonsH + statusH;
+        }
+
         let y = header.contentTop + Math.max(0, (available - blockH) / 2);
 
         ctx.save();
@@ -2044,7 +2070,6 @@ export class Game {
         y += subH + L.section;
 
         const bx = L.centerX - buttonWidth / 2;
-        // Same framed style as the other hub rows (not primary/ink-filled).
         this.optionsHubButtons.ship = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, 'Ship', { tag: '\u25CF' }
         );
@@ -2057,11 +2082,16 @@ export class Game {
             bx, y, buttonWidth, buttonHeight, 'Sound', { tag: '\u266A' }
         );
         y += buttonHeight + buttonGap;
-        // Shows the active look; tap flips light ↔ dark (persisted).
         this.optionsHubButtons.theme = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, themeLabel(), { tag: '\u25D0' }
         );
         y += buttonHeight + buttonGap;
+        if (showRate) {
+            this.optionsHubButtons.rate = this.drawBrandButton(
+                bx, y, buttonWidth, buttonHeight, 'Rate Space Swoosh', { tag: '\u2605' }
+            );
+            y += buttonHeight + buttonGap;
+        }
         this.optionsHubButtons.restore = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, 'Restore Purchases', { tag: '\u21BB' }
         );
@@ -2626,6 +2656,10 @@ export class Game {
         this.levelOutcome = null;
         this.levelOutcomeButtons = null;
         this.levelClear = null;
+        this.reviewPromptLive = false;
+        this.reviewPromptShownEvent = false;
+        this.reviewPromptTrigger = null;
+        this.reviewPromptButtons = null;
         this.journeyEpilogue?.dispose?.();
         this.journeyEpilogue = null;
         this.levelIntro = null;
@@ -2663,6 +2697,43 @@ export class Game {
         this.journeyMapNeedsScroll = true;
     }
 
+    paintReviewPromptIfNeeded() {
+        if (this.journeyEpilogue?.active) return;
+        if (!this.levelOutcome?.completed || this.levelOutcome.isHazardLab) return;
+        if (this.gameOverAlpha < 0.6) return;
+
+        if (!this.reviewPromptLive) {
+            const trigger = reviewTrigger(maxCompletedLevel(this.journeyProgress));
+            if (!trigger) return;
+            this.reviewPromptLive = true;
+            this.reviewPromptTrigger = trigger;
+            if (!this.reviewPromptShownEvent) {
+                this.reviewPromptShownEvent = true;
+                markReviewPromptShown(trigger);
+            }
+        }
+
+        this.reviewPromptButtons = renderReviewPrompt(this);
+    }
+
+    async handleReviewPromptChoice(choice) {
+        const trigger = this.reviewPromptTrigger || 'day_6';
+        respondToReviewPrompt(choice, trigger);
+        this.reviewPromptLive = false;
+        this.reviewPromptButtons = null;
+        if (choice === 'yes') {
+            await requestNativeReview();
+        }
+    }
+
+    async handleRateFromOptions() {
+        trackReviewFromOptions();
+        const result = await requestNativeReview();
+        if (!result.ok) {
+            await openStoreListing();
+        }
+    }
+
     resetRunState() {
         this.score = 0;
         this.points = 0;
@@ -2681,6 +2752,10 @@ export class Game {
         this.runOutcome = null;
         this.levelOutcome = null;
         this.levelClear = null;
+        this.reviewPromptLive = false;
+        this.reviewPromptShownEvent = false;
+        this.reviewPromptTrigger = null;
+        this.reviewPromptButtons = null;
         this.journeyEpilogue?.dispose?.();
         this.journeyEpilogue = null;
         this.levelIntro = null;
@@ -3640,6 +3715,11 @@ export class Game {
                     syncStatusBarTheme().catch(() => {});
                     return;
                 }
+                if (this.optionsHubButtons.rate
+                    && this.isClickInButton(x, y, this.optionsHubButtons.rate)) {
+                    await this.handleRateFromOptions();
+                    return;
+                }
                 if (this.isClickInButton(x, y, this.optionsHubButtons.restore)) {
                     await this.handleRestorePurchases();
                     return;
@@ -3729,6 +3809,10 @@ export class Game {
 
             // Journey / Hazard Lab end screen owns its own actions.
             if (this.isLevelRun()) {
+                if (this.reviewPromptLive) {
+                    handleReviewPromptClick(this, x, y);
+                    return;
+                }
                 handleLevelOutcomeClick(this, x, y);
                 return;
             }

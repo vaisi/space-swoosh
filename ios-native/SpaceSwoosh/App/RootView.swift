@@ -1,8 +1,10 @@
 // RootView.swift
-// Changes: PLAY Journey / Open Space cards use Android cardH (unit×17) and
+// Changes: Options hub includes Rate Space Swoosh (StoreKit / write-review URL).
+// PLAY Journey / Open Space cards use Android cardH (unit×17) and
 // sit vertically centered between the header and footnote.
 
 import SwiftUI
+import StoreKit
 
 enum ShellScreen {
     case menu
@@ -22,6 +24,7 @@ struct RootView: View {
     @ObservedObject private var settings = SettingsStore.shared
     @ObservedObject private var journey = JourneyStore.shared
     @ObservedObject private var entitlements = EntitlementsStore.shared
+    @Environment(\.requestReview) private var requestReview
     @State private var screen: ShellScreen = .menu
     @State private var launch: PlayLaunch = .openSpace
     @State private var logbookReturn: ShellScreen = .menu
@@ -176,6 +179,9 @@ struct RootView: View {
                 tag: "◐"
             ) {
                 settings.toggleTheme()
+            }
+            ShellChrome.brandButton("Rate Space Swoosh", tag: "★") {
+                ReviewPromptStore.rateFromOptions(requestReview)
             }
             ShellChrome.brandButton("Restore Purchases", tag: "↻") {
                 Task { await entitlements.restore() }

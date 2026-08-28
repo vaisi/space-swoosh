@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Journey map header no longer draws the playtest TEST chip. -->
+<!-- Changes: Native enjoyment review prompt after Journey Day 6 (Later → Day 13). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -15,7 +15,7 @@
 > web also `?unlocklevels=1|0`). Free forever (no
 > `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
 > High Scores plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
-> Light Mode. PLAY is Journey then Open Space; Lab is the map tile. SPACE BOARD
+> Light Mode / Rate Space Swoosh (native) / Restore. PLAY is Journey then Open Space; Lab is the map tile. SPACE BOARD
 > uses the same Supabase `high_scores` table as Android (anon key injected at
 > build). Local PBs still back the PLAY card.
 > `shipSkinId` persists (unknown id stays **Flicker**).
@@ -267,9 +267,12 @@ game build env. Journey progress and Open Space personal best stay in
 | Path | Responsibility |
 | --- | --- |
 | `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. |
-| `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, status bar; wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight`. |
-| `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
-| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. |
+| `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, status bar; wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight`. `requestNativeReview()` / `openStoreListing()` wrap `InAppReview` (Play Core). |
+| `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. Review overlay treats back as Later. |
+| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. |
+| `services/ReviewPrompt.js` | Enjoyment card eligibility (`ssReviewPrompt`): pending → Day 6; Later snoozes to Day 13 then `done`. Native only. |
+| `services/StoreLinks.js` | Play listing URL from package `com.orbi.spaceswoosh`; App Store write-review URL from `VITE_APP_STORE_APPLE_ID`. |
+| `ui/screens/ReviewPromptScreen.js` | Paper overlay on a Journey clear: Enjoying so far? / It's great / Not really / Later. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). Android **`UNLOCK_ALL_SKINS` is still true for playtest**. Native iOS `SkinCatalog.UNLOCK_ALL_SKINS` is **false** so hangar purchases hit RevenueCat. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
@@ -343,13 +346,13 @@ game build env. Journey progress and Open Space personal best stay in
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
-| `options` | Options hub: Ship / Controls / Sound / Theme / Restore Purchases |
+| `options` | Options hub: Ship / Controls / Sound / Theme / Rate (native) / Restore Purchases |
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
 | `highscores` | Space Board: 10 tall rows/page (max 10 pages), header Zigzag/Arc brand-button toggle (Z/S tags), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
-| `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission |
+| `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission. After a successful Day 6 clear (native only), the enjoyment card layers on top; Later snoozes until Day 13. |
 
 Options navigation stacks: main menu → Options hub → sub-screen. Back from a
 sub-screen returns to the hub; Back from the hub returns to the main menu.
@@ -414,6 +417,34 @@ only; `drawScreenFrame` was removed.
 The ship tiles lay out as a 2-column grid (`Math.ceil(n / 2)` rows). The footnote
 is pinned to the bottom rule and the grid is centred in the space between it and
 the description, so a short roster doesn't leave a void under the cards.
+
+### Enjoyment review prompt (native only)
+
+After a **successful** Journey clear, once `maxCompletedLevel() >= 6`, Android
+and native iOS show “Enjoying Space Swoosh so far?” on top of the level-outcome
+screen (not mid-run, not after a crash, not Hazard Lab, not the L42 epilogue).
+Web never auto-prompts.
+
+| Action | Persist (`ssReviewPrompt`) | Analytics | Next |
+| --- | --- | --- | --- |
+| It's great | `yes` | `review_prompt_yes` | Immediate Play In-App Review / StoreKit `requestReview()` — **no second screen**, never opens the store listing |
+| Not really | `no` | `not_really_enjoying` | Dismiss only |
+| Later (Day 6) | `later` | `review_prompt_later` | Ask again after Day 13 |
+| Later (Day 13) | `done` | `review_prompt_later` | Never auto-ask again |
+
+Hardware back on the overlay is Later. Options → **Rate Space Swoosh** (native
+hubs only) fires `review_from_options`, tries the in-app sheet, and falls back
+to the store URL if that call fails. Play URL uses package `com.orbi.spaceswoosh`
+(not the Firebase project id). iOS write-review URL needs numeric
+`APP_STORE_APPLE_ID` (Info.plist / `VITE_APP_STORE_APPLE_ID`). Empty id skips
+the URL; `requestReview()` still runs.
+
+Pre-publish: events work on TestFlight and Play internal testing. The Play
+sheet can appear on a Play-installed build. TestFlight usually **does not**
+show Apple’s dialog. Public store pages 404 until the listing is live.
+
+Tune thresholds in `ReviewPrompt.js` / `ReviewPromptStore.swift`
+(`REVIEW_FIRST_DAY` 6, `REVIEW_SNOOZE_DAY` 13).
 
 ## 4a. Play modes and the run profile
 
@@ -1128,7 +1159,9 @@ leaderboard; both are included in the `game_over` GA event (`fail_reason`:
 Firebase Explorations, break down `game_over` + `journey_level_end` by
 `ship_id` (event count or users) for most-played ship, by `flight_style` for
 Arc vs Zigzag, by `day_name` for where Journey runs end, and by `platform`
-for web vs store apps. Revenue uses the GA4 `purchase` event (`value` +
+for web vs store apps. Review funnel: `review_prompt_shown` → `review_prompt_yes` /
+`not_really_enjoying` / `review_prompt_later` (`trigger` is `day_6` or `day_13`).
+Revenue uses the GA4 `purchase` event (`value` +
 `currency`); `purchase_skin` stays a funnel event without dollars. User
 properties `equipped_ship` and `max_journey_level` help answer “favourite
 free ship” and “bought after how many days”.
@@ -1273,8 +1306,8 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` with a centered same-size LAB tile. `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
-| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` with a centered same-size LAB tile. `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
+| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip, review prompt). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). `StoreLinks` — Play URL + App Store write-review URL (`APP_STORE_APPLE_ID`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |

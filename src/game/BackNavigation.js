@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Enjoyment review overlay on game-over treats back as Later.
 // - Written L42 epilogue consumes back (skip / dismiss cards) instead of
 //   dumping to the Journey map.
 // - Pro paywall retreats to mode select (or stored return via leave path).
@@ -79,6 +80,11 @@ export function goBack(game) {
     }
 
     if (game.appScreen === 'gameover') {
+        // Enjoyment card is a layer on the Journey outcome — Later, then retreat.
+        if (game.reviewPromptLive) {
+            void game.handleReviewPromptChoice('later');
+            return true;
+        }
         // The nested leaderboard inside the end screen is its own layer.
         if (game.gameOverScreen === 'highscores') {
             game.gameOverScreen = 'main';

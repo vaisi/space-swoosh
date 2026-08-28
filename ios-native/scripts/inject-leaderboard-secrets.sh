@@ -1,6 +1,7 @@
 #!/bin/sh
 # inject-leaderboard-secrets.sh
-# Changes: Also copy VITE_REVENUECAT_IOS_KEY into Info.plist for ship IAP.
+# Changes: Also copy APP_STORE_APPLE_ID for Options → Rate write-review URL.
+# Also copy VITE_REVENUECAT_IOS_KEY into Info.plist for ship IAP.
 # Never prints secrets. Missing keys leave SPACE BOARD / store offline — game still runs.
 
 set -eu
@@ -14,6 +15,7 @@ load_kv() {
 URL="${VITE_SUPABASE_URL:-}"
 KEY="${VITE_SUPABASE_ANON_KEY:-}"
 RC_KEY="${VITE_REVENUECAT_IOS_KEY:-}"
+APPLE_ID="${APP_STORE_APPLE_ID:-}"
 ENV_FILE="${SRCROOT:-}/../.env"
 
 if [ -n "${SRCROOT:-}" ] && [ -f "$ENV_FILE" ]; then
@@ -23,6 +25,9 @@ if [ -n "${SRCROOT:-}" ] && [ -f "$ENV_FILE" ]; then
   fi
   if [ -z "$RC_KEY" ]; then
     RC_KEY="$(load_kv VITE_REVENUECAT_IOS_KEY "$ENV_FILE")"
+  fi
+  if [ -z "$APPLE_ID" ]; then
+    APPLE_ID="$(load_kv APP_STORE_APPLE_ID "$ENV_FILE")"
   fi
 fi
 
@@ -45,4 +50,11 @@ if [ -n "$RC_KEY" ]; then
   echo "inject-leaderboard-secrets: wrote REVENUECAT_IOS_KEY"
 else
   echo "inject-leaderboard-secrets: VITE_REVENUECAT_IOS_KEY unset — IAP offline"
+fi
+
+if [ -n "$APPLE_ID" ]; then
+  /usr/libexec/PlistBuddy -c "Set :APP_STORE_APPLE_ID ${APPLE_ID}" "$PLIST"
+  echo "inject-leaderboard-secrets: wrote APP_STORE_APPLE_ID"
+else
+  echo "inject-leaderboard-secrets: APP_STORE_APPLE_ID unset — Rate URL fallback offline"
 fi

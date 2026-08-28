@@ -10,6 +10,8 @@
 // - Sanitize params for Firebase (string | number only). Booleans like
 //   `completed: true` were putBoolean'd by the plugin and can cause Android to
 //   drop the whole custom event — convert to 0/1. Truncate long strings.
+// - Review prompt: review_prompt_shown (trigger day_6|day_13), review_prompt_yes,
+//   not_really_enjoying, review_prompt_later, review_from_options.
 
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAnalytics } from '@capacitor-firebase/analytics';

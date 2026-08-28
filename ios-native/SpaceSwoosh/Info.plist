@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: REVENUECAT_IOS_KEY for native ship IAP (injected at build). -->
+	<!-- Changes: APP_STORE_APPLE_ID for Options Rate URL; REVENUECAT_IOS_KEY for IAP. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -56,6 +56,9 @@
 	<string></string>
 	<!-- Public RevenueCat iOS SDK key. Injected at build from VITE_REVENUECAT_IOS_KEY. -->
 	<key>REVENUECAT_IOS_KEY</key>
+	<string></string>
+	<!-- Numeric App Store Connect id. Injected at build from APP_STORE_APPLE_ID. -->
+	<key>APP_STORE_APPLE_ID</key>
 	<string></string>
 	<key>UIAppFonts</key>
 	<array>

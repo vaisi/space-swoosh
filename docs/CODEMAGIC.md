@@ -1,6 +1,7 @@
 <!--
   docs/CODEMAGIC.md
   Changes:
+  - APP_STORE_APPLE_ID also injects the Options → Rate write-review URL.
   - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret; SPM product is FirebaseAnalyticsCore.
   - TestFlight uses .playback so Silent switch no longer mutes SFX.
   - iOS CI stamps CFBundleVersion ≥ 2 (ASC already has 1.0.0 (1)).
@@ -37,7 +38,7 @@ Mark secrets as Secret.
 
 | Variable | Notes |
 | --- | --- |
-| `APP_STORE_APPLE_ID` | Numeric App Store Connect app id (required for iOS) |
+| `APP_STORE_APPLE_ID` | Numeric App Store Connect app id (required for iOS TestFlight lookup **and** Options → Rate write-review URL) |
 | `CERTIFICATE_PRIVATE_KEY` | RSA PEM private key for iOS Distribution (Secret). Required — see §3b |
 | `VITE_SUPABASE_URL` | vaisi's Project URL (Android / web / **native iOS** SPACE BOARD) |
 | `VITE_SUPABASE_ANON_KEY` | vaisi's Project anon / publishable key. iOS Native workflows write these into `Info.plist` `SUPABASE_URL` / `SUPABASE_ANON_KEY` before `xcodebuild`. |

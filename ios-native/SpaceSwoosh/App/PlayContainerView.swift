@@ -1,5 +1,5 @@
 // PlayContainerView.swift
-// Changes: L42 epilogue send/skip logs journey_epilogue_send / _skip.
+// Changes: Enjoyment review overlay after Journey Day 6 (Day 13 if Later).
 // Level outcome card matches Android — centered block, starred tally
 // with dotted rules, lead action full-width, Level Select + Menu paired.
 
@@ -21,6 +21,9 @@ struct PlayContainerView: View {
     @State private var showHighScores = false
     @State private var showSubmit = false
     @State private var didAutoPrompt = false
+    @State private var didOfferReview = false
+    @State private var showReviewPrompt = false
+    @State private var reviewTrigger = "day_6"
     @State private var currentLaunch: PlayLaunch
 
     init(
@@ -134,6 +137,12 @@ struct PlayContainerView: View {
                 if showHighScores {
                     HighScoresView(onBack: { showHighScores = false })
                 }
+
+                if showReviewPrompt {
+                    ReviewPromptCard(trigger: reviewTrigger) {
+                        showReviewPrompt = false
+                    }
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
@@ -168,6 +177,7 @@ struct PlayContainerView: View {
             }
             .onChange(of: session.overlayAlpha) { _, alpha in
                 maybeAutoPrompt(alpha)
+                maybeOfferReview(alpha)
             }
             .onChange(of: session.boardRank) { _, _ in
                 maybeAutoPrompt(session.overlayAlpha)
@@ -399,6 +409,8 @@ struct PlayContainerView: View {
         showSubmit = false
         showHighScores = false
         didAutoPrompt = false
+        didOfferReview = false
+        showReviewPrompt = false
         scene.isPaused = false
         scene.startRun(launch)
     }
@@ -428,6 +440,19 @@ struct PlayContainerView: View {
         guard session.shouldAutoPromptSubmit, alpha >= 0.98 else { return }
         didAutoPrompt = true
         showSubmit = true
+    }
+
+    private func maybeOfferReview(_ alpha: CGFloat) {
+        guard !didOfferReview, !showReviewPrompt, !session.showEpilogue else { return }
+        guard alpha >= 0.6, let outcome = session.outcome, outcome.completed, !outcome.isLab else { return }
+        let snapshot = JourneyStore.shared.snapshot
+        guard let trigger = ReviewPromptStore.trigger(maxCompleted: JourneyProgress.maxCompleted(snapshot)) else {
+            return
+        }
+        didOfferReview = true
+        reviewTrigger = trigger
+        showReviewPrompt = true
+        ReviewPromptStore.markShown(trigger: trigger)
     }
 
     private func leaveToMapOrMenu() {

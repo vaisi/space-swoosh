@@ -1,4 +1,5 @@
-// Updated: default versionCode → 44 / versionName 1.0.44 (next Play Store upload).
+// Updated: Play In-App Review (com.google.android.play:review) for the
+// enjoyment prompt. default versionCode → 44 / versionName 1.0.44.
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -63,6 +64,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation 'com.google.android.play:review:2.0.2'
 }
 
 apply from: 'capacitor.build.gradle'

@@ -1,6 +1,8 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
+// - requestNativeReview() / openStoreListing() wrap the InAppReview plugin
+//   (Play review sheet; store URL only from Options if the sheet cannot start).
 // - Splash hide is first in initNative() (menu already paints) plus a finally
 //   retry. Dropped leftover ensureSelectionHaptics() which threw before hide
 //   and pinned the cream launch screen. hideSplashScreen() is safe to call
@@ -29,8 +31,58 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { goBack } from '../game/BackNavigation.js';
 import { color } from '../brand/tokens.js';
 import { isDarkTheme } from '../brand/theme.js';
+import { storeReviewUrl } from '../services/StoreLinks.js';
 
 export const isNative = () => Capacitor.isNativePlatform();
+
+/** @type {{ requestReview: () => Promise<{ ok?: boolean }>, openUrl: (opts: { url: string }) => Promise<{ ok?: boolean }> } | null} */
+let inAppReviewPlugin = null;
+
+function loadInAppReview() {
+    inAppReviewPlugin ??= registerPlugin('InAppReview');
+    return inAppReviewPlugin;
+}
+
+/**
+ * Ask Google Play to show the in-app review sheet. Resolves `{ ok: false }` on
+ * web, sideload, or any plugin failure — never throws.
+ */
+export async function requestNativeReview() {
+    if (!isNative()) return { ok: false };
+    try {
+        const result = await loadInAppReview().requestReview();
+        return { ok: Boolean(result?.ok) };
+    } catch {
+        return { ok: false };
+    }
+}
+
+/**
+ * Open the Play listing (Options Rate fallback when the in-app sheet cannot start).
+ */
+export async function openStoreListing() {
+    const url = storeReviewUrl();
+    if (!url) return { ok: false };
+    if (!isNative()) {
+        try {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            return { ok: true };
+        } catch {
+            return { ok: false };
+        }
+    }
+    try {
+        const result = await loadInAppReview().openUrl({ url });
+        return { ok: Boolean(result?.ok) };
+    } catch {
+        try {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            return { ok: true };
+        } catch {
+            return { ok: false };
+        }
+    }
+}
 
 /** @type {{ StatusBar: import('@capacitor/status-bar').StatusBarPlugin, Style: typeof import('@capacitor/status-bar').Style } | null} */
 let statusBarApi = null;

@@ -5,6 +5,7 @@
 # - Add ios-native-simulator: unsigned iPhone simulator .app for App Preview.
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
 # - Inject VITE_SUPABASE_* and VITE_REVENUECAT_IOS_KEY into native Info.plist.
+#   APP_STORE_APPLE_ID is also copied for Options → Rate write-review URL.
 # - Floor build number at 3 for C.5 TestFlight.
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
@@ -116,6 +117,12 @@ workflows:
           else
             echo "WARN: VITE_REVENUECAT_IOS_KEY missing — ship IAP will be offline in this IPA"
           fi
+          if [ -n "${APP_STORE_APPLE_ID:-}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :APP_STORE_APPLE_ID $APP_STORE_APPLE_ID" ios-native/SpaceSwoosh/Info.plist
+            echo "Injected APP_STORE_APPLE_ID into Info.plist"
+          else
+            echo "WARN: APP_STORE_APPLE_ID missing — Rate write-review URL fallback offline"
+          fi
       - name: Resolve Swift packages
         script: |
           set -euo pipefail
@@ -193,6 +200,12 @@ workflows:
             echo "Injected REVENUECAT_IOS_KEY into Info.plist"
           else
             echo "WARN: VITE_REVENUECAT_IOS_KEY missing — ship IAP will be offline in App Preview"
+          fi
+          if [ -n "${APP_STORE_APPLE_ID:-}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :APP_STORE_APPLE_ID $APP_STORE_APPLE_ID" ios-native/SpaceSwoosh/Info.plist
+            echo "Injected APP_STORE_APPLE_ID into Info.plist"
+          else
+            echo "WARN: APP_STORE_APPLE_ID missing — Rate write-review URL fallback offline"
           fi
       - name: Build unsigned iPhone simulator .app
         script: |

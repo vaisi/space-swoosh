@@ -17,6 +17,8 @@
 		57522F4EA1FAEE0C484E7F26 /* LogbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1214CFA3FC1ED1CE5E2EA394 /* LogbookView.swift */; };
 		228B857F37213D6A8F22B458 /* LoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67BC9E89402CCE9ECA03A16 /* LoreView.swift */; };
 		A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8731093D35B65890AC3B94D /* PlayContainerView.swift */; };
+		52BD05BE35F397992206D268 /* ReviewPromptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA21233D9BAF9C55AA5157E /* ReviewPromptCard.swift */; };
+		D0974DAD1A6518536DA4D6CF /* ReviewPromptStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C0489C6972C1DC1045154 /* ReviewPromptStore.swift */; };
 		76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */; };
 		1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */; };
 		57DEF2C27678FDDC5BF3B49B /* ShellChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EF4487AD20665DDAEBF98F /* ShellChrome.swift */; };
@@ -73,6 +75,7 @@
 		43365925BDAC80BF14F25256 /* NameFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE02F61DEB13889396A5CF40 /* NameFilter.swift */; };
 		230D2DCD2DDBF556DF3C7051 /* PurchasesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B870B63A5500CD037A521023 /* PurchasesService.swift */; };
 		88C1215844106C8E02B6C338 /* ScoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF2A213E6AE42A2E237F47E /* ScoreService.swift */; };
+		63D2FC280ED009063D72A387 /* StoreLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B8439AA8BA0FBB5BF8D96F /* StoreLinks.swift */; };
 		87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */; };
 		5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECBDDDE316344C763EADABE /* CinematicFlight.swift */; };
 		EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B4487A50892B18E56E9252 /* CombatParity.swift */; };
@@ -165,6 +168,8 @@
 		1214CFA3FC1ED1CE5E2EA394 /* LogbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookView.swift; sourceTree = "<group>"; };
 		B67BC9E89402CCE9ECA03A16 /* LoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreView.swift; sourceTree = "<group>"; };
 		F8731093D35B65890AC3B94D /* PlayContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayContainerView.swift; sourceTree = "<group>"; };
+		2CA21233D9BAF9C55AA5157E /* ReviewPromptCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptCard.swift; sourceTree = "<group>"; };
+		011C0489C6972C1DC1045154 /* ReviewPromptStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptStore.swift; sourceTree = "<group>"; };
 		1F2C40BA6C5A4E305B4E6B12 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		81B78C3CBC76324FAFD2BE4C /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		91EF4487AD20665DDAEBF98F /* ShellChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellChrome.swift; sourceTree = "<group>"; };
@@ -221,6 +226,7 @@
 		EE02F61DEB13889396A5CF40 /* NameFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameFilter.swift; sourceTree = "<group>"; };
 		B870B63A5500CD037A521023 /* PurchasesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasesService.swift; sourceTree = "<group>"; };
 		4CF2A213E6AE42A2E237F47E /* ScoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreService.swift; sourceTree = "<group>"; };
+		79B8439AA8BA0FBB5BF8D96F /* StoreLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreLinks.swift; sourceTree = "<group>"; };
 		5842A5443CE0BBB83DE597D9 /* CinemaSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinemaSimulator.swift; sourceTree = "<group>"; };
 		DECBDDDE316344C763EADABE /* CinematicFlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicFlight.swift; sourceTree = "<group>"; };
 		A5B4487A50892B18E56E9252 /* CombatParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatParity.swift; sourceTree = "<group>"; };
@@ -364,6 +370,8 @@
 				1214CFA3FC1ED1CE5E2EA394,
 				B67BC9E89402CCE9ECA03A16,
 				F8731093D35B65890AC3B94D,
+				2CA21233D9BAF9C55AA5157E,
+				011C0489C6972C1DC1045154,
 				1F2C40BA6C5A4E305B4E6B12,
 				81B78C3CBC76324FAFD2BE4C,
 				91EF4487AD20665DDAEBF98F,
@@ -473,6 +481,7 @@
 				EE02F61DEB13889396A5CF40,
 				B870B63A5500CD037A521023,
 				4CF2A213E6AE42A2E237F47E,
+				79B8439AA8BA0FBB5BF8D96F,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -725,6 +734,8 @@
 				57522F4EA1FAEE0C484E7F26 /* LogbookView.swift in Sources */,
 				228B857F37213D6A8F22B458 /* LoreView.swift in Sources */,
 				A71D52CFF0F57BD8876CC481 /* PlayContainerView.swift in Sources */,
+				52BD05BE35F397992206D268 /* ReviewPromptCard.swift in Sources */,
+				D0974DAD1A6518536DA4D6CF /* ReviewPromptStore.swift in Sources */,
 				76B30FA206C69BBABB6F0E50 /* RootView.swift in Sources */,
 				1D5AADD774FE9B5A34BE940D /* SettingsStore.swift in Sources */,
 				57DEF2C27678FDDC5BF3B49B /* ShellChrome.swift in Sources */,
@@ -781,6 +792,7 @@
 				43365925BDAC80BF14F25256 /* NameFilter.swift in Sources */,
 				230D2DCD2DDBF556DF3C7051 /* PurchasesService.swift in Sources */,
 				88C1215844106C8E02B6C338 /* ScoreService.swift in Sources */,
+				63D2FC280ED009063D72A387 /* StoreLinks.swift in Sources */,
 				87F05DD3CEBC401F70208036 /* CinemaSimulator.swift in Sources */,
 				5C2B17832616CD38CD93CEED /* CinematicFlight.swift in Sources */,
 				EC602C1D0AEFE1B5419EFD70 /* CombatParity.swift in Sources */,

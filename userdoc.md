@@ -1,5 +1,5 @@
-<!-- Changes: iOS mixes round, triangular, and square simple asteroids in
-     clusters the same way Android does. -->
+<!-- Changes: Native apps may ask if you’re enjoying the game after Journey
+     Day 6; Options has Rate Space Swoosh. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -19,7 +19,7 @@
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. TestFlight menus use the same paper/ink framed chrome as Android (Space
 > Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
-> Options is a hub (Ship, Controls, Sound, Light/Dark Mode). Play offers Journey
+> Options is a hub (Ship, Controls, Sound, Light/Dark Mode, Rate, Restore). Play offers Journey
 > then Open Space on two tall, centered cards; Hazard Lab is the **LAB** tile on the Journey map. High Scores
 > is the same online SPACE BOARD as Android (Zigzag/Arc, distance or obstacles).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
@@ -226,7 +226,7 @@ to unlock on the apps). Options → Ship has the same roster in a grid.
 
 - **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
-- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases.
+- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, Rate Space Swoosh (on the phone apps), and Restore Purchases.
 - **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS and Android share the same online board (call sign + ship). Android pages 10 scores at a time (up to 100).
 
 After a run, **Menu** on the end screen brings you back here.
@@ -319,6 +319,7 @@ Options opens a short list:
 | **Controls** | Flight style (Zigzag now; Arc shows as out of service until you finish the Journey). |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
+| **Rate Space Swoosh** | Phone apps only. Opens the store’s rating sheet (or the store page if that sheet cannot appear). |
 | **Restore Purchases** | Re-sync ship unlocks after reinstall (iOS / Android). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
@@ -333,6 +334,11 @@ Under **Options → Sound** you can isolate each channel:
 | **Voice** | Navigator lines (Journey intros), session cues (first BOOP, Style Swoosh), and a low-fuel warning. On-screen captions still appear when Voice is off. |
 
 Pause → **Sound** mutes everything at once without changing these three toggles.
+
+After you clear **Journey Day 6** on a phone app, a short card may ask if you
+are enjoying Space Swoosh so far. **It's great** brings up the system rating
+sheet. **Not really** just closes the card. **Later** can ask once more after
+Day 13. This does not appear in the browser game.
 
 ## Ships
 

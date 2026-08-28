@@ -3,6 +3,8 @@
 // Same events / param sanitizing as Android Analytics.js. Auto-attaches
 // platform=ios. User properties for equipped_ship / max_journey_level / theme.
 // GA4 purchase events are logged from PurchasesService after RevenueCat success.
+// Review prompt: review_prompt_shown / _yes / _later, not_really_enjoying,
+// review_from_options.
 
 import Foundation
 import FirebaseAnalytics
