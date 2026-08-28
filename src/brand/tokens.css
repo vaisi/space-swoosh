@@ -4,6 +4,9 @@
  * SPACE SWOOSH — Brand design tokens as CSS custom properties.
  *
  * Changes:
+ * - In-run pause control (`.ss-pause`) is two ink bars, not the U+23F8 emoji.
+ *   Android Noto Color Emoji painted that glyph as an orange tile; currentColor
+ *   follows --ss-ink so light/dark match iOS PauseBars.
  * - Theme defaults to light cream/ink/Signal Blue; dark night-paper overrides
  *   via brand/theme.js at boot / Options toggle.
  * - Dark surround is charcoal (`theme.js` --ss-surround); beige tunnel lives
@@ -163,6 +166,38 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
     letter-spacing: var(--ss-track-tight);
+}
+
+/* In-run pause control — two ink bars in a 48×48 hit target. No emoji, no
+   paper tile: Android Noto Color Emoji renders U+23F8 as an orange square.
+   Matches iOS HudChrome PauseBars (6×20 capsules, 5px gap, BrandColors.ink). */
+.ss-pause {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: var(--ss-ink);
+    -webkit-tap-highlight-color: transparent;
+}
+.ss-pause:focus { outline: none; }
+.ss-pause:focus-visible {
+    outline: 1.5px solid var(--ss-ink);
+    outline-offset: 3px;
+}
+.ss-pause__bars {
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+    width: 17px;
+    height: 20px;
+    pointer-events: none;
+}
+.ss-pause__bars span {
+    display: block;
+    width: 6px;
+    border-radius: 999px;
+    background: currentColor;
 }
 
 /* Utility: the ALL-CAPS micro label treatment ("KM", "SCORE", "PAUSED"). */

@@ -1,9 +1,11 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Rook hull shortened; hangar/in-play wake tucks at the fuselage
-     tail. Homescreen BUILD stamp hidden on web/Android. Hazard Lab tile
-     gated off (SHOW_HAZARD_LAB / showHazardLab). UNLOCK_ALL_LEVELS = false
-     (sequential Journey; web ?unlocklevels=1 still overrides). -->
+<!-- Changes: In-run pause control is `.ss-pause` two ink bars (not U+23F8;
+     Android emoji fonts painted that glyph orange). Rook hull shortened;
+     hangar/in-play wake tucks at the fuselage tail. Homescreen BUILD stamp
+     hidden on web/Android. Hazard Lab tile gated off (SHOW_HAZARD_LAB /
+     showHazardLab). UNLOCK_ALL_LEVELS = false (sequential Journey; web
+     ?unlocklevels=1 still overrides). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -388,6 +390,12 @@ buttons into `this.pauseButtons`:
 touches belong to InputHandler" early return, so the menu owns the canvas while
 it's up. `Space` and `Escape` both toggle pause, and the DOM pause button hides
 while the menu is up since the menu carries its own Resume.
+
+The HUD pause control (`Game.setupPauseButton()`, class `.ss-pause` in
+`brand/tokens.css`) is two `currentColor` capsules in a 48×48 hit target — the
+same geometry as iOS `HudChrome.PauseBars`. It reads `--ss-ink` so light mode
+is near-black and dark mode is bone. Do **not** use the ⏸ (`U+23F8`) emoji:
+Android Noto Color Emoji renders that as an orange filled tile.
 
 `SoundManager` audio gates:
 - **Master mute** (`soundMuted`, pause Sound): silences everything.

@@ -1,5 +1,6 @@
-<!-- Changes: Rook hull shortened; dust wake pours from the tail.
-     Homescreen BUILD stamp hidden. Hazard Lab tile not shown.
+<!-- Changes: Pause (top-right) is two simple ink bars that follow Light/Dark
+     Mode — not an orange tile. Rook hull shortened; dust wake pours from
+     the tail. Homescreen BUILD stamp hidden. Hazard Lab tile not shown.
      Journey days unlock sequentially (Level 1 open; later days fade until
      you clear the previous one). -->
 # Space Swoosh — Player Guide
@@ -434,7 +435,7 @@ backing out to the menu.
 | --- | --- | --- |
 | Steer (Zigzag) | Space or Left / Right arrows (any flips). On desktop web, a mouse click also flips. | Press/tap anywhere to flip (on touch-down). Swipe does nothing. |
 | Steer (Arc) | Left / Right arrow keys. On desktop web, click-drag left or right also banks. | Swipe left or right. A short tap on either half of the screen also banks that way. |
-| Pause | Escape or the pause button (top-right). In Arc, Space also pauses. | Pause button (top-right) |
+| Pause | Escape or the two-bar pause icon (top-right). In Arc, Space also pauses. | Two-bar pause icon (top-right) |
 
 In Zigzag the path flips as soon as you tap; the hull leans over instead of
 popping upright for a frame (that used to look like a 1–2px camera hop on
@@ -466,6 +467,9 @@ Top-left is a compact icon stack (no captions):
   diamonds refill it. Empty means engines die and the run fails.
 - **Target** — after your first smash: Journey shows black dots for the smash
   mission; Open Space shows a small black smash count.
+
+Top-right is a two-bar pause icon (no orange tile). In **Light Mode** the bars
+are near-black; in **Dark Mode** they are bone white, same as on iPhone.
 
 Pause and end screens still show full KM / sparkles / destroyed numbers.
 

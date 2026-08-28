@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - In-run pause control is two ink bars (`.ss-pause`), not the U+23F8 emoji.
+//   Android Noto Color Emoji rendered that glyph as an orange tile; ink
+//   follows light/dark like iOS PauseBars.
 // - Homescreen BUILD stamp is no longer drawn on web/Android. buildStamp.js
 //   still increments on vite build if the badge is restored later.
 // - KM / fuel use GameConfig.kmDelta (reference height 800) so a full-height
@@ -3982,23 +3985,25 @@ export class Game {
 
     setupPauseButton() {
         const button = document.createElement('button');
-        button.innerHTML = '&#9208;'; // Two-bar pause motif
+        button.type = 'button';
+        button.className = 'ss-pause';
+        // Geometry, not U+23F8 — Android emoji fonts paint that as an orange tile.
+        button.innerHTML =
+            '<span class="ss-pause__bars" aria-hidden="true"><span></span><span></span></span>';
         button.setAttribute('aria-label', 'Pause');
         button.style.cssText = `
             position: absolute;
             top: 16px;
             right: 16px;
-            background: var(--ss-paper-tint, #EAE4D2);
-            border: 1.5px solid var(--ss-ink, #1A1A1A);
+            background: transparent;
+            border: none;
             border-radius: 0;
-            font-size: 22px;
             cursor: pointer;
             z-index: 1000;
             padding: 0;
             color: var(--ss-ink, #1A1A1A);
             opacity: 0.85;
             transition: transform var(--ss-dur-fast, 120ms) var(--ss-ease-standard, ease), opacity 1s ease;
-            font-family: var(--ss-font-ui, system-ui, sans-serif);
             width: 48px;
             height: 48px;
             display: flex;
