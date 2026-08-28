@@ -1,8 +1,9 @@
 // LogbookView.swift
 // Changes: SPACE LOG header + Grotesk/Mono chrome matching Android logbook.
-// Obstacles/Boosts list only observed/known cards (no locked placeholders or
-// EmptyView gaps). Journey still lists named days. Tabs are filled ink rects
-// like Android LogbookScreen.
+// Obstacles/Boosts cards use a 1/3 playfield specimen well (LogbookGlyph) so
+// finish gates span the picture and relative sizes match in-game. List only
+// observed/known cards (no locked placeholders). Journey still lists named
+// days. Tabs are filled ink rects like Android LogbookScreen.
 
 import SwiftUI
 
@@ -79,37 +80,76 @@ struct LogbookView: View {
     private func entryCard(_ entry: LogbookEntrySpec) -> some View {
         let state = LogbookProgress.state(store.snapshot, id: entry.id)
         let journeyTab = category == "levels"
-        ShellChrome.framedTile(signal: state == .known) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(entry.name.uppercased())
-                        .font(BrandType.label(12))
-                        .tracking(BrandType.labelTracking(12))
-                        .foregroundStyle(state == .locked ? BrandColors.ink.opacity(0.30) : BrandColors.ink)
-                    Spacer()
-                    if !journeyTab, state != .locked {
-                        Text(state == .known ? "KNOWN" : "OBSERVED")
-                            .font(BrandType.label(9))
-                            .tracking(BrandType.labelTracking(9))
-                            .foregroundStyle(BrandColors.signal)
-                    }
+        let known = state == .known
+        Group {
+            if journeyTab {
+                ShellChrome.framedTile(signal: known) {
+                    journeyCopy(entry, state: state)
+                }
+            } else {
+                specimenCard(entry, state: state)
+            }
+        }
+    }
+
+    private func specimenCard(_ entry: LogbookEntrySpec, state: LogbookState) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            LogbookSpecimenView(icon: entry.id)
+                .frame(width: 112, height: 112)
+                .background(BrandColors.paper)
+                .overlay {
+                    Rectangle()
+                        .stroke(BrandColors.ink.opacity(0.12), lineWidth: 1.5)
+                }
+            VStack(alignment: .leading, spacing: 5) {
+                Text(entry.name.uppercased())
+                    .font(BrandType.label(12))
+                    .tracking(BrandType.labelTracking(12))
+                    .foregroundStyle(state == .locked ? BrandColors.ink.opacity(0.30) : BrandColors.ink)
+                if state != .locked {
+                    Text(state == .known ? "KNOWN" : "OBSERVED")
+                        .font(BrandType.label(9))
+                        .tracking(BrandType.labelTracking(9))
+                        .foregroundStyle(state == .known ? BrandColors.signal : BrandColors.ink55)
                 }
                 if state == .known {
                     Text(entry.definition)
                         .font(BrandType.body(14))
-                    if !journeyTab {
-                        Text(entry.remark)
-                            .font(BrandType.body(13))
-                            .foregroundStyle(BrandColors.ink55)
-                    }
+                        .foregroundStyle(BrandColors.ink)
                 } else if state != .locked {
                     Text(pendingLine(for: entry.id))
                         .font(BrandType.body(14))
                         .foregroundStyle(BrandColors.ink55)
                 }
             }
-            .foregroundStyle(BrandColors.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(BrandColors.paperTint)
+        .overlay {
+            Rectangle()
+                .stroke(state == .known ? BrandColors.signal : BrandColors.ink, lineWidth: 1.5)
+        }
+    }
+
+    @ViewBuilder
+    private func journeyCopy(_ entry: LogbookEntrySpec, state: LogbookState) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(entry.name.uppercased())
+                .font(BrandType.label(12))
+                .tracking(BrandType.labelTracking(12))
+                .foregroundStyle(state == .locked ? BrandColors.ink.opacity(0.30) : BrandColors.ink)
+            if state == .known {
+                Text(entry.definition)
+                    .font(BrandType.body(14))
+            } else if state != .locked {
+                Text(pendingLine(for: entry.id))
+                    .font(BrandType.body(14))
+                    .foregroundStyle(BrandColors.ink55)
+            }
+        }
+        .foregroundStyle(BrandColors.ink)
     }
 
     private func pendingLine(for id: String) -> String {

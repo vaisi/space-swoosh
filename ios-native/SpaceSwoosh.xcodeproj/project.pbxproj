@@ -12,6 +12,7 @@
 		D87F6D6A44939F7275C24F23 /* HudChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA139AC5EAE9BEE9E03B44C /* HudChrome.swift */; };
 		B86EA14028FBC90DFDBAB0D8 /* JourneyMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A837B3027E02E529D54B2E9 /* JourneyMapView.swift */; };
 		0698F1EC3408FAF7B8206394 /* JourneyProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE284E9C2D2EA4ED6CC2F8AD /* JourneyProgress.swift */; };
+		3262DBD5A5C87F081FC26D66 /* LogbookGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6059E5310AC5219E014B28 /* LogbookGlyph.swift */; };
 		387E4C9D3C2773B32778E1D6 /* LogbookProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03725D373B92D3A81A621CB7 /* LogbookProgress.swift */; };
 		57522F4EA1FAEE0C484E7F26 /* LogbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1214CFA3FC1ED1CE5E2EA394 /* LogbookView.swift */; };
 		228B857F37213D6A8F22B458 /* LoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67BC9E89402CCE9ECA03A16 /* LoreView.swift */; };
@@ -79,12 +80,12 @@
 		0405605E5D39FE9723F9C203 /* FloatPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22F7DD72D5CE35B970A8A40 /* FloatPopup.swift */; };
 		B8770DBFAFA9F3A4584BA7B0 /* HazardCollision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0871048511B16134F49F6AC5 /* HazardCollision.swift */; };
 		DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D2C43869B699798FD0DFC5 /* ObstacleState.swift */; };
+		C07CFC91216D19167DEDF60B /* PlayCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = D68773AAD1B288557B4C5F77 /* PlayCamera.swift */; };
 		DC4BAFF0320792C69EEE8ECF /* ShipHitbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E968961A2E34B9F89BCDDE /* ShipHitbox.swift */; };
 		E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */; };
 		F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */; };
 		88E18631C63742802E1DF8C7 /* WallJelly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B844881344C2CA52B89178C /* WallJelly.swift */; };
 		1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082D090C673D6BD3BAE36892 /* WorldState.swift */; };
-		C4E8B1A27D9F4C6A8B3E1D50 /* PlayCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F3C7D14E2B8A6C5D0E1F24 /* PlayCamera.swift */; };
 		091BE23C010931EE6C4F761E /* SpaceSwooshApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B46362F53342EC376D581E /* SpaceSwooshApp.swift */; };
 		630079499D908838C6A12464 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 32BB636196F91ED59D7A4919 /* Assets.xcassets */; };
 		C3A67159B8F8D98B6A20BAD7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5D52EF9D75FAE68006CE0775 /* PrivacyInfo.xcprivacy */; };
@@ -159,6 +160,7 @@
 		8FA139AC5EAE9BEE9E03B44C /* HudChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HudChrome.swift; sourceTree = "<group>"; };
 		1A837B3027E02E529D54B2E9 /* JourneyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyMapView.swift; sourceTree = "<group>"; };
 		AE284E9C2D2EA4ED6CC2F8AD /* JourneyProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyProgress.swift; sourceTree = "<group>"; };
+		2F6059E5310AC5219E014B28 /* LogbookGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookGlyph.swift; sourceTree = "<group>"; };
 		03725D373B92D3A81A621CB7 /* LogbookProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookProgress.swift; sourceTree = "<group>"; };
 		1214CFA3FC1ED1CE5E2EA394 /* LogbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogbookView.swift; sourceTree = "<group>"; };
 		B67BC9E89402CCE9ECA03A16 /* LoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoreView.swift; sourceTree = "<group>"; };
@@ -226,12 +228,12 @@
 		B22F7DD72D5CE35B970A8A40 /* FloatPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatPopup.swift; sourceTree = "<group>"; };
 		0871048511B16134F49F6AC5 /* HazardCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardCollision.swift; sourceTree = "<group>"; };
 		14D2C43869B699798FD0DFC5 /* ObstacleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObstacleState.swift; sourceTree = "<group>"; };
+		D68773AAD1B288557B4C5F77 /* PlayCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayCamera.swift; sourceTree = "<group>"; };
 		08E968961A2E34B9F89BCDDE /* ShipHitbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipHitbox.swift; sourceTree = "<group>"; };
 		394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipSimulator.swift; sourceTree = "<group>"; };
 		0BDA3D967612F47FA382CB20 /* TrailRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailRingBuffer.swift; sourceTree = "<group>"; };
 		9B844881344C2CA52B89178C /* WallJelly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallJelly.swift; sourceTree = "<group>"; };
 		082D090C673D6BD3BAE36892 /* WorldState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldState.swift; sourceTree = "<group>"; };
-		A9F3C7D14E2B8A6C5D0E1F24 /* PlayCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayCamera.swift; sourceTree = "<group>"; };
 		49B46362F53342EC376D581E /* SpaceSwooshApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceSwooshApp.swift; sourceTree = "<group>"; };
 		04E4CF0498F47FCE691777EF /* background.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = background.mp3; sourceTree = "<group>"; };
 		0FE5527F72ADEF15677E5651 /* crash.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = crash.mp3; sourceTree = "<group>"; };
@@ -357,6 +359,7 @@
 				8FA139AC5EAE9BEE9E03B44C,
 				1A837B3027E02E529D54B2E9,
 				AE284E9C2D2EA4ED6CC2F8AD,
+				2F6059E5310AC5219E014B28,
 				03725D373B92D3A81A621CB7,
 				1214CFA3FC1ED1CE5E2EA394,
 				B67BC9E89402CCE9ECA03A16,
@@ -484,12 +487,12 @@
 				B22F7DD72D5CE35B970A8A40,
 				0871048511B16134F49F6AC5,
 				14D2C43869B699798FD0DFC5,
+				D68773AAD1B288557B4C5F77,
 				08E968961A2E34B9F89BCDDE,
 				394B4BABF977D9B915F6D5C5,
 				0BDA3D967612F47FA382CB20,
 				9B844881344C2CA52B89178C,
 				082D090C673D6BD3BAE36892,
-				A9F3C7D14E2B8A6C5D0E1F24,
 			);
 			path = Sim;
 			sourceTree = "<group>";
@@ -717,6 +720,7 @@
 				D87F6D6A44939F7275C24F23 /* HudChrome.swift in Sources */,
 				B86EA14028FBC90DFDBAB0D8 /* JourneyMapView.swift in Sources */,
 				0698F1EC3408FAF7B8206394 /* JourneyProgress.swift in Sources */,
+				3262DBD5A5C87F081FC26D66 /* LogbookGlyph.swift in Sources */,
 				387E4C9D3C2773B32778E1D6 /* LogbookProgress.swift in Sources */,
 				57522F4EA1FAEE0C484E7F26 /* LogbookView.swift in Sources */,
 				228B857F37213D6A8F22B458 /* LoreView.swift in Sources */,
@@ -784,12 +788,12 @@
 				0405605E5D39FE9723F9C203 /* FloatPopup.swift in Sources */,
 				B8770DBFAFA9F3A4584BA7B0 /* HazardCollision.swift in Sources */,
 				DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */,
+				C07CFC91216D19167DEDF60B /* PlayCamera.swift in Sources */,
 				DC4BAFF0320792C69EEE8ECF /* ShipHitbox.swift in Sources */,
 				E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */,
 				F06122FCF81DEBA9DFDF67CC /* TrailRingBuffer.swift in Sources */,
 				88E18631C63742802E1DF8C7 /* WallJelly.swift in Sources */,
 				1DA440AFA3BE0ED2B88D320C /* WorldState.swift in Sources */,
-				C4E8B1A27D9F4C6A8B3E1D50 /* PlayCamera.swift in Sources */,
 				091BE23C010931EE6C4F761E /* SpaceSwooshApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

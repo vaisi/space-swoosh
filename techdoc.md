@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Seal narrower paired vortex; Orbit uses Spine bar hull. -->
+<!-- Changes: Space Log wormhole under Boosts; playfield-scale specimen wells. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -283,13 +283,14 @@ game build env. Journey progress and Open Space personal best stay in
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress v2: unlocked level, stars, best points, `loreSeen`, `arcUnlockSeen`, `epilogueReplyDone` / `epilogueOrdinal`. Completing old Day 40 migrates `unlocked` to 41. Playtest **`UNLOCK_ALL_LEVELS`** (true) + web `?unlocklevels=1\|0`. Web epilogue skip: **`?level=42&nearend=1`**. Flip the constant **false** before store. |
 | `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance per flight style (`bestByStyle`; v1 `bestScore` migrates to zigzag). |
-| `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts, lore + level voice lines, From the Void stub. |
+| `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts (incl. wormhole gate), lore + level voice lines, From the Void stub. |
 | `config/HazardLabConfig.js` | Sandbox descriptor for Phase + Sweep Gate (no Journey progress). |
 | `modes/HazardLabProfile.js` | Finite lab run profile (`PLAY_MODE.hazardLab`). |
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
-| `ui/screens/LogbookScreen.js` | Space Log: Obstacles/Boosts list only observed/known cards; Journey rows text-only. |
+| `ui/screens/LogbookScreen.js` | Space Log: Obstacles/Boosts list only observed/known cards; Journey rows text-only. Picture wells are playfield specimens (`LogbookGlyphs.js`). |
+| `ui/screens/LogbookGlyphs.js` | In-game silhouettes at corridor scale (finish gate spans the well; sparkle/wormhole/asteroid keep relative size). |
 | `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: **5 columns**, `tileH = tileW × 1.15`; chapter bands of level tiles; lives chip when `LIVES_ENABLED`. |
@@ -1244,7 +1245,7 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   (`modes/RunProfile.js`) with the distance that unlocks it, and give it a
   `STEPS` entry in `config/JourneyConfig.js` if it should appear in Journey.
   For sandbox-only testing first, expose it via `HazardLabConfig` /
-  `HazardLabProfile` (and Logbook class→id + `drawEntryIcon`) without STEPS.
+  `HazardLabProfile` (and Logbook class→id + `LogbookGlyphs` specimen) without STEPS.
 - **New Journey chapter:** append steps to `STEPS` and a matching entry to
   `CHAPTERS` covering them. Both tables are plain data; levels, goals, star
   targets and the map all derive from them.
@@ -1260,7 +1261,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` with a centered same-size LAB tile. Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` with a centered same-size LAB tile. `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
 | `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity. `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |

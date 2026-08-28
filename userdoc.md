@@ -1,4 +1,4 @@
-<!-- Changes: Seal narrower paired vortex; Orbit uses Spine bar hull. -->
+<!-- Changes: Space Log wormhole under Boosts; playfield-scale specimen wells. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -250,13 +250,15 @@ Categories:
 
 | Tab | What it holds |
 | --- | --- |
-| Obstacles | Asteroids, barriers, square blooms, sweeps, repulsors, drift currents, wormholes, black holes, Space BOOP, … |
-| Boosts | Shield, wall boost, fuel sparkles, style swoosh, finish gate, … |
+| Obstacles | Asteroids, barriers, square blooms, sweeps, repulsors, drift currents, black holes, Space BOOP, … |
+| Boosts | Shield, wormhole gate, wall boost, fuel sparkles, style swoosh, finish gate, … |
 | Journey | Day 1 onward navigator transmissions (plus The Call). After the last relay you may write one thing into the dark — once. |
 | From the Void | Reserved for future transmissions — empty for now |
 
-Entries are tall cards: the real obstacle silhouette on the left, name and notes
-on the right. Scroll the list. Obstacles and Boosts only list things you have
+Entries are tall cards: a miniature of how the thing looks in flight on the left
+(the finish gate stretches across that picture; a fuel sparkle stays smaller than
+a rock), name and notes on the right. Scroll the list. Obstacles and Boosts only
+list things you have
 already seen or touched — there are no empty Unknown contact placeholders.
 Journey days still appear as a chapter list. Round, triangular, and square
 simple asteroids each get their own entry.

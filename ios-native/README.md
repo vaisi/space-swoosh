@@ -53,7 +53,8 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
   The ink label sits at hull height on the **open** side (left wall → right of
   ship). Open Space does **not** show “Breaking the atmosphere!” / “Breaking
   atmosphere…” HUD lines. Space Log Obstacles/Boosts list only observed/known
-  cards — rebuild this Xcode target (`ios-native/`), not `npm run build:native`.
+  cards with playfield-scale wells (`LogbookGlyph`; wormhole is a Boost). Rebuild
+  this Xcode target (`ios-native/`), not `npm run build:native`.
 - Zigzag path flips instantly; hull lean eases (`bankSmoothing` 0.34). Stretch follows `|tangent|`
 
 Voice and SFX clips live in `ios-native/SpaceSwoosh/Voice/` (`level-N.mp3`, `epilogue-open.mp3`, `epilogue-skip.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `background.mp3`, `crash.mp3`, `crash_with_shield.mp3`, `shield.mp3`, `turn.mp3`). Gameplay file cues (including **level-N**, first-boop, and swoosh-voice) decode once into engine buffers. If a clip is missing, turn/crash/shield fall back to synth. Boop / collect / portal / swoosh stay synthesized on both platforms. Epilogue open/skip still use `AVAudioPlayer`. The packer matches those names case-insensitively so a Windows `Level-4.mp3` cannot drop out of the IPA.

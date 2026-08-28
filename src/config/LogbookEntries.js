@@ -1,6 +1,7 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Wormhole Gate lives under Boosts (hop + shield gift), not Obstacles.
 // - Shortened obstacle and boost definitions so Space Log cards fit ~3 lines.
 // - Removed Space Travel Boost from the catalog (flyout gameplay is unchanged).
 // - Dropped em dashes from Space Log player-facing copy.
@@ -198,16 +199,6 @@ const OBSTACLE_ENTRIES = [
         icon: 'driftCurrent',
     },
     {
-        id: 'wormhole',
-        category: 'obstacles',
-        name: 'Wormhole Gate',
-        definition:
-            'Paired rings. Cross the entry to jump to the exit and gain a brief shield.',
-        remark: 'You arrive elsewhere. The rocks do not apologize.',
-        unlockMode: 'observeThenInteract',
-        icon: 'wormhole',
-    },
-    {
         id: 'blackhole',
         category: 'obstacles',
         name: 'Black Hole',
@@ -240,6 +231,16 @@ const BOOST_ENTRIES = [
         remark: 'Temporary immortality. Do not file under permanent.',
         unlockMode: 'observeThenInteract',
         icon: 'shield',
+    },
+    {
+        id: 'wormhole',
+        category: 'boosts',
+        name: 'Wormhole Gate',
+        definition:
+            'Paired rings. Cross the entry to jump to the exit and gain a brief shield.',
+        remark: 'You arrive elsewhere. The rocks do not apologize.',
+        unlockMode: 'observeThenInteract',
+        icon: 'wormhole',
     },
     {
         id: 'wallBoost',

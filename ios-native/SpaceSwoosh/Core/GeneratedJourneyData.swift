@@ -1125,14 +1125,6 @@ enum GeneratedJourneyData {
             unlockMode: "observeThenInteract"
         ),
         LogbookEntrySpec(
-            id: "wormhole",
-            category: "obstacles",
-            name: "Wormhole Gate",
-            definition: "Paired rings. Cross the entry to jump to the exit and gain a brief shield.",
-            remark: "You arrive elsewhere. The rocks do not apologize.",
-            unlockMode: "observeThenInteract"
-        ),
-        LogbookEntrySpec(
             id: "blackhole",
             category: "obstacles",
             name: "Black Hole",
@@ -1154,6 +1146,14 @@ enum GeneratedJourneyData {
             name: "Deflector Shield",
             definition: "A Signal-Blue envelope for a few seconds. Hits smash rocks instead of the ship.",
             remark: "Temporary immortality. Do not file under permanent.",
+            unlockMode: "observeThenInteract"
+        ),
+        LogbookEntrySpec(
+            id: "wormhole",
+            category: "boosts",
+            name: "Wormhole Gate",
+            definition: "Paired rings. Cross the entry to jump to the exit and gain a brief shield.",
+            remark: "You arrive elsewhere. The rocks do not apologize.",
             unlockMode: "observeThenInteract"
         ),
         LogbookEntrySpec(

@@ -1,28 +1,24 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - Picture well is a playfield specimen (LogbookGlyphs): finish gate spans the
+//   well, relative sizes match in-game (sparkle smaller than a rock, etc.).
 // - Obstacles / Boosts list only observed or known entries (no UNKNOWN CONTACT
 //   placeholders, no blank scroll gap). Empty category copy when none logged.
-// - Icons for phase (square bloom), sweepGate (slim line), repulsor, driftCurrent.
-// - Finish Gate icon: blue jet + emitter stubs (matches in-run gate).
 // - Screen title SPACE LOG (was LOGBOOK).
 // - Journey tab (category `levels`): text-only rows — no left thumbnail, no
 //   KNOWN/OBSERVED tag; titles are Day N from catalog.
-// - Icon for wallBoost: single thin Signal-Blue edge bar.
 // - Night paper: black-hole icon gradient uses inkRgb (bone) instead of near-black.
 // - No longer draws the gray inset screen frame (removed app-wide).
-// - Scrollable taller cards again (not a one-card pager). Real in-game obstacle
-//   silhouettes (circle / triangle / square / pentagon / star / cluster…).
 // - Created file: observe/known states, empty Spock copy, From the Void stub.
 
 import { color, font } from '../../brand/tokens.js';
 import {
     drawFramedTile,
-    drawSparkle,
     setLabelType,
-    setMonoType,
     resetType,
 } from '../../utils/BrandDraw.js';
+import { drawLogbookSpecimen } from './LogbookGlyphs.js';
 import { screenLayout, fitPx, wrapLines } from '../ScreenKit.js';
 import {
     LOGBOOK_CATEGORIES,
@@ -115,7 +111,7 @@ export function renderLogbook(game) {
 
     const listTop = viewTop;
     const listH = viewBottom - listTop;
-    const rowH = Math.max(unit * 11, L.isMobile ? 118 : 130);
+    const rowH = Math.max(unit * 13, L.isMobile ? 136 : 152);
     const gap = unit * 1.1;
     const contentHeight = entries.length * (rowH + gap) - gap;
     const scroll = game.logbookScroll || 0;
@@ -164,34 +160,29 @@ export function renderLogbook(game) {
             const picX = L.left;
             const textX = L.left + picW + colGap;
 
-            const wellPad = unit * 1.1;
+            const wellPad = unit * 0.9;
+            const wellX = picX + wellPad;
+            const wellY = y + wellPad;
+            const wellW = picW - wellPad * 2;
+            const wellH = rowH - wellPad * 2;
             ctx.save();
             ctx.fillStyle = color.paper;
-            ctx.fillRect(picX + wellPad, y + wellPad, picW - wellPad * 2, rowH - wellPad * 2);
+            ctx.fillRect(wellX, wellY, wellW, wellH);
             ctx.strokeStyle = color.ink12;
             ctx.lineWidth = 1.5;
-            ctx.strokeRect(
-                picX + wellPad + 0.75,
-                y + wellPad + 0.75,
-                picW - wellPad * 2 - 1.5,
-                rowH - wellPad * 2 - 1.5
-            );
+            ctx.strokeRect(wellX + 0.75, wellY + 0.75, wellW - 1.5, wellH - 1.5);
             ctx.restore();
-
-            const iconSize = Math.min(picW - wellPad * 2, rowH - wellPad * 2) * 0.42;
-            const iconCx = picX + picW / 2;
-            const iconCy = y + rowH / 2;
 
             if (state === 'locked') {
                 ctx.save();
                 ctx.strokeStyle = color.ink12;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(iconCx, iconCy, iconSize * 0.55, 0, Math.PI * 2);
+                ctx.arc(wellX + wellW / 2, wellY + wellH / 2, Math.min(wellW, wellH) * 0.18, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.restore();
             } else {
-                drawEntryIcon(ctx, entry.icon, iconCx, iconCy, iconSize, false);
+                drawLogbookSpecimen(ctx, entry.icon, wellX, wellY, wellW, wellH, false);
             }
 
             textLeft = textX + textPad * 0.2;
@@ -276,265 +267,6 @@ function drawEmptyState(ctx, L, unit, viewTop, viewBottom, copy) {
     wrapLines(ctx, copy, L.width * 0.88, 5).forEach((line, i, lines) => {
         ctx.fillText(line, L.centerX, midY + (i - (lines.length - 1) / 2) * unit * 1.85);
     });
-    ctx.restore();
-}
-
-/**
- * Draw the real in-game silhouette for a catalog icon id.
- * Matches ObstacleManager shapes (circle / triangle / square / pentagon / star…).
- */
-export function drawEntryIcon(ctx, icon, cx, cy, size, dimmed) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    const ink = dimmed ? color.ink30 : color.ink;
-    const signal = dimmed ? `rgba(${color.signalRgb}, 0.35)` : color.signal;
-    ctx.fillStyle = ink;
-    ctx.strokeStyle = ink;
-    ctx.lineWidth = Math.max(2, size * 0.08);
-    ctx.lineJoin = 'miter';
-
-    switch (icon) {
-        case 'asteroidCircle':
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.45, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-        case 'asteroidTriangle':
-            ctx.beginPath();
-            ctx.moveTo(0, -size * 0.48);
-            ctx.lineTo(size * 0.48 * Math.cos(Math.PI / 6), size * 0.48 * Math.sin(Math.PI / 6));
-            ctx.lineTo(-size * 0.48 * Math.cos(Math.PI / 6), size * 0.48 * Math.sin(Math.PI / 6));
-            ctx.closePath();
-            ctx.fill();
-            break;
-        case 'asteroidSquare': {
-            const half = size * 0.45 * 0.7;
-            ctx.beginPath();
-            ctx.rect(-half, -half, half * 2, half * 2);
-            ctx.fill();
-            break;
-        }
-        case 'sideBarrier':
-            ctx.fillRect(-size * 0.48, -size * 0.42, size * 0.2, size * 0.84);
-            ctx.fillRect(size * 0.28, -size * 0.42, size * 0.2, size * 0.84);
-            break;
-        case 'complex':
-            // Core disc + orbiting moons (matches ComplexAsteroid render).
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
-            ctx.fill();
-            for (let i = 0; i < 3; i++) {
-                const a = (Math.PI * 2 * i) / 3;
-                ctx.beginPath();
-                ctx.arc(Math.cos(a) * size * 0.42, Math.sin(a) * size * 0.42, size * 0.1, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            break;
-        case 'moving':
-            // Pentagon (MovingAsteroid).
-            ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const a = (i * 2 * Math.PI) / 5 - Math.PI / 2;
-                const x = size * 0.45 * Math.cos(a);
-                const y = size * 0.45 * Math.sin(a);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            break;
-        case 'shooting':
-            // 8-point star (ShootingAsteroid).
-            ctx.beginPath();
-            for (let i = 0; i < 8; i++) {
-                const r = i % 2 === 0 ? size * 0.48 : size * 0.24;
-                const a = (i * Math.PI) / 4;
-                const x = Math.cos(a) * r;
-                const y = Math.sin(a) * r;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            break;
-        case 'pulsating':
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.48, 0, Math.PI * 2);
-            ctx.strokeStyle = color.ink30;
-            ctx.stroke();
-            break;
-        case 'phase': {
-            // One square → four outer squares (PhaseAsteroid bloom).
-            const h = size * 0.12;
-            ctx.fillRect(-h, -h, h * 2, h * 2);
-            const arm = size * 0.3;
-            for (let i = 0; i < 4; i++) {
-                const a = (i / 4) * Math.PI * 2 - Math.PI / 2;
-                ctx.fillRect(
-                    Math.cos(a) * arm - h * 0.7,
-                    Math.sin(a) * arm - h * 0.7,
-                    h * 1.4,
-                    h * 1.4
-                );
-            }
-            break;
-        }
-        case 'sweepGate': {
-            // Slim rotating line (SweepGate) — no hub.
-            ctx.fillRect(-size * 0.48, -size * 0.04, size * 0.96, size * 0.08);
-            break;
-        }
-        case 'repulsor': {
-            // Core + outward ticks (RepulsorObstacle).
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = color.ink30;
-            ctx.lineWidth = Math.max(1.5, size * 0.06);
-            for (let i = 0; i < 6; i++) {
-                const a = (i / 6) * Math.PI * 2;
-                ctx.beginPath();
-                ctx.moveTo(Math.cos(a) * size * 0.32, Math.sin(a) * size * 0.32);
-                ctx.lineTo(Math.cos(a) * size * 0.48, Math.sin(a) * size * 0.48);
-                ctx.stroke();
-            }
-            break;
-        }
-        case 'driftCurrent': {
-            // Full-width flowing shear lines only.
-            ctx.strokeStyle = color.ink30;
-            ctx.lineWidth = Math.max(1.1, size * 0.05);
-            ctx.setLineDash([size * 0.12, size * 0.1]);
-            for (let i = 0; i < 4; i++) {
-                const yy = -size * 0.28 + i * size * 0.18;
-                ctx.beginPath();
-                ctx.moveTo(-size * 0.48, yy);
-                ctx.lineTo(size * 0.48, yy);
-                ctx.stroke();
-            }
-            ctx.setLineDash([]);
-            break;
-        }
-        case 'wormhole':
-            ctx.strokeStyle = signal;
-            ctx.setLineDash([size * 0.14, size * 0.1]);
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.42, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            break;
-        case 'blackhole': {
-            const g = ctx.createRadialGradient(0, 0, size * 0.05, 0, 0, size * 0.5);
-            g.addColorStop(0, ink);
-            g.addColorStop(0.55, `rgba(${color.inkRgb}, 0.55)`);
-            g.addColorStop(1, `rgba(${color.inkRgb}, 0)`);
-            ctx.fillStyle = g;
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = ink;
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-        }
-        case 'spaceBoop':
-            setLabelType(ctx, size * 0.32, 700);
-            ctx.fillStyle = ink;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('BOOP', 0, 0);
-            resetType(ctx);
-            break;
-        case 'shield':
-            ctx.strokeStyle = signal;
-            ctx.lineWidth = Math.max(2.5, size * 0.1);
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.42, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.strokeStyle = ink;
-            ctx.lineWidth = Math.max(2, size * 0.1);
-            ctx.beginPath();
-            ctx.moveTo(-size * 0.2, 0);
-            ctx.lineTo(size * 0.2, 0);
-            ctx.moveTo(0, -size * 0.2);
-            ctx.lineTo(0, size * 0.2);
-            ctx.stroke();
-            break;
-        case 'wallBoost':
-            // Single thin blue edge bar (random L/R in-run; icon hugs left).
-            ctx.fillStyle = signal;
-            ctx.fillRect(-size * 0.48, -size * 0.42, size * 0.16, size * 0.84);
-            break;
-        case 'pointsSparkle':
-            drawSparkle(ctx, 0, 0, size * 0.48, { fill: signal });
-            break;
-        case 'styleSwoosh':
-            ctx.strokeStyle = signal;
-            ctx.lineWidth = Math.max(2.5, size * 0.1);
-            ctx.beginPath();
-            ctx.moveTo(-size * 0.42, size * 0.15);
-            ctx.quadraticCurveTo(0, -size * 0.42, size * 0.42, size * 0.1);
-            ctx.stroke();
-            break;
-        case 'deflectorSmash':
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = signal;
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.45, 0, Math.PI * 2);
-            ctx.stroke();
-            break;
-        case 'finishGate': {
-            // Blue jet + minimal left/right emitter stubs (matches in-run gate).
-            ctx.strokeStyle = `rgba(${color.signalRgb}, 0.35)`;
-            ctx.lineWidth = Math.max(4, size * 0.16);
-            ctx.beginPath();
-            ctx.moveTo(-size * 0.28, 0);
-            ctx.lineTo(size * 0.28, 0);
-            ctx.stroke();
-            ctx.strokeStyle = signal;
-            ctx.lineWidth = Math.max(2, size * 0.08);
-            ctx.beginPath();
-            ctx.moveTo(-size * 0.28, 0);
-            ctx.lineTo(size * 0.28, 0);
-            ctx.stroke();
-            const hW = size * 0.16;
-            const hH = size * 0.2;
-            ctx.fillStyle = ink;
-            ctx.fillRect(-size * 0.48, -hH / 2, hW, hH);
-            ctx.fillRect(size * 0.48 - hW, -hH / 2, hW, hH);
-            ctx.fillStyle = signal;
-            ctx.fillRect(-size * 0.32, -hH * 0.35, size * 0.08, hH * 0.7);
-            ctx.fillRect(size * 0.24, -hH * 0.35, size * 0.08, hH * 0.7);
-            break;
-        }
-        case 'spaceTravelBoost':
-            ctx.beginPath();
-            ctx.moveTo(0, -size * 0.42);
-            ctx.lineTo(size * 0.3, size * 0.36);
-            ctx.lineTo(0, size * 0.14);
-            ctx.lineTo(-size * 0.3, size * 0.36);
-            ctx.closePath();
-            ctx.fill();
-            break;
-        case 'level':
-            setMonoType(ctx, size * 0.5, 700);
-            ctx.fillStyle = ink;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('#', 0, 0);
-            resetType(ctx);
-            break;
-        default:
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.35, 0, Math.PI * 2);
-            ctx.stroke();
-    }
     ctx.restore();
 }
 
