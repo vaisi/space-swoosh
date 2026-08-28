@@ -1,5 +1,6 @@
 -- supabase/rls.sql
 -- Changes:
+-- - INSERT with-check now allows nullable platform in ('ios','android','web').
 -- - INSERT with-check now requires flight_style in ('arc', 'zigzag') to match
 --   migrations/20260809160000_high_scores_add_flight_style.sql.
 -- - Documented as a re-runnable policy patch; the canonical schema lives in
@@ -39,6 +40,10 @@ create policy "high_scores_insert_public"
         char_length(ship_id) between 2 and 32
         and ship_id ~ '^[a-z][a-zA-Z0-9_]*$'
       )
+    )
+    and (
+      platform is null
+      or platform in ('ios', 'android', 'web')
     )
   );
 

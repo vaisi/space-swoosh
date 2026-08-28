@@ -14,6 +14,7 @@
 // - First-time Arc unlock card after Follow @spacewoosh.
 // - One reply per device: replay skips the prompt and does not submit again.
 // - Submit also records the equipped ship (game.shipSkinId) next to the reply.
+// - Firebase: journey_epilogue_send / journey_epilogue_skip with ship_id.
 
 import {
     ENDING_EPILOGUE,
@@ -30,6 +31,7 @@ import {
     validateReply,
 } from '../services/ReplyFilter.js';
 import { ReplyService, ReplyRejectedError } from '../services/ReplyService.js';
+import { track } from '../services/Analytics.js';
 import {
     setDisplayType,
     setLabelType,
@@ -290,6 +292,10 @@ export class JourneyEpilogueSequence {
                 text: this.replyText,
                 skipped,
                 shipId: this.game.shipSkinId,
+            });
+            const shipId = this.game.shipSkinId;
+            track(skipped ? 'journey_epilogue_skip' : 'journey_epilogue_send', {
+                ship_id: shipId,
             });
         } catch (err) {
             if (err instanceof ReplyRejectedError) {

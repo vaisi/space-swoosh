@@ -1,5 +1,6 @@
 // ScoreService.swift
-// Changes: ReplyService submit_journey_reply now also sends p_ship_id.
+// Changes: ReplyService submit_journey_reply sends p_ship_id + p_platform.
+// High-score inserts write platform=ios.
 
 import Foundation
 
@@ -113,6 +114,7 @@ enum ScoreService {
             "player_name": check.name,
             "obstacles_destroyed": max(0, destroyed),
             "flight_style": sanitize(style),
+            "platform": "ios",
         ]
         if SkinId(rawValue: shipId.rawValue) != nil {
             body["ship_id"] = shipId.rawValue
@@ -174,7 +176,7 @@ enum ScoreService {
 enum ReplyService {
     static func submit(text: String, skipped: Bool, shipId: SkinId? = nil) async -> Int? {
         guard ScoreService.isAvailable else { return nil }
-        var body: [String: Any] = ["p_skipped": skipped]
+        var body: [String: Any] = ["p_skipped": skipped, "p_platform": "ios"]
         body["p_body"] = skipped ? NSNull() : text
         if let shipId {
             body["p_ship_id"] = shipId.rawValue

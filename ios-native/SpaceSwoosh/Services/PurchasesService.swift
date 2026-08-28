@@ -1,5 +1,6 @@
 // PurchasesService.swift
 // Changes: RevenueCat wrapper for cosmetic ship IAPs (Android Purchases.js, skins only).
+// Successful buys log GA4 `purchase` (value + currency) for Firebase revenue.
 
 import Foundation
 import RevenueCat
@@ -59,6 +60,7 @@ enum PurchasesService {
             if result.userCancelled {
                 return PurchaseOutcome(ok: false, cancelled: true)
             }
+            logPurchaseRevenue(productId: productId, package: package)
             return PurchaseOutcome(
                 ok: true,
                 entitlementIds: Array(result.customerInfo.entitlements.active.keys)
@@ -125,5 +127,32 @@ enum PurchasesService {
         let ns = error as NSError
         return ns.domain == ErrorCode.errorDomain
             && ns.code == ErrorCode.purchaseCancelledError.rawValue
+    }
+
+    private static func logPurchaseRevenue(productId: String, package: Package) {
+        let product = package.storeProduct
+        let catalog = catalog(from: productId)
+        let amount = NSDecimalNumber(decimal: product.price).doubleValue
+        AnalyticsService.trackPurchase(
+            value: amount.isFinite ? amount : 0,
+            currency: product.currencyCode ?? "USD",
+            itemId: product.productIdentifier,
+            itemName: catalog.itemName,
+            itemCategory: catalog.itemCategory
+        )
+    }
+
+    private static func catalog(from productId: String) -> (itemName: String, itemCategory: String) {
+        if productId.hasSuffix(".pro.weekly") {
+            return ("pro_weekly", "pro")
+        }
+        if productId.hasSuffix(".pro.yearly") {
+            return ("pro_yearly", "pro")
+        }
+        let prefix = "com.orbi.spaceswoosh.skin."
+        if productId.hasPrefix(prefix) {
+            return (String(productId.dropFirst(prefix.count)), "skin")
+        }
+        return (productId, "other")
     }
 }

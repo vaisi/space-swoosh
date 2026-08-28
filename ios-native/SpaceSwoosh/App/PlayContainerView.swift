@@ -1,5 +1,6 @@
 // PlayContainerView.swift
-// Changes: Level outcome card matches Android — centered block, starred tally
+// Changes: L42 epilogue send/skip logs journey_epilogue_send / _skip.
+// Level outcome card matches Android — centered block, starred tally
 // with dotted rules, lead action full-width, Level Select + Menu paired.
 
 import SwiftUI
@@ -891,6 +892,11 @@ struct JourneyEpilogueView: View {
             text: reply,
             skipped: skipped,
             shipId: SettingsStore.shared.shipSkinId
+        )
+        let shipId = SettingsStore.shared.shipSkinId.rawValue
+        AnalyticsService.track(
+            skipped ? "journey_epilogue_skip" : "journey_epilogue_send",
+            ["ship_id": shipId]
         )
         ordinal = result
         JourneyStore.shared.markEpilogueReply(ordinal: result)

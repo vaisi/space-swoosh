@@ -1,6 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Space Log wormhole under Boosts; playfield-scale specimen wells. -->
+<!-- Changes: Web Firebase Analytics; GA4 purchase revenue; platform on
+     high_scores / journey_replies; richer event params + epilogue events. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -145,15 +146,17 @@ There are **two play modes**, chosen from Play:
 | Mode | Shape | Leaderboard |
 | --- | --- | --- |
 | **Open Space** | Endless. Difficulty ramps off distance, forever. | Yes (Supabase) |
-| **Journey** | 42 finite levels, each with a distance goal and three stars. After L42, a written epilogue. | No — progress is local; replies go to `journey_replies` (`body`, `skipped`, `ship_id`) |
+| **Journey** | 42 finite levels, each with a distance goal and three stars. After L42, a written epilogue. | No — progress is local; replies go to `journey_replies` (`body`, `skipped`, `ship_id`, `platform`) |
 
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
   Capacitor 8 for **Android** (and legacy Cap iOS reference tree), **native
   SpriteKit/SwiftUI** for shipping iOS under `ios-native/`, Supabase for the
-  online leaderboard, Google Analytics (`gtag`) on web, Firebase Analytics on
-  Capacitor Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`)
+  online leaderboard, Firebase Analytics on web (`firebase/analytics` + Vite
+  `VITE_FIREBASE_*`; gtag fallback if the Web app id is missing), Capacitor
+  Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`)
   and native iOS (`ios-native/` `FirebaseAnalyticsCore` + gitignored
-  `GoogleService-Info.plist`).
+  `GoogleService-Info.plist`). Same Firebase project `spaceswoosh-faa9c`.
+  Every custom event carries `platform` (`ios`|`android`|`web`).
 - **Entry:** `index.html` → `src/main.js` → time-capped `ensureBrandFonts()`
   (1.5s, never `document.fonts.ready`) → `new Game(GameConfig)` → **main menu**.
   `initEntitlements()` (RevenueCat) runs in the background after `start()` so a
@@ -211,6 +214,9 @@ the game is built — Vite inlines any `VITE_*` var into the bundle / native she
 | --- | --- | --- |
 | `VITE_SUPABASE_URL` | Project URL (Settings → API / Connect) | Identifies the project |
 | `VITE_SUPABASE_ANON_KEY` | **anon** (Legacy API Keys) or **publishable** (`sb_publishable_…`) | Low — subject to RLS |
+| `VITE_FIREBASE_API_KEY` | Firebase project settings → Web app (optional; Android key is the fallback) | Public client key |
+| `VITE_FIREBASE_APP_ID` | Firebase Web app id (`1:…:web:…`) | Public; required for web events in the same console as iOS/Android |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Web GA4 stream (`G-…`) | Public; defaults to `G-SMEY63Z40C` |
 
 **Never** put `service_role` or a secret key (`sb_secret_…`) in `.env` as a
 `VITE_*` var, in source, or in GitHub/Codemagic game-build env groups. Those
@@ -231,11 +237,11 @@ RLS behavior stays the same.
 | Piece | Role |
 | --- | --- |
 | Project | vaisi's Project — ref `ptzaxgslzjefaxdkrvyr` |
-| Table | `public.high_scores` (`player_name`, `ship_id`, `score` = KM, `obstacles_destroyed`, `flight_style` = `arc`\|`zigzag`, `created_at`) |
+| Table | `public.high_scores` (`player_name`, `ship_id`, `score` = KM, `obstacles_destroyed`, `flight_style` = `arc`\|`zigzag`, `platform` = `ios`\|`android`\|`web`, `created_at`) |
 | Client | `src/config/supabase.js` + `src/services/ScoreService.js`; native iOS `SpaceSwoosh/Services/ScoreService.swift` (PostgREST, same table / RLS) |
 | Access | Anonymous call signs (no Supabase Auth). `NameFilter` validates before insert. |
-| RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated`. INSERT requires `flight_style in ('arc','zigzag')`. |
-| Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql` |
+| RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated`. INSERT requires `flight_style in ('arc','zigzag')` and `platform` null or `ios`/`android`/`web`. |
+| Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql`, `…_add_platform_to_scores_and_replies.sql` |
 | Boards | Separate Arc and Zigzag leaderboards. Column default `'zigzag'` keeps all legacy rows on Zigzag. Rank / top-10 / submit filter by the run's `game.flightStyle`. |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
 | Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style |
@@ -246,10 +252,11 @@ RLS behavior stays the same.
 
 | Piece | Role |
 | --- | --- |
-| Table | `public.journey_replies` (`body`, `skipped`, `ship_id`, `created_at`) |
-| Access | No public SELECT. Anon inserts only through `submit_journey_reply` (`p_body`, `p_skipped`, `p_ship_id`). |
+| Table | `public.journey_replies` (`body`, `skipped`, `ship_id`, `platform`, `created_at`) |
+| Access | No public SELECT. Anon inserts only through `submit_journey_reply` (`p_body`, `p_skipped`, `p_ship_id`, `p_platform`). |
 | `ship_id` | Roster skin flown on the L42 ending (same id format as `high_scores`). Null on legacy rows and on invalid ids. |
-| Migrations | `…_create_journey_replies.sql`, `…_journey_replies_add_ship_id.sql` |
+| `platform` | `ios` / `android` / `web`. Null on legacy rows and on invalid values. Not shown in-game. |
+| Migrations | `…_create_journey_replies.sql`, `…_journey_replies_add_ship_id.sql`, `…_add_platform_to_scores_and_replies.sql` |
 
 GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
@@ -263,7 +270,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. |
 | `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, status bar; wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight`. |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. |
-| `services/Analytics.js` | Platform analytics: gtag on web; Firebase Analytics on Capacitor Android (`logEvent`). Params sanitized to string/number (booleans → 0/1). Config: `android/app/google-services.json` (gitignored). Native iOS uses `ios-native/.../Analytics.swift` (same event names). Android: AD ID collection off + `AD_ID` permission stripped. Run ends + `equip_ship` carry `ship_id`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. |
+| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). Android **`UNLOCK_ALL_SKINS` is still true for playtest**. Native iOS `SkinCatalog.UNLOCK_ALL_SKINS` is **false** so hangar purchases hit RevenueCat. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
@@ -276,7 +283,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
 | `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. |
 | `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spacewoosh, first-time Arc card. Replay skips the prompt (one reply per device). Sky lights and the player star use Signal Blue with tight halos (same accent as fuel sparkles). |
-| `services/ReplyService.js` | RPC `submit_journey_reply(p_body, p_skipped, p_ship_id)` → ordinal. Roster `ship_id` is stored next to the message. Called once per device; replay does not insert again. Offline falls back to a local card. |
+| `services/ReplyService.js` | RPC `submit_journey_reply(p_body, p_skipped, p_ship_id, p_platform)` → ordinal. Roster `ship_id` and client `platform` stored next to the message. Called once per device; replay does not insert again. Offline falls back to a local card. |
 | `services/ReplyFilter.js` | 140-char UGC filter for epilogue text (same blocklist as call signs). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
@@ -1119,7 +1126,12 @@ one style → `Personal best: X KM`; both → `Zigzag: A KM · Arc: B KM` (zeros
 leaderboard; both are included in the `game_over` GA event (`fail_reason`:
 `crash` | `fuel`). Run-end events also send `ship_id` (roster skin id). In
 Firebase Explorations, break down `game_over` + `journey_level_end` by
-`ship_id` (event count or users) for most-played ship.
+`ship_id` (event count or users) for most-played ship, by `flight_style` for
+Arc vs Zigzag, by `day_name` for where Journey runs end, and by `platform`
+for web vs store apps. Revenue uses the GA4 `purchase` event (`value` +
+`currency`); `purchase_skin` stays a funnel event without dollars. User
+properties `equipped_ship` and `max_journey_level` help answer “favourite
+free ship” and “bought after how many days”.
 
 ### Lives + Pro (economy)
 
@@ -1262,7 +1274,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | Path | Role |
 | --- | --- |
 | `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` with a centered same-size LAB tile. `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
-| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android. Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity. `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). |
+| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |

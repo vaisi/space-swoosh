@@ -1,6 +1,7 @@
 <!--
  ios-native/README.md
- Changes: Drift current uses Android Canvas hairlines (SKShapeNode dashes);
+ Changes: Firebase events include purchase revenue, epilogue send/skip, platform.
+ Drift current uses Android Canvas hairlines (SKShapeNode dashes);
  41-ship roster (Rook spark-skiff after Merlin); 18 live-draw hulls.
 -->
 
@@ -18,7 +19,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Journey map: **5** columns, `tileH = tileW × 1.15`, centered same-size LAB tile
 - Options hub: Ship ●, Controls ↔, Sound ♪, Light/Dark Mode ◐, Restore Purchases ↻. Controls = Zigzag/Arc. Sound = Music / Sound FX / Voice (`soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`). Pause Sound stays master mute
 - **SPACE BOARD**: same `high_scores` table as Android (Zigzag/Arc, DISTANCE/OBSTACLES, 10×10 pages). Submit Score + top-10 auto-prompt. Local PBs still back the PLAY card.
-- **Firebase Analytics**: same project as Android (`spaceswoosh-faa9c`). Events: `game_over`, `journey_level_end`, `hazard_lab_end`, `equip_ship`, `purchase_skin`, `set_theme`, `set_sound`, `set_sound_channel`, `submit_highscore`. Plist is gitignored; Codemagic uses `GOOGLE_SERVICE_INFO_PLIST`. No Advertising Identifier (`FirebaseAnalyticsCore`).
+- **Firebase Analytics**: same project as Android (`spaceswoosh-faa9c`). Events: `game_over`, `journey_level_end`, `hazard_lab_end`, `equip_ship`, `purchase_skin`, `purchase` (revenue), `set_theme`, `set_sound`, `set_sound_channel`, `submit_highscore`, `journey_epilogue_send`, `journey_epilogue_skip`. All include `platform=ios`. Plist is gitignored; Codemagic uses `GOOGLE_SERVICE_INFO_PLIST`. No Advertising Identifier (`FirebaseAnalyticsCore`).
 - Type: bundled Space Grotesk + Space Mono (`BrandType`). Framed ink tiles, 0 radius, dotted rules, **← Back**
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
 - Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)

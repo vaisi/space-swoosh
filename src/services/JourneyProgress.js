@@ -1,5 +1,9 @@
 // JourneyProgress.js
 // Journey progress persistence: which level is unlocked, and the stars and best
+// points earned on each. Local-only — the Supabase leaderboard is Open World.
+// Changes:
+// - maxCompletedLevel() for analytics user property max_journey_level.
+// - One epilogue reply per device: `epilogueReplyDone` + optional `epilogueOrdinal`.
 // points banked per level. Local only — the Supabase leaderboard stays purely
 // Open World, so this needs no schema anywhere.
 // Changes:
@@ -263,6 +267,17 @@ export function totalStars(progress) {
 /** The furthest level the player can play, for "Continue". */
 export function nextPlayableLevel(progress) {
     return clampLevel(progress.unlocked);
+}
+
+/** Highest Journey day whose first star (clear) is earned. 0 if none. */
+export function maxCompletedLevel(progress) {
+    let max = 0;
+    for (const [key, entry] of Object.entries(progress?.levels || {})) {
+        if (entry?.stars?.[0]) {
+            max = Math.max(max, Math.floor(Number(key) || 0));
+        }
+    }
+    return max;
 }
 
 export function hasSeenJourneyLore(progress) {

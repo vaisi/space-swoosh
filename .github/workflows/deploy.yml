@@ -1,7 +1,8 @@
 # Deploy to GitHub Pages
 # Changes:
 # - Added workflow_dispatch so a secret-only fix can redeploy without a
-#   pointless code commit (leaderboard needs VITE_SUPABASE_* at build time).
+#   pointless code commit (leaderboard needs VITE_SUPABASE_* at build time;
+#   web Firebase needs VITE_FIREBASE_APP_ID to show as web in Explorations).
 # - Bumped Pages actions past deprecated upload-artifact@v3 so deploys
 #   succeed again (needed for spaceswoosh.app/privacy.html + SSL for Play).
 
@@ -46,6 +47,9 @@ jobs:
           CI: false
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

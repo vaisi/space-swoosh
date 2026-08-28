@@ -114,8 +114,8 @@
 //   hardware back (game/BackNavigation.js). Analytics goes through
 //   services/Analytics.js instead of bare gtag (which threw when blocked).
 // - Analytics: run-end events include ship_id; equip_ship fires when an owned
-//   ship is selected (menu cycle / tile). Use ship_id breakdown for most-played.
-//   Prefs: set_theme (light|dark), set_sound (on|off master mute), 
+//   ship is selected. journey_level_end also sends day_name. Prefs:
+//   set_theme (light|dark), set_sound (on|off master mute),
 //   set_sound_channel (music|sfx|voice + on|off).
 // - Screen-header Back control: slightly wider tile + smaller labelPx so the
 //   word isn't jammed against the left frame on mobile.
@@ -192,7 +192,7 @@ import {
     ScoreService,
 } from '../services/ScoreService.js';
 import { CALL_SIGN_MAX_LEN } from '../services/NameFilter.js';
-import { track } from '../services/Analytics.js';
+import { track, setUserProperty, syncProfileProperties } from '../services/Analytics.js';
 import {
     getSkinPriceLabel,
     isSkinOwned,
@@ -211,7 +211,7 @@ import { drawLivesChip } from '../ui/LivesChip.js';
 import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { color, font } from '../brand/tokens.js';
-import { themeLabel, toggleTheme } from '../brand/theme.js';
+import { themeLabel, toggleTheme, getTheme } from '../brand/theme.js';
 import {
     drawPaper,
     drawFramedButton,
@@ -246,6 +246,7 @@ import {
     isArcUnlocked,
     isLevelUnlocked,
     loadJourneyProgress,
+    maxCompletedLevel,
     nextPlayableLevel,
     playtestNearEndRemainingKm,
     recordLevelResult,
@@ -408,6 +409,11 @@ export class Game {
         this.flightStyle = resolveFlightStyle(this.flightStyle, this.journeyProgress);
         this.journeyLevel = nextPlayableLevel(this.journeyProgress);
         this.openWorldProgress = loadOpenWorldProgress();
+        syncProfileProperties({
+            shipId: this.shipSkinId,
+            maxJourneyLevel: maxCompletedLevel(this.journeyProgress),
+            theme: getTheme(),
+        });
         this.journeyMapScroll = 0;
         this.shipPickerScroll = 0;
         // Ship picker: reveal Play now after the player taps a vessel.
@@ -2416,6 +2422,7 @@ export class Game {
             this.shipSkinId = saveShipSkinId(next.id);
             if (prev !== next.id) {
                 track('equip_ship', { ship_id: next.id });
+                setUserProperty('equipped_ship', next.id);
             }
         }
         this.setPurchaseStatus(null, 0);
@@ -2446,6 +2453,7 @@ export class Game {
             this.shipSkinId = saveShipSkinId(skinId);
             if (prev !== skinId) {
                 track('equip_ship', { ship_id: skinId });
+                setUserProperty('equipped_ship', skinId);
             }
             this.shipPickerOfferPlay = true;
             this.setPurchaseStatus(null, 0);
@@ -2463,6 +2471,7 @@ export class Game {
                 this.setPurchaseStatus('Unlocked.');
                 track('purchase_skin', { skin_id: skinId });
                 track('equip_ship', { ship_id: skinId });
+                setUserProperty('equipped_ship', skinId);
             } else if (result.cancelled) {
                 this.setPurchaseStatus(null, 0);
             } else {
@@ -3228,6 +3237,7 @@ export class Game {
 
         track('journey_level_end', {
             'level': descriptor.level,
+            'day_name': `Day ${descriptor.level}`,
             'chapter': descriptor.chapterId,
             'completed': completed,
             'stars': result.stars.slice(0, descriptor.starSlots ?? 3).filter(Boolean).length,
@@ -3237,6 +3247,12 @@ export class Game {
             'distance': Math.floor(this.score),
             'ship_id': this.shipSkinId,
         });
+        if (completed) {
+            setUserProperty(
+                'max_journey_level',
+                String(maxCompletedLevel(this.journeyProgress)),
+            );
+        }
     }
 
     startJourneyEpilogue() {
@@ -3620,6 +3636,7 @@ export class Game {
                 if (this.isClickInButton(x, y, this.optionsHubButtons.theme)) {
                     const theme = toggleTheme();
                     track('set_theme', { theme });
+                    setUserProperty('theme', theme);
                     syncStatusBarTheme().catch(() => {});
                     return;
                 }

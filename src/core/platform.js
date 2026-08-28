@@ -1,6 +1,7 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
+// - clientPlatform(): 'ios' | 'android' | 'web' for analytics + Supabase rows.
 // - isDesktopWeb() / isNativeApp() / markDocumentShell(): Open World teach copy
 //   and the desktop store rails branch on desktop web vs native/touch.
 // - isAndroidNative(): Capacitor Android only (not Chrome). Camera reseat now
@@ -65,6 +66,18 @@ export function isAndroidNative() {
 /** Packaged iOS / Android shell — not a browser tab. */
 export function isNativeApp() {
     return Capacitor.isNativePlatform();
+}
+
+/**
+ * Store / analytics platform label. Capacitor native is ios|android;
+ * every browser tab (including phone Safari/Chrome) is web.
+ * @returns {'ios' | 'android' | 'web'}
+ */
+export function clientPlatform() {
+    if (!Capacitor.isNativePlatform()) return 'web';
+    const platform = Capacitor.getPlatform();
+    if (platform === 'ios' || platform === 'android') return platform;
+    return 'web';
 }
 
 /**

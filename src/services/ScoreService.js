@@ -1,6 +1,8 @@
 // ScoreService.js
 // Supabase read/write for the online leaderboard, plus score formatting.
 // Changes:
+// - saveScore writes `platform` (ios|android|web) for operator queries; not shown
+//   on the public SPACE BOARD.
 // - saveScore / getTopScores / getAllScoresCount take flightStyle so Arc and
 //   Zigzag land on separate boards (`flight_style` column).
 // - getTopScores default limit is 100 (10 leaderboard pages × 10 rows).
@@ -20,6 +22,7 @@ import { supabase, isLeaderboardConfigured } from '../config/supabase.js'
 import { FLIGHT_STYLE } from '../config/flightStyle.js'
 import { resolveShipSkinId, skins } from '../ships/skins.js'
 import { validateCallSign } from './NameFilter.js'
+import { clientPlatform } from '../core/platform.js'
 
 const TABLE = 'high_scores';
 
@@ -81,6 +84,7 @@ export class ScoreService {
                 player_name: check.name,
                 obstacles_destroyed: Math.max(0, Math.floor(obstaclesDestroyed || 0)),
                 flight_style: style,
+                platform: clientPlatform(),
             };
             if (ship) row.ship_id = ship;
 

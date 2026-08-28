@@ -1,5 +1,6 @@
 // JourneyProgress.swift
-// Changes: v2 migrate — v1 saves are kept. Completing old Day 40 unlocks 41.
+// Changes: maxCompleted() for Firebase user property max_journey_level.
+// v2 migrate — v1 saves are kept. Completing old Day 40 unlocks 41.
 // Arc unlocks only when Day 42 is cleared; `arcUnlockSeen` is the once-only
 // ending card flag (no version bump). One epilogue reply per device
 // (`epilogueReplyDone` + optional `epilogueOrdinal`).
@@ -123,6 +124,14 @@ enum JourneyProgress {
 
     static func isCleared(_ snapshot: JourneySnapshot, level: Int) -> Bool {
         entry(snapshot, level: level).stars.first == true
+    }
+
+    /// Highest cleared Journey day (first star). 0 if none.
+    static func maxCompleted(_ snapshot: JourneySnapshot) -> Int {
+        snapshot.levels.reduce(0) { best, pair in
+            guard pair.value.stars.first == true else { return best }
+            return max(best, pair.key)
+        }
     }
 
     /// Arc is flyable only after Day 42 is actually cleared. Playtest map unlock does not count.

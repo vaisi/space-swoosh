@@ -1,5 +1,6 @@
 // GameSession.swift
 // Changes: Outcome values use grouped digits; lab outcome carries distance / goal.
+// journey_level_end includes day_name; run-end events keep ship_id / distance / flight_style.
 
 import Foundation
 import Combine
@@ -298,6 +299,7 @@ final class GameSession: ObservableObject {
         let starCount = (outcome?.stars ?? []).prefix(slots).filter { $0 }.count
         AnalyticsService.track("journey_level_end", [
             "level": spec?.level ?? run.profile.level,
+            "day_name": "Day \(spec?.level ?? run.profile.level)",
             "chapter": spec?.chapterId ?? "",
             "completed": run.completed ? 1 : 0,
             "stars": starCount,
@@ -307,6 +309,10 @@ final class GameSession: ObservableObject {
             "distance": Int(run.scoreKm),
             "ship_id": shipId,
         ])
+        if run.completed {
+            let maxDay = JourneyProgress.maxCompleted(JourneyStore.shared.snapshot)
+            AnalyticsService.setUserProperty(String(max(maxDay, spec?.level ?? run.profile.level)), forName: "max_journey_level")
+        }
     }
 
     private func failReasonLabel(_ run: RunState) -> String {

@@ -1,16 +1,19 @@
-<!-- Changes: Space Log wormhole under Boosts; playfield-scale specimen wells. -->
+<!-- Changes: Web now uses Firebase Analytics like the apps; platform is stored
+     on scores/replies but not shown on the public board. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
 >
-> **Privacy (Android + iOS store):** Native apps send anonymous gameplay analytics
-> through Firebase (for example which ship you flew). That is **not** the device
-> Advertising ID and is **not** used for ads or tracking. Open Space scores use a
-> public project key with server-side row limits (read + submit only; no player
-> accounts). Call signs you submit are stored on the online board. If you finish
-> the Journey, the words you send (or that you left it unsaid) and the ship you
-> flew are stored privately — not on the public board. Journey progress and Open
-> Space personal bests stay on your device. Full policy:
+> **Privacy (Android + iOS store + web):** Native apps and the browser game send
+> anonymous gameplay analytics through Firebase (for example which ship you flew,
+> which Journey day ended, theme, and — on a purchase — price so revenue can be
+> counted). That is **not** the device Advertising ID and is **not** used for ads
+> or tracking. Open Space scores use a public project key with server-side row
+> limits (read + submit only; no player accounts). Call signs you submit are
+> stored on the online board. If you finish the Journey, the words you send (or
+> that you left it unsaid) and the ship you flew are stored privately — not on
+> the public board. Journey progress and Open Space personal bests stay on your
+> device. Full policy:
 > https://spaceswoosh.app/privacy.html
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh

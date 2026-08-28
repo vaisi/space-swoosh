@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <!--
   privacy.html — Privacy policy for Space Swoosh / spaceswoosh.app.
-  Changes: Hosted at https://spaceswoosh.app/privacy.html (Vite public/).
-  Updated domain from orbi.gg → spaceswoosh.app.
+  Changes: Web uses Firebase Analytics (same project as iOS/Android). Native
+  iOS/Android Firebase Analytics, Journey replies, RevenueCat purchases, and
+  call-sign / ship on the public board.
 -->
 <html lang="en">
 <head>
@@ -42,30 +43,33 @@
   <main>
     <p class="meta">SPACE SWOOSH · SPACESWOOSH.APP</p>
     <h1>Privacy</h1>
-    <p class="meta">Last updated: 2 August 2026</p>
+    <p class="meta">Last updated: 28 August 2026</p>
 
     <p>Space Swoosh (“the game”) is a one-thumb dodge game published at spaceswoosh.app and as native apps for iOS and Android. This page explains what data we collect and why.</p>
 
     <h2>What we collect</h2>
     <ul>
-      <li><strong>Leaderboard call sign and score.</strong> If you choose to submit a high score, we store the name you enter, your distance, and obstacles destroyed. This is optional.</li>
-      <li><strong>Purchase history.</strong> Optional cosmetic ship unlocks are processed by Apple, Google, and RevenueCat. We receive entitlement status so the app can unlock what you bought — not your full payment card details.</li>
-      <li><strong>Local settings.</strong> Ship choice, sound mute, Journey progress, Open Space personal best, and owned skins are stored on your device (localStorage / app preferences).</li>
-      <li><strong>Analytics (web only).</strong> The browser version may use Google Analytics to count visits and basic events (for example game over). The native apps do not load that script.</li>
+      <li><strong>Leaderboard call sign and score (optional).</strong> If you submit an Open Space run, we store the call sign you type, distance, obstacles destroyed, flight style (Zigzag or Arc), and the ship you flew. There is no account. Call signs are public on the Space Board.</li>
+      <li><strong>Journey ending (optional).</strong> If you finish the Journey, the words you send — or that you left it unsaid — and the ship you flew are stored privately. They are not shown on the public board.</li>
+      <li><strong>Gameplay analytics.</strong> The browser game and the native iOS and Android apps send anonymous events (for example run ended, ship equipped, theme or sound changed, a cosmetic ship purchased, Journey day ended, epilogue sent or skipped). Events can include the ship you flew, distance, flight style, theme, and, if you submit a score, the call sign you entered. We do <em>not</em> collect the device Advertising Identifier (IDFA / GAID) and we do not use this data for ads or cross-app tracking.</li>
+      <li><strong>Purchase history.</strong> Cosmetic ship unlocks are billed by Apple or Google. RevenueCat tells the app which ships you own. We do not receive your payment card number.</li>
+      <li><strong>On-device settings.</strong> Ship choice, sound, theme, Journey progress, Open Space personal bests, and cached unlocks stay on your device unless you submit a score or finish the Journey as above.</li>
+      <li><strong>Web analytics.</strong> The browser game at spaceswoosh.app uses Firebase Analytics (same Google project as the apps) for visits and the same kind of gameplay events. The native apps do not load the web script; they use the Firebase SDK built into the app.</li>
     </ul>
 
     <h2>What we do not do</h2>
     <ul>
-      <li>We do not create accounts or require email login to play.</li>
+      <li>We do not create accounts or require email, phone, or a real name to play.</li>
       <li>We do not sell your personal information.</li>
-      <li>We do not use your data for cross-app tracking advertising.</li>
+      <li>We do not use your data for third-party advertising or cross-app tracking.</li>
+      <li>We do not collect precise or coarse location, contacts, photos, health data, or crash-reporting SDKs (no Crashlytics).</li>
     </ul>
 
     <h2>Third parties</h2>
     <ul>
-      <li><a href="https://supabase.com/privacy">Supabase</a> — leaderboard database.</li>
-      <li><a href="https://www.revenuecat.com/privacy">RevenueCat</a> — in-app purchase receipt validation (native apps).</li>
-      <li><a href="https://policies.google.com/privacy">Google Analytics</a> — web analytics only.</li>
+      <li><a href="https://supabase.com/privacy">Supabase</a> — Space Board and private Journey replies.</li>
+      <li><a href="https://firebase.google.com/support/privacy">Firebase Analytics</a> — gameplay events on web, native iOS, and Android (Google). Firebase may assign an app-instance identifier; that is not the Advertising Identifier.</li>
+      <li><a href="https://www.revenuecat.com/privacy">RevenueCat</a> — in-app purchase receipt checks on native apps (anonymous app user id).</li>
       <li>Apple App Store / Google Play — billing when you unlock a cosmetic ship.</li>
     </ul>
 
@@ -75,8 +79,9 @@
     <h2>Your choices</h2>
     <ul>
       <li>Do not submit a score if you prefer not to share a call sign.</li>
+      <li>Skip or leave blank the Journey ending if you prefer not to send words.</li>
       <li>Clearing app data / site storage removes local settings and cached unlocks (store purchases can be restored via Options → Restore Purchases).</li>
-      <li>To request deletion of a leaderboard entry that contains your call sign, contact us with the name and approximate score.</li>
+      <li>To request deletion of a leaderboard row or a Journey reply, email us with the call sign or approximate date and we will remove what we can identify.</li>
     </ul>
 
     <h2>Contact</h2>

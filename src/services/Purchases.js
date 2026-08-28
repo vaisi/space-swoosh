@@ -1,6 +1,8 @@
 // Purchases.js
 // Thin wrapper around RevenueCat (@revenuecat/purchases-capacitor).
 // Changes:
+// - Successful buys also log GA4 `purchase` (value + currency) for Firebase
+//   revenue. Restores do not. Skins keep the separate `purchase_skin` funnel.
 // - Pro weekly/yearly product ids + customer Pro snapshot (active + product).
 // - Created file: native-only IAP. On web, or when API keys are missing, every
 //   call no-ops / returns empty so the ship picker still works offline and in
@@ -8,6 +10,7 @@
 //   RevenueCat dashboard — see docs/IAP.md.
 
 import { Capacitor } from '@capacitor/core';
+import { trackPurchase } from './Analytics.js';
 
 const IOS_KEY = import.meta.env.VITE_REVENUECAT_IOS_KEY || '';
 const ANDROID_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_KEY || '';
@@ -164,6 +167,7 @@ export async function purchaseProduct(productId) {
     try {
         const { customerInfo } = await Purchases.purchasePackage({ aPackage });
         const info = proInfoFromCustomer(customerInfo);
+        logPurchaseRevenue(productId, aPackage);
         return {
             ok: true,
             entitlementIds: info.entitlementIds,
@@ -234,4 +238,29 @@ export async function purchaseProYearly() {
 export async function getProductPriceString(productId) {
     const aPackage = await findPackageByProductId(productId);
     return aPackage?.product?.priceString || null;
+}
+
+function catalogFromProductId(productId) {
+    if (productId === PRO_WEEKLY_PRODUCT_ID) {
+        return { itemName: 'pro_weekly', itemCategory: 'pro' };
+    }
+    if (productId === PRO_YEARLY_PRODUCT_ID) {
+        return { itemName: 'pro_yearly', itemCategory: 'pro' };
+    }
+    const match = /^com\.orbi\.spaceswoosh\.skin\.(.+)$/.exec(productId || '');
+    if (match) return { itemName: match[1], itemCategory: 'skin' };
+    return { itemName: productId || 'unknown', itemCategory: 'other' };
+}
+
+function logPurchaseRevenue(productId, aPackage) {
+    const product = aPackage?.product || {};
+    const { itemName, itemCategory } = catalogFromProductId(productId);
+    const amount = Number(product.price);
+    trackPurchase({
+        value: Number.isFinite(amount) ? amount : 0,
+        currency: product.currencyCode || 'USD',
+        itemId: product.identifier || productId,
+        itemName,
+        itemCategory,
+    });
 }

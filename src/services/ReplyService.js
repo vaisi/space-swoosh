@@ -6,11 +6,13 @@
 // this service still inserts whenever called, so the epilogue must not call it
 // again on replay.
 // Changes:
+// - submitJourneyReply sends p_platform (ios|android|web) with the reply.
 // - submitJourneyReply also sends shipId (roster skin) as p_ship_id.
 
 import { supabase, isLeaderboardConfigured } from '../config/supabase.js';
 import { skins } from '../ships/skins.js';
 import { validateReply } from './ReplyFilter.js';
+import { clientPlatform } from '../core/platform.js';
 
 /** Only known roster ids are stored — never free-form ship text. */
 function sanitizeShipId(shipId) {
@@ -49,6 +51,7 @@ export class ReplyService {
                 p_body: body,
                 p_skipped: Boolean(skipped),
                 p_ship_id: sanitizeShipId(shipId),
+                p_platform: clientPlatform(),
             });
             if (error) {
                 console.warn('[replies] submit failed:', error.message);

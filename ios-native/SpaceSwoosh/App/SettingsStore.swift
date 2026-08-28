@@ -1,5 +1,6 @@
 // SettingsStore.swift
 // Changes: Init from locals so Swift does not read self before all stored properties are set.
+// equip_ship / set_theme user properties stay in sync.
 
 import Foundation
 import Combine
@@ -61,7 +62,10 @@ final class SettingsStore: ObservableObject {
         shipSkinId = id
         UserDefaults.standard.set(id.rawValue, forKey: "shipSkinId")
         if previous != id {
-            AnalyticsService.track("equip_ship", ["ship_id": id.rawValue])
+            AnalyticsService.track("equip_ship", [
+                "ship_id": id.rawValue,
+            ])
+            AnalyticsService.setUserProperty(id.rawValue, forName: "equipped_ship")
         }
     }
 
@@ -75,6 +79,7 @@ final class SettingsStore: ObservableObject {
         isDark.toggle()
         UserDefaults.standard.set(isDark ? "dark" : "light", forKey: "ssTheme")
         AnalyticsService.track("set_theme", ["theme": isDark ? "dark" : "light"])
+        AnalyticsService.setUserProperty(isDark ? "dark" : "light", forName: "theme")
     }
 
     func toggleMute() {
