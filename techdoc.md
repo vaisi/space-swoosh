@@ -1,11 +1,10 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: In-run pause control is `.ss-pause` two ink bars (not U+23F8;
-     Android emoji fonts painted that glyph orange). Rook hull shortened;
-     hangar/in-play wake tucks at the fuselage tail. Homescreen BUILD stamp
-     hidden on web/Android. Hazard Lab tile gated off (SHOW_HAZARD_LAB /
-     showHazardLab). UNLOCK_ALL_LEVELS = false (sequential Journey; web
-     ?unlocklevels=1 still overrides). -->
+<!-- Changes: UNLOCK_ALL_SKINS = false on Android/web (store hangar; iOS was
+     already false). Premium ships lock until RevenueCat buy / restore /
+     yearly 3-ship pick. ownedSkinIds cache gen 2 drops the playtest "all
+     owned" list. In-run pause is `.ss-pause` two ink bars. Hazard Lab tile
+     gated off. UNLOCK_ALL_LEVELS = false (sequential Journey). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -13,7 +12,7 @@
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
-> Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Native iOS
+> Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). JS + native iOS
 > `UNLOCK_ALL_SKINS = false` (premium hangar tiles go through RevenueCat);
 > Options still has Restore Purchases. Sequential Journey:
 > `UNLOCK_ALL_LEVELS = false` (web also `?unlocklevels=1|0`). Free forever (no
@@ -116,10 +115,12 @@
 > 10); spend on death/fuel; weekly/yearly Pro = unlimited lives; yearly also
 > one-time pick any 3 ships. While off, Open Space / Journey retries are
 > unlimited and the lives chip / paywall stay hidden.
-> `UNLOCK_ALL_SKINS` = **true (playtest hangar — flip false before store)** /
+> `UNLOCK_ALL_SKINS` = **false (store hangar — JS + iOS)** /
 > `UNLOCK_ALL_LEVELS` = **false (sequential Journey map; web `?unlocklevels=1` still opens every tile)** /
 > `UNLOCK_PRO` = false for store — Focus/Flicker/Ember/Saber free; all
-> other ships gated via RevenueCat. Advertising ID: collection disabled
+> other ships gated via RevenueCat. `ownedSkinIds` cache gen 2 drops the
+> playtest “every id owned” list so testers cannot keep free premium ships;
+> a store refresh then restores real purchases. Advertising ID: collection disabled
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play store snapshot: versionCode
@@ -283,7 +284,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/StoreLinks.js` | Play listing URL from package `com.orbi.spaceswoosh`; App Store write-review URL from `VITE_APP_STORE_APPLE_ID`. |
 | `ui/screens/ReviewPromptScreen.js` | Paper overlay on a Journey clear: Enjoying so far? / It's great / Not really / Later. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). Android **`UNLOCK_ALL_SKINS` is still true for playtest**. Native iOS `SkinCatalog.UNLOCK_ALL_SKINS` is **false** so hangar purchases hit RevenueCat. `UNLOCK_PRO` stays **false**. |
+| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |

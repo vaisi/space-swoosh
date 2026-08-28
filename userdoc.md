@@ -1,8 +1,6 @@
-<!-- Changes: Pause (top-right) is two simple ink bars that follow Light/Dark
-     Mode — not an orange tile. Rook hull shortened; dust wake pours from
-     the tail. Homescreen BUILD stamp hidden. Hazard Lab tile not shown.
-     Journey days unlock sequentially (Level 1 open; later days fade until
-     you clear the previous one). -->
+<!-- Changes: Premium ships are locked again — Focus/Flicker/Ember/Saber stay
+     free; the rest show a price and unlock on the apps. Pause is two ink
+     bars. Hazard Lab tile not shown. Journey days unlock sequentially. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -216,9 +214,8 @@ screens do the same with their own lines.
 
 Under the title, your ship is shown with its name. Tap the triangle arrows
 beside it (or press **Left** / **Right** on a keyboard) to browse the full
-roster — owned ships equip and save. Playtest builds currently treat every
-ship as owned. On store builds, locked ships show a price (tap the ship
-to unlock on the apps). Options → Ship has the same roster in a grid.
+roster — owned ships equip and save. Locked ships show a price (tap the
+ship to unlock on the apps). Options → Ship has the same roster in a grid.
 
 - **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
@@ -303,7 +300,7 @@ Options opens a short list:
 
 | Item | Status |
 | --- | --- |
-| **Ship** | Browse the full roster; owned ships equip. Playtest builds unlock every ship; store builds show a price on locked tiles (tap to buy). |
+| **Ship** | Browse the full roster; owned ships equip. Locked tiles show a price (tap to buy on the apps). |
 | **Controls** | Flight style (Zigzag now; Arc shows as out of service until you finish the Journey). |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |

@@ -1,8 +1,8 @@
 // main.js
 // Entry point: bootstraps the game.
 // Changes:
-// - Do not await RevenueCat / entitlements before the menu: localStorage cache
-//   (and playtest UNLOCK_ALL_SKINS) is enough for the first hangar paint. A
+// - Do not await RevenueCat / entitlements before the menu: the free roster
+//   plus ownedSkinIds cache is enough for the first hangar paint. A
 //   Play Billing hang must not pin the native splash.
 // - 3s splash failsafe plus initNative hide-first so launchAutoHide:false can
 //   never leave the cream launch screen up.

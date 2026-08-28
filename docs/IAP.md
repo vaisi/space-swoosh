@@ -1,6 +1,8 @@
 <!--
   docs/IAP.md
   Changes:
+  - UNLOCK_ALL_SKINS is false on Android/web as well as iOS. ownedSkinIdsGen
+    (2) drops the playtest all-owned localStorage once after the flip.
   - Native iOS uses the same product / entitlement contract via RevenueCat iOS SDK.
   - Added store Display Name + Description for every premium skin (in-game
     blurbs; four shortened to App Store's 45-character Description limit).
@@ -121,7 +123,9 @@ VITE_REVENUECAT_ANDROID_KEY=goog_...
 - **Options → Restore Purchases** re-syncs entitlements (required on iOS).
 - Ownership is cached under `ownedSkinIds` (`localStorage` on Android / web,
   `UserDefaults` on native iOS) so offline play keeps unlocks; a successful
-  store refresh is authoritative.
+  store refresh is authoritative. Android/web also stores `ownedSkinIdsGen`
+  (currently 2) so the playtest “every ship owned” cache is dropped once
+  after `UNLOCK_ALL_SKINS` flipped false.
 - Native iOS uses the RevenueCat iOS SDK (`PurchasesService` /
   `EntitlementsStore`) with the same product ids and `skin_<id>` entitlements.
   The public `appl_…` key is injected as Info.plist `REVENUECAT_IOS_KEY`.

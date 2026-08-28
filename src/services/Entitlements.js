@@ -2,15 +2,17 @@
 // Ship ownership + Pro subscription state. Free skins (no productId) are always
 // owned; premium skins unlock via RevenueCat, annual Pro picks, or IAP.
 // Changes:
+// - UNLOCK_ALL_SKINS false (store hangar). Premium tiles stay locked until a
+//   RevenueCat buy / restore / yearly 3-ship pick. Cache gen 2 drops the
+//   playtest "every id owned" localStorage so testers cannot keep free ships.
 // - initEntitlements() is fired after game.start() (not awaited on boot) so a
-//   RevenueCat / Play Billing hang cannot pin the native splash. Cache +
-//   UNLOCK_ALL_SKINS cover the first hangar frame.
-// - UNLOCK_ALL_SKINS true for playtest hangar (must flip false before store).
+//   RevenueCat / Play Billing hang cannot pin the native splash. The free
+//   roster + ownedSkinIds cache cover the first hangar frame.
 // - Pro weekly/yearly: `pro` entitlement, offline cache, yearly ship-pick claim.
 // - Annual picks (any 3 premium skins) merge into isSkinOwned and stay after lapse.
 // - Free roster is productId-driven (Focus/Flicker/Ember/Saber); others premium.
 // - Night paper: SIGNAL_RGB follows brand `color.signalRgb` (soft orchid).
-// - UNLOCK_PRO false for store. UNLOCK_ALL_SKINS is playtest-true until store.
+// - UNLOCK_PRO false for store.
 // - Created file: ownership is separate from "selected skin" (ships/skins.js).
 
 import { color } from '../brand/tokens.js';
@@ -30,6 +32,9 @@ import {
 } from './Purchases.js';
 
 const CACHE_KEY = 'ownedSkinIds';
+/** Playtest UNLOCK_ALL_SKINS wrote every skin id into CACHE_KEY. Gen 2 drops that. */
+const CACHE_GEN_KEY = 'ownedSkinIdsGen';
+const CACHE_GEN = 2;
 const PRO_CACHE_KEY = 'proState';
 const ANNUAL_PICKS_KEY = 'annualShipPicks';
 const ANNUAL_CLAIMED_KEY = 'annualShipPicksClaimed';
@@ -40,8 +45,8 @@ export function getSignalRgb() {
 }
 const SIGNAL_RGB = color.signalRgb;
 
-/** Playtest unlock — true so the hangar can fly every ship. Flip false for store. */
-export const UNLOCK_ALL_SKINS = true;
+/** Store hangar — premium skins stay locked until purchase / restore / annual pick. */
+export const UNLOCK_ALL_SKINS = false;
 /** Playtest Pro — keep false for store builds. */
 export const UNLOCK_PRO = false;
 
@@ -62,8 +67,27 @@ function freeSkinIds() {
     return SKIN_DEFS.filter((s) => !s.productId).map((s) => s.id);
 }
 
+function persistCacheGen() {
+    try {
+        localStorage.setItem(CACHE_GEN_KEY, String(CACHE_GEN));
+    } catch {
+        /* private mode */
+    }
+}
+
 function loadSkinCache() {
     try {
+        const gen = Number(localStorage.getItem(CACHE_GEN_KEY) || '0');
+        if (gen < CACHE_GEN) {
+            const free = freeSkinIds();
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(free));
+            } catch {
+                /* private mode */
+            }
+            persistCacheGen();
+            return free;
+        }
         const raw = localStorage.getItem(CACHE_KEY);
         if (!raw) return freeSkinIds();
         const parsed = JSON.parse(raw);
@@ -111,6 +135,7 @@ function loadAnnualClaimed() {
 function persistSkins() {
     try {
         localStorage.setItem(CACHE_KEY, JSON.stringify([...owned]));
+        persistCacheGen();
     } catch {
         /* private mode */
     }
