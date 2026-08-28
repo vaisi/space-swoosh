@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Rook bronze/gold tokens are theme-aware (cream + night paper). -->
+<!-- Changes: iOS drift current draws Android Canvas hairlines (flow, no pulse). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -51,7 +51,8 @@
 > spinning dashed stroke only (signal / ink / ink30, path diameter `2×size×pulse`,
 > no additive inner glow). Flicker ribbon tucks
 > under the hull center and tapers the smudge at the join; wall BOOP is a
-> spring path wiggle only. Drift lanes are thin scrolling dashes.
+> spring path wiggle only. Drift lanes are Android Canvas hairlines (7 ink30
+> dashes, round caps, offset −phase×direction) so they flow instead of flashing.
 > Cruise uses `snappyHz * feelSpeed` (`feelSpeed` 1.0, same travel as Android/web). Clear-flyout smash SFX
 > + smash haptic are throttled to 120 ms.
 > Voice MP3s play when bundled (`level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`).
@@ -630,6 +631,8 @@ push interacts logbook like BH pull.
 
 **Drift Current:** full-width flowing shear lines; lateral wind only
 (`checkCollision` false). Dash flow direction matches shove (left or right).
+Native iOS draws the same dashed hairlines as Android Canvas (`setLineDash` +
+`lineDashOffset`) — not a tiled shader strip, which strobed on wrap.
 
 **Wormhole:** paired entry/exit portals; lab includes them for practice. Exit
 uses the original camera catch-up wobble (no custom framing).
@@ -1264,7 +1267,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), scrolling drift dashes, popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current SKShapeNode hairlines (Android dash + offset), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
 

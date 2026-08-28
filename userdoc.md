@@ -1,4 +1,4 @@
-<!-- Changes: Rook bronze/gold vanes read on cream and night paper. -->
+<!-- Changes: Wind currents are flowing dashes (same on iOS as Android). -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -191,8 +191,8 @@ The levels are grouped into seven story chapters on the Journey map:
 The first chapter is the teach band; later chapters follow the signal story while
 new hazards arrive one step at a time, and the level that introduces a hazard
 leans on it heavily so you can learn it. Later arrivals include wind currents
-(around Day 15), square blooms (Day 20), push nodes before black holes
-(Day 25), and slim sweep lines (Day 31).
+(around Day 15; thin dashes flowing left or right), square blooms (Day 20),
+push nodes before black holes (Day 25), and slim sweep lines (Day 31).
 
 Stars unlock with the teach band — early levels only ask for what you’ve learned:
 

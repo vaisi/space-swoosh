@@ -1,8 +1,10 @@
 // PooledSpriteField.swift
-// Changes: Screen origin uses CinematicFlight.cruiseSeat.
-// Wormholes match Android — spinning dashed stroke only, no additive
-// inner glow. Path diameter is 2×radius×pulse (plus stroke). Phase core fades
-// fully (Android mergeFactor). Piece Y is SpriteKit-up.
+// Changes: Drift current uses dashed SKShapeNode hairlines (Android Canvas
+// setLineDash + lineDashOffset) so lanes flow instead of flashing. Screen
+// origin uses CinematicFlight.cruiseSeat. Wormholes match Android — spinning
+// dashed stroke only, no additive inner glow. Path diameter is 2×radius×pulse
+// (plus stroke). Phase core fades fully (Android mergeFactor). Piece Y is
+// SpriteKit-up.
 
 import SpriteKit
 
@@ -11,8 +13,8 @@ final class PooledSpriteField: SKNode {
     private let extraNodes: [SKSpriteNode]
     private let glowNodes: [SKSpriteNode]
     private let pickupNodes: [SKSpriteNode]
+    private let driftLaneNodes: [SKShapeNode]
     private let bake: BakePipeline
-    private let windShader: SKShader
 
     init(bake: BakePipeline) {
         self.bake = bake
@@ -64,23 +66,29 @@ final class PooledSpriteField: SKNode {
             pickups.append(node)
         }
         pickupNodes = pickups
-        windShader = SKShader(source: """
-        void main() {
-            vec2 uv = v_tex_coord;
-            uv.x = fract(uv.x * a_repeats + a_scroll);
-            gl_FragColor = texture2D(u_texture, uv) * v_color_mix;
+
+        var lanes: [SKShapeNode] = []
+        for _ in 0..<GameConfig.Stress.driftLaneSlots {
+            let node = SKShapeNode()
+            node.fillColor = .clear
+            node.strokeColor = BrandColors.UI.ink30
+            node.lineCap = .round
+            node.lineJoin = .round
+            node.glowWidth = 0
+            node.isAntialiased = true
+            node.blendMode = .alpha
+            node.isHidden = true
+            node.zPosition = 4.2
+            lanes.append(node)
         }
-        """)
-        windShader.attributes = [
-            SKAttribute(name: "a_repeats", type: .float),
-            SKAttribute(name: "a_scroll", type: .float)
-        ]
+        driftLaneNodes = lanes
 
         super.init()
         for node in bodyNodes { addChild(node) }
         for node in extraNodes { addChild(node) }
         for node in glowNodes { addChild(node) }
         for node in pickupNodes { addChild(node) }
+        for node in driftLaneNodes { addChild(node) }
     }
 
     @available(*, unavailable)
@@ -92,6 +100,7 @@ final class PooledSpriteField: SKNode {
         let screenY = sceneHeight * CinematicFlight.cruiseSeat
         var glowUsed = 0
         var extraUsed = 0
+        var driftUsed = 0
 
         for i in 0..<bodyNodes.count {
             let node = bodyNodes[i]
@@ -129,6 +138,14 @@ final class PooledSpriteField: SKNode {
                 world: world,
                 used: extraUsed
             )
+            if o.kind == .drift {
+                driftUsed = emitDriftLanes(
+                    o: o,
+                    screenY: y,
+                    world: world,
+                    used: driftUsed
+                )
+            }
 
             // Android WormholeGate is stroke-only (no fill / no radial). Black
             // holes and repulsors keep their additive glow sprites.
@@ -148,6 +165,10 @@ final class PooledSpriteField: SKNode {
         for i in extraUsed..<extraNodes.count {
             extraNodes[i].isHidden = true
             extraNodes[i].shader = nil
+        }
+        for i in driftUsed..<driftLaneNodes.count {
+            driftLaneNodes[i].isHidden = true
+            driftLaneNodes[i].path = nil
         }
 
         for i in 0..<pickupNodes.count {
@@ -287,33 +308,43 @@ final class PooledSpriteField: SKNode {
                     node.colorBlendFactor = 0
                 }
             }
-        case .drift:
-            let lines = 7
-            let u = world.baseUnit
-            let dash = u * 0.55
-            let period = dash * 1.85
-            let lineH = max(1.1, u * 0.06)
-            let repeats = Float(max(1, world.width / max(period, 1)))
-            for i in 0..<lines where used < extraNodes.count {
-                let node = extraNodes[used]
-                used += 1
-                let yy = screenY - o.halfH * 0.72 + (CGFloat(i) / CGFloat(lines - 1)) * o.halfH * 1.44
-                var offset = (o.phase + CGFloat(i) * u * 0.8).truncatingRemainder(dividingBy: dash * 2)
-                if offset < 0 { offset += dash * 2 }
-                let scroll = Float((offset * o.driftDir) / max(period, 1))
-                node.isHidden = false
-                node.texture = bake.windLane
-                node.shader = windShader
-                node.setValue(SKAttributeValue(float: repeats), forAttribute: "a_repeats")
-                node.setValue(SKAttributeValue(float: scroll), forAttribute: "a_scroll")
-                node.position = CGPoint(x: world.width * 0.5, y: yy)
-                node.zRotation = 0
-                node.size = CGSize(width: world.width, height: lineH)
-                node.alpha = 1
-                node.colorBlendFactor = 0
-            }
         default:
             break
+        }
+        return used
+    }
+
+    /// Android `DriftCurrent.render`: 7 ink30 hairlines, dash `[u×0.55, u×0.55×0.85]`,
+    /// round caps, `lineDashOffset = -phase × direction` so flow matches the shove.
+    private func emitDriftLanes(
+        o: ObstacleState,
+        screenY: CGFloat,
+        world: WorldState,
+        used: Int
+    ) -> Int {
+        let lines = 7
+        let u = world.baseUnit
+        let dash = u * 0.55
+        let gap = dash * 0.85
+        let period = max(dash + gap, 1)
+        let lineW = max(1.1, u * 0.06)
+        var used = used
+        for i in 0..<lines where used < driftLaneNodes.count {
+            let node = driftLaneNodes[used]
+            used += 1
+            let yy = screenY - o.halfH * 0.72 + (CGFloat(i) / CGFloat(lines - 1)) * o.halfH * 1.44
+            var phase = (o.phase + CGFloat(i) * u * 0.8).truncatingRemainder(dividingBy: period)
+            if phase < 0 { phase += period }
+            let dashPhase = -phase * o.driftDir
+            let line = CGMutablePath()
+            line.move(to: CGPoint(x: 0, y: 0))
+            line.addLine(to: CGPoint(x: world.width, y: 0))
+            node.lineWidth = lineW
+            node.lineCap = .round
+            node.strokeColor = BrandColors.UI.ink30
+            node.path = line.copy(dashingWithPhase: dashPhase, lengths: [dash, gap])
+            node.position = CGPoint(x: 0, y: yy)
+            node.isHidden = false
         }
         return used
     }

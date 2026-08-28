@@ -1,6 +1,7 @@
 <!--
-  ios-native/README.md
-  Changes: 41-ship roster (Rook spark-skiff after Merlin); 19 live-draw hulls.
+ ios-native/README.md
+ Changes: Drift current uses Android Canvas hairlines (SKShapeNode dashes);
+ 41-ship roster (Rook spark-skiff after Merlin); 19 live-draw hulls.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -44,7 +45,8 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Wormholes: Android `WormholeGate` look — spinning dashed stroke in signal/ink/ink30, path diameter `2×size×pulse`, no additive inner glow
 - Flicker wake: one continuous `SKShapeNode` ribbon tucked under the hull center; smudge tapers at the join; spring path wiggle on wall BOOP
 - Focus ripple dots / Ember twin-dots / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs). Live ships: pooled hull graph + dedicated wakes. Remaining premiums: classic ribbon/mark wakes (not a particle dump)
-- Drift / wind: 7 thin ink30 dashes, `baseUnit`-scaled period, scrolled by phase × direction
+- Drift / wind: 7 thin ink30 SKShapeNode hairlines (Android `setLineDash` +
+  `lineDashOffset`), `baseUnit`-scaled period, flow matches shove direction
 - Cruise: Android snappy tick × **1.0** (`GameConfig.feelSpeed`)
 - Menu / pause / outcome: Space Grotesk/Mono, framed ink buttons, paper wash, two-bar **MISSION PAUSED**. Open Space game over includes High Scores
 - Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick.

@@ -1,6 +1,8 @@
 // BakePipeline.swift
-// Changes: Wormhole dashed rings are full-bleed (Android stroke-only, no 0.38
-// inset) and instance-baked per theme. Repulsor ring/ticks use Android hairlines.
+// Changes: windLane is leftover (play drift draws SKShapeNode dashes, not a
+// tiled strip). Wormhole dashed rings are full-bleed (Android stroke-only, no
+// 0.38 inset) and instance-baked per theme. Repulsor ring/ticks use Android
+// hairlines.
 
 import SpriteKit
 import UIKit
@@ -255,7 +257,7 @@ final class BakePipeline {
         }
     }
 
-    /// Intro streaks — leftover static strip. Hazard lanes use `windLane`.
+    /// Intro streaks — leftover static strip. Play drift is SKShapeNode dashes.
     private static func windDash(width: CGFloat, height: CGFloat) -> SKTexture {
         rectImage(width: width, height: height) { cg, w, h in
             cg.setStrokeColor(BrandColors.UI.ink30.cgColor)

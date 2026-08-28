@@ -1,9 +1,10 @@
 // GameConfig.swift
-// Changes: Android catch-up camera knobs + mobile baseUnit (min(w/45, h/75)).
-// feelSpeed 1.0 so native iOS cruise matches Android/web snappy tick.
-// Fuel.dyingStopSpeed 0.01 so fuel-out waits until the hull stops.
-// Fuel.voiceLowThreshold 0.20 for NAV low-fuel lines (HUD stays 0.28).
-// Dropped 1000 KM "Breaking atmosphere..." HUD line.
+// Changes: driftLaneSlots (4 currents × 7 Android shear lines). Android
+// catch-up camera knobs + mobile baseUnit (min(w/45, h/75)). feelSpeed 1.0
+// so native iOS cruise matches Android/web snappy tick. Fuel.dyingStopSpeed
+// 0.01 so fuel-out waits until the hull stops. Fuel.voiceLowThreshold 0.20
+// for NAV low-fuel lines (HUD stays 0.28). Dropped 1000 KM "Breaking
+// atmosphere..." HUD line.
 
 import Foundation
 import CoreGraphics
@@ -158,6 +159,8 @@ enum GameConfig {
     enum Stress {
         static let obstacleSlots = 64
         static let extraPartSlots = 48
+        /// 4 on-screen drift currents × 7 shear lines (Android DriftCurrent).
+        static let driftLaneSlots = 28
         static let sparkleSlots = 24
         static let glowSlots = 16
         static let pickupSlots = 16
