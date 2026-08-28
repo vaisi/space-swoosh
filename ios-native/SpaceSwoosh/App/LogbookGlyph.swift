@@ -1,6 +1,9 @@
 // LogbookGlyph.swift
 // Space Log picture-well specimens matching Android LogbookGlyphs.js.
 // Changes:
+// - Space BOOP: zigzag bounce (52° from vertical) with even Signal-Blue dots
+//   kissing the left wall then reflecting — matches the in-run wake, not a
+//   droop off the hull.
 // - Created file: playfield-scale corridor crop (20 baseUnits). Finish gate
 //   spans the well; compact contacts use in-game sizes (sparkle, wormhole,
 //   asteroid, shield plus + rings, wall-boost edge slab).
@@ -155,10 +158,26 @@ enum LogbookGlyph {
         case "spaceBoop":
             let wall = u * 1.15
             ctx.fill(Path(CGRect(x: 0, y: 0, width: wall, height: canvas.height)), with: .color(ink))
-            var local = ctx
-            local.translateBy(x: wall + u * 1.6, y: cy)
-            local.scaleBy(x: 0.42, y: 1.15)
-            fillCircle(&local, cx: 0, cy: 0, r: u * 1.35, color: ink)
+            let k = tan(52 * CGFloat.pi / 180)
+            let step = u * 0.92
+            let dotR = u * 0.22
+            let contactX = wall + u * 0.12
+            let contactY = cy + u * 1.35
+            let legs = 5
+            let dotColor = dimmed ? BrandColors.signal.opacity(0.35) : BrandColors.signal
+            fillCircle(&ctx, cx: contactX, cy: contactY, r: dotR, color: dotColor)
+            for i in 1...legs {
+                let t = CGFloat(i)
+                fillCircle(&ctx, cx: contactX + t * step * k, cy: contactY + t * step, r: dotR, color: dotColor)
+                fillCircle(&ctx, cx: contactX + t * step * k, cy: contactY - t * step, r: dotR, color: dotColor)
+            }
+            fillCircle(
+                &ctx,
+                cx: contactX + CGFloat(legs) * step * k,
+                cy: contactY - CGFloat(legs) * step,
+                r: u * 1.05,
+                color: ink
+            )
         case "shield":
             let size = Size.shield * u
             for i in 0..<2 {

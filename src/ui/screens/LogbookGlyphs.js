@@ -1,6 +1,9 @@
 // LogbookGlyphs.js
 // Space Log picture-well specimens: in-game silhouettes at playfield scale.
 // Changes:
+// - Space BOOP: zigzag bounce (52° from vertical) with even Signal-Blue dots
+//   kissing the left wall then reflecting — matches the in-run wake, not a
+//   droop off the hull.
 // - Created file: the well is a cropped corridor (20 baseUnits across). Full-span
 //   contacts (finish gate, drift, barriers, wall boost, sweep) go edge to edge;
 //   compact contacts use ObstacleManager / Collectible / PowerUp sizes so a
@@ -307,14 +310,28 @@ export function drawLogbookSpecimen(ctx, icon, x, y, w, h, dimmed = false) {
             break;
         }
         case 'spaceBoop': {
+            // Zigzag wall bounce: 52° from vertical, equal in/out (GameConfig).
             const wall = u * 1.15;
             ctx.fillRect(x, y, wall, h);
-            ctx.save();
-            ctx.translate(x + wall + u * 1.6, cy);
-            ctx.scale(0.42, 1.15);
+            const k = Math.tan((52 * Math.PI) / 180);
+            const step = u * 0.92;
+            const dotR = u * 0.22;
+            const contactX = x + wall + u * 0.12;
+            const contactY = cy + u * 1.35;
+            const legs = 5;
+            ctx.fillStyle = dimmed ? `rgba(${color.signalRgb}, 0.35)` : signal;
+            fillCircle(ctx, contactX, contactY, dotR);
+            for (let i = 1; i <= legs; i++) {
+                fillCircle(ctx, contactX + i * step * k, contactY + i * step, dotR);
+                fillCircle(ctx, contactX + i * step * k, contactY - i * step, dotR);
+            }
             ctx.fillStyle = ink;
-            fillCircle(ctx, 0, 0, u * 1.35);
-            ctx.restore();
+            fillCircle(
+                ctx,
+                contactX + legs * step * k,
+                contactY - legs * step,
+                u * 1.05,
+            );
             break;
         }
         case 'shield': {
