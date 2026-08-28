@@ -1,5 +1,6 @@
-<!-- Changes: Native apps may ask if you’re enjoying the game after Journey
-     Day 6; Options header has Rate ★ (same chip as Space Board Zigzag). -->
+<!-- Changes: Homescreen BUILD stamp hidden. Hazard Lab tile not shown.
+     Journey days unlock sequentially (Level 1 open; later days fade until
+     you clear the previous one). -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -20,7 +21,7 @@
 > app. TestFlight menus use the same paper/ink framed chrome as Android (Space
 > Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
 > Options is a hub (Ship, Controls, Sound, Light/Dark Mode, Rate, Restore). Play offers Journey
-> then Open Space on two tall, centered cards; Hazard Lab is the **LAB** tile on the Journey map. High Scores
+> then Open Space on two tall, centered cards. High Scores
 > is the same online SPACE BOARD as Android (Zigzag/Arc, distance or obstacles).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
 > Cycle ships on the home screen (◀ / ▶) or pick one under
@@ -34,8 +35,8 @@
 > family, not a column of dots. The
 > four always-free ships are **Focus**, **Flicker**, **Ember**, and **Saber**.
 > The rest of the hangar is locked until you buy (price on the tile) or Restore
-> Purchases. Journey tiles are still all open
-> (`UNLOCK_ALL_LEVELS`) so you can tap any level. Zigzag from the start; Arc
+> Purchases. Journey days unlock in order — Level 1 is open; later tiles stay
+> faded until you clear the previous day. Zigzag from the start; Arc
 > sits under Options → Controls as out of service until the Journey is finished.
 > Wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,
@@ -64,13 +65,6 @@
 > **Continue** — that message is saved in your Space Log (Journey → The Call).
 > Then the level map opens. Early levels teach one thing at a time: turn, rocks,
 > moving rocks, blue lights, then the shield.
->
-> **Hazard Lab:** At the top of the Journey map, an always-unlocked **LAB** tile
-> lets you practice square blooms, sweeps, push nodes, wind currents, portals,
-> and black holes (also in the main Journey). After a hop or well leaves the
-> ship low, the camera eases it back to the usual height after a few seconds
-> (same on browser, Android, and the Lab).
-> It does **not** change your Journey level unlocks or stars.
 >
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
 > sometimes lights up on the left or right edge. Bank into it for a fresh shield
@@ -224,7 +218,7 @@ roster — owned ships equip and save. Playtest builds currently treat every
 ship as owned. On store builds, locked ships show a price (tap the ship
 to unlock on the apps). Options → Ship has the same roster in a grid.
 
-- **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
+- **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar (same kind of button as Zigzag / Arc on High Scores).
 - **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS and Android share the same online board (call sign + ship). Android pages 10 scores at a time (up to 100).
@@ -274,17 +268,9 @@ Choosing Journey opens the level map: chapter by chapter, **five** numbered
 tiles per row (taller than they are wide) with star pips underneath. It opens
 roughly where you left off.
 
-- **Hazard Lab** sits at the top — always unlocked. Tap the centered **LAB**
-  tile (same size as a day tile) to practice the
-  newer hazards (square blooms, sweeps, push nodes, wind currents, portals,
-  black holes) without touching Journey progress. Lab runs are longer (~12,000 KM).
-  If a portal or well leaves the ship sitting low, the camera eases it back
-  after about five seconds — same as Journey and Open Space in the browser.
 - **Scroll** with the mouse wheel, or drag up and down on touch.
 - The tile outlined in **blue** is the next level you haven't cleared.
 - **Faded** tiles are still locked — you can see what's coming, but not play it yet.
-  Playtest builds may show a **TEST** chip and leave every tile open so testers
-  can jump around; your real furthest level is still saved.
 
 Tap an unlocked tile to fly it. A filled blue star under a tile is one you've
 earned; an outlined one is still open.
@@ -485,11 +471,7 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
 ink may show in the notch / home-indicator strips). Turn arcs and cruise speed
-are meant to feel the same on computer, Android, and native iPhone — if a build
-ever feels half-speed with KM racing ahead, that build is wrong; report the menu stamp
-(e.g. `BUILD 29 · WEB`). That number goes up every time a new native/web
-bundle is built — if it did not change after an Android Studio install, the
-phone is still running the previous version.
+are meant to feel the same on computer, Android, and native iPhone.
 
 **iPhone / iPad (Safari or Chrome):** the game targets a steadier ~60 frames per
 second and a slightly lighter retina resolution so motion stays cool and playable

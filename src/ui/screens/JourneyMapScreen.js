@@ -4,6 +4,7 @@
 // level locked. The list is taller than the screen, so it scrolls (wheel or
 // drag — Game owns the gesture and hands us the offset).
 // Changes:
+// - SHOW_HAZARD_LAB = false hides the LAB heading/tile/hit-box (run code stays).
 // - Header no longer draws a TEST chip when UNLOCK_ALL_LEVELS / ?unlocklevels=1
 //   is on; tiles still unlock for playtest. Saved journeyProgress.unlocked is
 //   unchanged.
@@ -11,9 +12,8 @@
 //   starts use tryBeginJourneyLevel (lives gate only when the flag is on).
 // - Dropped chapter blurb lines under headings (clutter + story spoilers);
 //   keep name + level range only.
-// - Always-unlocked Hazard Lab tile pinned above Troposphere (sandbox for
-//   phase / sweep / repulsor / drift / wormhole practice; does not affect
-//   journeyProgress).
+// - Hazard Lab tile (when SHOW_HAZARD_LAB) pins above Troposphere; sandbox
+//   does not affect journeyProgress.
 // - Star tally / tile pips use per-level starSlots (L1–3: one, L4: two, L5+: three).
 // - No longer draws the gray inset screen frame (removed app-wide).
 // - Tile star pips are solid when earned and hollow when not (they used to be a
@@ -42,6 +42,9 @@ import {
 } from '../../services/JourneyProgress.js';
 import { drawLivesChip } from '../LivesChip.js';
 import { ensureRegen } from '../../services/Lives.js';
+
+/** Flip true to pin the always-unlocked Hazard Lab tile above Troposphere. */
+const SHOW_HAZARD_LAB = false;
 
 /**
  * Draws the map and returns `{ back, levels, metrics }`. `metrics` tells Game
@@ -99,33 +102,35 @@ export function renderJourneyMap(game) {
     let y = viewTop + unit * 1.2;
 
     // Sandbox tile — always playable, never gates Journey progress.
-    y = drawChapterHeading(game, {
-        chapter: {
-            name: 'Hazard Lab',
-            from: 'LAB',
-            to: '',
-        },
-        L, y,
-        labelPx: chapterLabelPx,
-        locked: false,
-        lab: true,
-    });
+    if (SHOW_HAZARD_LAB) {
+        y = drawChapterHeading(game, {
+            chapter: {
+                name: 'Hazard Lab',
+                from: 'LAB',
+                to: '',
+            },
+            L, y,
+            labelPx: chapterLabelPx,
+            locked: false,
+            lab: true,
+        });
 
-    const labX = L.left + (L.width - tileW) / 2;
-    const labY = y;
-    drawLabTile(game, {
-        x: labX, y: labY, w: tileW, h: tileH,
-    });
-    levels.push({
-        level: null,
-        hazardLab: true,
-        unlocked: true,
-        x: labX,
-        y: labY - game.journeyMapScroll,
-        width: tileW,
-        height: tileH,
-    });
-    y += tileH + gap + L.section * 0.7;
+        const labX = L.left + (L.width - tileW) / 2;
+        const labY = y;
+        drawLabTile(game, {
+            x: labX, y: labY, w: tileW, h: tileH,
+        });
+        levels.push({
+            level: null,
+            hazardLab: true,
+            unlocked: true,
+            x: labX,
+            y: labY - game.journeyMapScroll,
+            width: tileW,
+            height: tileH,
+        });
+        y += tileH + gap + L.section * 0.7;
+    }
 
     JOURNEY_CHAPTERS.forEach((chapter, index) => {
         if (index > 0) y += L.section * 0.7;

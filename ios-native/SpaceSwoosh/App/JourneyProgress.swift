@@ -1,5 +1,6 @@
 // JourneyProgress.swift
-// Changes: maxCompleted() for Firebase user property max_journey_level.
+// Changes: UNLOCK_ALL_LEVELS is false — map tiles follow saved `unlocked`.
+// maxCompleted() for Firebase user property max_journey_level.
 // v2 migrate — v1 saves are kept. Completing old Day 40 unlocks 41.
 // Arc unlocks only when Day 42 is cleared; `arcUnlockSeen` is the once-only
 // ending card flag (no version bump). One epilogue reply per device
@@ -27,8 +28,8 @@ enum JourneyProgress {
     static let storageKey = "journeyProgress"
     private static let version = 2
     private static let previousFinale = 40
-    /// Playtest unlock — true so the Journey map can fly every level. Flip false for store.
-    static let UNLOCK_ALL_LEVELS = true
+    /// Sequential Journey — false so the map respects saved `unlocked`.
+    static let UNLOCK_ALL_LEVELS = false
 
     static func empty() -> JourneySnapshot {
         JourneySnapshot(

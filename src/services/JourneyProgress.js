@@ -14,8 +14,9 @@
 //   before the gate (localhost epilogue testing). `nearend=500` sets remaining KM.
 // - v2 migrate: v1 saves are kept (not wiped). Completing old Day 40 unlocks 41
 //   so Continue plays Arrival. Mid-journey days stay on their numbers.
-// - Playtest `UNLOCK_ALL_LEVELS` (plus `?unlocklevels=1|0`) opens every Journey
-//   tile without rewriting saved `unlocked`. Flip the constant false for store.
+// - Sequential Journey locks: `UNLOCK_ALL_LEVELS` is false (store). Web
+//   testers can still force tiles with `?unlocklevels=1` without rewriting
+//   saved `unlocked`.
 // - starCount / totalStars only count slots a level actually exposes (1/2/3).
 // - Persists `loreSeen` so the pre-Journey Signal Story lore screen shows once.
 // - Created file. Reads/writes are guarded the same way ships/skins.js guards
@@ -34,8 +35,8 @@ const VERSION = 2;
 /** Last flown day before the 42-level Arrival expansion. */
 const PREVIOUS_FINALE = 40;
 
-/** Playtest unlock — true so the Journey map can fly every level. Flip false for store. */
-export const UNLOCK_ALL_LEVELS = true;
+/** Sequential Journey — false so the map respects saved `unlocked`. Web `?unlocklevels=1` still opens every tile. */
+export const UNLOCK_ALL_LEVELS = false;
 
 /** Default remaining KM when `?nearend=1` (flag, not 1 KM). */
 const DEFAULT_NEAREND_REMAINING_KM = 350;

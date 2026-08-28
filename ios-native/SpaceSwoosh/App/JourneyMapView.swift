@@ -1,7 +1,8 @@
 // JourneyMapView.swift
-// Changes: dropped the header TEST chip (UNLOCK_ALL_LEVELS still unlocks tiles).
+// Changes: showHazardLab = false hides the LAB heading/tile (run code stays).
+// Sequential Journey locks follow JourneyProgress.UNLOCK_ALL_LEVELS.
 // 5-column grid and tileH = tileW × 1.15 (Android JourneyMapScreen).
-// Hazard Lab is a same-size centered LAB tile, not a full-width banner.
+// Hazard Lab (when shown) is a same-size centered LAB tile, not a full-width banner.
 
 import SwiftUI
 
@@ -14,6 +15,8 @@ struct JourneyMapView: View {
 
     private let tileGap: CGFloat = 10
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 5)
+    /// Flip true to pin the always-unlocked Hazard Lab tile above Troposphere.
+    private let showHazardLab = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -40,7 +43,9 @@ struct JourneyMapView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    labSection
+                    if showHazardLab {
+                        labSection
+                    }
                     ForEach(JourneyConfig.chapters, id: \.id) { chapter in
                         VStack(alignment: .leading, spacing: 10) {
                             chapterHeading(chapter)

@@ -1,7 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native enjoyment review prompt after Journey Day 6 (Later → Day 13).
-     Options Rate is a header chip (Rate ★), not a hub row. -->
+<!-- Changes: Homescreen BUILD stamp hidden on web/Android. Hazard Lab tile
+     gated off (SHOW_HAZARD_LAB / showHazardLab). UNLOCK_ALL_LEVELS = false
+     (sequential Journey; web ?unlocklevels=1 still overrides). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -11,12 +12,11 @@
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
 > Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). Native iOS
 > `UNLOCK_ALL_SKINS = false` (premium hangar tiles go through RevenueCat);
-> Options still has Restore Purchases. Playtest flag
-> `UNLOCK_ALL_LEVELS = true` opens every Journey tile (flip false before store;
-> web also `?unlocklevels=1|0`). Free forever (no
+> Options still has Restore Purchases. Sequential Journey:
+> `UNLOCK_ALL_LEVELS = false` (web also `?unlocklevels=1|0`). Free forever (no
 > `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
 > High Scores plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
-> Light Mode / Restore; native Rate ★ is a header chip (same as SPACE BOARD Zigzag). PLAY is Journey then Open Space; Lab is the map tile. SPACE BOARD
+> Light Mode / Restore; native Rate ★ is a header chip (same as SPACE BOARD Zigzag). PLAY is Journey then Open Space; Lab is hidden (`SHOW_HAZARD_LAB` / `showHazardLab`, flip to restore the map tile). SPACE BOARD
 > uses the same Supabase `high_scores` table as Android (anon key injected at
 > build). Local PBs still back the PLAY card.
 > `shipSkinId` persists (unknown id stays **Flicker**).
@@ -86,8 +86,11 @@
 > App icon source: `assets/store/app-icon-512.png` (`npm run assets:sync` →
 > iOS/Android/PWA). Level logbook entries unlock to KNOWN on level start (intro heard).
 >
-> **Hazard Lab (sandbox):** Always-unlocked Journey-map tile → `PLAY_MODE.hazardLab`
-> / `HazardLabProfile`. Practice for **Phase**, **Sweep**, **Repulsor**, **Drift
+> **Hazard Lab (sandbox):** Run code stays (`PLAY_MODE.hazardLab` /
+> `HazardLabProfile`) but the Journey-map tile is **hidden** (`SHOW_HAZARD_LAB`
+> in `JourneyMapScreen.js`, `showHazardLab` in `JourneyMapView.swift`). Flip
+> either true to restore the always-unlocked LAB tile above Troposphere.
+> Practice for **Phase**, **Sweep**, **Repulsor**, **Drift
 > Current**, **Wormhole**, and **Black hole** (advanced Y-pull). Camera reseat
 > after 5s below seat is on for every JS run (web + Capacitor), including lab. Finish/crash skips
 > `recordLevelResult`. Logbook observes during lab via `isHazardLab()`.
@@ -111,13 +114,14 @@
 > one-time pick any 3 ships. While off, Open Space / Journey retries are
 > unlimited and the lives chip / paywall stay hidden.
 > `UNLOCK_ALL_SKINS` = **true (playtest hangar — flip false before store)** /
-> `UNLOCK_ALL_LEVELS` = **true (playtest Journey map — flip false before store)** /
+> `UNLOCK_ALL_LEVELS` = **false (sequential Journey map; web `?unlocklevels=1` still opens every tile)** /
 > `UNLOCK_PRO` = false for store — Focus/Flicker/Ember/Saber free; all
 > other ships gated via RevenueCat. Advertising ID: collection disabled
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play store snapshot: versionCode
-> **44** / versionName **1.0.44**. Menu stamp is independent of Play version — see §2.
+> **44** / versionName **1.0.44**. `buildStamp.js` still increments on vite build
+> even though the menu no longer draws it — see §2.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
@@ -183,9 +187,10 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 **Homescreen BUILD stamp:** `src/core/buildStamp.js` (`BUILD_NUMBER`). Vite
 increments it on every production build (`vite build` / `build:native`, not
-`npm run dev`). The Capacitor/web menu draws `BUILD N · NATIVE` / `WEB` from
-that value. If a phone still shows the previous N, Android Studio ran an old
-web bundle — rebuild, then Run; uninstall the app if WebView cached the old
+`npm run dev`). The Capacitor/web menu **does not draw** the stamp. Restore the
+badge from `Game.js` (`BUILD N · NATIVE` / `WEB`) if a device install needs a
+visible check. If a phone still shows an old web bundle, Android Studio ran an
+old dist — rebuild, then Run; uninstall the app if WebView cached the old
 assets. Play `versionCode` 44 / `versionName` 1.0.44 is the current store snapshot and is not auto-bumped (override with `VERSION_CODE` / `VERSION_NAME` env vars).
 
 Credentials live in `.env` (`VITE_SUPABASE_*`, `VITE_REVENUECAT_*`). See `.env.example`.
@@ -291,7 +296,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
-| `services/JourneyProgress.js` | `localStorage` progress v2: unlocked level, stars, best points, `loreSeen`, `arcUnlockSeen`, `epilogueReplyDone` / `epilogueOrdinal`. Completing old Day 40 migrates `unlocked` to 41. Playtest **`UNLOCK_ALL_LEVELS`** (true) + web `?unlocklevels=1\|0`. Web epilogue skip: **`?level=42&nearend=1`**. Flip the constant **false** before store. |
+| `services/JourneyProgress.js` | `localStorage` progress v2: unlocked level, stars, best points, `loreSeen`, `arcUnlockSeen`, `epilogueReplyDone` / `epilogueOrdinal`. Completing old Day 40 migrates `unlocked` to 41. **`UNLOCK_ALL_LEVELS`** is **false** (sequential tiles). Web `?unlocklevels=1\|0` still overrides without rewriting saved `unlocked`. Web epilogue skip: **`?level=42&nearend=1`**. |
 | `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance per flight style (`bestByStyle`; v1 `bestScore` migrates to zigzag). |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts (incl. wormhole gate), lore + level voice lines, From the Void stub. |
 | `config/HazardLabConfig.js` | Sandbox descriptor for Phase + Sweep Gate (no Journey progress). |
@@ -303,7 +308,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `ui/screens/LogbookGlyphs.js` | In-game silhouettes at corridor scale (finish gate spans the well; sparkle/wormhole/asteroid keep relative size). |
 | `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
-| `ui/screens/JourneyMapScreen.js` | Scrollable level select: **5 columns**, `tileH = tileW × 1.15`; chapter bands of level tiles; lives chip when `LIVES_ENABLED`. |
+| `ui/screens/JourneyMapScreen.js` | Scrollable level select: **5 columns**, `tileH = tileW × 1.15`; chapter bands of level tiles; lives chip when `LIVES_ENABLED`. Hazard Lab tile gated by `SHOW_HAZARD_LAB` (false). |
 | `ui/screens/LevelOutcomeScreen.js` | Level clear / failed: one row per objective, next-step actions. |
 | `ui/screens/ProPaywallScreen.js` | Empty lives → weekly / yearly Pro offers + restore (only when `LIVES_ENABLED`). |
 | `ui/screens/AnnualShipPickScreen.js` | Yearly Pro one-time pick of up to 3 premium ships. |
@@ -606,10 +611,10 @@ select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
 `journeyProgress`. Stars are **cumulative** across attempts; only clearing the
 frontier level advances `unlocked`. Journey never writes to Supabase.
 
-Playtest **`UNLOCK_ALL_LEVELS`** (JS + iOS `JourneyProgress`) opens every map
-tile so you can jump to any level. Saved `unlocked` is unchanged — turning the
-flag off restores the real lock cursor. Web override: `?unlocklevels=1` forces
-on, `?unlocklevels=0` forces the real lock even when the constant is true. iOS
+**`UNLOCK_ALL_LEVELS`** (JS + iOS `JourneyProgress`) is **false** — the map
+follows saved `unlocked` (Level 1 open, later days fade until cleared). Saved
+`unlocked` is unchanged. Web override: `?unlocklevels=1` forces every tile open,
+`?unlocklevels=0` forces the real lock even if the constant were true. iOS
 has the constant only (no URL). Localhost epilogue skip: **`?level=42&nearend=1`** boots Day 42
 ~350 KM before the gate (`nearend=500` sets remaining KM). No intro captions;
 `level-42.mp3` plays with its captions after the fade and dark hold, then a 3s gap before `epilogue-open.mp3`.
@@ -651,8 +656,10 @@ after 12.5k each storm is two different families with a **short** quiet (0.18 /
 
 ### Hazard Lab
 
-Optional practice sandbox (also ships in Journey/Open Space). Journey map →
-always-unlocked **HAZARD LAB** tile → `Game.beginHazardLab()`.
+Optional practice sandbox (also ships in Journey/Open Space). Run code stays;
+the Journey-map tile is **hidden** (`SHOW_HAZARD_LAB` / `showHazardLab`). Flip
+either true to restore: map → always-unlocked **HAZARD LAB** tile →
+`Game.beginHazardLab()`.
 
 | Piece | Role |
 | --- | --- |
@@ -1113,11 +1120,11 @@ with a linear gradient along the wake's chord for the length-wise fade.
   the leftover right column (`html[data-shell=web]`, hidden in the native
   app and on viewports ≤768px). Mobile fills the safe area. `theme-color` matches the
   surround. Native status bar uses `Style.Dark` + charcoal background in dark
-  mode. Menu stamp: `BUILD N · NATIVE` / `WEB`
-  from `core/buildStamp.js` (auto-incremented on each `vite build`).
+  mode. Menu BUILD stamp is **not drawn** (`buildStamp.js` still increments on
+  each `vite build` if the badge is restored later).
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset. **Arc is locked until Day 42 is actually
-  cleared** (`isArcUnlocked`; playtest `UNLOCK_ALL_LEVELS` does not unlock it).
+  cleared** (`isArcUnlocked`; `UNLOCK_ALL_LEVELS` / `?unlocklevels=1` does not unlock it).
   Controls still shows the Arc row as `OUT` / Finish the Journey. First L42
   ending: after Follow @spacewoosh, a once-only card (`arcUnlockSeen`) then
   Options → Controls with Arc selected. Saved `arc` values coerce to zigzag
@@ -1308,7 +1315,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` with a centered same-size LAB tile. `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). Playtest `JourneyProgress.UNLOCK_ALL_LEVELS` opens every map tile (flip false before store). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` (`showHazardLab` false hides the centered LAB tile). `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). `JourneyProgress.UNLOCK_ALL_LEVELS` is **false** (sequential tiles; saved `unlocked` unchanged). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
 | `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip, review prompt). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). `StoreLinks` — Play URL + App Store write-review URL (`APP_STORE_APPLE_ID`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |

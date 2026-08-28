@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Homescreen BUILD stamp is no longer drawn on web/Android. buildStamp.js
+//   still increments on vite build if the badge is restored later.
 // - KM / fuel use GameConfig.kmDelta (reference height 800) so a full-height
 //   desktop stage does not empty the tank by 2000 KM.
 // - L42: no intro voice or captions; after the gate, fade to black, pause,
@@ -11,8 +13,6 @@
 // - L42 completeRun leaves BGM running so the written epilogue still has music.
 // - Arc is locked until Day 42 is cleared; Controls shows it as OUT until then.
 // - tryBeginJourneyLevel respects isLevelUnlocked (UNLOCK_ALL_LEVELS / URL).
-// - Menu stamp reads BUILD_NUMBER from core/buildStamp.js (Vite +1 per
-//   production build) so a device install can be verified vs an old APK.
 // - cameraReseatEnabled: every JS platform (web + Capacitor). After a wormhole
 //   or black hole leaves the ship low, Camera.tickReseat eases it back.
 // - Pro lives economy (LIVES_ENABLED, default false): when on, gate Open Space
@@ -102,7 +102,7 @@
 // - HiDPI: setupCanvas renders the backing store at devicePixelRatio (capped at
 //   3 on Android/desktop web / 1.5 on iOS / 2 on other Cap native) and scales
 //   the context so all game math stays in CSS pixels via this.width /
-//   this.height. Menu stamp is BUILD N from core/buildStamp.js.
+//   this.height.
 // - Options → Ship: after picking a vessel, a "Play now" button jumps straight
 //   into Open World (no back → Play → mode select). Roster scrolls.
 // - Options → Ship: scrollable roster (Shard / Halo / Needle / Echo added).
@@ -174,8 +174,6 @@
 //   (+1) and collecting Signal-Blue sparkles (+10, via CollectibleManager). It
 //   shows in the HUD (with a sparkle glyph) and on the game-over screen.
 
-import { Capacitor } from '@capacitor/core';
-import { BUILD_NUMBER } from '../core/buildStamp.js';
 import { Spacecraft } from '../entities/Spacecraft.js';
 import { ObstacleManager } from '../managers/ObstacleManager.js';
 import { Camera } from '../core/Camera.js';
@@ -1914,24 +1912,6 @@ export class Game {
         ctx.font = `500 ${taglinePx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
         ctx.fillText(this.menuFlavor || pickCopy('menu'), L.centerX, y + taglinePx * 0.6);
-        ctx.restore();
-
-        // Install stamp — Play Internal often lags; verify before judging feel.
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const buildLabel = Capacitor.isNativePlatform()
-            ? `BUILD ${BUILD_NUMBER} · NATIVE`
-            : `BUILD ${BUILD_NUMBER} · WEB`;
-        const buildPx = Math.max(11, unit * 1.05);
-        ctx.font = `700 ${buildPx}px ${font.mono}`;
-        const buildW = ctx.measureText(buildLabel).width + unit * 1.6;
-        const buildH = buildPx * 1.8;
-        const buildY = L.top + buildH * 0.55;
-        ctx.fillStyle = color.ink;
-        ctx.fillRect(L.centerX - buildW / 2, buildY - buildH / 2, buildW, buildH);
-        ctx.fillStyle = color.paper;
-        ctx.fillText(buildLabel, L.centerX, buildY);
         ctx.restore();
 
         y += taglinePx * 1.3 + L.section;

@@ -1,8 +1,6 @@
 <!--
  ios-native/README.md
- Changes: Firebase events include purchase revenue, epilogue send/skip, platform.
- Drift current uses Android Canvas hairlines (SKShapeNode dashes);
- 41-ship roster (Rook spark-skiff after Merlin); 18 live-draw hulls.
+ Changes: UNLOCK_ALL_LEVELS is false; Hazard Lab tile hidden (showHazardLab).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -12,11 +10,11 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 ## Hangar (current)
 
 - **41 ships** in Android `SKIN_DEFS` order. `UNLOCK_ALL_SKINS = false` — premium tiles show price and tap-to-buy via RevenueCat. Free forever: Focus, Flicker, Ember, Saber
-- Playtest flag `UNLOCK_ALL_LEVELS = true` (flip false before store) opens every Journey map tile without rewriting saved `unlocked`
+- `UNLOCK_ALL_LEVELS = false` — Journey map follows saved `unlocked` (Level 1 open; later days fade until cleared)
 - Free forever (no `productId`): **Focus**, **Flicker**, **Ember**, **Saber**. Other defs store `com.orbi.spaceswoosh.skin.<id>` + `skin_<id>` for RevenueCat
 - Home: **SPACE SWOOSH** + flavor + ◀ hull ▶, then Play / Space Log / Options / High Scores (Android tags ▶ □ ⚙ #)
-- Play: **PLAY** header, Journey (RECOMMENDED) then Open Space (ENDLESS) as tall `unit×17` cards, vertically centered. Hazard Lab is the Journey-map **LAB** tile only
-- Journey map: **5** columns, `tileH = tileW × 1.15`, centered same-size LAB tile
+- Play: **PLAY** header, Journey (RECOMMENDED) then Open Space (ENDLESS) as tall `unit×17` cards, vertically centered
+- Journey map: **5** columns, `tileH = tileW × 1.15`; Hazard Lab tile hidden (`showHazardLab`)
 - Options hub: Ship ●, Controls ↔, Sound ♪, Light/Dark Mode ◐, Restore Purchases ↻. Controls = Zigzag/Arc. Sound = Music / Sound FX / Voice (`soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`). Pause Sound stays master mute
 - **SPACE BOARD**: same `high_scores` table as Android (Zigzag/Arc, DISTANCE/OBSTACLES, 10×10 pages). Submit Score + top-10 auto-prompt. Local PBs still back the PLAY card.
 - **Firebase Analytics**: same project as Android (`spaceswoosh-faa9c`). Events: `game_over`, `journey_level_end`, `hazard_lab_end`, `equip_ship`, `purchase_skin`, `purchase` (revenue), `set_theme`, `set_sound`, `set_sound_channel`, `submit_highscore`, `journey_epilogue_send`, `journey_epilogue_skip`. All include `platform=ios`. Plist is gitignored; Codemagic uses `GOOGLE_SERVICE_INFO_PLIST`. No Advertising Identifier (`FirebaseAnalyticsCore`).
