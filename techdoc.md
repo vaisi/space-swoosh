@@ -1,6 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native enjoyment review prompt after Journey Day 6 (Later → Day 13). -->
+<!-- Changes: Native enjoyment review prompt after Journey Day 6 (Later → Day 13).
+     Options Rate is a header chip (Rate ★), not a hub row. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -15,7 +16,7 @@
 > web also `?unlocklevels=1|0`). Free forever (no
 > `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
 > High Scores plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
-> Light Mode / Rate Space Swoosh (native) / Restore. PLAY is Journey then Open Space; Lab is the map tile. SPACE BOARD
+> Light Mode / Restore; native Rate ★ is a header chip (same as SPACE BOARD Zigzag). PLAY is Journey then Open Space; Lab is the map tile. SPACE BOARD
 > uses the same Supabase `high_scores` table as Android (anon key injected at
 > build). Local PBs still back the PLAY card.
 > `shipSkinId` persists (unknown id stays **Flicker**).
@@ -346,7 +347,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
-| `options` | Options hub: Ship / Controls / Sound / Theme / Rate (native) / Restore Purchases |
+| `options` | Options hub: Ship / Controls / Sound / Theme / Restore Purchases. Native Rate ★ is `drawScreenHeader` trailingButton (same chip as SPACE BOARD Zigzag / Arc). |
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
@@ -432,8 +433,9 @@ Web never auto-prompts.
 | Later (Day 6) | `later` | `review_prompt_later` | Ask again after Day 13 |
 | Later (Day 13) | `done` | `review_prompt_later` | Never auto-ask again |
 
-Hardware back on the overlay is Later. Options → **Rate Space Swoosh** (native
-hubs only) fires `review_from_options`, tries the in-app sheet, and falls back
+Hardware back on the overlay is Later. Options header **Rate ★** (native only;
+same compact brand chip as SPACE BOARD Zigzag / Arc) fires `review_from_options`,
+tries the in-app sheet, and falls back
 to the store URL if that call fails. Play URL uses package `com.orbi.spaceswoosh`
 (not the Firebase project id). iOS write-review URL needs numeric
 `APP_STORE_APPLE_ID` (Info.plist / `VITE_APP_STORE_APPLE_ID`). Empty id skips

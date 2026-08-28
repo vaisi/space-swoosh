@@ -50,7 +50,8 @@
 //   card keeps stats-above-field order and centers in the remaining viewport.
 // - Main menu: cycle full roster (menuShipBrowseId); owned equips, locked
 //   shows price + tap-to-buy; Play uses last owned shipSkinId.
-// - Options hub: Ship / Controls / Sound / Theme + Rate (native) + Restore.
+// - Options hub: Ship / Controls / Sound / Theme + Restore. Native Rate ★
+//   is a compact header chip (same as Space Board Zigzag), not a hub row.
 // - Options → Sound: Music / Sound FX / Voice channel toggles (SoundManager);
 //   pause menu Sound stays master mute-all.
 // - Night paper: pause wash / goal-bar rest / crash particles / name-modal dim
@@ -2030,17 +2031,26 @@ export class Game {
         );
     }
 
-    // Options hub — Ship / Controls / Sound / Theme / Rate (native) / Restore.
+    // Options hub — Ship / Controls / Sound / Theme / Restore. Native Rate ★
+    // uses the same header chip as Space Board Zigzag / Arc.
     renderOptionsHub() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
 
-        const header = this.drawScreenHeader('OPTIONS', { back: true });
-        this.optionsHubButtons = { back: header.backRect };
-
         const showRate = isNativeApp();
-        const rowCount = 5 + (showRate ? 1 : 0);
+        const header = this.drawScreenHeader('OPTIONS', {
+            back: true,
+            trailingButton: showRate
+                ? { label: 'Rate', tag: '\u2605' }
+                : null,
+        });
+        this.optionsHubButtons = {
+            back: header.backRect,
+            rate: header.trailingButtonRect,
+        };
+
+        const rowCount = 5;
         const subPx = L.isMobile ? Math.min(unit * 1.35, 15) : unit * 1.2;
         const buttonWidth = Math.min(unit * 30, L.width);
         const buttonGap = unit * 1.2;
@@ -2086,12 +2096,6 @@ export class Game {
             bx, y, buttonWidth, buttonHeight, themeLabel(), { tag: '\u25D0' }
         );
         y += buttonHeight + buttonGap;
-        if (showRate) {
-            this.optionsHubButtons.rate = this.drawBrandButton(
-                bx, y, buttonWidth, buttonHeight, 'Rate Space Swoosh', { tag: '\u2605' }
-            );
-            y += buttonHeight + buttonGap;
-        }
         this.optionsHubButtons.restore = this.drawBrandButton(
             bx, y, buttonWidth, buttonHeight, 'Restore Purchases', { tag: '\u21BB' }
         );
@@ -3694,6 +3698,11 @@ export class Game {
                     this.showMenu();
                     return;
                 }
+                if (this.optionsHubButtons.rate
+                    && this.isClickInButton(x, y, this.optionsHubButtons.rate)) {
+                    await this.handleRateFromOptions();
+                    return;
+                }
                 if (this.isClickInButton(x, y, this.optionsHubButtons.ship)) {
                     this.shipPickerScroll = 0;
                     this.shipPickerOfferPlay = false;
@@ -3713,11 +3722,6 @@ export class Game {
                     track('set_theme', { theme });
                     setUserProperty('theme', theme);
                     syncStatusBarTheme().catch(() => {});
-                    return;
-                }
-                if (this.optionsHubButtons.rate
-                    && this.isClickInButton(x, y, this.optionsHubButtons.rate)) {
-                    await this.handleRateFromOptions();
                     return;
                 }
                 if (this.isClickInButton(x, y, this.optionsHubButtons.restore)) {

@@ -1,5 +1,5 @@
 <!-- Changes: Native apps may ask if you’re enjoying the game after Journey
-     Day 6; Options has Rate Space Swoosh. -->
+     Day 6; Options header has Rate ★ (same chip as Space Board Zigzag). -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -226,7 +226,7 @@ to unlock on the apps). Options → Ship has the same roster in a grid.
 
 - **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height. Hazard Lab is the **LAB** tile on the Journey map, not a third Play card.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
-- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, Rate Space Swoosh (on the phone apps), and Restore Purchases.
+- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar (same kind of button as Zigzag / Arc on High Scores).
 - **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS and Android share the same online board (call sign + ship). Android pages 10 scores at a time (up to 100).
 
 After a run, **Menu** on the end screen brings you back here.
@@ -319,7 +319,7 @@ Options opens a short list:
 | **Controls** | Flight style (Zigzag now; Arc shows as out of service until you finish the Journey). |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
-| **Rate Space Swoosh** | Phone apps only. Opens the store’s rating sheet (or the store page if that sheet cannot appear). |
+| **Rate ★** | Phone apps only — title-bar chip, same style as Zigzag / Arc on High Scores. Opens the store’s rating sheet (or the store page if that sheet cannot appear). |
 | **Restore Purchases** | Re-sync ship unlocks after reinstall (iOS / Android). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the

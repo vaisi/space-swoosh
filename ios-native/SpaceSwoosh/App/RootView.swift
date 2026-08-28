@@ -1,7 +1,7 @@
 // RootView.swift
-// Changes: Options hub includes Rate Space Swoosh (StoreKit / write-review URL).
-// PLAY Journey / Open Space cards use Android cardH (unit×17) and
-// sit vertically centered between the header and footnote.
+// Changes: Options Rate is a header chip (Rate ★), same as SPACE BOARD
+// Zigzag / Arc. PLAY Journey / Open Space cards use Android cardH (unit×17)
+// and sit vertically centered between the header and footnote.
 
 import SwiftUI
 import StoreKit
@@ -169,7 +169,14 @@ struct RootView: View {
 
     private var options: some View {
         VStack(alignment: .leading, spacing: 12) {
-            ShellChrome.header("OPTIONS", back: { screen = .menu })
+            ShellChrome.header(
+                "OPTIONS",
+                back: { screen = .menu },
+                trailingTitle: "Rate",
+                trailingTag: "★"
+            ) {
+                ReviewPromptStore.rateFromOptions(requestReview)
+            }
             ShellChrome.screenBlurb("Vessel. Controls. Signal.")
             ShellChrome.brandButton("Ship", tag: "●") { screen = .shipPicker }
             ShellChrome.brandButton("Controls", tag: "↔") { screen = .optionsControls }
@@ -179,9 +186,6 @@ struct RootView: View {
                 tag: "◐"
             ) {
                 settings.toggleTheme()
-            }
-            ShellChrome.brandButton("Rate Space Swoosh", tag: "★") {
-                ReviewPromptStore.rateFromOptions(requestReview)
             }
             ShellChrome.brandButton("Restore Purchases", tag: "↻") {
                 Task { await entitlements.restore() }
