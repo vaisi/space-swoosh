@@ -79,7 +79,7 @@ final class SkinRenderer {
         switch skin.jellyProfile {
         case .bloom, .lyra, .boreal, .wish, .puff, .chime, .halo, .orbit, .merlin, .rook:
             shakeScale = 0.7
-        case .needle:
+        case .needle, .seal:
             shakeScale = 0.55
         default:
             shakeScale = 0.35

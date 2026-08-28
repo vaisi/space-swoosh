@@ -43,14 +43,14 @@ blurb except four marked `*` (trimmed to fit Apple).
 | Needle | `com.orbi.spaceswoosh.skin.needle` | `skin_needle` | Linear. One thin thread. |
 | Echo | `com.orbi.spaceswoosh.skin.echo` | `skin_echo` | Paired. Leaves a twin. |
 | Dusk | `com.orbi.spaceswoosh.skin.dusk` | `skin_dusk` | Crescent. A violet cloud. |
-| Seal | `com.orbi.spaceswoosh.skin.seal` | `skin_seal` | Pressed tiles. Peels at the wall. |
+| Seal | `com.orbi.spaceswoosh.skin.seal` | `skin_seal` | Pressed almond. A vortex street that peels. |
 | Hatch | `com.orbi.spaceswoosh.skin.hatch` | `skin_hatch` | Lateral marks. Stretches on impact. |
 | Trace | `com.orbi.spaceswoosh.skin.trace` | `skin_trace` | One thin line. Springs on a bounce. |
 | Ring | `com.orbi.spaceswoosh.skin.ring` | `skin_ring` | Blooming rings. Squash, no pop. |
 | Fold | `com.orbi.spaceswoosh.skin.fold` | `skin_fold` | Origami. A dashed crease. |
 | Mote | `com.orbi.spaceswoosh.skin.mote` | `skin_mote` | Soft ink. A drifting cloud. |
 | Spine | `com.orbi.spaceswoosh.skin.spine` | `skin_spine` | Upright. A ladder wake. |
-| Orbit | `com.orbi.spaceswoosh.skin.orbit` | `skin_orbit` | Planetoid. A lagging orbit wake. |
+| Orbit | `com.orbi.spaceswoosh.skin.orbit` | `skin_orbit` | Upright. The path itself orbits. |
 | Ink | `com.orbi.spaceswoosh.skin.ink` | `skin_ink` | Calligraphic. Tip reverses on boop. |
 | Flux | `com.orbi.spaceswoosh.skin.flux` | `skin_flux` | Hex crystal. Ink and signal dashes. |
 | Cinder | `com.orbi.spaceswoosh.skin.cinder` | `skin_cinder` | Warm petal. Ember ribbon, cool ash. |

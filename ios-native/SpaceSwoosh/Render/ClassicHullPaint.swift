@@ -1,5 +1,5 @@
 // ClassicHullPaint.swift
-// Changes: Android makeHullRenderer + Halo/Orbit/Nyan jewelry for hangar and play.
+// Changes: Seal almond + Orbit Spine bar match Android live drawers.
 
 import CoreGraphics
 import SpriteKit
@@ -55,6 +55,8 @@ enum ClassicHullPaint {
             spine(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .square, .stamp:
             square(canvas, radius, turn, nowMs, jellyLive, alpha)
+        case .seal:
+            seal(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .nyan:
             nyan(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .halo:
@@ -200,6 +202,27 @@ enum ClassicHullPaint {
         c.fillHull(.square, cx: 0, cy: r * 0.06, r: r * inset, stretch: stretch, color: BrandColors.UI.ink55, alpha: a * (jelly ? 0.28 : b * 0.35))
     }
 
+    private static func seal(_ c: LiveHullCanvas, _ radius: CGFloat, _ turn: CGFloat, _ t: CGFloat, _ jelly: Bool, _ a: CGFloat) {
+        let b = breath(t)
+        let r = radius * 0.95 * scale(t)
+        let stretch = 1 + 0.2 * turn
+        let ry = r * stretch
+        let body = jelly ? a : a * b
+        c.fillHull(.seal, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink, alpha: body)
+        c.fillHull(.seal, cx: 0, cy: r * 0.04, r: r * 0.52, stretch: stretch, color: BrandColors.UI.ink55, alpha: a * (jelly ? 0.28 : b * 0.35))
+        c.strokeLine(
+            from: CGPoint(x: 0, y: -ry * 0.92),
+            to: CGPoint(x: 0, y: ry * 0.72),
+            color: BrandColors.UI.ink55,
+            width: max(0.7, r * 0.045),
+            alpha: a * (jelly ? 0.4 : b * 0.45)
+        )
+        let markY = -ry * 0.52
+        let markR = r * 0.11
+        c.strokeEllipse(x: 0, y: markY, rx: markR, ry: markR, color: BrandColors.UI.ink, alpha: body, width: max(1, r * 0.055))
+        c.fillEllipse(x: 0, y: markY, rx: markR * 0.38, ry: markR * 0.38, color: BrandColors.UI.ink55, alpha: a * (jelly ? 0.55 : b * 0.7))
+    }
+
     private static func nyan(_ c: LiveHullCanvas, _ radius: CGFloat, _ turn: CGFloat, _ t: CGFloat, _ jelly: Bool, _ a: CGFloat) {
         let b = breath(t)
         let r = radius * 0.95 * scale(t)
@@ -233,25 +256,6 @@ enum ClassicHullPaint {
     }
 
     private static func orbit(_ c: LiveHullCanvas, _ radius: CGFloat, _ turn: CGFloat, _ t: CGFloat, _ jelly: Bool, _ shake: CGFloat, _ a: CGFloat) {
-        let b = 0.92 + 0.04 * sin(t * 0.0046)
-        let r = radius * 0.95
-        let stretch = 1 + 0.14 * turn
-        let body = jelly ? a : a * b
-        // Wash as a fill (not a disc) so SpriteKit z-order stays behind the body.
-        c.fillHull(.circle, cx: 0, cy: r * 0.06, r: r * 0.95, stretch: stretch * (1.05 / 0.95), color: BrandColors.UI.ink12, alpha: body)
-        let tilt = -0.55 + turn * GameConfig.Spacecraft.maxBank * 0.15
-        let ringRx = r * 1.05
-        let ringRy = r * 0.38 * stretch
-        c.strokeRotatedEllipse(x: 0, y: r * 0.08, rx: ringRx, ry: ringRy, rotation: tilt, color: BrandColors.UI.ink, alpha: body, width: max(1.2, r * 0.1))
-        c.fillHull(.orbit, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink, alpha: body)
-        c.fillEllipse(x: 0, y: -r * 0.12 * stretch, rx: r * 0.28, ry: r * 0.38 * stretch, color: BrandColors.UI.ink55, alpha: a * (jelly ? 0.28 : b * 0.35))
-        let phase = t * 0.0022 + (jelly ? shake * 3 : 0)
-        let satX = cos(phase) * ringRx
-        let satY = sin(phase) * ringRy
-        let cosT = cos(tilt)
-        let sinT = sin(tilt)
-        let sx = satX * cosT - satY * sinT
-        let sy = satX * sinT + satY * cosT + r * 0.08
-        c.fillEllipse(x: sx, y: sy, rx: r * 0.14, ry: r * 0.14, color: BrandColors.UI.ink, alpha: body)
+        spine(c, radius, turn, t, jelly, a)
     }
 }

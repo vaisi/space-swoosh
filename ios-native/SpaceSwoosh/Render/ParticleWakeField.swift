@@ -166,6 +166,13 @@ final class ParticleWakeField: SKNode, SkinTrail {
             node.size = CGSize(width: s * 2, height: s * 2 * sy)
             node.alpha = op * 0.8
             node.color = BrandColors.UI.ink
+        case .vortex:
+            let side: CGFloat = k == 0 ? 1 : -1
+            node.position = CGPoint(x: px + nx * r * 0.28 * side, y: py + ny * r * 0.18 * side)
+            let s = r * 0.16 * sx * sizeBoost
+            node.size = CGSize(width: s * 1.4, height: s * 2.2 * sy)
+            node.alpha = op * 0.8
+            node.color = BrandColors.UI.ink
         case .tick:
             node.position = CGPoint(x: px, y: py)
             node.size = CGSize(width: r * 0.42 * sx, height: r * 0.08 * sy)
@@ -191,10 +198,11 @@ final class ParticleWakeField: SKNode, SkinTrail {
             node.alpha = op * 0.8
             node.color = BrandColors.UI.ink
             node.zRotation = 0
-        case .lag:
+        case .lag, .helix:
             let lag = r * 0.45 * (1 - along) * (0.4 + seed)
-            node.position = CGPoint(x: px + nx * lag, y: py - r * 0.15 * (1 - along))
-            node.size = CGSize(width: r * 0.28 * sx, height: r * 0.16 * sy)
+            let phase = along * .pi * 2 * 2.4
+            node.position = CGPoint(x: px + nx * sin(phase) * lag, y: py + ny * sin(phase) * lag)
+            node.size = CGSize(width: r * 0.22 * sx, height: r * 0.14 * sy)
             node.alpha = op * 0.75
             node.color = BrandColors.UI.ink
         case .dash:

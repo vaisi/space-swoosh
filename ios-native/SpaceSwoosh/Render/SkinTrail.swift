@@ -1,5 +1,5 @@
 // SkinTrail.swift
-// Changes: Rook twin bronze/gold filaments (theme-aware bands); Merlin spectacular WishWake.
+// Changes: Seal paired aft vortex field; Orbit helix wake. Rook twin bronze/gold filaments.
 
 import SpriteKit
 
@@ -94,6 +94,8 @@ enum SkinTrailFactory {
             )
         case .stamp:
             return StampTrailField(maxPoints: slots)
+        case .vortex:
+            return VortexTrailField(maxPoints: slots)
         case .tick:
             return TickTrailNode(maxPoints: slots, stretch: true)
         case .crease:
@@ -102,6 +104,8 @@ enum SkinTrailFactory {
             return LadderTrailNode(maxPoints: slots)
         case .lag:
             return LagTrailNode(maxPoints: slots + 2)
+        case .helix:
+            return HelixTrailNode(maxPoints: slots + 2)
         case .dash:
             return DashTrailNode(maxPoints: slots)
         case .cinder:

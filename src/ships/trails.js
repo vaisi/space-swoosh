@@ -2,6 +2,8 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Seal vortex: paired commas at the same aft sample, narrower street
+//   (hairline + two trails close but not touching), crush-then-peel pulse.
 // - Rook `drawRookTrail`: twin bronze/gold filaments + ember diamonds (theme-aware).
 // - Merlin `drawMerlinTrail`: hairline gold comet + dense prism 4-point stars + glitter dust; flare boop.
 // - Plume boop: Koi-like whip + gold/ember scale ellipses; stronger jelly energy.
@@ -57,6 +59,8 @@ const ribbonLeft = [];
 const ribbonRight = [];
 /** Offset centreline for rainbow stripe bands (reused per band). */
 const bandCenter = [];
+/** Helix-offset samples for Orbit's wrapping orbit wake. */
+const helixScratch = [];
 
 /** Classic Nyan Cat pop-stripe RGBs (outer → inner order is left-of-path first). */
 const NYAN_RGB = [
@@ -1277,6 +1281,165 @@ export function drawLadderTrail(ctx, ship, trail, toScreenY, opts = {}) {
                 c.stroke();
             },
         );
+    }
+
+    ctx.restore();
+}
+
+function helixPoint(i) {
+    let p = helixScratch[i];
+    if (!p) {
+        p = { x: 0, y: 0, opacity: 0, angle: 0, along: 0 };
+        helixScratch[i] = p;
+    }
+    return p;
+}
+
+/** Paired ink commas + sealed hairline — Seal vortex street. */
+export function drawVortexTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.86, blotBoop = false } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    if (pts.length < 2) return;
+
+    const r = ship.radius;
+    const marks = denseTrailMarks(ship, trail, toScreenY, iosBudget(ship) ? 0 : 1);
+    const nMarks = marks.length;
+    const now = performance.now();
+    const elapsed = blotBoop && ship.wallJelly ? now - ship.wallJelly.t0 : -1;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.strokeStyle = color.ink;
+    ctx.fillStyle = color.ink;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.globalAlpha = baseAlpha * alpha * 0.42;
+    ctx.lineWidth = Math.max(0.7, r * 0.045);
+    ctx.beginPath();
+    traceSmooth(ctx, pts, true);
+    ctx.stroke();
+
+    // Both sides at the same sample; skip the newest so they share the aft attach.
+    const step = iosBudget(ship) ? 3 : 2;
+    for (let i = nMarks - 2; i >= 0; i -= step) {
+        const p = marks[i];
+        const along = p.along ?? 0.5;
+        const crush = elapsed >= 0
+            ? rippleEnvelope(elapsed, along, { width: 0.16, travel: 0.68 })
+            : 0;
+        const peelElapsed = elapsed >= 0 ? elapsed - 110 : -1;
+        const peelEnv = peelElapsed >= 0
+            ? rippleEnvelope(peelElapsed, along, {
+                durationMs: TRAIL_WAVE_MS + 80,
+                width: 0.18,
+                travel: 0.82,
+            })
+            : 0;
+        const blot = 1 + crush * 2.15;
+        const spread = 1 + crush * 0.45;
+        const rad = r * (0.1 + 0.16 * p.opacity) * p.scale * blot;
+        const prev = marks[Math.max(0, i - 1)];
+        const next = marks[Math.min(nMarks - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const tx = dx / len;
+        const ty = dy / len;
+        const aft = r * 0.38;
+        const sep = r * (0.09 + 0.03 * p.opacity) * (p.sx ?? 1) * spread;
+        const peelN = peelEnv * r * 0.28;
+        const peelAft = peelEnv * r * 0.28;
+
+        ctx.globalAlpha = baseAlpha * p.opacity * alpha * (1 - peelEnv * 0.32);
+        withHeading(ctx, p.x - tx * (aft + peelAft), p.y - ty * (aft + peelAft), p.angle, (c) => {
+            for (const side of [1, -1]) {
+                c.save();
+                c.translate(side * (sep + peelN), 0);
+                c.beginPath();
+                c.moveTo(0, 0);
+                c.quadraticCurveTo(side * rad * 1.25, rad * 0.28, side * rad * 0.42, rad * 1.05);
+                c.quadraticCurveTo(side * rad * 0.08, rad * 0.38, 0, 0);
+                c.closePath();
+                c.fill();
+                c.restore();
+            }
+        });
+    }
+
+    ctx.restore();
+}
+
+/** Elliptical helix wrapping the flight path — Orbit. */
+export function drawHelixOrbitTrail(ctx, ship, trail, toScreenY, opts = {}) {
+    const { alpha = 0.82 } = opts;
+    const pts = wakePoints(ship, trail, toScreenY);
+    if (pts.length < 2) return;
+
+    const r = ship.radius;
+    const energy = jellyEnergy(ship);
+    const n = pts.length;
+    const denom = Math.max(1, n - 1);
+
+    for (let i = 0; i < n; i++) {
+        const src = pts[i];
+        const along = i / denom;
+        const prev = pts[Math.max(0, i - 1)];
+        const next = pts[Math.min(n - 1, i + 1)];
+        const dx = next.x - prev.x;
+        const dy = next.y - prev.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const leave = 1 - along;
+        const rad = r * (0.12 + 0.22 * leave)
+            * (1 - energy * 0.45 * along)
+            * (0.7 + 0.3 * src.opacity);
+        const phase = along * Math.PI * 2 * 1.65 + energy * 1.8 * leave;
+        const p = helixPoint(i);
+        p.x = src.x + nx * Math.sin(phase) * rad;
+        p.y = src.y + ny * Math.sin(phase) * rad;
+        p.opacity = src.opacity;
+        p.angle = src.angle ?? 0;
+        p.along = along;
+    }
+    helixScratch.length = n;
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+    ctx.strokeStyle = color.ink;
+    ctx.fillStyle = color.ink;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const widthAt = (i) => {
+        const t = i / denom;
+        const age = 1 - helixScratch[i].opacity;
+        return r * (0.1 + 0.18 * t) * (0.5 + 0.5 * helixScratch[i].opacity)
+            * (1 + age * 0.25 + energy * 0.18);
+    };
+    ribbonPath(ctx, helixScratch, widthAt);
+    ctx.globalAlpha = baseAlpha * alpha * 0.2;
+    ctx.fill();
+
+    ctx.globalAlpha = baseAlpha * alpha * 0.58;
+    ctx.lineWidth = Math.max(0.8, r * 0.05);
+    ctx.beginPath();
+    traceSmooth(ctx, helixScratch, true);
+    ctx.stroke();
+
+    const tickStep = Math.max(1, Math.floor(n / (iosBudget(ship) ? 16 : 22)));
+    for (let i = 0; i < n; i += tickStep) {
+        const p = helixScratch[i];
+        const leave = Math.pow(1 - p.along, 0.85);
+        const rx = r * (0.16 + (1 - p.opacity) * 0.38) * (0.4 + 0.6 * leave)
+            * (1 + energy * 0.12);
+        const ry = rx * (0.38 + 0.16 * Math.sin(p.along * Math.PI * 3));
+        ctx.globalAlpha = baseAlpha * alpha * p.opacity * (0.32 + 0.68 * leave);
+        ctx.lineWidth = Math.max(0.8, r * (0.035 + 0.025 * p.opacity));
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, Math.max(0.5, rx), Math.max(0.5, ry), p.angle, 0, Math.PI * 2);
+        ctx.stroke();
     }
 
     ctx.restore();

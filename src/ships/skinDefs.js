@@ -2,7 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
-// - Rook — four-vane spark-skiff; theme-aware bronze/gold vanes + dust wake; flare boop.
+// - Seal — slim vesica almond + paired aft vortex commas (crush then peel).
+// - Orbit — Spine bar hull + helical orbit wake.
 // - Merlin — ultra-slim spark-falcon; prism heart + orbiting 4-point stars; hairline comet + dense star cascade; flare boop.
 // - Plume wall-boop uses Koi `whip` + gold/ember scale stamps (Cinder stays `cinder`).
 // - Darner, Puff, Argus, Chime — premium IAP; long wake; skipHullCache.
@@ -19,7 +20,7 @@
 // - Dusk: Echo crescent + Mote cloud in saber purple at 2× density, wider
 //   dust scatter (no polar rings), milder ripple than Mote.
 // - Long in-game wakes (Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote,
-//   Pulse, Echo, Dusk, Ink, Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi,
+//   Pulse, Echo, Dusk, Orbit, Ink, Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi,
 //   Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, Rook). Menu preview stays short so it never covers title.
 // - Free Saber: Needle hull + slim purple lightsaber wake (long trail, whip).
 // - Free forever: Focus / Flicker / Ember / Saber. Every other skin has productId +
@@ -32,8 +33,7 @@
 //   read clearly (still hull-attached via script mode).
 // - Flux hex shortened/compact; ink/signal dash wake. Cinder petal + flame-smoke.
 // - Fold: solid kite drawer (crease stroke, no hollow inset); crease wake
-//   attaches at the hull. Orbit: planetoid hull (solid body + tilted ring +
-//   satellite) with lagging orbital wake. Ink: hull-attached tip reverse.
+//   attaches at the hull. Orbit: Spine bar + helical wake. Ink: hull-attached tip reverse.
 //   Mote: organic radial micro-dot cloud (messy, still L/R-balanced).
 // - Per-ship wall-boop signatures + jelly profiles. Hitbox stays undeformed.
 
@@ -59,7 +59,7 @@ import {
     spinePath,
     hexPath,
     petalPath,
-    orbitPath,
+    sealPath,
     bellPath,
     bloomPath,
     starPath,
@@ -88,12 +88,12 @@ import {
     drawRingTrail,
     drawHairlineTrail,
     drawTwinTrail,
-    drawStampTrail,
     drawTickTrail,
     drawCreaseTrail,
     drawCloudTrail,
     drawLadderTrail,
-    drawLagEllipseTrail,
+    drawVortexTrail,
+    drawHelixOrbitTrail,
     drawDashTrail,
     drawCinderTrail,
     drawRainbowRibbonTrail,
@@ -346,12 +346,16 @@ const SPINE_HITBOX = [
     { x: 0, y: 0.85, r: 0.16 },
 ];
 
-// Orbit planetoid — solid oval body only (ring / satellite are decorative).
-const ORBIT_HITBOX = [
-    { x: 0, y: -0.48, r: 0.22 },
-    { x: 0, y: -0.05, r: 0.36 },
-    { x: 0, y: 0.38, r: 0.3 },
+// Seal almond — slim stacked circles, slightly fatter than Needle.
+const SEAL_HITBOX = [
+    { x: 0, y: -0.82, r: 0.10 },
+    { x: 0, y: -0.38, r: 0.18 },
+    { x: 0, y: 0.08, r: 0.20 },
+    { x: 0, y: 0.52, r: 0.16 },
+    { x: 0, y: 0.92, r: 0.10 },
 ];
+
+// Orbit uses Spine's bar hitbox.
 
 const SQUARE_HITBOX = (() => {
     const circles = [];
@@ -619,8 +623,53 @@ function drawSquareHull(ctx, ship, screenY, time = performance.now(), profile = 
     ctx.restore();
 }
 
-function drawStampHull(ctx, ship, screenY, time) {
-    drawSquareHull(ctx, ship, screenY, time, 'stamp');
+/** Slim signet almond — hard ink, inner crease, hollow seal near the nose. */
+function drawSealHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.9 + 0.06 * Math.sin(time * 0.0056) + 0.04 * Math.sin(time * 0.0088);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.2 * turn;
+    const ry = r * stretch;
+
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.55, 'seal');
+    const baseAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+
+    sealPath(ctx, 0, 0, r, stretch);
+    ctx.fillStyle = color.ink;
+    ctx.fill();
+
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.28 : breath * 0.35);
+    sealPath(ctx, 0, r * 0.04, r * 0.52, stretch);
+    ctx.fillStyle = color.ink55;
+    ctx.fill();
+
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.4 : breath * 0.45);
+    ctx.strokeStyle = color.ink55;
+    ctx.lineWidth = Math.max(0.7, r * 0.045);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -ry * 0.92);
+    ctx.lineTo(0, ry * 0.72);
+    ctx.stroke();
+
+    const markY = -ry * 0.52;
+    const markR = r * 0.11;
+    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
+    ctx.strokeStyle = color.ink;
+    ctx.lineWidth = Math.max(1, r * 0.055);
+    ctx.beginPath();
+    ctx.arc(0, markY, markR, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = baseAlpha * (jelly ? 0.55 : breath * 0.7);
+    ctx.fillStyle = color.ink55;
+    ctx.beginPath();
+    ctx.arc(0, markY, markR * 0.38, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
 }
 
 /** Orbital core: solid disc + thin ring; halo jelly = tiny orbital wobble. */
@@ -722,60 +771,27 @@ function drawSpineHull(ctx, ship, screenY, time = performance.now()) {
 }
 
 /**
- * Orbit planetoid — solid oval body, thin tilted ring, one crawling satellite.
- * Distinct from Halo (round core + circular tick ring): elongated body + tilt.
+ * Orbit hull — same vertical bar as Spine; helix wake is what sets it apart.
  */
 function drawOrbitHull(ctx, ship, screenY, time = performance.now()) {
-    const breath = 0.92 + 0.04 * Math.sin(time * 0.0046);
+    const breath = 0.9 + 0.05 * Math.sin(time * 0.0052);
+    const scale = 0.98 + 0.02 * Math.sin(time * 0.004);
+    const r = ship.radius * 0.95 * scale;
     const bank = ship.bank ?? 0;
-    const r = ship.radius * 0.95;
     const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
-    const stretch = 1 + 0.14 * turn;
+    const stretch = 1 + 0.15 * turn;
 
-    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.75, 'orbit');
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.55, 'orbit');
     const baseAlpha = ctx.globalAlpha;
     ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
 
-    // Soft halo wash behind the body.
-    ctx.beginPath();
-    ctx.ellipse(0, r * 0.06, r * 0.95, r * 1.05 * stretch, 0, 0, Math.PI * 2);
-    ctx.fillStyle = color.ink12;
-    ctx.fill();
-
-    // Thin orbital ring (tilted) — drawn under the body so the planet reads on top.
-    const ringTilt = -0.55 + bank * 0.15;
-    const ringRx = r * 1.05;
-    const ringRy = r * 0.38 * stretch;
-    ctx.strokeStyle = color.ink;
-    ctx.lineWidth = Math.max(1.2, r * 0.1);
-    ctx.beginPath();
-    ctx.ellipse(0, r * 0.08, ringRx, ringRy, ringTilt, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Solid planetoid body.
-    orbitPath(ctx, 0, 0, r, stretch);
+    spinePath(ctx, 0, 0, r, stretch);
     ctx.fillStyle = color.ink;
     ctx.fill();
 
-    // Soft highlight on the body.
     ctx.globalAlpha = baseAlpha * (jelly ? 0.28 : breath * 0.35);
-    ctx.beginPath();
-    ctx.ellipse(0, -r * 0.12 * stretch, r * 0.28, r * 0.38 * stretch, 0, 0, Math.PI * 2);
+    spinePath(ctx, 0, r * 0.05, r * 0.45, stretch);
     ctx.fillStyle = color.ink55;
-    ctx.fill();
-
-    // Single satellite bead crawling the ring (slow).
-    const phase = time * 0.0022 + (jelly ? jelly.shake * 3 : 0);
-    const satX = Math.cos(phase) * ringRx;
-    const satY = Math.sin(phase) * ringRy;
-    const c = Math.cos(ringTilt);
-    const s = Math.sin(ringTilt);
-    const sx = satX * c - satY * s;
-    const sy = satX * s + satY * c + r * 0.08;
-    ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
-    ctx.beginPath();
-    ctx.arc(sx, sy, r * 0.14, 0, Math.PI * 2);
-    ctx.fillStyle = color.ink;
     ctx.fill();
 
     ctx.restore();
@@ -2119,14 +2135,14 @@ const dusk = {
 const seal = {
     id: 'seal',
     name: 'Seal',
-    blurb: 'Pressed tiles. Peels at the wall.',
-    hitbox: SQUARE_HITBOX,
+    blurb: 'Pressed almond. A vortex street that peels.',
+    hitbox: SEAL_HITBOX,
     wallTrailMode: 'blot',
     ...iap('seal'),
     ...LONG_WAKE,
-    drawHull: drawStampHull,
+    drawHull: drawSealHull,
     drawTrail(ctx, ship, trail, toScreenY) {
-        drawStampTrail(ctx, ship, trail, toScreenY, { blotBoop: true });
+        drawVortexTrail(ctx, ship, trail, toScreenY, { blotBoop: true });
     },
 };
 
@@ -2220,13 +2236,14 @@ const spine = {
 const orbit = {
     id: 'orbit',
     name: 'Orbit',
-    blurb: 'Planetoid. A lagging orbit wake.',
-    hitbox: ORBIT_HITBOX,
+    blurb: 'Upright. The path itself orbits.',
+    hitbox: SPINE_HITBOX,
     wallTrailMode: 'lag',
     ...iap('orbit'),
+    ...LONG_WAKE,
     drawHull: drawOrbitHull,
     drawTrail(ctx, ship, trail, toScreenY) {
-        drawLagEllipseTrail(ctx, ship, trail, toScreenY);
+        drawHelixOrbitTrail(ctx, ship, trail, toScreenY);
     },
 };
 

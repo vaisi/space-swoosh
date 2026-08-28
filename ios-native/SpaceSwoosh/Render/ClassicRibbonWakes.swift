@@ -1,5 +1,5 @@
 // ClassicRibbonWakes.swift
-// Changes: Android Wisp / Cinder / Lag / Crease / Dash — reused paths, no per-frame alloc.
+// Changes: Orbit HelixTrailNode; Android Wisp / Cinder / Lag / Crease / Dash.
 
 import SpriteKit
 
@@ -253,6 +253,109 @@ final class LagTrailNode: SKNode, SkinTrail {
             node.strokeColor = BrandColors.UI.ink
             node.lineWidth = max(0.9, r * (0.04 + 0.03 * p.opacity))
             node.alpha = p.opacity * 0.8 * (0.35 + 0.65 * leave)
+        }
+        for k in ti..<ticks.count { ticks[k].isHidden = true }
+    }
+}
+
+final class HelixTrailNode: SKNode, SkinTrail {
+    var node: SKNode { self }
+    private let ribbon: SKShapeNode
+    private let hair: SKShapeNode
+    private let ticks: [SKShapeNode]
+    private var wake: [WakeSample]
+    private var helix: [WakeSample]
+    private var left: [CGPoint]
+    private var right: [CGPoint]
+    private let maxPoints: Int
+
+    init(maxPoints: Int) {
+        self.maxPoints = max(maxPoints, 8)
+        wake = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: self.maxPoints)
+        helix = wake
+        left = Array(repeating: .zero, count: self.maxPoints)
+        right = Array(repeating: .zero, count: self.maxPoints)
+        ribbon = WakeCollect.shapeNode(z: 4.8)
+        hair = WakeCollect.shapeNode(z: 5)
+        hair.fillColor = .clear
+        hair.lineCap = .round
+        ticks = (0..<40).map { _ in
+            let n = WakeCollect.shapeNode(z: 5.1)
+            n.fillColor = .clear
+            n.lineCap = .round
+            return n
+        }
+        super.init()
+        addChild(ribbon)
+        addChild(hair)
+        for t in ticks { addChild(t) }
+    }
+
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) not used") }
+
+    func sync(_ ctx: TrailSyncContext) {
+        let n = WakeCollect.points(ctx, into: &wake, capacity: maxPoints)
+        guard n >= 2 else {
+            ribbon.isHidden = true; hair.isHidden = true
+            ribbon.path = nil; hair.path = nil
+            for t in ticks { t.isHidden = true }
+            return
+        }
+        let r = ctx.shipRadius
+        let energy = WallJelly.energy(elapsedMs: ctx.jellyElapsedMs)
+        let last = CGFloat(n - 1)
+        for i in 0..<n {
+            let src = wake[i]
+            let along = CGFloat(i) / last
+            let prev = wake[max(0, i - 1)]
+            let next = wake[min(n - 1, i + 1)]
+            let dx = next.x - prev.x
+            let dy = next.y - prev.y
+            let len = hypot(dx, dy)
+            let inv = len > 0.0001 ? 1 / len : 1
+            let nx = -dy * inv
+            let ny = dx * inv
+            let leave = 1 - along
+            let rad = r * (0.12 + 0.22 * leave) * (1 - energy * 0.45 * along) * (0.7 + 0.3 * src.opacity)
+            let phase = along * .pi * 2 * 1.65 + energy * 1.8 * leave
+            var p = src
+            p.x = src.x + nx * sin(phase) * rad
+            p.y = src.y + ny * sin(phase) * rad
+            p.along = along
+            helix[i] = p
+        }
+        ribbon.path = WakeCollect.ribbonPath(pts: helix, count: n, widthAt: { i in
+            let t = CGFloat(i) / last
+            let age = 1 - self.helix[i].opacity
+            return r * (0.1 + 0.18 * t) * (0.5 + 0.5 * self.helix[i].opacity) * (1 + age * 0.25 + energy * 0.18)
+        }, left: &left, right: &right)
+        ribbon.fillColor = BrandColors.UI.ink
+        ribbon.alpha = 0.2
+        ribbon.isHidden = false
+        hair.path = ClassicWakePath.smooth(helix, count: n)
+        hair.strokeColor = BrandColors.UI.ink
+        hair.lineWidth = max(0.8, r * 0.05)
+        hair.alpha = 0.58
+        hair.isHidden = false
+
+        let tickStep = max(1, n / 22)
+        var ti = 0
+        for i in stride(from: 0, to: n, by: tickStep) {
+            guard ti < ticks.count else { break }
+            let p = helix[i]
+            let leave = pow(1 - p.along, 0.85)
+            let rx = r * (0.16 + (1 - p.opacity) * 0.38) * (0.4 + 0.6 * leave) * (1 + energy * 0.12)
+            let ry = rx * (0.38 + 0.16 * sin(p.along * .pi * 3))
+            let node = ticks[ti]
+            ti += 1
+            node.isHidden = false
+            node.position = CGPoint(x: p.x, y: p.y)
+            node.zRotation = -p.angle
+            node.path = CGPath(ellipseIn: CGRect(x: -rx, y: -ry, width: max(1, rx * 2), height: max(1, ry * 2)), transform: nil)
+            node.strokeColor = BrandColors.UI.ink
+            node.lineWidth = max(0.8, r * (0.035 + 0.025 * p.opacity))
+            node.alpha = p.opacity * 0.82 * (0.32 + 0.68 * leave)
         }
         for k in ti..<ticks.count { ticks[k].isHidden = true }
     }

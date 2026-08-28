@@ -1,4 +1,4 @@
-<!-- Changes: Wind currents are flowing dashes (same on iOS as Android). -->
+<!-- Changes: Seal narrower paired vortex; Orbit uses Spine bar hull. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -23,11 +23,11 @@
 > Cycle ships on the home screen (◀ / ▶) or pick one under
 > Options → Ship; your choice is saved. The
 > whimsical ships (Lantern through Rook) show their colors on the hangar tile,
-> not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s satellite, and
+> not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s Spine bar, and
 > **Nyan**’s gray crescent with pink spots match Android in play (hangar cards
 > freeze that pose). The other hulls show the same **soft** ink wash and crease as
 > Android (a light halo, not a solid white ring). Each hangar card also shows a short sample of that ship’s wake
-> under the hull — chevrons, rings, stamps, dashes, and the rest of the
+> under the hull — chevrons, rings, commas, dashes, and the rest of the
 > family, not a column of dots. The
 > four always-free ships are **Focus**, **Flicker**, **Ember**, and **Saber**.
 > The rest of the hangar is locked until you buy (price on the tile) or Restore
@@ -348,14 +348,14 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Needle** | Ultra-thin lance with a single hairline thread. Wall hits flex the tip and ripple the old end of the wake. |
 | **Echo** | Open crescent; twin lines desync briefly on a boop (one sticks, one springs late), then snap back in phase. |
 | **Dusk** | Echo’s crescent with a denser, more scattered violet cloud (not ringed puffs). Wall hits send a milder dying ripple through the specks. |
-| **Seal** | Square hull; stamps little tiles — denser blot at the wall, then peels like a rubber seal. |
+| **Seal** | Slim almond signet with a pressed circle at the nose; a paired vortex street of ink commas that crush then peel down the wake. |
 | **Hatch** | Square hull; short lateral hatch marks that stretch toward the wall on impact. |
 | **Trace** | Square hull; one thin hairline that springs on a bounce. |
 | **Ring** | Square hull; blooming rings (squash only — not Halo’s bubble pop). |
 | **Fold** | Solid origami kite; a long dashed crease that leaves from the hull and zigzags harder when you bank. |
 | **Mote** | Soft ink disc; a messy organic cloud of micro-dots. Wall hits send a pulse down the cloud — each older cluster pops a bit smaller. |
 | **Spine** | Tall thin bar; ladder rungs compress toward the wall on a boop. |
-| **Orbit** | Small planetoid with a tilted ring and one satellite; a continuous orbital path lags behind with dense ellipse ticks. |
+| **Orbit** | Spine’s upright bar; the wake is a helical orbit around the flight path. |
 | **Ink** | Quill’s dark twin — a fine ink ribbon that flourishes hard on a wall boop (tip reverses, mid swells, a few flecks spray) while staying attached to the hull. |
 | **Flux** | Hex crystal; wake is alternating ink and Signal-Blue dashes that stretch on a wall hit. |
 | **Cinder** | Soft petal; a calm warm ember ribbon that cools into soft ash dots (blue glints mainly on a wall hit). |
@@ -376,12 +376,11 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Merlin** | An ultra-slim spark-falcon with a prism heart and orbiting stars. A hairline gold comet sheds a cascade of 4-point stars; a wall hit bursts the sky. Stars and winglets are looks only. |
 | **Rook** | A slim four-vane skiff in ink, with a bronze-slit beak that goes gold on night paper. Twin ink ribbons and rust sparkles pour from the vanes; a wall hit flashes the four blades. Vanes are looks only. |
 
-Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Ink,
+Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Orbit, Ink,
 Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, and Rook leave a longer wake in play so the far end runs off the screen. The
 home-screen ship picture stays short so it does not cover the title.
 
-Seal, Hatch, Trace, and Ring collide as the box you see. **Orbit** collides on its solid
-planetoid body (the ring and satellite are looks only). **Lantern** collides on the
+Hatch, Trace, and Ring collide as the box you see. **Seal** collides on its slim almond (the nose mark is looks only). **Orbit** collides on the same upright bar as Spine. **Lantern** collides on the
 bell (tentacles are looks only). **Bloom** collides on the central soap disc (orbiting
 bubbles are looks only). **Sprout** collides on the seed (leaves are looks only). **Koi**
 collides on the body (the tail is looks only). **Luna** collides on the inner moth
@@ -395,7 +394,7 @@ collides on the fuselage (the four vanes are looks only). On a side-wall bounce,
 **every** ship reacts —
 animation only; the hitbox does not squash. Each vessel has its own feel: some
 squash like jelly, Needle flexes, Halo wobbles in a tiny orbit, Shard cracks,
-Seal plants like rubber.
+Seal flexes then peels.
 
 Every ship’s wake also reacts to a wall hit. Same bounce clock, different
 signature per vessel — pile, spring, whip, scatter, shatter, bubble, blot, and

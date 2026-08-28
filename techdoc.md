@@ -1,6 +1,6 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: iOS drift current draws Android Canvas hairlines (flow, no pulse). -->
+<!-- Changes: Seal narrower paired vortex; Orbit uses Spine bar hull. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -21,7 +21,7 @@
 > `shipSkinId` persists (unknown id stays **Flicker**).
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
-> 19 `skipHullCache` hulls (Nyan, Halo, Orbit, plus `Lantern`…`Rook`) share
+> 18 `skipHullCache` hulls (Nyan, Halo, plus `Lantern`…`Rook`) share
 > `LiveHullPaint` / `ClassicHullPaint` for play and hangar stills (t = 1400 ms).
 > Other ink hulls bake Android wash + highlight + crease. Native hangar tiles bake Android’s
 > short `previewWake` (12 pts, span 3.4r) under a banked hull. Dedicated wakes (filaments, soap rings,
@@ -890,7 +890,7 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `halo` | Core disc + orbit ring with ticks | Expanding hollow rings | Soap-bubble inflate/stack/pop; orbital wobble |
 | `needle` | Thin lance (`needlePath`) | Single hairline stroke | Whip flex + tip ripples |
 | `echo` | Open crescent (`crescentPath`) | Twin parallel hairlines | Twin desync (one sticks, one late), then snap |
-| `seal` | Square (`squarePath`) | Dense filled square stamps | Rubber blot at contact, then peel |
+| `seal` | Slim vesica almond (`sealPath`) + pressed nose circle | Paired aft vortex commas + hairline seam | Wet flex; crush-then-peel traveling pulse |
 | `hatch` | Square | Lateral hatch marks | Marks stretch toward the wall |
 | `trace` | Square | Hairline stroke | Spring along the line |
 | `ring` | Square | Expanding rings | Ring squash only (no Halo bubble pop) |
@@ -898,7 +898,7 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `mote` | Soft ink disc | Denser micro-dot cloud, long wake | Hull-to-tail `ripple` (`rippleScale` 0.55) |
 | `dusk` | Echo crescent | Mote cloud in saber purple, 2× specks, along-wake dust scatter | Milder dying `ripple` (`rippleScale` 0.4) |
 | `spine` | Vertical bar (`spinePath`) | Ladder rungs + thin spine | Rungs compress toward the wall |
-| `orbit` | Planetoid oval + tilted ring + satellite | Continuous lagging orbital ribbon + dense ellipse ticks | Soft lag shove; oval wobble |
+| `orbit` | Spine bar (`spinePath` / `orbitPath`) | Helical elliptical ribbon + hairline + stretched ticks | Lag tighten/precess; bar shear |
 | `ink` | Flicker tear | Fine dark ribbon | Tip/mid reverse on boop; hull end stays attached |
 | `flux` | Hex crystal (`hexPath`) | Alternating ink / Signal-Blue dashes | Dashes stretch then snap (`flick`) |
 | `cinder` | Soft petal (`petalPath`) | Calm ember ribbon + cool ash dots + ink hairline | Soft burst on boop (`cinder`); Signal glints |
@@ -925,7 +925,7 @@ response on **every** hull via `beginHullFrame` in `hulls.js` (plant + shake +
 local scale / shear); the hitbox does not deform.
 
 **Jelly profiles** (optional 7th arg to `beginHullFrame` / `wallJellyDeform`):
-`default`, `needle`, `halo`, `shard`, `stamp`, `fold`, `spine`, `mote`, `orbit`,
+`default`, `needle`, `halo`, `shard`, `stamp`, `seal`, `fold`, `spine`, `mote`, `orbit`,
 `flux`, `cinder`, `lantern`, `bloom`, `lyra`, `sprout`, `plume`, `koi`, `spore`, `boreal`, `luna`, `wish`, `darner`, `puff`, `argus`, `chime`, `merlin`, `rook`.
 
 Every skin declares `wallTrailMode`. On a sidewall bounce, `wallTrailDeform` in
@@ -984,14 +984,14 @@ along the path (dawn: indigo tip → persimmon hull) and `fletchPath` ogive arro
 (`trailTailOffset` 0.32 into the nock). Optional skin fields
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
 `1/360`; Quill / Fletch / Shard / Seal / Hatch / Trace / Fold / Spine / Mote / Pulse /
-Echo / Dusk / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime / Merlin / Rook: 200 pts, fade `1/420` so the tip leaves the viewport).
+Echo / Dusk / Orbit / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime / Merlin / Rook: 200 pts, fade `1/420` so the tip leaves the viewport).
 Menu preview always uses the short sample wake so it never covers the title
 (native iOS hangar tiles bake the same `previewWake` via `PreviewWakePaint`).
 iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
-Fold, Needle, Halo, Square, Mote, Spine, Orbit, Nyan, Fletch, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, and Rook have dedicated drawers.
-**Orbit** hitbox is the solid oval body only (ring/satellite decorative).
+Fold, Needle, Halo, Square, Seal, Mote, Spine, Orbit, Nyan, Fletch, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, and Rook have dedicated drawers.
+**Seal** hitbox is the slim almond (`SEAL_HITBOX`). **Orbit** hitbox is Spine’s bar (`SPINE_HITBOX`).
 **Lantern** hitbox is the bell only (tentacles decorative). **Bloom** hitbox is
 the central soap disc (`r` 0.70; films / satellites decorative). **Sprout** is the
 seed only (leaves decorative). **Koi** is the body only (tail decorative).
@@ -1267,14 +1267,14 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Tick / Crease / Ladder / Lag / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current SKShapeNode hairlines (Android dash + offset), popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Vortex / Tick / Crease / Ladder / Lag / Helix / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current SKShapeNode hairlines (Android dash + offset), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
 (smudge + body). Saber wake: three **reused** ribbons (bloom / body / core)
-plus a spark pool. Focus / Ember use pooled discs. The 19 live ships reuse a
+plus a spark pool. Focus / Ember use pooled discs. The 18 live ships reuse a
 fixed fill/stroke/disc pool (16 / 24 / 24) and rewrite `path` / position each frame; lantern-family
 wakes reuse 3 filament `SKShapeNode`s plus a plankton sprite pool sized to
 `slots × (5×density + 2)` (Luna ~2000), painted **newest-first** so the near-hull
@@ -1297,7 +1297,7 @@ Cruise travel is `snappyHz * feelSpeed` (1.0, matches Android/web). Do not retun
 `maxStepsPerFrame` from App Preview lag.
 Phase B stress scene held 120 Hz. Full roster: 41 ships with JS circle packs,
 matching hull bakes / `LiveHullPaint` (play + picker), and Android trail + `wallTrailDeform`
-modes (incl. Focus ripple + Ember twin-dots). The 19 live ships use dedicated wake
+modes (incl. Focus ripple + Ember twin-dots). The 18 live ships use dedicated wake
 drawers and `trailTailOffset`. Hull jelly does not
 deform the hitbox. Shield smash stays a scaled circle. Ship IAP / Restore
 uses RevenueCat (`UNLOCK_ALL_SKINS` false — store hangar). Slice D feel remains: Arc/zigzag, overlap spawn, cluster

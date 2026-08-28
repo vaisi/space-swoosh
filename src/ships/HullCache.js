@@ -1,6 +1,8 @@
 // HullCache.js
 // Phase 1: bake each skin's resting hull to an offscreen canvas; blit via drawImage.
 // Changes:
+// - Seal jelly profile `seal` (halfScale 0.55). Orbit Spine bar (cached);
+//   HULL_META still listed for the jelly profile.
 // - Rook skipHullCache; HULL_META still listed for the jelly profile.
 // - Merlin skipHullCache; HULL_META still listed for the jelly profile.
 // - Darner / Puff / Argus / Chime plus Luna / Wish / Lantern / Bloom / Lyra /
@@ -36,14 +38,14 @@ const HULL_META = {
     saber: { profile: 'needle', halfScale: 0.55 },
     echo: { profile: 'default', halfScale: 0.85 },
     dusk: { profile: 'default', halfScale: 0.85 },
-    seal: { profile: 'stamp', halfScale: 0.82 },
+    seal: { profile: 'seal', halfScale: 0.55 },
     hatch: { profile: 'default', halfScale: 0.82 },
     trace: { profile: 'default', halfScale: 0.82 },
     ring: { profile: 'default', halfScale: 0.82 },
     fold: { profile: 'fold', halfScale: 0.85 },
     mote: { profile: 'mote', halfScale: 0.9 },
     spine: { profile: 'spine', halfScale: 0.55 },
-    orbit: { profile: 'orbit', halfScale: 0.75 },
+    orbit: { profile: 'orbit', halfScale: 0.55 },
     ink: { profile: 'default', halfScale: 0.85 },
     flux: { profile: 'flux', halfScale: 0.72 },
     cinder: { profile: 'cinder', halfScale: 0.85 },

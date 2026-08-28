@@ -1,5 +1,5 @@
 // SkinCatalog.swift
-// Changes: Rook four-vane spark-skiff added after Merlin.
+// Changes: Seal slim almond + paired aft vortex; Orbit Spine bar + helix wake.
 // UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
 
 import Foundation
@@ -23,22 +23,22 @@ enum WallTrailMode {
 
 enum JellyProfile: String {
     case standard = "default"
-    case needle, halo, shard, stamp, fold, spine, mote, orbit, flux, cinder
+    case needle, halo, shard, stamp, seal, fold, spine, mote, orbit, flux, cinder
     case lantern, bloom, lyra, sprout, plume, koi, spore, boreal
     case luna, wish, darner, puff, argus, chime, merlin, rook
 }
 
 enum HullKind: Hashable {
     case circle, tear, dart, fletch, shard, needle, crescent, nyan
-    case square, stamp, fold, spine, hex, petal, orbit, mote, halo
+    case square, stamp, seal, fold, spine, hex, petal, orbit, mote, halo
     case bell, bloom, star, seed, wing, koi, cap, curtain, moth
     case wish, darner, puff, argus, chime, merlin, rook
 }
 
 enum TrailKind {
     case dots, twinDots, ribbon, rainbow, horizon, wisp, chevron
-    case rings, hairline, saber, twin, stamp, tick, crease, cloud
-    case ladder, lag, dash, cinder, lantern, bloom, lyra, plume
+    case rings, hairline, saber, twin, stamp, vortex, tick, crease, cloud
+    case ladder, lag, helix, dash, cinder, lantern, bloom, lyra, plume
     case koi, boreal, luna, wish, darner, puff, argus, chime, merlin, rook
 }
 
@@ -165,8 +165,8 @@ enum SkinCatalog {
           pad: 3.4, half: 0.85, jelly: .standard, iap: true, pts: longPts, fade: longFade),
         s(.dusk, "Dusk", "Crescent. A violet cloud.", H.crescent, .ripple, .crescent, .cloud,
           pad: 3.4, half: 0.85, jelly: .standard, iap: true, pts: longPts, fade: longFade, ripple: true),
-        s(.seal, "Seal", "Pressed tiles. Peels at the wall.", H.square, .blot, .stamp, .stamp,
-          pad: 3.0, half: 0.82, jelly: .stamp, iap: true, pts: longPts, fade: longFade),
+        s(.seal, "Seal", "Pressed almond. A vortex street that peels.", H.seal, .blot, .seal, .vortex,
+          pad: 3.4, half: 0.55, jelly: .seal, iap: true, pts: longPts, fade: longFade),
         s(.hatch, "Hatch", "Lateral marks. Stretches on impact.", H.square, .pile, .square, .tick,
           pad: 3.0, half: 0.82, jelly: .standard, iap: true, pts: longPts, fade: longFade),
         s(.trace, "Trace", "One thin line. Springs on a bounce.", H.square, .spring, .square, .hairline,
@@ -179,8 +179,8 @@ enum SkinCatalog {
           pad: 2.4, half: 0.9, jelly: .mote, iap: true, pts: longPts, fade: longFade, ripple: true),
         s(.spine, "Spine", "Upright. A ladder wake.", H.spine, .ladder, .spine, .ladder,
           pad: 3.6, half: 0.55, jelly: .spine, iap: true, pts: longPts, fade: longFade),
-        s(.orbit, "Orbit", "Planetoid. A lagging orbit wake.", H.orbit, .lag, .orbit, .lag,
-          pad: 3.2, half: 0.75, jelly: .orbit, iap: true, live: true),
+        s(.orbit, "Orbit", "Upright. The path itself orbits.", H.orbit, .lag, .orbit, .helix,
+          pad: 3.6, half: 0.55, jelly: .orbit, iap: true, pts: longPts, fade: longFade),
         s(.ink, "Ink", "Calligraphic. Tip reverses on boop.", H.tear, .script, .tear, .ribbon,
           pad: 3.2, half: 0.85, jelly: .standard, iap: true, pts: longPts, fade: longFade,
           width: 0.62, alpha: 0.9, smudge: true, reverse: true),
@@ -396,10 +396,12 @@ private enum H {
         .init(x: 0, y: 0.1, r: 0.22), .init(x: 0, y: 0.5, r: 0.2),
         .init(x: 0, y: 0.85, r: 0.16),
     ]
-    static let orbit: [HitCircle] = [
-        .init(x: 0, y: -0.48, r: 0.22), .init(x: 0, y: -0.05, r: 0.36),
-        .init(x: 0, y: 0.38, r: 0.3),
+    static let seal: [HitCircle] = [
+        .init(x: 0, y: -0.82, r: 0.10), .init(x: 0, y: -0.38, r: 0.18),
+        .init(x: 0, y: 0.08, r: 0.20), .init(x: 0, y: 0.52, r: 0.16),
+        .init(x: 0, y: 0.92, r: 0.10),
     ]
+    static let orbit: [HitCircle] = spine
     static let square: [HitCircle] = {
         var out: [HitCircle] = []
         for iy in -1...1 {

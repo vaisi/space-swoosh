@@ -1,5 +1,5 @@
 // PreviewWakePaint.swift
-// Changes: Rook hangar sample is twin bronze/gold filaments + ember diamonds.
+// Changes: Seal paired aft vortex commas and Orbit helix hangar samples.
 
 import CoreGraphics
 import UIKit
@@ -45,6 +45,8 @@ enum PreviewWakePaint {
             rings(cg, pts, radius, colors: [BrandColors.UI.ink], fill: false)
         case .stamp:
             stamps(cg, pts, radius)
+        case .vortex:
+            vortex(cg, pts, radius)
         case .tick:
             ticks(cg, pts, radius)
         case .crease:
@@ -59,6 +61,8 @@ enum PreviewWakePaint {
             ladder(cg, pts, radius)
         case .lag:
             lag(cg, pts, &left, &right, radius)
+        case .helix:
+            helix(cg, pts, &left, &right, radius)
         case .dash:
             dashes(cg, pts, radius)
         case .cinder:
@@ -371,6 +375,42 @@ enum PreviewWakePaint {
         }
     }
 
+    private static func vortex(_ cg: CGContext, _ pts: [WakeSample], _ r: CGFloat) {
+        strokePoly(cg, pts.map { CGPoint(x: $0.x, y: $0.y) }, width: max(0.7, r * 0.045), color: BrandColors.UI.ink, alpha: 0.42)
+        let n = pts.count
+        let start = n - 2
+        guard start >= 0 else { return }
+        for i in stride(from: start, through: 0, by: -2) {
+            let p = pts[i]
+            let rad = r * (0.1 + 0.16 * p.opacity)
+            let prev = pts[max(0, i - 1)]
+            let next = pts[min(n - 1, i + 1)]
+            let dx = next.x - prev.x
+            let dy = next.y - prev.y
+            let len = hypot(dx, dy)
+            let inv: CGFloat = len > 0.0001 ? 1 / len : 1
+            let tx = dx * inv
+            let ty = dy * inv
+            let aft = r * 0.38
+            let sep = r * (0.09 + 0.03 * p.opacity)
+            cg.saveGState()
+            cg.translateBy(x: p.x - tx * aft, y: p.y - ty * aft)
+            cg.rotate(by: p.angle)
+            for side in [CGFloat(1), CGFloat(-1)] {
+                cg.saveGState()
+                cg.translateBy(x: side * sep, y: 0)
+                cg.setFillColor(BrandColors.UI.ink.withAlphaComponent(p.opacity * 0.86).cgColor)
+                cg.move(to: .zero)
+                cg.addQuadCurve(to: CGPoint(x: side * rad * 0.42, y: rad * 1.05), control: CGPoint(x: side * rad * 1.25, y: rad * 0.28))
+                cg.addQuadCurve(to: .zero, control: CGPoint(x: side * rad * 0.08, y: rad * 0.38))
+                cg.closePath()
+                cg.fillPath()
+                cg.restoreGState()
+            }
+            cg.restoreGState()
+        }
+    }
+
     private static func merlin(_ cg: CGContext, _ pts: [WakeSample], _ r: CGFloat) {
         var left = Array(repeating: CGPoint.zero, count: pts.count)
         var right = Array(repeating: CGPoint.zero, count: pts.count)
@@ -482,6 +522,49 @@ enum PreviewWakePaint {
             cg.setStrokeColor(BrandColors.UI.ink.withAlphaComponent(p.opacity * 0.55).cgColor)
             cg.setLineWidth(max(0.9, r * 0.04))
             cg.strokeEllipse(in: CGRect(x: p.x - rx, y: p.y - ry, width: rx * 2, height: ry * 2))
+        }
+    }
+
+    private static func helix(
+        _ cg: CGContext,
+        _ pts: [WakeSample],
+        _ left: inout [CGPoint],
+        _ right: inout [CGPoint],
+        _ r: CGFloat
+    ) {
+        var helixPts = pts
+        let last = CGFloat(max(pts.count - 1, 1))
+        for i in 0..<pts.count {
+            let src = pts[i]
+            let along = CGFloat(i) / last
+            let prev = pts[max(0, i - 1)]
+            let next = pts[min(pts.count - 1, i + 1)]
+            let dx = next.x - prev.x
+            let dy = next.y - prev.y
+            let len = hypot(dx, dy)
+            let inv = len > 0.0001 ? 1 / len : 1
+            let nx = -dy * inv
+            let ny = dx * inv
+            let leave = 1 - along
+            let rad = r * (0.12 + 0.22 * leave) * (0.7 + 0.3 * src.opacity)
+            let phase = along * .pi * 2 * 1.65
+            helixPts[i].x = src.x + nx * sin(phase) * rad
+            helixPts[i].y = src.y + ny * sin(phase) * rad
+            helixPts[i].along = along
+        }
+        fillRibbon(cg, helixPts, &left, &right, widthAt: taper(helixPts, r * 0.22), color: BrandColors.UI.ink, alpha: 0.2)
+        strokePoly(cg, helixPts.map { CGPoint(x: $0.x, y: $0.y) }, width: max(0.8, r * 0.05), color: BrandColors.UI.ink, alpha: 0.58)
+        for (i, p) in helixPts.enumerated() where i.isMultiple(of: 2) {
+            let leave = pow(1 - p.along, 0.85)
+            let rx = r * (0.16 + (1 - p.opacity) * 0.38) * (0.4 + 0.6 * leave)
+            let ry = rx * (0.38 + 0.16 * sin(p.along * .pi * 3))
+            cg.setStrokeColor(BrandColors.UI.ink.withAlphaComponent(p.opacity * (0.32 + 0.68 * leave)).cgColor)
+            cg.setLineWidth(max(0.8, r * 0.035))
+            cg.saveGState()
+            cg.translateBy(x: p.x, y: p.y)
+            cg.rotate(by: p.angle)
+            cg.strokeEllipse(in: CGRect(x: -rx, y: -ry, width: max(1, rx * 2), height: max(1, ry * 2)))
+            cg.restoreGState()
         }
     }
 

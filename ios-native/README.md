@@ -1,7 +1,7 @@
 <!--
  ios-native/README.md
  Changes: Drift current uses Android Canvas hairlines (SKShapeNode dashes);
- 41-ship roster (Rook spark-skiff after Merlin); 19 live-draw hulls.
+ 41-ship roster (Rook spark-skiff after Merlin); 18 live-draw hulls.
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -23,8 +23,8 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
 - Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
 - Hangar stills bake Android `previewWake` (12 pts, span 3.4r, never the long in-play wake) then a banked hull. Live hulls use `LiveHullPaint` / `ClassicHullPaint` at t=1400 ms. In play, live hull warp is **not** rasterized; a 3.2r pad keeps orbiting ornaments (Bloom satellites, Luna dust) in frame. Pools: 16 fills / 24 strokes / 24 discs.
-- One equipped renderer at `startRun` (do not allocate a trail node per ship). Richer baked silhouettes (wash + highlight + crease) for static ink hulls; wash/ring α is Canvas `globalAlpha × fillStyle.alpha` so `ink12`/`ink30` halos stay translucent. **19** live-draw (`skipHullCache`: Nyan, Halo, Orbit, Lantern…Rook)
-- Classic wakes (Wisp sparks, Shard chevrons, Halo/Ring hollow rings, Dusk violet cloud at Android 6–9 dots/point, Seal stamps, Hatch ticks, Fold crease, Spine ladder, Orbit lag ellipses, Flux dashes, Cinder ember/ash) are dedicated drawers — not `ParticleWakeField`
+- One equipped renderer at `startRun` (do not allocate a trail node per ship). Richer baked silhouettes (wash + highlight + crease) for static ink hulls; wash/ring α is Canvas `globalAlpha × fillStyle.alpha` so `ink12`/`ink30` halos stay translucent. **18** live-draw (`skipHullCache`: Nyan, Halo, Lantern…Rook)
+- Classic wakes (Wisp sparks, Shard chevrons, Halo/Ring hollow rings, Dusk violet cloud at Android 6–9 dots/point, Seal vortex commas, Hatch ticks, Fold crease, Spine ladder, Orbit helix, Flux dashes, Cinder ember/ash) are dedicated drawers — not `ParticleWakeField`
 - Fletch wake tucks into the nock (`trailTailOffset` 0.32); Nyan rainbow starts under the hull (`0`)
 - Live-ship wakes are dedicated drawers (teal/gold filaments + plankton, soap rings, aurora strata, peacock stamps, …). Sprout/Spore/Luna reuse the lantern filament+cloud with Android palettes. Plankton pool is `slots × (5×density + 2)`, painted newest-first (no 600 cap). Bloom soap rings use `dense(..., subdiv: 1)` like Android.
 - Focus wake is **ripple** dots; Ember is **twin dotted traces**. Long wakes 200 pts / fade `1/420`; Saber/Nyan 160 / `1/360`. Live ships tuck the wake with per-skin `trailTailOffset`

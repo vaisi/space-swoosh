@@ -1,5 +1,6 @@
 // ShipSimulator.swift
 // Changes: Trail samples use the equipped skin's trailTailOffset + trailFade.
+// Jelly clock stays live through the trail wave (Seal crush/peel) after hull squash ends.
 
 import Foundation
 import CoreGraphics
@@ -167,7 +168,7 @@ struct ShipSimulator {
         }
         if world.jellyElapsedMs >= 0 {
             world.jellyElapsedMs += dt * 1000
-            if world.jellyElapsedMs >= GameConfig.Flicker.wallJellyMs {
+            if world.jellyElapsedMs >= WallJelly.trailWaveMs + 80 {
                 world.jellyElapsedMs = -1
             }
         }

@@ -1,5 +1,5 @@
 // ClassicMarkWakes.swift
-// Changes: Cloud trail uses Android 6–9 dots/point. Merlin wake lives in WishWake.
+// Changes: Seal paired aft vortex commas (crush then peel); Cloud trail uses Android 6–9 dots/point.
 
 import SpriteKit
 
@@ -297,6 +297,111 @@ final class StampTrailField: SKNode, SkinTrail {
             node.color = BrandColors.UI.ink
         }
         for i in n..<tiles.count { tiles[i].isHidden = true }
+    }
+}
+
+final class VortexTrailField: SKNode, SkinTrail {
+    var node: SKNode { self }
+    private let hair: SKShapeNode
+    private let commas: [SKShapeNode]
+    private var wake: [WakeSample]
+    private var samples: [WakeSample]
+    private let maxPoints: Int
+
+    init(maxPoints: Int) {
+        self.maxPoints = max(maxPoints, 8)
+        let slots = max(maxPoints * 2, 16)
+        wake = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: self.maxPoints)
+        samples = Array(repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1), count: slots)
+        hair = WakeCollect.shapeNode(z: 4.9)
+        hair.fillColor = .clear
+        hair.lineCap = .round
+        hair.lineJoin = .round
+        commas = (0..<slots).map { _ in
+            let n = WakeCollect.shapeNode(z: 5)
+            n.strokeColor = .clear
+            n.lineCap = .round
+            n.lineJoin = .round
+            return n
+        }
+        super.init()
+        addChild(hair)
+        for c in commas { addChild(c) }
+    }
+
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) not used") }
+
+    func sync(_ ctx: TrailSyncContext) {
+        let pn = WakeCollect.points(ctx, into: &wake, capacity: maxPoints)
+        let n = WakeCollect.dense(ctx, into: &samples, capacity: samples.count, subdiv: 1)
+        guard pn >= 2, n >= 1 else {
+            hair.isHidden = true
+            hair.path = nil
+            for c in commas { c.isHidden = true }
+            return
+        }
+        let r = ctx.shipRadius
+        hair.path = ClassicWakePath.smooth(wake, count: pn)
+        hair.strokeColor = BrandColors.UI.ink
+        hair.lineWidth = max(0.7, r * 0.045)
+        hair.alpha = 0.42
+        hair.isHidden = false
+
+        let elapsed = ctx.jellyElapsedMs
+        var ci = 0
+        let step = 2
+        let start = n - 2
+        if start >= 0 {
+            for i in stride(from: start, through: 0, by: -step) {
+                guard ci + 1 < commas.count else { break }
+                let p = samples[i]
+                let crush = WallJelly.rippleEnvelope(elapsedMs: elapsed, along: p.along, width: 0.16, travel: 0.68)
+                let peelEnv = WallJelly.rippleEnvelope(
+                    elapsedMs: elapsed - 110,
+                    along: p.along,
+                    durationMs: WallJelly.trailWaveMs + 80,
+                    width: 0.18,
+                    travel: 0.82
+                )
+                let blot: CGFloat = 1 + crush * 2.15
+                let spread: CGFloat = 1 + crush * 0.45
+                let rad = r * (0.1 + 0.16 * p.opacity) * p.scale * blot
+                let prev = samples[max(0, i - 1)]
+                let next = samples[min(n - 1, i + 1)]
+                let dx = next.x - prev.x
+                let dy = next.y - prev.y
+                let len = hypot(dx, dy)
+                let inv: CGFloat = len > 0.0001 ? 1 / len : 1
+                let tx = dx * inv
+                let ty = dy * inv
+                let aft = r * 0.38
+                let sep = r * (0.09 + 0.03 * p.opacity) * p.sx * spread
+                let peelN = peelEnv * r * 0.28
+                let peelAft = peelEnv * r * 0.28
+                let alpha = p.opacity * 0.86 * (1 - peelEnv * 0.32)
+                let ax = p.x - tx * (aft + peelAft)
+                let ay = p.y - ty * (aft + peelAft)
+                for side in [CGFloat(1), CGFloat(-1)] {
+                    let path = CGMutablePath()
+                    path.move(to: CGPoint(x: side * (sep + peelN), y: 0))
+                    path.addQuadCurve(to: CGPoint(x: side * (sep + peelN) + side * rad * 0.42, y: -rad * 1.05),
+                                      control: CGPoint(x: side * (sep + peelN) + side * rad * 1.25, y: -rad * 0.28))
+                    path.addQuadCurve(to: CGPoint(x: side * (sep + peelN), y: 0),
+                                      control: CGPoint(x: side * (sep + peelN) + side * rad * 0.08, y: -rad * 0.38))
+                    path.closeSubpath()
+                    let node = commas[ci]
+                    ci += 1
+                    node.isHidden = false
+                    node.path = path
+                    node.position = CGPoint(x: ax, y: ay)
+                    node.zRotation = -p.angle
+                    node.fillColor = BrandColors.UI.ink
+                    node.alpha = alpha
+                }
+            }
+        }
+        for i in ci..<commas.count { commas[i].isHidden = true }
     }
 }
 

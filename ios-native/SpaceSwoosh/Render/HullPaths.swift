@@ -1,5 +1,5 @@
 // HullPaths.swift
-// Changes: Rook chisel-nose bar for live hangar / play hulls.
+// Changes: Seal vesica almond; Orbit shares Spine's vertical bar.
 
 import CoreGraphics
 import SpriteKit
@@ -74,7 +74,7 @@ enum HullPaths {
             path.addQuadCurve(to: CGPoint(x: cx, y: cy + ry * 0.02), control: CGPoint(x: cx + r * 0.38, y: cy + ry * 0.12))
             path.addQuadCurve(to: CGPoint(x: cx - r * 0.88, y: cy + ry * 0.62), control: CGPoint(x: cx - r * 0.38, y: cy + ry * 0.12))
             path.closeSubpath()
-        case .spine:
+        case .spine, .orbit:
             let halfW = r * 0.28
             let halfH = ry * 1.05
             path.move(to: CGPoint(x: cx - halfW, y: cy - halfH * 0.85))
@@ -96,8 +96,16 @@ enum HullPaths {
             path.addQuadCurve(to: CGPoint(x: cx - r * 0.55, y: cy + ry * 0.55), control: CGPoint(x: cx, y: cy + ry * 1.05))
             path.addQuadCurve(to: CGPoint(x: cx, y: cy - ry * 1.05), control: CGPoint(x: cx - r * 0.85, y: cy - ry * 0.15))
             path.closeSubpath()
-        case .orbit:
-            path.addEllipse(in: CGRect(x: cx - r * 0.58, y: cy - r * 0.78 * stretch, width: r * 1.16, height: r * 1.56 * stretch))
+        case .seal:
+            let w = r * 0.34
+            path.move(to: CGPoint(x: cx, y: cy - ry * 1.18))
+            path.addCurve(to: CGPoint(x: cx, y: cy + ry * 1.18),
+                          control1: CGPoint(x: cx + w, y: cy - ry * 0.42),
+                          control2: CGPoint(x: cx + w, y: cy + ry * 0.42))
+            path.addCurve(to: CGPoint(x: cx, y: cy - ry * 1.18),
+                          control1: CGPoint(x: cx - w, y: cy + ry * 0.42),
+                          control2: CGPoint(x: cx - w, y: cy - ry * 0.42))
+            path.closeSubpath()
         case .square, .stamp:
             let half = r * 0.82
             let hy = half * stretch

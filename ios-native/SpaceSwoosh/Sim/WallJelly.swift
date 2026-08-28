@@ -1,5 +1,5 @@
 // WallJelly.swift
-// Changes: Rook vane-flash jelly; Merlin glitter wobble; plantFactor matches Android PLANT_BY_PROFILE.
+// Changes: Seal wet-flex jelly; Orbit blade shear; Rook vane-flash; plantFactor matches Android.
 
 import Foundation
 import CoreGraphics
@@ -61,6 +61,13 @@ enum WallJelly {
             let peel = sin(t * .pi * 3.2) * exp(-3.0 * t)
             return HullJelly(sx: max(0.48, 1 - 0.5 * plant), sy: min(1.45, 1 + 0.35 * plant - peel * 0.08),
                              side: s, shake: peel * 0.08, shear: 0)
+        case .seal:
+            let damp = exp(-1.9 * t)
+            let flex = cos(t * .pi * 2.8) * damp
+            let peel = sin(t * .pi * 3.6) * exp(-3.0 * t)
+            return HullJelly(sx: max(0.72, 1 - 0.22 * flex),
+                             sy: min(1.55, max(0.78, 1 + 0.42 * flex - peel * 0.08)),
+                             side: s, shake: peel * 0.1, shear: flex * 0.18 + peel * 0.12)
         case .fold:
             let damp = exp(-2.2 * t)
             let crease = cos(t * .pi * 2.4) * damp
@@ -82,10 +89,10 @@ enum WallJelly {
                              side: s, shake: drift * 0.14, shear: drift * 0.08)
         case .orbit:
             let damp = exp(-2.0 * t)
-            let oval = sin(t * .pi * 3.4) * damp
-            let settle = cos(t * .pi * 5.8) * exp(-3.0 * t)
-            return HullJelly(sx: max(0.85, 1 + oval * 0.12), sy: max(0.85, 1 - oval * 0.1),
-                             side: s, shake: settle * 0.1, shear: oval * 0.15)
+            let precess = sin(t * .pi * 3.8) * damp
+            let settle = cos(t * .pi * 5.4) * exp(-3.0 * t)
+            return HullJelly(sx: max(0.88, 1 + precess * 0.08), sy: max(0.88, 1 - precess * 0.06),
+                             side: s, shake: settle * 0.12, shear: precess * 0.28)
         case .flux:
             let damp = exp(-2.4 * t)
             let facet = cos(t * .pi * 3.2) * damp
@@ -229,12 +236,16 @@ enum WallJelly {
         return exp(-1.4 * (elapsedMs / dur))
     }
 
-    static func rippleEnvelope(elapsedMs: CGFloat, along: CGFloat) -> CGFloat {
-        guard elapsedMs >= 0, elapsedMs < trailWaveMs else { return 0 }
-        let t = elapsedMs / trailWaveMs
+    static func rippleEnvelope(
+        elapsedMs: CGFloat,
+        along: CGFloat,
+        durationMs: CGFloat = trailWaveMs,
+        width: CGFloat = 0.12,
+        travel: CGFloat = 0.72
+    ) -> CGFloat {
+        guard elapsedMs >= 0, elapsedMs < durationMs else { return 0 }
+        let t = elapsedMs / durationMs
         let a = max(0, min(1, along))
-        let width: CGFloat = 0.12
-        let travel: CGFloat = 0.72
         let peakAlong = 1 - min(1, t / travel)
         let d = a - peakAlong
         let pulse = exp(-(d * d) / (2 * width * width))
@@ -249,6 +260,7 @@ enum WallJelly {
         case .halo: return 0.35
         case .shard: return 0.75
         case .stamp: return 1.1
+        case .seal: return 0.6
         case .fold: return 0.85
         case .spine: return 0.7
         case .mote: return 0.9

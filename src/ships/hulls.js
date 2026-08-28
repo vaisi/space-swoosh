@@ -1,6 +1,9 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Seal `sealPath` slim vesica almond + wet-flex jelly (replaces stamp cube).
+// - Orbit `orbitPath` is Spine's vertical bar; helix wake stays Orbit's.
+//   Orbit jelly shears the bar (precess), not an oval blob.
 // - Rook `rookPath` four-vane spark-skiff + vane-flash jelly.
 // - Merlin `merlinPath` ultra-slim spark-falcon + glitter jelly.
 // - Darner / Puff / Argus / Chime paths + jelly profiles.
@@ -21,7 +24,7 @@
 //   only mid-trail and tip so Ink's ribbon never disconnects on boop.
 // - Per-ship wall-jelly profiles: halo, shard, stamp, fold, spine, mote,
 //   orbit — plus default / needle. beginHullFrame plant follows the profile.
-// - Orbit hull: solid planetoid body (orbitPath) + ring/sat drawn in skinDefs.
+// - Orbit hull: Spine bar (`orbitPath` → `spinePath`); helix wake in trails.
 // - New hull paths: foldPath, spinePath, orbitPath helper.
 // - wallTrailDeform modes: pile/spring/whip + desync, scatter, shatter, blot,
 //   dense, ripple, flare, crease, cloud, ladder, lag, script.
@@ -183,12 +186,28 @@ export function petalPath(ctx, cx, cy, r, stretch = 1) {
     ctx.closePath();
 }
 
-/** Compact planetoid body (Orbit) — solid oval core to fill. */
-export function orbitPath(ctx, cx, cy, r, stretch = 1) {
-    const rx = r * 0.58;
-    const ry = r * 0.78 * stretch;
+/** Slim vesica / almond — Seal. Pointed both ends, not a tear or kite. */
+export function sealPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    const w = r * 0.34;
     ctx.beginPath();
-    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.moveTo(cx, cy - ry * 1.18);
+    ctx.bezierCurveTo(
+        cx + w, cy - ry * 0.42,
+        cx + w, cy + ry * 0.42,
+        cx, cy + ry * 1.18,
+    );
+    ctx.bezierCurveTo(
+        cx - w, cy + ry * 0.42,
+        cx - w, cy - ry * 0.42,
+        cx, cy - ry * 1.18,
+    );
+    ctx.closePath();
+}
+
+/** Orbit shares Spine's vertical bar. */
+export function orbitPath(ctx, cx, cy, r, stretch = 1) {
+    spinePath(ctx, cx, cy, r, stretch);
 }
 
 /** Jellyfish umbrella — pointed nose, wide cap, scalloped underside (Lantern). */
@@ -524,6 +543,20 @@ export function wallJellyDeform(ship, time = performance.now(), profile = 'defau
         };
     }
 
+    // Seal: wet flex then peel — length pulse + light shear, not a cube squash.
+    if (profile === 'seal') {
+        const damp = Math.exp(-1.9 * t);
+        const flex = Math.cos(t * Math.PI * 2.8) * damp;
+        const peel = Math.sin(t * Math.PI * 3.6) * Math.exp(-3.0 * t);
+        return {
+            sx: Math.max(0.72, 1 - 0.22 * flex),
+            sy: Math.min(1.55, Math.max(0.78, 1 + 0.42 * flex - peel * 0.08)),
+            side: j.side,
+            shake: peel * 0.1,
+            shear: flex * 0.18 + peel * 0.12,
+        };
+    }
+
     // Fold: crease — angular asymmetric squash along a fold line.
     if (profile === 'fold') {
         const damp = Math.exp(-2.2 * t);
@@ -566,17 +599,17 @@ export function wallJellyDeform(ship, time = performance.now(), profile = 'defau
         };
     }
 
-    // Orbit: planetoid — slight oval wobble, no fat blob.
+    // Orbit: bar precess — shear the Spine hull, not an oval blob.
     if (profile === 'orbit') {
         const damp = Math.exp(-2.0 * t);
-        const oval = Math.sin(t * Math.PI * 3.4) * damp;
-        const settle = Math.cos(t * Math.PI * 5.8) * Math.exp(-3.0 * t);
+        const precess = Math.sin(t * Math.PI * 3.8) * damp;
+        const settle = Math.cos(t * Math.PI * 5.4) * Math.exp(-3.0 * t);
         return {
-            sx: Math.max(0.85, 1 + oval * 0.12),
-            sy: Math.max(0.85, 1 - oval * 0.1),
+            sx: Math.max(0.88, 1 + precess * 0.08),
+            sy: Math.max(0.88, 1 - precess * 0.06),
             side: j.side,
-            shake: settle * 0.1,
-            shear: oval * 0.15,
+            shake: settle * 0.12,
+            shear: precess * 0.28,
         };
     }
 
@@ -1143,6 +1176,7 @@ const PLANT_BY_PROFILE = {
     halo: 0.35,
     shard: 0.75,
     stamp: 1.1,
+    seal: 0.6,
     fold: 0.85,
     spine: 0.7,
     mote: 0.9,
@@ -1193,7 +1227,7 @@ export function beginHullFrame(
             || profile === 'lyra' || profile === 'boreal' || profile === 'wish'
             || profile === 'puff' || profile === 'chime' || profile === 'merlin'
             || profile === 'rook' ? 0.7
-            : profile === 'needle' ? 0.55
+            : profile === 'needle' || profile === 'seal' ? 0.55
             : 0.35;
         ctx.translate(jelly.shake * (ship.radius ?? 10) * jelly.side * shakeScale, 0);
     }
