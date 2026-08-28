@@ -1,7 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Web Firebase Analytics; GA4 purchase revenue; platform on
-     high_scores / journey_replies; richer event params + epilogue events. -->
+<!-- Changes: iOS native simple rocks pick circle/triangle/square independently
+     like Android SimpleAsteroid; Journey clusterCount adds density roll. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -509,7 +509,9 @@ is **Write it here.** Session cues:
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
 (`gapSpread` 1.35), `speedMultiplier` 0.95→1.38, cluster size 1→4 (capped by
-`maxClusterCount` 3→5), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42.
+`maxClusterCount` 3→5) plus a density roll (`base + floor(random * density)`
+on Android `spawnSimpleAsteroids`; iOS `RunProfile.clusterCount` uses the
+same `base + Int(roll * dens)`), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42.
 **From level 6**, mixed rows use `planPairedRow` (corridor mid-fill, heavy
 cooldown, 2-well cap) and each day fires **one** catalog spike near ~42% of
 the goal. `comboTheme` stays off until 20. **From level 20**, speed is **not**
@@ -1317,5 +1319,9 @@ uses RevenueCat (`UNLOCK_ALL_SKINS` false — store hangar). Slice D feel remain
 `2+floor(KM/8000)`, no adjacent twin set-pieces, BH Y-pull after 1000 KM,
 milestones, local PB, night paper. C.5 combat remains:
 `CombatSimulator` fills pools from `OPEN_WORLD_UNLOCKS` / `GameConfig` (see
-`shared/game-constants.json` v2). `HazardCollision` ports JS per-type geometry.
+`shared/game-constants.json` v2). Simple rocks (`simple` clusters, paired-belt
+lane clusters, wormhole debris, `placeHazard` fallback) each pick
+circle / triangle / square independently — same as Android
+`SimpleAsteroid.shapeType`. Lane clusters jitter with `findValidPosition`
+(Android `spawnSimpleAsteroids` in a lane). `HazardCollision` ports JS per-type geometry.
 Wormhole and drift are non-lethal. No LOD tier.

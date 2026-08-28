@@ -1,5 +1,5 @@
-<!-- Changes: Web now uses Firebase Analytics like the apps; platform is stored
-     on scores/replies but not shown on the public board. -->
+<!-- Changes: iOS mixes round, triangular, and square simple asteroids in
+     clusters the same way Android does. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -42,6 +42,7 @@
 > flowing wind dashes, a pulsing two-ring shield that matches Android’s size
 > (about four seconds on iPhone),
 > the same four-point sparkle as Android with a soft blue disc behind it, blue `+FUEL`,
+> small asteroids that mix circles, triangles, and squares in clusters like Android,
 > NAV captions, a Space Log, and the same
 > run-start roll / finish
 > flyout as Android. Music loops under the run and quiets while NAV talks
@@ -121,7 +122,8 @@ along. The last day stays quiet until you pass the finish gate.
 **Levels 1–5 teach the basics**, in order:
 
 1. Empty sky — practice your turn.
-2. Simple asteroids.
+2. Simple asteroids (rounds, triangles, and squares — mixed in clusters on
+   iPhone the same as Android).
 3. A rock that drifts sideways.
 4. Blue fuel diamonds (sparkles) — take them; they refill your tank.
 5. The shield — survive a hit, smash rocks for the third star.

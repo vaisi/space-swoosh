@@ -1,7 +1,9 @@
 // RunProfile.swift
-// Changes: Hazard Lab uses advanced black-hole Y-pull (matches JS sandbox).
-// Journey L6+ mixed rows / L20+ late knobs; pairTheme + comboTheme + encounterCount from spec.
-// Open Space weather, belt density (tighter vertical pack by 5k / 12.5k / 20k), and +10% cruise are live from KM.
+// Changes: Journey/Lab clusterCount adds Int(roll * dens) like Android
+// spawnSimpleAsteroids. Hazard Lab uses advanced black-hole Y-pull (matches
+// JS sandbox). Journey L6+ mixed rows / L20+ late knobs; pairTheme +
+// comboTheme + encounterCount from spec. Open Space weather, belt density
+// (tighter vertical pack by 5k / 12.5k / 20k), and +10% cruise are live from KM.
 
 import Foundation
 import CoreGraphics
@@ -218,13 +220,14 @@ struct RunProfile {
     }
 
     func clusterCount(scoreKm: CGFloat, dens: CGFloat, roll: CGFloat) -> Int {
+        let base: Int
         if usesOpenSpaceCluster {
-            let base = 2 + Int(scoreKm / 8000)
-            let extra = Int(roll * dens)
-            return min(maxCluster, max(1, base + extra))
+            base = 2 + Int(scoreKm / 8000)
+        } else {
+            base = Self.lerpInt(baseCluster0, baseCluster1, difficulty)
         }
-        let base = Self.lerpInt(baseCluster0, baseCluster1, difficulty)
-        return min(maxCluster, max(1, base))
+        let extra = Int(roll * dens)
+        return min(maxCluster, max(1, base + extra))
     }
 
     func advancedBlackHoles(scoreKm: CGFloat) -> Bool {

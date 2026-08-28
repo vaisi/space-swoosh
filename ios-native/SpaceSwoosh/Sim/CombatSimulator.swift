@@ -1,10 +1,13 @@
 // CombatSimulator.swift
-// Changes: First-boop voice waits until LEVEL N is done (Android
-// isLevelIntroVoiceBlocking) — synth BOOP + popup still fire. Play catch-up
-// camera; KM from ΔcameraY; BOOP on the open side of the hull. Wormhole gates
-// stroke-only. Fuel-out sparkle salvage; L6+ pairing and Open Space storms;
-// L42 epilogue. Intro title: ship flies and steers (KM frozen).
-// 200 KM atmosphere cutscene flag still arms; no "Breaking the atmosphere!" HUD.
+// Changes: Simple rocks pick circle/triangle/square independently (Android
+// SimpleAsteroid.shapeType), including paired-belt lane clusters and wormhole
+// debris. Lane clusters jitter via findValidPosition. First-boop voice waits
+// until LEVEL N is done (Android isLevelIntroVoiceBlocking) — synth BOOP +
+// popup still fire. Play catch-up camera; KM from ΔcameraY; BOOP on the open
+// side of the hull. Wormhole gates stroke-only. Fuel-out sparkle salvage;
+// L6+ pairing and Open Space storms; L42 epilogue. Intro title: ship flies
+// and steers (KM frozen). 200 KM atmosphere cutscene flag still arms; no
+// "Breaking the atmosphere!" HUD.
 
 import Foundation
 import CoreGraphics
@@ -519,7 +522,7 @@ enum CombatSimulator {
             )
             placeSimple(
                 world: &world,
-                kind: [.circle, .triangle, .square][k % 3],
+                kind: pickSimpleKind(&run.rng),
                 x: pos.x,
                 y: pos.y,
                 size: size,
@@ -528,7 +531,7 @@ enum CombatSimulator {
         }
     }
 
-    private static func findValidPosition(
+    fileprivate static func findValidPosition(
         world: WorldState,
         size: CGFloat,
         minX: CGFloat,
@@ -671,6 +674,13 @@ enum CombatSimulator {
     /// Distance lines that name rocks — silent in Open Space like JS unlocks.
     private static func isAsteroidWarning(_ score: CGFloat) -> Bool {
         score == 2000 || score == 5000
+    }
+
+    /// Android `SimpleAsteroid`: equal chance of circle, triangle, or square.
+    fileprivate static func pickSimpleKind(_ rng: inout UInt64) -> ObstacleKind {
+        let shapes: [ObstacleKind] = [.circle, .triangle, .square]
+        let idx = min(2, Int(rand01(&rng) * 3))
+        return shapes[idx]
     }
 
     fileprivate static func placeSimple(
@@ -848,7 +858,7 @@ enum CombatSimulator {
             o.lethal = true
             world.obstacles[i] = o
         default:
-            placeSimple(world: &world, kind: .circle, x: x, y: y, size: u * 1.1, run: &run)
+            placeSimple(world: &world, kind: pickSimpleKind(&run.rng), x: x, y: y, size: u * 1.1, run: &run)
         }
     }
 
@@ -897,7 +907,7 @@ enum CombatSimulator {
             if rx > margin, rx < world.width - margin {
                 placeSimple(
                     world: &world,
-                    kind: [.circle, .triangle, .square][k % 3],
+                    kind: pickSimpleKind(&run.rng),
                     x: rx,
                     y: y + sin(angle) * dist,
                     size: world.baseUnit * (1 + rand01(&run.rng)),
@@ -1679,15 +1689,41 @@ enum LateJourneyBelt {
     ) {
         let cap = lane == "center" ? 3 : 2
         let n = min(cap, run.profile.clusterCount(scoreKm: run.scoreKm, dens: dens, roll: CombatSimulator.rand01(&run.rng)))
-        let mid = laneX(lane, width: world.width)
+        let startFrac: CGFloat
+        let endFrac: CGFloat
+        switch lane {
+        case "left":
+            startFrac = 0.10
+            endFrac = 0.36
+        case "right":
+            startFrac = 0.64
+            endFrac = 0.90
+        default:
+            startFrac = 0.32
+            endFrac = 0.68
+        }
+        let pad: CGFloat = 0.02
+        let x0 = (startFrac + pad) * world.width
+        let x1 = (endFrac - pad) * world.width
+        let band = max(world.baseUnit, x1 - x0)
+        let section = band / CGFloat(max(1, n))
         for k in 0..<n {
             let size = world.baseUnit * (0.9 + CombatSimulator.rand01(&run.rng) * 0.5)
-            let x = mid + CGFloat(k) * world.width * 0.06 - world.width * 0.03
+            let minX = x0 + section * CGFloat(k)
+            let maxX = x0 + section * CGFloat(k + 1)
+            let pos = CombatSimulator.findValidPosition(
+                world: world,
+                size: size,
+                minX: minX,
+                maxX: max(minX + 1, maxX),
+                baseY: atY,
+                run: &run
+            )
             CombatSimulator.placeSimple(
                 world: &world,
-                kind: .circle,
-                x: x,
-                y: atY,
+                kind: CombatSimulator.pickSimpleKind(&run.rng),
+                x: pos.x,
+                y: pos.y,
                 size: size,
                 run: &run
             )
