@@ -1,4 +1,5 @@
-<!-- Changes: Homescreen BUILD stamp hidden. Hazard Lab tile not shown.
+<!-- Changes: Rook hull shortened; dust wake pours from the tail.
+     Homescreen BUILD stamp hidden. Hazard Lab tile not shown.
      Journey days unlock sequentially (Level 1 open; later days fade until
      you clear the previous one). -->
 # Space Swoosh — Player Guide
@@ -373,7 +374,7 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Argus** | A peacock teardrop with a rear fan of pulsing eyespots. Peacock-rim, gold-pupil rings stamp the path; the fan flares on a wall hit. Thin feather tips are looks only. |
 | **Chime** | A temple bell with two smaller side bells and swaying clappers. Dense sound arcs and gold/ink notes ring down the wake. Side bells are looks only. |
 | **Merlin** | An ultra-slim spark-falcon with a prism heart and orbiting stars. A hairline gold comet sheds a cascade of 4-point stars; a wall hit bursts the sky. Stars and winglets are looks only. |
-| **Rook** | A slim four-vane skiff in ink, with a bronze-slit beak that goes gold on night paper. Twin ink ribbons and rust sparkles pour from the vanes; a wall hit flashes the four blades. Vanes are looks only. |
+| **Rook** | A compact four-vane skiff in ink, with a bronze-slit beak that goes gold on night paper. Twin ink ribbons and rust sparkles pour from the tail; a wall hit flashes the four blades. Vanes are looks only. |
 
 Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Orbit, Ink,
 Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, and Rook leave a longer wake in play so the far end runs off the screen. The

@@ -4,7 +4,7 @@
 // - Seal `sealPath` slim vesica almond + wet-flex jelly (replaces stamp cube).
 // - Orbit `orbitPath` is Spine's vertical bar; helix wake stays Orbit's.
 //   Orbit jelly shears the bar (precess), not an oval blob.
-// - Rook `rookPath` four-vane spark-skiff + vane-flash jelly.
+// - Rook `rookPath` four-vane spark-skiff (shorter fuselage) + vane-flash jelly.
 // - Merlin `merlinPath` ultra-slim spark-falcon + glitter jelly.
 // - Darner / Puff / Argus / Chime paths + jelly profiles.
 // - Luna `mothPath` + Wish `wishPath` + jelly profiles.
@@ -420,12 +420,12 @@ export function merlinPath(ctx, cx, cy, r, stretch = 1) {
 export function rookPath(ctx, cx, cy, r, stretch = 1) {
     const ry = r * stretch;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - ry * 1.32);
-    ctx.lineTo(cx + r * 0.11, cy - ry * 0.88);
-    ctx.quadraticCurveTo(cx + r * 0.07, cy - ry * 0.10, cx + r * 0.052, cy + ry * 0.42);
-    ctx.quadraticCurveTo(cx + r * 0.028, cy + ry * 0.88, cx, cy + ry * 1.18);
-    ctx.quadraticCurveTo(cx - r * 0.028, cy + ry * 0.88, cx - r * 0.052, cy + ry * 0.42);
-    ctx.quadraticCurveTo(cx - r * 0.07, cy - ry * 0.10, cx - r * 0.11, cy - ry * 0.88);
+    ctx.moveTo(cx, cy - ry * 1.08);
+    ctx.lineTo(cx + r * 0.11, cy - ry * 0.72);
+    ctx.quadraticCurveTo(cx + r * 0.07, cy - ry * 0.08, cx + r * 0.052, cy + ry * 0.34);
+    ctx.quadraticCurveTo(cx + r * 0.028, cy + ry * 0.72, cx, cy + ry * 0.96);
+    ctx.quadraticCurveTo(cx - r * 0.028, cy + ry * 0.72, cx - r * 0.052, cy + ry * 0.34);
+    ctx.quadraticCurveTo(cx - r * 0.07, cy - ry * 0.08, cx - r * 0.11, cy - ry * 0.72);
     ctx.closePath();
 }
 

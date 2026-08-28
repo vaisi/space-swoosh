@@ -1,5 +1,6 @@
 // HullPaths.swift
 // Changes: Seal vesica almond; Orbit shares Spine's vertical bar.
+// Rook fuselage shortened so the hangar needle matches Android.
 
 import CoreGraphics
 import SpriteKit
@@ -204,12 +205,12 @@ enum HullPaths {
             path.addQuadCurve(to: CGPoint(x: cx, y: cy - ry * 1.42), control: CGPoint(x: cx - r * 0.045, y: cy - ry * 0.22))
             path.closeSubpath()
         case .rook:
-            path.move(to: CGPoint(x: cx, y: cy - ry * 1.32))
-            path.addLine(to: CGPoint(x: cx + r * 0.11, y: cy - ry * 0.88))
-            path.addQuadCurve(to: CGPoint(x: cx + r * 0.052, y: cy + ry * 0.42), control: CGPoint(x: cx + r * 0.07, y: cy - ry * 0.10))
-            path.addQuadCurve(to: CGPoint(x: cx, y: cy + ry * 1.18), control: CGPoint(x: cx + r * 0.028, y: cy + ry * 0.88))
-            path.addQuadCurve(to: CGPoint(x: cx - r * 0.052, y: cy + ry * 0.42), control: CGPoint(x: cx - r * 0.028, y: cy + ry * 0.88))
-            path.addQuadCurve(to: CGPoint(x: cx - r * 0.11, y: cy - ry * 0.88), control: CGPoint(x: cx - r * 0.07, y: cy - ry * 0.10))
+            path.move(to: CGPoint(x: cx, y: cy - ry * 1.08))
+            path.addLine(to: CGPoint(x: cx + r * 0.11, y: cy - ry * 0.72))
+            path.addQuadCurve(to: CGPoint(x: cx + r * 0.052, y: cy + ry * 0.34), control: CGPoint(x: cx + r * 0.07, y: cy - ry * 0.08))
+            path.addQuadCurve(to: CGPoint(x: cx, y: cy + ry * 0.96), control: CGPoint(x: cx + r * 0.028, y: cy + ry * 0.72))
+            path.addQuadCurve(to: CGPoint(x: cx - r * 0.052, y: cy + ry * 0.34), control: CGPoint(x: cx - r * 0.028, y: cy + ry * 0.72))
+            path.addQuadCurve(to: CGPoint(x: cx - r * 0.11, y: cy - ry * 0.72), control: CGPoint(x: cx - r * 0.07, y: cy - ry * 0.08))
             path.closeSubpath()
         }
     }

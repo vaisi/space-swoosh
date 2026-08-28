@@ -1,6 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Homescreen BUILD stamp hidden on web/Android. Hazard Lab tile
+<!-- Changes: Rook hull shortened; hangar/in-play wake tucks at the fuselage
+     tail. Homescreen BUILD stamp hidden on web/Android. Hazard Lab tile
      gated off (SHOW_HAZARD_LAB / showHazardLab). UNLOCK_ALL_LEVELS = false
      (sequential Journey; web ?unlocklevels=1 still overrides). -->
 
@@ -1029,12 +1030,13 @@ dark gray with two clipped pink spots (`CRESCENT_HITBOX`); `trailTailOffset: 0`
 so the rainbow starts at the hull centre (other skins default 0.6 radii aft).
 **Fletch** uses `drawHorizonRibbonTrail` — same Quill taper, colour bands stacked
 along the path (dawn: indigo tip → persimmon hull) and `fletchPath` ogive arrow
-(`trailTailOffset` 0.32 into the nock). Optional skin fields
+(`trailTailOffset` 0.32 into the nock). **Rook** tucks the dust wake at the
+fuselage tail (`trailTailOffset` 0.95). Optional skin fields
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
 `1/360`; Quill / Fletch / Shard / Seal / Hatch / Trace / Fold / Spine / Mote / Pulse /
 Echo / Dusk / Orbit / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime / Merlin / Rook: 200 pts, fade `1/420` so the tip leaves the viewport).
-Menu preview always uses the short sample wake so it never covers the title
-(native iOS hangar tiles bake the same `previewWake` via `PreviewWakePaint`).
+Menu preview samples originate at `trailTailOffset` (Android `previewWake` /
+iOS `PreviewWakePaint`) so the short hangar wake never covers the title.
 iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;

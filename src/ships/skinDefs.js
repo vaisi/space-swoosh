@@ -4,6 +4,7 @@
 // Changes:
 // - Seal — slim vesica almond + paired aft vortex commas (crush then peel).
 // - Orbit — Spine bar hull + helical orbit wake.
+// - Rook hull shortened; wake tucks at the fuselage tail (trailTailOffset 0.95).
 // - Merlin — ultra-slim spark-falcon; prism heart + orbiting 4-point stars; hairline comet + dense star cascade; flare boop.
 // - Plume wall-boop uses Koi `whip` + gold/ember scale stamps (Cinder stays `cinder`).
 // - Darner, Puff, Argus, Chime — premium IAP; long wake; skipHullCache.
@@ -330,11 +331,11 @@ const MERLIN_HITBOX = [
 
 // Rook fuselage only; four vanes and vane-tip glitter are decorative.
 const ROOK_HITBOX = [
-    { x: 0, y: -0.82, r: 0.06 },
-    { x: 0, y: -0.36, r: 0.055 },
-    { x: 0, y: 0.08, r: 0.05 },
-    { x: 0, y: 0.48, r: 0.048 },
-    { x: 0, y: 0.90, r: 0.042 },
+    { x: 0, y: -0.66, r: 0.06 },
+    { x: 0, y: -0.29, r: 0.055 },
+    { x: 0, y: 0.06, r: 0.05 },
+    { x: 0, y: 0.38, r: 0.048 },
+    { x: 0, y: 0.72, r: 0.042 },
 ];
 
 // Vertical bar — stacked circles down the spine only.
@@ -1839,10 +1840,10 @@ function drawRookHull(ctx, ship, screenY, time = performance.now()) {
     ctx.globalAlpha = jelly ? baseAlpha : baseAlpha * breath;
 
     const vanes = [
-        { x0: -r * 0.06, y0: ry * 0.06, x1: -r * 0.78 * flutter, y1: ry * 0.18 },
-        { x0: r * 0.06, y0: ry * 0.06, x1: r * 0.78 * flutter, y1: ry * 0.18 },
-        { x0: -r * 0.04, y0: ry * 0.48, x1: -r * 0.34 * flutter, y1: ry * 0.98 },
-        { x0: r * 0.04, y0: ry * 0.48, x1: r * 0.34 * flutter, y1: ry * 0.98 },
+        { x0: -r * 0.06, y0: ry * 0.05, x1: -r * 0.78 * flutter, y1: ry * 0.14 },
+        { x0: r * 0.06, y0: ry * 0.05, x1: r * 0.78 * flutter, y1: ry * 0.14 },
+        { x0: -r * 0.04, y0: ry * 0.38, x1: -r * 0.34 * flutter, y1: ry * 0.80 },
+        { x0: r * 0.04, y0: ry * 0.38, x1: r * 0.34 * flutter, y1: ry * 0.80 },
     ];
     ctx.fillStyle = color.ink;
     ctx.strokeStyle = color.ink;
@@ -1872,19 +1873,19 @@ function drawRookHull(ctx, ship, screenY, time = performance.now()) {
     ctx.lineWidth = Math.max(0.7, r * 0.036);
     ctx.globalAlpha = baseAlpha * (jelly ? 0.75 : breath * 0.88);
     ctx.beginPath();
-    ctx.moveTo(0, -ry * 0.92);
-    ctx.lineTo(0, ry * 0.52);
+    ctx.moveTo(0, -ry * 0.75);
+    ctx.lineTo(0, ry * 0.42);
     ctx.stroke();
 
     const heartA = jelly ? baseAlpha * 0.95 : baseAlpha * breath * pulse;
     ctx.globalAlpha = heartA;
     ctx.fillStyle = `rgba(${color.rookCopperRgb}, 1)`;
     ctx.beginPath();
-    ctx.ellipse(-r * 0.02, -ry * 0.96, r * 0.06, r * 0.1 * pulse, 0.18, 0, Math.PI * 2);
+    ctx.ellipse(-r * 0.02, -ry * 0.78, r * 0.06, r * 0.1 * pulse, 0.18, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = `rgba(${color.rookSparkRgb}, 1)`;
     ctx.beginPath();
-    ctx.ellipse(-r * 0.02, -ry * 0.96, r * 0.024, r * 0.042, 0.18, 0, Math.PI * 2);
+    ctx.ellipse(-r * 0.02, -ry * 0.78, r * 0.024, r * 0.042, 0.18, 0, Math.PI * 2);
     ctx.fill();
 
     const tipRgb = [color.rookCopperRgb, color.rookSparkRgb, color.emberRgb, color.rookCopperRgb];
@@ -2569,7 +2570,7 @@ const rook = {
     skipHullCache: true,
     ...iap('rook'),
     ...LONG_WAKE,
-    trailTailOffset: 0.28,
+    trailTailOffset: 0.95,
     drawHull: drawRookHull,
     drawTrail(ctx, ship, trail, toScreenY) {
         drawRookTrail(ctx, ship, trail, toScreenY);

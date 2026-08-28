@@ -1,5 +1,6 @@
 // PreviewWakePaint.swift
-// Changes: Seal paired aft vortex commas and Orbit helix hangar samples.
+// Changes: Hangar samples originate at trailTailOffset so thin hulls (Rook)
+// do not leak wake from mid-body. Seal paired aft vortex commas and Orbit helix.
 
 import CoreGraphics
 import UIKit
@@ -120,6 +121,10 @@ enum PreviewWakePaint {
         let span = radius * 3.4
         let amp = radius * 0.75
         let bend: CGFloat = 1.6
+        let offset = radius * skin.trailTailOffset
+        let attachX = cx - sin(bank) * offset
+        let attachY = cy + cos(bank) * offset
+        let t0 = 1 / CGFloat(count)
         var trail: [WakeSample] = []
         trail.reserveCapacity(count + 1)
         for i in stride(from: count, through: 1, by: -1) {
@@ -128,22 +133,19 @@ enum PreviewWakePaint {
             let vy = -span
             let along = CGFloat(count - i) / CGFloat(max(count - 1, 1))
             trail.append(WakeSample(
-                x: cx - sin(t * bend) * amp,
-                y: cy + t * span,
+                x: attachX - (sin(t * bend) - sin(t0 * bend)) * amp,
+                y: attachY + (t - t0) * span,
                 opacity: max(0.08, 1 - t * 0.85),
                 seed: (CGFloat(i) * 0.618).truncatingRemainder(dividingBy: 1),
                 angle: atan2(vx, -vy),
                 sx: 1, sy: 1, along: along, scale: 1
             ))
         }
-        let offset = radius * skin.trailTailOffset
-        let tx = cx - sin(bank) * offset
-        let ty = cy + cos(bank) * offset
         if let last = trail.last {
-            let ahead = (tx - last.x) * sin(bank) - (ty - last.y) * cos(bank)
+            let ahead = (attachX - last.x) * sin(bank) - (attachY - last.y) * cos(bank)
             if ahead > 0.5 {
                 trail.append(WakeSample(
-                    x: tx, y: ty, opacity: 1, seed: 0.5, angle: bank,
+                    x: attachX, y: attachY, opacity: 1, seed: 0.5, angle: bank,
                     sx: 1, sy: 1, along: 1, scale: 1
                 ))
             }

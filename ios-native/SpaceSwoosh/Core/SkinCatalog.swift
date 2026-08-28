@@ -1,5 +1,6 @@
 // SkinCatalog.swift
 // Changes: Seal slim almond + paired aft vortex; Orbit Spine bar + helix wake.
+// Rook wake tucks at the fuselage tail (trailTailOffset 0.95).
 // UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
 
 import Foundation
@@ -219,7 +220,7 @@ enum SkinCatalog {
         s(.merlin, "Merlin", "A spark-falcon. Stars pour from its wake.", H.merlin, .flare, .merlin, .merlin,
           pad: 3.6, half: 0.55, jelly: .merlin, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
         s(.rook, "Rook", "Four gold vanes. Dust pours from its wake.", H.rook, .flare, .rook, .rook,
-          pad: 3.6, half: 0.55, jelly: .rook, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.28),
+          pad: 3.6, half: 0.55, jelly: .rook, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.95),
     ]
 
     private static func s(
@@ -387,9 +388,9 @@ private enum H {
         .init(x: 0, y: 0.95, r: 0.04),
     ]
     static let rook: [HitCircle] = [
-        .init(x: 0, y: -0.82, r: 0.06), .init(x: 0, y: -0.36, r: 0.055),
-        .init(x: 0, y: 0.08, r: 0.05), .init(x: 0, y: 0.48, r: 0.048),
-        .init(x: 0, y: 0.90, r: 0.042),
+        .init(x: 0, y: -0.66, r: 0.06), .init(x: 0, y: -0.29, r: 0.055),
+        .init(x: 0, y: 0.06, r: 0.05), .init(x: 0, y: 0.38, r: 0.048),
+        .init(x: 0, y: 0.72, r: 0.042),
     ]
     static let spine: [HitCircle] = [
         .init(x: 0, y: -0.78, r: 0.16), .init(x: 0, y: -0.35, r: 0.2),

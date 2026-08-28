@@ -1,7 +1,8 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
-// - Menu preview honours skin.trailTailOffset (Nyan centre-attach).
+// - Menu preview samples originate at skin.trailTailOffset (Nyan centre;
+//   Rook tucks at the fuselage tail) so hangar wakes match in-play attach.
 // - Menu preview always uses the short wake so it never covers the title;
 //   in-game length still follows trailMaxPoints / trailFade.
 // - Preview fakeShip stamps `_wallTrailMode` so new crease/cloud/ladder/lag/
@@ -57,11 +58,14 @@ export function saveShipSkinId(id) {
 
 // A short arc curving in from the lower left, sampled the way a live trail is
 // (oldest first, each point carrying the direction of travel at that moment).
-function previewWake(cx, cy, radius, { longWake = false } = {}) {
+// Newest sample sits on the skin's tail attach so thin hulls don't leak wake
+// from mid-body.
+function previewWake(cx, cy, radius, { longWake = false, attachX = cx, attachY = cy } = {}) {
     const count = longWake ? 22 : 12;
     const span = radius * (longWake ? 5.4 : 3.4);
     const amp = radius * (longWake ? 0.9 : 0.75);
     const bend = 1.6;
+    const t0 = 1 / count;
     const trail = [];
 
     for (let i = count; i >= 1; i--) {
@@ -72,8 +76,8 @@ function previewWake(cx, cy, radius, { longWake = false } = {}) {
         const vy = -span;
 
         trail.push({
-            x: cx - Math.sin(t * bend) * amp,
-            y: cy + t * span,
+            x: attachX - (Math.sin(t * bend) - Math.sin(t0 * bend)) * amp,
+            y: attachY + (t - t0) * span,
             opacity: Math.max(0.08, 1 - t * (longWake ? 0.72 : 0.85)),
             angle: Math.atan2(vx, -vy),
             seed: (i * 0.618) % 1,
@@ -107,6 +111,10 @@ export function drawSkinPreview(ctx, skinId, cx, cy, radius, time = performance.
         game: { config: { spacecraft: { trailDotSize: 0.2 } } },
     };
 
-    skin.drawTrail(ctx, fakeShip, previewWake(cx, cy, radius), (y) => y);
+    const attach = fakeShip.tailPoint();
+    skin.drawTrail(ctx, fakeShip, previewWake(cx, cy, radius, {
+        attachX: attach.x,
+        attachY: attach.y,
+    }), (y) => y);
     skin.drawHull(ctx, fakeShip, cy, time);
 }

@@ -1,5 +1,5 @@
 // LiveHullPaint.swift
-// Changes: Rook uses theme-aware copper/spark (not lanternGold); four-vane spark-skiff.
+// Changes: Rook shorter fuselage + copper/spark vanes; theme-aware copper/spark (not lanternGold).
 
 import CoreGraphics
 import UIKit
@@ -517,10 +517,10 @@ enum LiveHullPaint {
         let ba = a
         let bodyA = jelly ? ba : ba * breath
         let vanes: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-            (-r * 0.06, r * 0.06 * stretch, -r * 0.78 * flutter, r * 0.18 * stretch),
-            (r * 0.06, r * 0.06 * stretch, r * 0.78 * flutter, r * 0.18 * stretch),
-            (-r * 0.04, r * 0.48 * stretch, -r * 0.34 * flutter, r * 0.98 * stretch),
-            (r * 0.04, r * 0.48 * stretch, r * 0.34 * flutter, r * 0.98 * stretch),
+            (-r * 0.06, r * 0.05 * stretch, -r * 0.78 * flutter, r * 0.14 * stretch),
+            (r * 0.06, r * 0.05 * stretch, r * 0.78 * flutter, r * 0.14 * stretch),
+            (-r * 0.04, r * 0.38 * stretch, -r * 0.34 * flutter, r * 0.80 * stretch),
+            (r * 0.04, r * 0.38 * stretch, r * 0.34 * flutter, r * 0.80 * stretch),
         ]
         for v in vanes {
             rookVane(c, x0: v.0, y0: v.1, x1: v.2, y1: v.3, half: r * 0.034,
@@ -530,12 +530,12 @@ enum LiveHullPaint {
         c.fillHull(.rook, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink, alpha: bodyA)
         c.strokeHull(.rook, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink,
                      alpha: ba * (jelly ? 0.72 : breath * 0.9), width: max(0.85, r * 0.038))
-        c.strokeLine(from: CGPoint(x: 0, y: -r * 0.92 * stretch), to: CGPoint(x: 0, y: r * 0.52 * stretch),
+        c.strokeLine(from: CGPoint(x: 0, y: -r * 0.75 * stretch), to: CGPoint(x: 0, y: r * 0.42 * stretch),
                      color: BrandColors.UI.rookCopper, width: max(0.7, r * 0.036), alpha: ba * (jelly ? 0.75 : breath * 0.88))
         let heartA = jelly ? ba * 0.95 : ba * breath * pulse
-        c.fillRotatedEllipse(x: -r * 0.02, y: -r * 0.96 * stretch, rx: r * 0.06, ry: r * 0.1 * pulse,
+        c.fillRotatedEllipse(x: -r * 0.02, y: -r * 0.78 * stretch, rx: r * 0.06, ry: r * 0.1 * pulse,
                              rotation: 0.18, color: BrandColors.UI.rookCopper, alpha: heartA)
-        c.fillRotatedEllipse(x: -r * 0.02, y: -r * 0.96 * stretch, rx: r * 0.024, ry: r * 0.042,
+        c.fillRotatedEllipse(x: -r * 0.02, y: -r * 0.78 * stretch, rx: r * 0.024, ry: r * 0.042,
                              rotation: 0.18, color: BrandColors.UI.rookSpark, alpha: heartA)
         let tipRgb = BrandColors.UI.rookBands
         for i in 0..<vanes.count {
