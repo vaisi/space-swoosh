@@ -1,10 +1,9 @@
-<!-- Changes: Merlin and Rook are withheld from the hangar (home cycle and
-     Options → Ship). New players start in Flicker (Focus/Ember/Saber still free).
-     Journey ending Open Instagram → @spaceswoosh.app
-     (https://www.instagram.com/spaceswoosh.app). Premium ships are locked
-     again — Focus/Flicker/Ember/Saber stay free; the rest show a price and
-     unlock on the apps. Pause is two ink bars. Hazard Lab tile not shown.
-     Journey days unlock sequentially. -->
+<!-- Changes: Smash-star asteroid targets climb after day 13 (8 / 10 / 15 /
+     17 / 20 by chapter). Early days still show smash dots; later days show
+     a count. Merlin and Rook withheld from hangar. New players start in
+     Flicker. Journey ending Open Instagram → @spaceswoosh.app. Premium ships
+     lock except Focus/Flicker/Ember/Saber. Pause is two ink bars. Hazard Lab
+     tile not shown. Journey days unlock sequentially. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -141,8 +140,9 @@ the sky is packed like a late Journey day (not long empty corridors), and past
 12,500 KM the odd storm is a real patch of trouble with only a short breath after.
 Cruise is a little snappier than it used to be, without turning
 into a speed contest. The sparkles star opens when fuel diamonds
-do (level 4); the smash star opens with the shield (level 5). Both targets climb
-later without turning into a grind.
+do (level 4); the smash star opens with the shield (level 5). Smash targets stay
+small through day 13, then climb by chapter: 8 asteroids on days 14–23, 10 on
+24–30, 15 on 31–36, 17 on 37–40, and 20 on the last two days.
 
 Flying Journey is also how you **unlock Space Log entries** — observe and interact
 with hazards and boosts to fill your field manual. The opening Signal brief is
@@ -466,8 +466,9 @@ Top-left is a compact icon stack (no captions):
   route icon beside your KM figure.
 - **Sparkle + blue bar** — fuel (once sparkles unlock). Drains as you fly;
   diamonds refill it. Empty means engines die and the run fails.
-- **Target** — after your first smash: Journey shows black dots for the smash
-  mission; Open Space shows a small black smash count.
+- **Target** — after your first smash: Journey shows black dots on early days
+  and a `smashed / needed` count from day 14; Open Space shows a small black
+  smash count.
 
 Top-right is a two-bar pause icon (no orange tile). In **Light Mode** the bars
 are near-black; in **Dark Mode** they are bone white, same as on iPhone.

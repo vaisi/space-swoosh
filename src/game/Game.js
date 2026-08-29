@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Journey smash HUD: dots when smashTarget ≤ 6 (days 5–13); `n / target`
+//   count from day 14 where the smash star is 8–20 asteroids.
 // - In-run pause control is two ink bars (`.ss-pause`), not the U+23F8 emoji.
 //   Android Noto Color Emoji rendered that glyph as an orange tile; ink
 //   follows light/dark like iOS PauseBars.
@@ -23,7 +25,8 @@
 //   annual 3-ship pick. When off, starts and retries are unlimited.
 // - Pause freezes navigator voice with BGM (pauseLevelVoice / resumeLevelVoice).
 // - In-run HUD mockup C: three equal-height icon+meter rows (route/ink bar,
-//   sparkle/Signal fuel bar, target/dots or Open Space count) — no captions.
+//   sparkle/Signal fuel bar, target/dots or n/target from day 14; Open Space
+//   count) — no captions.
 // - Fuel drain pauses during wormhole hops + brief camera re-seat after exit
 //   (teleport distance must not empty the tank).
 // - Fuel drain also pauses while wall-boost speedBoostTimer is active (free
@@ -243,6 +246,7 @@ import {
     clampLevel,
     evaluateStars,
     getLevel,
+    SMASH_DOTS_MAX,
     TOTAL_LEVELS,
 } from '../config/JourneyConfig.js';
 import {
@@ -1472,7 +1476,8 @@ export class Game {
             y += rowH + rowGap;
         }
 
-        // 3) Smash — Journey dots vs target; Open Space small ink count.
+        // 3) Smash — Journey dots when the target still fits; later days
+        // use destroyed / target like the outcome screen. Open Space: count.
         const showSmash = destroyedA > 0.01 && (
             journey ? smashTarget > 0 : true
         );
@@ -1481,10 +1486,17 @@ export class Game {
             ctx.globalAlpha *= destroyedA;
             const cy = y + rowH * 0.5;
             this.drawHudTargetIcon(inset + iconSlot * 0.5, cy, unit * 0.48);
-            if (journey) {
+            if (journey && smashTarget <= SMASH_DOTS_MAX) {
                 this.drawSmashDots(
                     meterX, cy, this.obstaclesDestroyed, smashTarget, meterH,
                 );
+            } else if (journey) {
+                setMonoType(ctx, Math.max(11, unit * 1.15), 700);
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = color.ink;
+                ctx.fillText(`${this.obstaclesDestroyed} / ${smashTarget}`, meterX, cy);
+                resetType(ctx);
             } else {
                 setMonoType(ctx, Math.max(11, unit * 1.15), 700);
                 ctx.textAlign = 'left';

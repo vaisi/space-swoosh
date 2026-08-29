@@ -1,15 +1,11 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Merlin and Rook are withheld from the hangar (`hidden: true`;
-     `SHIP_SKIN_LIST` / iOS `SkinCatalog.roster` omit them). Leftover equipped
-     ids remount to Flicker. Default ship is Flicker when shipSkinId is unset,
-     unknown, hidden, or not owned. Epilogue Open Instagram →
-     https://www.instagram.com/spaceswoosh.app (@spaceswoosh.app). UNLOCK_ALL_SKINS
-     = false on Android/web (store hangar; iOS was already false). Premium ships
-     lock until RevenueCat buy / restore / yearly 3-ship pick. ownedSkinIds cache
-     gen 2 drops the playtest "all owned" list. In-run pause is `.ss-pause` two
-     ink bars. Hazard Lab tile gated off. UNLOCK_ALL_LEVELS = false
-     (sequential Journey). -->
+<!-- Changes: Journey smash-star targets: L5–13 stay 1/2/3; L14–23 → 8,
+     L24–30 → 10, L31–36 → 15, L37–40 → 17, L41–42 → 20. HUD uses dots when
+     smashTarget ≤ 6 and `n / target` from day 14. Merlin and Rook withheld
+     from hangar. Default ship Flicker. Epilogue Instagram @spaceswoosh.app.
+     UNLOCK_ALL_SKINS / UNLOCK_ALL_LEVELS false. Pause is `.ss-pause` two ink
+     bars. Hazard Lab tile gated off. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -618,8 +614,11 @@ Star **slots** scale with the teach band: **L1–3 → 1**, **L4 → 2**, **L5+ 
 `2/2`, `3/3`). Storage still holds three booleans per level; unused slots stay
 false. Sparkles star opens at L4 (floor **2** sparkles, then ~1 per 1,000 km
 minus 1 — eased so a sparkle past the finish gate does not block the star).
-Smash star opens at L5 (1 smash, then from 2 toward a hard cap of **6**). Mode
-select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
+Smash star opens at L5 (1 smash, then 2 on L6–12, 3 on L13). From Fragments
+onward the target is chapter-banded: **L14–23 → 8**, **L24–30 → 10**,
+**L31–36 → 15**, **L37–40 → 17**, **L41–42 → 20**. HUD draws smash dots while
+`smashTarget ≤ 6` (`SMASH_DOTS_MAX`) and `destroyed / target` from day 14.
+Mode select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
 
 `services/JourneyProgress.js` persists
 `{ version, unlocked, loreSeen, levels: { n: { stars, bestPoints } } }` under
@@ -747,7 +746,7 @@ live; pause button and spawning stay off until chips):
 | --- | --- |
 | `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Journey levels **1–41** also play `playLevelVoice(level)` and duck BGM. Day 42 skips this phase (short wait, then chips). Phase ends only when **all beats** and the **voice clip** (if any) are done. No HUD, no pause. |
 | `wait` | Short calm beat when there is no intro line (e.g. Open Space). |
-| `chips` | Timed 1s fades: distance HUD → **pause last**. Icon-meter stack: route + ink goal bar (Journey) or route + KM (Open Space); sparkle + Signal fuel bar once collectibles are live; target + smash dots (Journey `smashTarget`) or small ink count (Open Space) after first smash. |
+| `chips` | Timed 1s fades: distance HUD → **pause last**. Icon-meter stack: route + ink goal bar (Journey) or route + KM (Open Space); sparkle + Signal fuel bar once collectibles are live; target + smash dots when `smashTarget ≤ 6`, or `destroyed / target` from day 14 (Open Space: small ink count) after first smash. |
 
 Open Space with no intro line skips straight to `wait`. Spawning resumes when
 `chips` starts. `Game.hudRevealAlpha(slot)` drives HUD + pause opacity. Input

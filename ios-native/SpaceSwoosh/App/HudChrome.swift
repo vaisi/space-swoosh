@@ -1,5 +1,7 @@
 // HudChrome.swift
-// Changes: Pause top-right; distance / fuel / smash left-aligned in one column.
+// Changes: Journey smash HUD uses SmashDots when smashTarget ≤ 6 and
+// "destroyed / target" from day 14 (targets 8–20). Pause top-right;
+// distance / fuel / smash left-aligned in one column.
 
 import SwiftUI
 import Foundation
@@ -70,13 +72,18 @@ struct MockupCHUD: View {
                                     .stroke(BrandColors.ink.opacity(0.55), lineWidth: max(1.15, unit * 0.1))
                                     .background(Circle().fill(BrandColors.ink.opacity(0.55)).scaleEffect(0.18))
                             } meter: {
-                                if session.isJourney, session.smashTarget > 0 {
+                                if session.isJourney, session.smashTarget > 0, session.smashTarget <= 6 {
                                     SmashDots(
                                         filled: session.destroyed,
                                         total: session.smashTarget,
                                         diameter: meterH
                                     )
                                     .frame(width: valueW, alignment: .leading)
+                                } else if session.isJourney, session.smashTarget > 0 {
+                                    Text("\(session.destroyed) / \(session.smashTarget)")
+                                        .font(.system(size: numSize, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(BrandColors.ink)
+                                        .frame(width: valueW, alignment: .leading)
                                 } else {
                                     Text("\(session.destroyed)")
                                         .font(.system(size: numSize, weight: .bold, design: .monospaced))

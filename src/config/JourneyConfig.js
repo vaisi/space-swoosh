@@ -5,6 +5,9 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - Smash star (asteroids destroyed): L5–13 keep the teach curve (1 / 2 / 3);
+//   L14–23 → 8, L24–30 → 10, L31–36 → 15, L37–40 → 17, L41–42 → 20.
+//   HUD uses dots when target ≤ 6 and `n / target` from day 14.
 // - L6+: `pairTheme` + `encounterCount` 1; L20+ also `comboTheme`; plateau
 //   focus skips side-barrier identity so days like 23 are not empty-mid walls.
 // - 42 flown levels: final plateau d:1.00 is 9 levels (L34–42); hazard unlock
@@ -98,7 +101,16 @@ const SPARKLES_STAR_FLOOR = 2;
 const SMASH_STAR_FLOOR = 1;
 const SMASH_AFTER_TEACH = 2;
 const SMASH_LEVELS_PER_STEP = 7;
-const SMASH_TARGET_MAX = 6;
+/** HUD draws dots at or below this; later bands use a numeric count. */
+export const SMASH_DOTS_MAX = 6;
+/** Late-journey smash-star floors (chapter-aligned). First matching `from` wins. */
+const SMASH_TARGET_BANDS = [
+    { from: 41, target: 20 },
+    { from: 37, target: 17 },
+    { from: 31, target: 15 },
+    { from: 24, target: 10 },
+    { from: 14, target: 8 },
+];
 
 function pickFocus(introduces, setPieces, indexInStep) {
     return pickStrongFocus(introduces, setPieces, indexInStep);
@@ -123,9 +135,12 @@ function sparklesTargetFor(levelNumber, goalKm) {
 
 function smashTargetFor(levelNumber) {
     if (levelNumber < SHIELDS_FROM_LEVEL) return 0;
+    for (const band of SMASH_TARGET_BANDS) {
+        if (levelNumber >= band.from) return band.target;
+    }
     if (levelNumber === SHIELDS_FROM_LEVEL) return SMASH_STAR_FLOOR;
     const steps = Math.floor((levelNumber - SHIELDS_FROM_LEVEL - 1) / SMASH_LEVELS_PER_STEP);
-    return Math.min(SMASH_TARGET_MAX, SMASH_AFTER_TEACH + steps);
+    return SMASH_AFTER_TEACH + steps;
 }
 
 function goalKmFor(levelNumber, previousGoalKm) {

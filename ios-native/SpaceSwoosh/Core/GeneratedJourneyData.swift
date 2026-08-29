@@ -305,7 +305,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: nil,
             sparklesTarget: 12,
-            smashTarget: 3,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -321,7 +321,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: "driftCurrent",
             sparklesTarget: 14,
-            smashTarget: 3,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -337,7 +337,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: nil,
             sparklesTarget: 14,
-            smashTarget: 3,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -353,7 +353,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: "pulsating",
             sparklesTarget: 15,
-            smashTarget: 3,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -369,7 +369,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: nil,
             sparklesTarget: 15,
-            smashTarget: 3,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -385,7 +385,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: nil,
             sparklesTarget: 16,
-            smashTarget: 3,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -401,7 +401,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: "phase",
             sparklesTarget: 17,
-            smashTarget: 4,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -417,7 +417,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: nil,
             sparklesTarget: 18,
-            smashTarget: 4,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -433,7 +433,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: "wormhole",
             sparklesTarget: 18,
-            smashTarget: 4,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -449,7 +449,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: nil,
             sparklesTarget: 19,
-            smashTarget: 4,
+            smashTarget: 8,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -465,7 +465,7 @@ enum GeneratedJourneyData {
             encounterCount: 1,
             introduces: nil,
             sparklesTarget: 19,
-            smashTarget: 4,
+            smashTarget: 10,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -481,7 +481,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: "repulsor",
             sparklesTarget: 21,
-            smashTarget: 4,
+            smashTarget: 10,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -497,7 +497,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 21,
-            smashTarget: 4,
+            smashTarget: 10,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -513,7 +513,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: "blackhole",
             sparklesTarget: 22,
-            smashTarget: 5,
+            smashTarget: 10,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -529,7 +529,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 22,
-            smashTarget: 5,
+            smashTarget: 10,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -545,7 +545,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 23,
-            smashTarget: 5,
+            smashTarget: 10,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -561,7 +561,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 24,
-            smashTarget: 5,
+            smashTarget: 10,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -577,7 +577,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: "sweepGate",
             sparklesTarget: 25,
-            smashTarget: 5,
+            smashTarget: 15,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -593,7 +593,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 25,
-            smashTarget: 5,
+            smashTarget: 15,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -609,7 +609,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 26,
-            smashTarget: 5,
+            smashTarget: 15,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -625,7 +625,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 26,
-            smashTarget: 6,
+            smashTarget: 15,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -641,7 +641,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 28,
-            smashTarget: 6,
+            smashTarget: 15,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -657,7 +657,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 28,
-            smashTarget: 6,
+            smashTarget: 15,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -673,7 +673,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 29,
-            smashTarget: 6,
+            smashTarget: 17,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -689,7 +689,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 29,
-            smashTarget: 6,
+            smashTarget: 17,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -705,7 +705,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 30,
-            smashTarget: 6,
+            smashTarget: 17,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -721,7 +721,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 31,
-            smashTarget: 6,
+            smashTarget: 17,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -737,7 +737,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 32,
-            smashTarget: 6,
+            smashTarget: 20,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -753,7 +753,7 @@ enum GeneratedJourneyData {
             encounterCount: 2,
             introduces: nil,
             sparklesTarget: 33,
-            smashTarget: 6,
+            smashTarget: 20,
             starSlots: 3
         )
     ]
