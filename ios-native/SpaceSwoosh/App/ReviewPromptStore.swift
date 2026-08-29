@@ -1,8 +1,7 @@
 // ReviewPromptStore.swift
 // Enjoyment card eligibility + persistence for native iOS.
-// Changes: Options Rate uses AppStore / SKStoreReviewController on a
-// UIWindowScene so Codemagic Xcode 26.4 can archive without RequestReviewAction
-// (that type lives in the StoreKit-SwiftUI overlay, not StoreKit alone).
+// Changes: rateFromOptions() and requestInAppReview() are @MainActor so
+// AppStore.requestReview(in:) compiles on Xcode 26.4 / Codemagic archive.
 
 import Foundation
 import StoreKit
@@ -60,6 +59,7 @@ enum ReviewPromptStore {
         }
     }
 
+    @MainActor
     static func rateFromOptions() {
         AnalyticsService.track("review_from_options")
         if let url = StoreLinks.writeReviewURL {
@@ -70,6 +70,7 @@ enum ReviewPromptStore {
     }
 
     /// In-app review without SwiftUI's `RequestReviewAction` (Xcode 26 / device archive).
+    @MainActor
     private static func requestInAppReview() {
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
