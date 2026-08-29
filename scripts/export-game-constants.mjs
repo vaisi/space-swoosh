@@ -1,5 +1,6 @@
 // export-game-constants.mjs
-// Changes: emit ENDING_EPILOGUE (42-level written ending) instead of ENDING_BEATS.
+// Changes: defaultShipId is Flicker (matches JS DEFAULT_SHIP_SKIN).
+// emit ENDING_EPILOGUE (42-level written ending) instead of ENDING_BEATS.
 // Skip captions export as epilogueSkip beats (one phrase per line).
 // Arc unlock card copy: epilogueArcUnlockLines / epilogueArcUnlockLabel.
 // Journey levels also export pairTheme + comboTheme + encounterCount for the L20+ belt.

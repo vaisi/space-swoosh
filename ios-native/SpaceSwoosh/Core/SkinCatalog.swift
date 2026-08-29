@@ -1,5 +1,6 @@
 // SkinCatalog.swift
-// Changes: Seal slim almond + paired aft vortex; Orbit Spine bar + helix wake.
+// Changes: Unset / unknown skin id resolves to Flicker (matches JS DEFAULT_SHIP_SKIN).
+// Seal slim almond + paired aft vortex; Orbit Spine bar + helix wake.
 // Rook wake tucks at the fuselage tail (trailTailOffset 0.95).
 // UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
 

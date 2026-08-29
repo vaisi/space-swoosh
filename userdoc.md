@@ -1,4 +1,5 @@
-<!-- Changes: Journey ending Open Instagram → @spaceswoosh.app
+<!-- Changes: New players start in Flicker (Focus/Ember/Saber still free).
+     Journey ending Open Instagram → @spaceswoosh.app
      (https://www.instagram.com/spaceswoosh.app). Premium ships are locked
      again — Focus/Flicker/Ember/Saber stay free; the rest show a price and
      unlock on the apps. Pause is two ink bars. Hazard Lab tile not shown.
@@ -36,6 +37,7 @@
 > under the hull — chevrons, rings, commas, dashes, and the rest of the
 > family, not a column of dots. The
 > four always-free ships are **Focus**, **Flicker**, **Ember**, and **Saber**.
+> New players start in **Flicker**.
 > The rest of the hangar is locked until you buy (price on the tile) or Restore
 > Purchases. Journey days unlock in order — Level 1 is open; later tiles stay
 > faded until you clear the previous day. Zigzag from the start; Arc
@@ -425,7 +427,7 @@ along the path you actually flew. You only crash where the hull actually is —
 Needle's thin spine and Echo's open middle slip through gaps a full circle would
 catch. Sparkles and shields stay generous.
 
-Pick one under **Options → Ship**. Your choice is remembered. After you tap a
+You start in **Flicker**. Pick another under **Options → Ship**. Your choice is remembered. After you tap a
 ship, **Play now** appears so you can jump straight into Open Space without
 backing out to the menu.
 

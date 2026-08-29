@@ -1,11 +1,13 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app
-     (@spaceswoosh.app). UNLOCK_ALL_SKINS = false on Android/web (store hangar;
-     iOS was already false). Premium ships lock until RevenueCat buy / restore /
-     yearly 3-ship pick. ownedSkinIds cache gen 2 drops the playtest "all
-     owned" list. In-run pause is `.ss-pause` two ink bars. Hazard Lab tile
-     gated off. UNLOCK_ALL_LEVELS = false (sequential Journey). -->
+<!-- Changes: Default ship is Flicker (`DEFAULT_SHIP_SKIN` / iOS SkinCatalog.resolve)
+     when shipSkinId is unset, unknown, or not owned. Epilogue Open Instagram →
+     https://www.instagram.com/spaceswoosh.app (@spaceswoosh.app). UNLOCK_ALL_SKINS
+     = false on Android/web (store hangar; iOS was already false). Premium ships
+     lock until RevenueCat buy / restore / yearly 3-ship pick. ownedSkinIds cache
+     gen 2 drops the playtest "all owned" list. In-run pause is `.ss-pause` two
+     ink bars. Hazard Lab tile gated off. UNLOCK_ALL_LEVELS = false
+     (sequential Journey). -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -22,7 +24,7 @@
 > Light Mode / Restore; native Rate ★ is a header chip (same as SPACE BOARD Zigzag). PLAY is Journey then Open Space; Lab is hidden (`SHOW_HAZARD_LAB` / `showHazardLab`, flip to restore the map tile). SPACE BOARD
 > uses the same Supabase `high_scores` table as Android (anon key injected at
 > build). Local PBs still back the PLAY card.
-> `shipSkinId` persists (unknown id stays **Flicker**).
+> `shipSkinId` persists (unknown / unset / unowned id stays **Flicker**).
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
 > 18 `skipHullCache` hulls (Nyan, Halo, plus `Lantern`…`Rook`) share
@@ -1068,7 +1070,9 @@ Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Rook; other Focus–Cin
 - Roster: `ships/skinDefs.js`; geometry in `ships/hulls.js`; wakes in `ships/trails.js`.
 - `Spacecraft.render()` calls `skin.drawTrail` then hull (`HullCache` blit when
   `game.useHullCache`, else `skin.drawHull`); shield rings stay Signal Blue.
-- Active id: `game.shipSkinId` (storage key `shipSkinId`).
+- Active id: `game.shipSkinId` (storage key `shipSkinId`). First launch and
+  fallback is **Flicker** (`DEFAULT_SHIP_SKIN` in `skins.js`; iOS
+  `SkinCatalog.resolve` / `SettingsStore` match). A saved owned id still wins.
 - Main menu quick-cycle: `Game.cycleMenuShip(delta)` walks owned entries in
   `SHIP_SKIN_LIST` (wraps), then `saveShipSkinId`. Wired from chevron hit-boxes
   (`menuButtons.prevShip` / `nextShip`) and `setupMenuShipKeys()` (no key-repeat

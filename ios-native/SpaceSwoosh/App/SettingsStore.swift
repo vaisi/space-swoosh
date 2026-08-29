@@ -1,5 +1,6 @@
 // SettingsStore.swift
-// Changes: Init from locals so Swift does not read self before all stored properties are set.
+// Changes: Unowned / missing shipSkinId falls back to Flicker (JS DEFAULT_SHIP_SKIN).
+// Init from locals so Swift does not read self before all stored properties are set.
 // equip_ship / set_theme user properties stay in sync.
 
 import Foundation

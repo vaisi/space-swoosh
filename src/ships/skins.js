@@ -1,6 +1,8 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
+// - Default equipped ship is Flicker (`DEFAULT_SHIP_SKIN`) when unset / unknown
+//   / not owned — not Focus.
 // - Menu preview samples originate at skin.trailTailOffset (Nyan centre;
 //   Rook tucks at the fuselage tail) so hangar wakes match in-play attach.
 // - Menu preview always uses the short wake so it never covers the title;
@@ -19,7 +21,7 @@ import { SKIN_DEFS } from './skinDefs.js';
 import { MAX_BANK } from './hulls.js';
 import { isSkinOwned } from '../services/Entitlements.js';
 
-export const DEFAULT_SHIP_SKIN = 'focus';
+export const DEFAULT_SHIP_SKIN = 'flicker';
 export const SHIP_SKIN_STORAGE_KEY = 'shipSkinId';
 
 export const skins = Object.fromEntries(SKIN_DEFS.map((skin) => [skin.id, skin]));

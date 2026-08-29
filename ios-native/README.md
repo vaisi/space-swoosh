@@ -20,7 +20,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - **SPACE BOARD**: same `high_scores` table as Android (Zigzag/Arc, DISTANCE/OBSTACLES, 10×10 pages). Submit Score + top-10 auto-prompt. Local PBs still back the PLAY card.
 - **Firebase Analytics**: same project as Android (`spaceswoosh-faa9c`). Events: `game_over`, `journey_level_end`, `hazard_lab_end`, `equip_ship`, `purchase_skin`, `purchase` (revenue), `set_theme`, `set_sound`, `set_sound_channel`, `submit_highscore`, `journey_epilogue_send`, `journey_epilogue_skip`. All include `platform=ios`. Plist is gitignored; Codemagic uses `GOOGLE_SERVICE_INFO_PLIST`. No Advertising Identifier (`FirebaseAnalyticsCore`).
 - Type: bundled Space Grotesk + Space Mono (`BrandType`). Framed ink tiles, 0 radius, dotted rules, **← Back**
-- Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown: **Flicker**
+- Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown / unowned: **Flicker**
 - Options → **Ship**: scrolling 2-column tiles (name + blurb + hull + short wake)
 - Hangar stills bake Android `previewWake` (12 pts, span 3.4r, never the long in-play wake) then a banked hull. Live hulls use `LiveHullPaint` / `ClassicHullPaint` at t=1400 ms. In play, live hull warp is **not** rasterized; a 3.2r pad keeps orbiting ornaments (Bloom satellites, Luna dust) in frame. Pools: 16 fills / 24 strokes / 24 discs.
 - One equipped renderer at `startRun` (do not allocate a trail node per ship). Richer baked silhouettes (wash + highlight + crease) for static ink hulls; wash/ring α is Canvas `globalAlpha × fillStyle.alpha` so `ink12`/`ink30` halos stay translucent. **18** live-draw (`skipHullCache`: Nyan, Halo, Lantern…Rook)
