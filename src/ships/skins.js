@@ -1,6 +1,8 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
+// - SHIP_SKIN_LIST omits `hidden` skins (Merlin, Rook). resolve/load/save treat
+//   a hidden id as unknown so a leftover shipSkinId falls back to Flicker.
 // - Default equipped ship is Flicker (`DEFAULT_SHIP_SKIN`) when unset / unknown
 //   / not owned — not Focus.
 // - Menu preview samples originate at skin.trailTailOffset (Nyan centre;
@@ -26,11 +28,16 @@ export const SHIP_SKIN_STORAGE_KEY = 'shipSkinId';
 
 export const skins = Object.fromEntries(SKIN_DEFS.map((skin) => [skin.id, skin]));
 
-export const SHIP_SKIN_LIST = SKIN_DEFS;
+/** Hangar / menu / yearly pick — withheld skins stay in `skins` for lookup. */
+export const SHIP_SKIN_LIST = SKIN_DEFS.filter((skin) => !skin.hidden);
+
+function isListedSkin(id) {
+    return Boolean(skins[id]) && !skins[id].hidden;
+}
 
 /** @returns {string} */
 export function resolveShipSkinId(id) {
-    return skins[id] ? id : DEFAULT_SHIP_SKIN;
+    return isListedSkin(id) ? id : DEFAULT_SHIP_SKIN;
 }
 
 /** @returns {typeof SKIN_DEFS[0]} */
@@ -40,8 +47,17 @@ export function getSkin(id) {
 
 export function loadShipSkinId() {
     try {
-        const id = resolveShipSkinId(localStorage.getItem(SHIP_SKIN_STORAGE_KEY));
-        return isSkinOwned(id) ? id : DEFAULT_SHIP_SKIN;
+        const raw = localStorage.getItem(SHIP_SKIN_STORAGE_KEY);
+        const id = resolveShipSkinId(raw);
+        const next = isSkinOwned(id) ? id : DEFAULT_SHIP_SKIN;
+        if (raw && raw !== next) {
+            try {
+                localStorage.setItem(SHIP_SKIN_STORAGE_KEY, next);
+            } catch {
+                /* ignore quota / private mode */
+            }
+        }
+        return next;
     } catch {
         return DEFAULT_SHIP_SKIN;
     }

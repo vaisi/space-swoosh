@@ -1,7 +1,9 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Default ship is Flicker (`DEFAULT_SHIP_SKIN` / iOS SkinCatalog.resolve)
-     when shipSkinId is unset, unknown, or not owned. Epilogue Open Instagram →
+<!-- Changes: Merlin and Rook are withheld from the hangar (`hidden: true`;
+     `SHIP_SKIN_LIST` / iOS `SkinCatalog.roster` omit them). Leftover equipped
+     ids remount to Flicker. Default ship is Flicker when shipSkinId is unset,
+     unknown, hidden, or not owned. Epilogue Open Instagram →
      https://www.instagram.com/spaceswoosh.app (@spaceswoosh.app). UNLOCK_ALL_SKINS
      = false on Android/web (store hangar; iOS was already false). Premium ships
      lock until RevenueCat buy / restore / yearly 3-ship pick. ownedSkinIds cache
@@ -15,7 +17,7 @@
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
-> Lab fly the **full 41-ship roster** (Android `SKIN_DEFS` order). JS + native iOS
+> Lab fly the **39-ship hangar** (Android `SKIN_DEFS` order; Merlin and Rook stay in the catalog with `hidden: true` and are omitted from `SHIP_SKIN_LIST` / iOS `SkinCatalog.roster`). JS + native iOS
 > `UNLOCK_ALL_SKINS = false` (premium hangar tiles go through RevenueCat);
 > Options still has Restore Purchases. Sequential Journey:
 > `UNLOCK_ALL_LEVELS = false` (web also `?unlocklevels=1|0`). Free forever (no
@@ -290,8 +292,8 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
-| `ships/skins.js` | Ship skin registry: lookup, persistence, roster, menu previews. |
-| `ships/skinDefs.js` | Ship roster (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin…Rook) composed from hulls + trails + boop signatures. |
+| `ships/skins.js` | Ship skin registry: lookup, persistence, hangar roster (`SHIP_SKIN_LIST` omits `hidden`), menu previews. Hidden leftover ids remount to Flicker. |
+| `ships/skinDefs.js` | Ship catalog (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin…Rook). Merlin and Rook set `hidden: true` so hangar / menu / yearly pick omit them. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
@@ -977,8 +979,8 @@ are identical. Per-skin `hitbox` profiles follow the drawn silhouette.
 | `puff` | Dandelion clock (`puffPath`) + radiating seed ticks | Parachute umbrellas (inverted-V + disc) | `cloud` puff; inflate jelly; `skipHullCache` |
 | `argus` | Peacock teardrop (`argusPath`) + pulsing eyespots | Teal-rim / gold-pupil eyespot stamps | `pile` fan flare; fan-spread jelly; `skipHullCache` |
 | `chime` | Temple bell (`chimePath`) + swaying side bells | Expanding sound arcs + gold/ink note motes | `ripple` ring pulse; Halo-like wobble; `skipHullCache` |
-| `merlin` | Ultra-slim spark-falcon (`merlinPath`) + prism heart + orbiting 4-point stars | Hairline gold comet + dense prism stars + glitter dust, long wake | `flare` burst; glitter wobble; `skipHullCache` |
-| `rook` | Four-vane spark-skiff (`rookPath`) + bronze/gold slit + vane-tip glitter | Twin bronze/gold filaments + ember diamonds, long wake | `flare` burst; vane flash; `skipHullCache` |
+| `merlin` | Ultra-slim spark-falcon (`merlinPath`) + prism heart + orbiting 4-point stars | Hairline gold comet + dense prism stars + glitter dust, long wake | `flare` burst; glitter wobble; `skipHullCache`; **`hidden` — omitted from hangar** |
+| `rook` | Four-vane spark-skiff (`rookPath`) + bronze/gold slit + vane-tip glitter | Twin bronze/gold filaments + ember diamonds, long wake | `flare` burst; vane flash; `skipHullCache`; **`hidden` — omitted from hangar** |
 
 Square hulls have no soft halo — hard ink rect only. Hitbox is a 3×3 of circles
 filling the rest-pose box (`SQUARE_HITBOX`). `ship.wallJelly` drives a ~420 ms
@@ -1072,12 +1074,14 @@ Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Rook; other Focus–Cin
   `game.useHullCache`, else `skin.drawHull`); shield rings stay Signal Blue.
 - Active id: `game.shipSkinId` (storage key `shipSkinId`). First launch and
   fallback is **Flicker** (`DEFAULT_SHIP_SKIN` in `skins.js`; iOS
-  `SkinCatalog.resolve` / `SettingsStore` match). A saved owned id still wins.
-- Main menu quick-cycle: `Game.cycleMenuShip(delta)` walks owned entries in
-  `SHIP_SKIN_LIST` (wraps), then `saveShipSkinId`. Wired from chevron hit-boxes
-  (`menuButtons.prevShip` / `nextShip`) and `setupMenuShipKeys()` (no key-repeat
-  spam). Main menu browses the full roster (`menuShipBrowseId`); locked skins
-  show price and tap-to-buy; Play always uses the last owned `shipSkinId`.
+  `SkinCatalog.resolve` / `SettingsStore` match). A saved owned id still wins
+  unless that skin is `hidden` (Merlin / Rook remount to Flicker).
+- Main menu quick-cycle: `Game.cycleMenuShip(delta)` walks `SHIP_SKIN_LIST`
+  (wraps; hidden skins omitted), then `saveShipSkinId`. Wired from chevron
+  hit-boxes (`menuButtons.prevShip` / `nextShip`) and `setupMenuShipKeys()`
+  (no key-repeat spam). Main menu browses the hangar (`menuShipBrowseId`);
+  locked skins show price and tap-to-buy; Play always uses the last owned
+  `shipSkinId`.
 
 ### Wake rendering
 

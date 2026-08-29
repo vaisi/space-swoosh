@@ -1,5 +1,6 @@
 // EntitlementsStore.swift
-// Changes: UNLOCK_ALL_SKINS is off; owns() only grants free skins + store entitlements.
+// Changes: purchase() refuses hidden roster ships (Merlin, Rook).
+// UNLOCK_ALL_SKINS is off; owns() only grants free skins + store entitlements.
 
 import Foundation
 import Combine
@@ -45,6 +46,7 @@ final class EntitlementsStore: ObservableObject {
     }
 
     func purchase(_ id: SkinId) async {
+        if SkinCatalog.hidden.contains(id) { return }
         if await MainActor.run(body: { busy }) { return }
         if owns(id) {
             await MainActor.run { SettingsStore.shared.setShipSkin(id) }

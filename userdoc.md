@@ -1,4 +1,5 @@
-<!-- Changes: New players start in Flicker (Focus/Ember/Saber still free).
+<!-- Changes: Merlin and Rook are withheld from the hangar (home cycle and
+     Options → Ship). New players start in Flicker (Focus/Ember/Saber still free).
      Journey ending Open Instagram → @spaceswoosh.app
      (https://www.instagram.com/spaceswoosh.app). Premium ships are locked
      again — Focus/Flicker/Ember/Saber stay free; the rest show a price and
@@ -29,7 +30,7 @@
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
 > Cycle ships on the home screen (◀ / ▶) or pick one under
 > Options → Ship; your choice is saved. The
-> whimsical ships (Lantern through Rook) show their colors on the hangar tile,
+> whimsical ships (Lantern through Chime) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s Spine bar, and
 > **Nyan**’s gray crescent with pink spots match Android in play (hangar cards
 > freeze that pose). The other hulls show the same **soft** ink wash and crease as
@@ -376,11 +377,11 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Puff** | A dandelion clock with a short stem and breathing seed ticks. An ink path sheds gold and teal parachute umbrellas that puff on a wall hit. Stem and ticks are looks only. |
 | **Argus** | A peacock teardrop with a rear fan of pulsing eyespots. Peacock-rim, gold-pupil rings stamp the path; the fan flares on a wall hit. Thin feather tips are looks only. |
 | **Chime** | A temple bell with two smaller side bells and swaying clappers. Dense sound arcs and gold/ink notes ring down the wake. Side bells are looks only. |
-| **Merlin** | An ultra-slim spark-falcon with a prism heart and orbiting stars. A hairline gold comet sheds a cascade of 4-point stars; a wall hit bursts the sky. Stars and winglets are looks only. |
-| **Rook** | A compact four-vane skiff in ink, with a bronze-slit beak that goes gold on night paper. Twin ink ribbons and rust sparkles pour from the tail; a wall hit flashes the four blades. Vanes are looks only. |
+
+Merlin and Rook are withheld from the hangar for now.
 
 Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Orbit, Ink,
-Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, and Rook leave a longer wake in play so the far end runs off the screen. The
+Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, and Chime leave a longer wake in play so the far end runs off the screen. The
 home-screen ship picture stays short so it does not cover the title.
 
 Hatch, Trace, and Ring collide as the box you see. **Seal** collides on its slim almond (the nose mark is looks only). **Orbit** collides on the same upright bar as Spine. **Lantern** collides on the
@@ -391,9 +392,7 @@ collides on the body (the tail is looks only). **Luna** collides on the inner mo
 are looks only). **Darner** collides on the needle body (wings are looks only).
 **Puff** collides on the seed head (stem and ticks are looks only). **Argus**
 collides on the body and inner fan (thin feather tips are looks only). **Chime**
-collides on the central bell (side bells and clappers are looks only). **Merlin**
-collides on the needle body (winglets and orbiting stars are looks only). **Rook**
-collides on the fuselage (the four vanes are looks only). On a side-wall bounce,
+collides on the central bell (side bells and clappers are looks only). On a side-wall bounce,
 **every** ship reacts —
 animation only; the hitbox does not squash. Each vessel has its own feel: some
 squash like jelly, Needle flexes, Halo wobbles in a tiny orbit, Shard cracks,

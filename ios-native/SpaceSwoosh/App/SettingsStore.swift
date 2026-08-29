@@ -1,5 +1,7 @@
 // SettingsStore.swift
-// Changes: Unowned / missing shipSkinId falls back to Flicker (JS DEFAULT_SHIP_SKIN).
+// Changes: Hidden roster ships (Merlin, Rook) cannot be equipped; leftover
+// shipSkinId remounts to Flicker via SkinCatalog.resolve.
+// Unowned / missing shipSkinId falls back to Flicker (JS DEFAULT_SHIP_SKIN).
 // Init from locals so Swift does not read self before all stored properties are set.
 // equip_ship / set_theme user properties stay in sync.
 
@@ -30,7 +32,7 @@ final class SettingsStore: ObservableObject {
             UserDefaults.standard.set(resolvedStyle.rawValue, forKey: "spaceswoosh.flightStyle")
         }
         var resolvedSkin = SkinCatalog.resolve(UserDefaults.standard.string(forKey: "shipSkinId"))
-        if !SkinCatalog.isOwned(resolvedSkin) {
+        if !SkinCatalog.isOwned(resolvedSkin) || SkinCatalog.hidden.contains(resolvedSkin) {
             resolvedSkin = .flicker
             UserDefaults.standard.set(SkinId.flicker.rawValue, forKey: "shipSkinId")
         }
@@ -58,7 +60,7 @@ final class SettingsStore: ObservableObject {
     }
 
     func setShipSkin(_ id: SkinId) {
-        guard SkinCatalog.isOwned(id) else { return }
+        guard SkinCatalog.isOwned(id), !SkinCatalog.hidden.contains(id) else { return }
         let previous = shipSkinId
         shipSkinId = id
         UserDefaults.standard.set(id.rawValue, forKey: "shipSkinId")
@@ -71,7 +73,7 @@ final class SettingsStore: ObservableObject {
     }
 
     func ensureEquippedOwned() {
-        if !SkinCatalog.isOwned(shipSkinId) {
+        if !SkinCatalog.isOwned(shipSkinId) || SkinCatalog.hidden.contains(shipSkinId) {
             setShipSkin(.flicker)
         }
     }

@@ -2,6 +2,7 @@
 // Ship ownership + Pro subscription state. Free skins (no productId) are always
 // owned; premium skins unlock via RevenueCat, annual Pro picks, or IAP.
 // Changes:
+// - Hidden skins (Merlin, Rook) cannot be bought or yearly-picked; prices skip.
 // - UNLOCK_ALL_SKINS false (store hangar). Premium tiles stay locked until a
 //   RevenueCat buy / restore / yearly 3-ship pick. Cache gen 2 drops the
 //   playtest "every id owned" localStorage so testers cannot keep free ships.
@@ -237,7 +238,7 @@ export function claimAnnualShipPicks(skinIds) {
     }
     for (const id of unique) {
         const skin = skinById(id);
-        if (!skin?.productId) {
+        if (!skin?.productId || skin.hidden) {
             return { ok: false, message: 'Pick premium ships only.' };
         }
     }
@@ -302,7 +303,7 @@ export async function refreshEntitlements() {
 async function prefetchPrices() {
     if (!purchasesAvailable()) return;
     const ids = [
-        ...SKIN_DEFS.filter((s) => s.productId).map((s) => s.productId),
+        ...SKIN_DEFS.filter((s) => s.productId && !s.hidden).map((s) => s.productId),
         PRO_WEEKLY_PRODUCT_ID,
         PRO_YEARLY_PRODUCT_ID,
     ];
@@ -320,7 +321,7 @@ async function prefetchPrices() {
  */
 export async function purchaseSkin(id) {
     const skin = skinById(id);
-    if (!skin) return { ok: false, message: 'Unknown ship.' };
+    if (!skin || skin.hidden) return { ok: false, message: 'Unknown ship.' };
     if (!skin.productId) {
         owned.add(id);
         persistSkins();

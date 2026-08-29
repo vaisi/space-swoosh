@@ -2,6 +2,8 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Merlin and Rook stay in SKIN_DEFS but set `hidden: true` so hangar / menu
+//   / yearly pick omit them (skins.js filters SHIP_SKIN_LIST).
 // - Seal — slim vesica almond + paired aft vortex commas (crush then peel).
 // - Orbit — Spine bar hull + helical orbit wake.
 // - Rook hull shortened; wake tucks at the fuselage tail (trailTailOffset 0.95).
@@ -2549,6 +2551,7 @@ const merlin = {
     id: 'merlin',
     name: 'Merlin',
     blurb: 'A spark-falcon. Stars pour from its wake.',
+    hidden: true,
     hitbox: MERLIN_HITBOX,
     wallTrailMode: 'flare',
     skipHullCache: true,
@@ -2565,6 +2568,7 @@ const rook = {
     id: 'rook',
     name: 'Rook',
     blurb: 'Four gold vanes. Dust pours from its wake.',
+    hidden: true,
     hitbox: ROOK_HITBOX,
     wallTrailMode: 'flare',
     skipHullCache: true,

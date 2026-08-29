@@ -1,5 +1,7 @@
 // SkinCatalog.swift
-// Changes: Unset / unknown skin id resolves to Flicker (matches JS DEFAULT_SHIP_SKIN).
+// Changes: Merlin and Rook stay in SkinId / allDefs but are omitted from `roster`
+// (hangar, home arrows, store prices). resolve() maps a leftover id to Flicker.
+// Unset / unknown skin id resolves to Flicker (matches JS DEFAULT_SHIP_SKIN).
 // Seal slim almond + paired aft vortex; Orbit Spine bar + helix wake.
 // Rook wake tucks at the fuselage tail (trailTailOffset 0.95).
 // UNLOCK_ALL_SKINS false so iOS hangar gates premium ships through RevenueCat.
@@ -79,11 +81,15 @@ enum SkinCatalog {
     /// Store hangar — premium ships require a RevenueCat entitlement.
     static let UNLOCK_ALL_SKINS = false
 
-    static let roster: [SkinId] = SkinId.allCases
+    static let hidden: Set<SkinId> = [.merlin, .rook]
+    static let roster: [SkinId] = SkinId.allCases.filter { !hidden.contains($0) }
     static let free: [SkinId] = [.focus, .flicker, .ember, .saber]
 
     static func resolve(_ raw: String?) -> SkinId {
-        SkinId(rawValue: raw ?? "") ?? .flicker
+        guard let id = SkinId(rawValue: raw ?? ""), !hidden.contains(id) else {
+            return .flicker
+        }
+        return id
     }
 
     static func isOwned(_ id: SkinId) -> Bool {

@@ -51,8 +51,8 @@
 //   before the map; Continue unlocks Logbook `signalCall`.
 // - Submit Signal + Android keyboard: Cap Keyboard plugin tracks IME height;
 //   card keeps stats-above-field order and centers in the remaining viewport.
-// - Main menu: cycle full roster (menuShipBrowseId); owned equips, locked
-//   shows price + tap-to-buy; Play uses last owned shipSkinId.
+// - Main menu: cycle hangar roster (menuShipBrowseId; hidden skins omitted);
+//   owned equips, locked shows price + tap-to-buy; Play uses last owned shipSkinId.
 // - Options hub: Ship / Controls / Sound / Theme + Restore. Native Rate ★
 //   is a compact header chip (same as Space Board Zigzag), not a hub row.
 // - Options → Sound: Music / Sound FX / Voice channel toggles (SoundManager);
@@ -2422,8 +2422,8 @@ export class Game {
     }
 
     /**
-     * Browse the full ship roster on the main menu (wraps). Owned skins equip;
-     * locked skins preview only (price shown; tap centre to buy).
+     * Browse the hangar roster on the main menu (wraps; hidden skins omitted).
+     * Owned skins equip; locked skins preview only (price shown; tap centre to buy).
      */
     cycleMenuShip(delta) {
         const list = SHIP_SKIN_LIST;
