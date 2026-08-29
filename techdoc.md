@@ -1,11 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Journey smash-star targets: L5–13 stay 1/2/3; L14–23 → 8,
-     L24–30 → 10, L31–36 → 15, L37–40 → 17, L41–42 → 20. HUD uses dots when
-     smashTarget ≤ 6 and `n / target` from day 14. Merlin and Rook withheld
-     from hangar. Default ship Flicker. Epilogue Instagram @spaceswoosh.app.
-     UNLOCK_ALL_SKINS / UNLOCK_ALL_LEVELS false. Pause is `.ss-pause` two ink
-     bars. Hazard Lab tile gated off. -->
+<!-- Changes: Options Rate on native iOS uses AppStore.requestReview(in:) /
+     SKStoreReviewController on a UIWindowScene — not SwiftUI
+     RequestReviewAction — so Codemagic Xcode 26.4 can archive. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -451,11 +448,15 @@ Web never auto-prompts.
 
 Hardware back on the overlay is Later. Options header **Rate ★** (native only;
 same compact brand chip as SPACE BOARD Zigzag / Arc) fires `review_from_options`,
-tries the in-app sheet, and falls back
-to the store URL if that call fails. Play URL uses package `com.orbi.spaceswoosh`
-(not the Firebase project id). iOS write-review URL needs numeric
-`APP_STORE_APPLE_ID` (Info.plist / `VITE_APP_STORE_APPLE_ID`). Empty id skips
-the URL; `requestReview()` still runs.
+opens the write-review URL when `APP_STORE_APPLE_ID` is set, otherwise
+`AppStore.requestReview(in:)` (iOS 18+) or `SKStoreReviewController` on the
+active `UIWindowScene`. That path does **not** use SwiftUI
+`RequestReviewAction` — Xcode 26.4 device archives cannot see that type from
+StoreKit alone (it lives in the StoreKit-SwiftUI overlay). Play URL uses
+package `com.orbi.spaceswoosh` (not the Firebase project id). iOS write-review
+URL needs numeric `APP_STORE_APPLE_ID` (Info.plist / `VITE_APP_STORE_APPLE_ID`).
+Empty id skips the URL and runs the scene-based in-app review. The Day 6 / 13
+card still uses `@Environment(\.requestReview)` in `ReviewPromptCard`.
 
 Pre-publish: events work on TestFlight and Play internal testing. The Play
 sheet can appear on a Play-installed build. TestFlight usually **does not**

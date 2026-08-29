@@ -1,10 +1,8 @@
 // RootView.swift
-// Changes: Options Rate is a header chip (Rate ★), same as SPACE BOARD
-// Zigzag / Arc. PLAY Journey / Open Space cards use Android cardH (unit×17)
-// and sit vertically centered between the header and footnote.
+// Changes: Options Rate chip calls ReviewPromptStore.rateFromOptions() with no
+// RequestReviewAction (StoreKit scene API), matching Codemagic Xcode 26.4.
 
 import SwiftUI
-import StoreKit
 
 enum ShellScreen {
     case menu
@@ -24,7 +22,6 @@ struct RootView: View {
     @ObservedObject private var settings = SettingsStore.shared
     @ObservedObject private var journey = JourneyStore.shared
     @ObservedObject private var entitlements = EntitlementsStore.shared
-    @Environment(\.requestReview) private var requestReview
     @State private var screen: ShellScreen = .menu
     @State private var launch: PlayLaunch = .openSpace
     @State private var logbookReturn: ShellScreen = .menu
@@ -175,7 +172,7 @@ struct RootView: View {
                 trailingTitle: "Rate",
                 trailingTag: "★"
             ) {
-                ReviewPromptStore.rateFromOptions(requestReview)
+                ReviewPromptStore.rateFromOptions()
             }
             ShellChrome.screenBlurb("Vessel. Controls. Signal.")
             ShellChrome.brandButton("Ship", tag: "●") { screen = .shipPicker }
