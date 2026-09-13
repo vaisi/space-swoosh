@@ -1,11 +1,11 @@
 // PooledSpriteField.swift
-// Changes: Latched sparkles scale/pulse up as magnetMix climbs (JS suck-in).
-// Drift current uses dashed SKShapeNode hairlines (Android Canvas
-// setLineDash + lineDashOffset) so lanes flow instead of flashing. Screen
-// origin uses CinematicFlight.cruiseSeat. Wormholes match Android — spinning
-// dashed stroke only, no additive inner glow. Path diameter is 2×radius×pulse
-// (plus stroke). Phase core fades fully (Android mergeFactor). Piece Y is
-// SpriteKit-up.
+// Changes: Drift lanes cache a dashed hairline and slide in X (Android
+// lineDashOffset) instead of rebuilding CGPath each frame — that read as
+// vertical strobe. Latched sparkles scale/pulse up as magnetMix climbs
+// (JS suck-in). Screen origin uses CinematicFlight.cruiseSeat. Wormholes
+// match Android — spinning dashed stroke only, no additive inner glow.
+// Path diameter is 2×radius×pulse (plus stroke). Phase core fades fully
+// (Android mergeFactor). Piece Y is SpriteKit-up.
 
 import SpriteKit
 
@@ -15,6 +15,9 @@ final class PooledSpriteField: SKNode {
     private let glowNodes: [SKSpriteNode]
     private let pickupNodes: [SKSpriteNode]
     private let driftLaneNodes: [SKShapeNode]
+    private var driftLanePath: CGPath?
+    private var driftLaneCacheWidth: CGFloat = -1
+    private var driftLaneCacheUnit: CGFloat = -1
     private let bake: BakePipeline
 
     init(bake: BakePipeline) {
@@ -169,7 +172,6 @@ final class PooledSpriteField: SKNode {
         }
         for i in driftUsed..<driftLaneNodes.count {
             driftLaneNodes[i].isHidden = true
-            driftLaneNodes[i].path = nil
         }
 
         for i in 0..<pickupNodes.count {
@@ -317,7 +319,10 @@ final class PooledSpriteField: SKNode {
     }
 
     /// Android `DriftCurrent.render`: 7 ink30 hairlines, dash `[u×0.55, u×0.55×0.85]`,
-    /// round caps, `lineDashOffset = -phase × direction` so flow matches the shove.
+    /// round caps. Canvas uses `lineDashOffset = -offset × direction`. SpriteKit
+    /// does not animate `dashingWithPhase` that way — cache phase-0 dashes and
+    /// slide the node in X (the inverse of a dash-phase change) so flow matches
+    /// the shove. Extra `2×period` of path hides the wrap seam.
     private func emitDriftLanes(
         o: ObstacleState,
         screenY: CGFloat,
@@ -327,27 +332,44 @@ final class PooledSpriteField: SKNode {
         let lines = 7
         let u = world.baseUnit
         let dash = u * 0.55
-        let gap = dash * 0.85
-        let period = max(dash + gap, 1)
-        let lineW = max(1.1, u * 0.06)
+        let period = max(dash + dash * 0.85, 1)
+        let wrapPeriod = max(dash * 2, 1)
+        ensureDriftLanePath(width: world.width, unit: u, period: period)
         var used = used
         for i in 0..<lines where used < driftLaneNodes.count {
             let node = driftLaneNodes[used]
             used += 1
             let yy = screenY - o.halfH * 0.72 + (CGFloat(i) / CGFloat(lines - 1)) * o.halfH * 1.44
-            var phase = (o.phase + CGFloat(i) * u * 0.8).truncatingRemainder(dividingBy: period)
-            if phase < 0 { phase += period }
-            let dashPhase = -phase * o.driftDir
-            let line = CGMutablePath()
-            line.move(to: CGPoint(x: 0, y: 0))
-            line.addLine(to: CGPoint(x: world.width, y: 0))
-            node.lineWidth = lineW
-            node.lineCap = .round
-            node.strokeColor = BrandColors.UI.ink30
-            node.path = line.copy(dashingWithPhase: dashPhase, lengths: [dash, gap])
-            node.position = CGPoint(x: 0, y: yy)
+            var offset = (o.phase + CGFloat(i) * u * 0.8).truncatingRemainder(dividingBy: wrapPeriod)
+            if offset < 0 { offset += wrapPeriod }
+            // Slide ≡ −lineDashOffset so dashes travel with driftDir as offset grows.
+            var slide = (offset * o.driftDir).truncatingRemainder(dividingBy: period)
+            if slide < 0 { slide += period }
+            node.position = CGPoint(x: -period + slide, y: yy)
             node.isHidden = false
         }
         return used
+    }
+
+    private func ensureDriftLanePath(width: CGFloat, unit: CGFloat, period: CGFloat) {
+        if driftLanePath != nil, driftLaneCacheWidth == width, driftLaneCacheUnit == unit {
+            return
+        }
+        let dash = unit * 0.55
+        let gap = dash * 0.85
+        let lineW = max(1.1, unit * 0.06)
+        let line = CGMutablePath()
+        line.move(to: CGPoint(x: 0, y: 0))
+        line.addLine(to: CGPoint(x: width + 2 * period, y: 0))
+        let path = line.copy(dashingWithPhase: 0, lengths: [dash, gap])
+        driftLanePath = path
+        driftLaneCacheWidth = width
+        driftLaneCacheUnit = unit
+        for node in driftLaneNodes {
+            node.path = path
+            node.lineWidth = lineW
+            node.lineCap = .round
+            node.strokeColor = BrandColors.UI.ink30
+        }
     }
 }

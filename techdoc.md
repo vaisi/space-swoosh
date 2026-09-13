@@ -1,6 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Sparkle magnet latches (JS + iOS) then constant chase until
+<!-- Changes: Native iOS drift lanes cache a dashed hairline and slide in X
+     (Android lineDashOffset) — no per-frame dashingWithPhase rebuild.
+     Sparkle magnet latches (JS + iOS) then constant chase until
      collect. Default theme is dark (no ssTheme). DepthField is night-paper
      only. Mobile browsers on spaceswoosh.app never boot the canvas —
      store gate + App Store / Play links. Desktop web shows cream/ink QR
@@ -710,8 +712,10 @@ push interacts logbook like BH pull.
 
 **Drift Current:** full-width flowing shear lines; lateral wind only
 (`checkCollision` false). Dash flow direction matches shove (left or right).
-Native iOS draws the same dashed hairlines as Android Canvas (`setLineDash` +
-`lineDashOffset`) — not a tiled shader strip, which strobed on wrap.
+Native iOS caches a phase-0 dashed hairline (`width + 2×period`) and slides
+the node in X — the SpriteKit equivalent of Android Canvas `lineDashOffset`.
+Rebuilding `dashingWithPhase` each frame read as vertical strobe; a tiled
+shader strip also strobed on wrap.
 
 **Wormhole:** paired entry/exit portals; lab includes them for practice. Exit
 uses the original camera catch-up wobble (no custom framing).
@@ -1384,7 +1388,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Vortex / Tick / Crease / Ladder / Lag / Helix / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current SKShapeNode hairlines (Android dash + offset), popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Vortex / Tick / Crease / Ladder / Lag / Helix / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current cached SKShapeNode hairlines (X-slide ≡ Android `lineDashOffset`), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
 

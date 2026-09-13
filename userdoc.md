@@ -1,4 +1,5 @@
-<!-- Changes: Fuel sparkles lock on once you fly close and chase the ship
+<!-- Changes: iPhone wind dashes travel left or right like Android (not
+     vertically). Fuel sparkles lock on once you fly close and chase the ship
      until collected. New installs start in Dark Mode. Tiny drifting stars sit in the
      depth on Dark Mode only; Light Mode is flat cream paper. On a phone browser, spaceswoosh.app asks you to install the
      iPhone or Android app instead of playing in the tab. On a computer it
@@ -51,7 +52,7 @@
 > sits under Options → Controls as out of service until the Journey is finished.
 > Wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,
-> flowing wind dashes, a pulsing two-ring shield that matches Android’s size
+> flowing wind dashes that travel left or right like Android, a pulsing two-ring shield that matches Android’s size
 > (about **five seconds** on iPhone, the same as Android),
 > the same four-point sparkle as Android with a soft blue disc behind it, blue `+FUEL`,
 > small asteroids that mix circles, triangles, and squares in clusters like Android,

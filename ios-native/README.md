@@ -1,6 +1,8 @@
 <!--
  ios-native/README.md
- Changes: Wall-boost rush is 5s wall-clock (Flicker.speedBoostSeconds).
+ Changes: Drift / wind caches a dashed hairline and slides in X (Android
+ lineDashOffset) — no per-frame dashingWithPhase rebuild.
+ Wall-boost rush is 5s wall-clock (Flicker.speedBoostSeconds).
  Shield is 5s wall-clock (Flicker.shieldSeconds), same as Android/web.
  Journey cruise uses GameConfig.cruiseSpeedMultiplier (1.1), same as Open Space.
  Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app.
@@ -49,8 +51,9 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Wormholes: Android `WormholeGate` look — spinning dashed stroke in signal/ink/ink30, path diameter `2×size×pulse`, no additive inner glow
 - Flicker wake: one continuous `SKShapeNode` ribbon tucked under the hull center; smudge tapers at the join; spring path wiggle on wall BOOP
 - Focus ripple dots / Ember twin-dots / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs). Live ships: pooled hull graph + dedicated wakes. Remaining premiums: classic ribbon/mark wakes (not a particle dump)
-- Drift / wind: 7 thin ink30 SKShapeNode hairlines (Android `setLineDash` +
-  `lineDashOffset`), `baseUnit`-scaled period, flow matches shove direction
+- Drift / wind: 7 thin ink30 SKShapeNode hairlines. Path is cached (phase 0,
+  length `width + 2×period`) and the node slides in X — same motion as Android
+  `lineDashOffset`, no per-frame `dashingWithPhase` rebuild. Flow matches shove.
 - Cruise: Android snappy tick × **1.0** (`GameConfig.feelSpeed`); Open Space and Journey share `cruiseSpeedMultiplier` **1.1**
 - Menu / pause / outcome: Space Grotesk/Mono, framed ink buttons, paper wash, two-bar **MISSION PAUSED**. Open Space game over includes High Scores
 - Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick.
