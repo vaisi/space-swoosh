@@ -4,7 +4,7 @@
   - APP_STORE_APPLE_ID also injects the Options → Rate write-review URL.
   - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret; SPM product is FirebaseAnalyticsCore.
   - TestFlight uses .playback so Silent switch no longer mutes SFX.
-  - iOS CI stamps CFBundleVersion ≥ 2 (ASC already has 1.0.0 (1)).
+  - iOS marketing version is 1.0.1 — ASC closed the approved 1.0.0 train.
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
   - iOS Native workflows inject those vars into Info.plist for SPACE BOARD
@@ -166,11 +166,12 @@ HUD is locked at **16.7 ms / 60 Hz**. Audio (`AVAudioEngine` synth +
 Native app: `ios-native/SpaceSwoosh.xcodeproj`, scheme **SpaceSwoosh**, bundle `com.orbi.spaceswoosh`.
 Firebase SPM product is **`FirebaseAnalyticsCore`** (SDK 12 removed `FirebaseAnalyticsWithoutAdIdSupport`; that missing product was a Codemagic archive 65). CI resolves packages, then archives with `-destination generic/platform=iOS`.
 
-Apple treats **version + build** as unique. Marketing version can stay `1.0.0`;
-**CFBundleVersion** (the number in parentheses) must go up every upload.
-App Store Connect already has **1.0.0 (1)**. Re-uploading build `1` is rejected
-(`ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE`) and no new row appears in TestFlight.
+Apple treats **version + build** as unique. After **1.0.0** is approved, that
+train is closed (ASC `90062` / `90186`). New uploads must use a higher
+`CFBundleShortVersionString`. The shipping marketing version is **`1.0.1`**.
+**CFBundleVersion** (the number in parentheses) must still go up every upload.
 
-CI writes the next number into `Info.plist` before `xcodebuild` (floor **2**).
-Confirm in the Codemagic log: `Info.plist CFBundleVersion=` should be **2 or higher**.
-After processing (5–30 min), TestFlight shows **1.0.0 (2)** (or higher).
+CI writes both into `Info.plist` before `xcodebuild` (`MARKETING_VERSION` plus
+the next build number, floor **3**). Confirm in the Codemagic log:
+`CFBundleShortVersionString=1.0.1` and `CFBundleVersion=` **3 or higher**.
+After processing (5–30 min), TestFlight shows **1.0.1 (N)**.

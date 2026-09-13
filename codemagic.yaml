@@ -7,6 +7,7 @@
 # - Inject VITE_SUPABASE_* and VITE_REVENUECAT_IOS_KEY into native Info.plist.
 #   APP_STORE_APPLE_ID is also copied for Options → Rate write-review URL.
 # - Floor build number at 3 for C.5 TestFlight.
+# - Marketing version 1.0.1 — ASC closed the approved 1.0.0 train (90062 / 90186).
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
 workflows:
@@ -23,6 +24,7 @@ workflows:
         XCODE_PROJECT: ios-native/SpaceSwoosh.xcodeproj
         XCODE_SCHEME: SpaceSwoosh
         BUNDLE_ID: com.orbi.spaceswoosh
+        MARKETING_VERSION: "1.0.1"
       xcode: latest
     triggering:
       events:
@@ -92,12 +94,13 @@ workflows:
           if [ "$AS" -gt "$NEXT" ]; then NEXT=$AS; fi
           if [ "$CM" -gt "$NEXT" ]; then NEXT=$CM; fi
           NEXT=$((NEXT + 1))
-          # ASC already has 1.0.0 (1); repo floor is 3 for C.5.
+          # ASC already approved 1.0.0; repo floor is 3 for CFBundleVersion.
           if [ "$NEXT" -lt 3 ]; then NEXT=3; fi
           echo "Build numbers — TestFlight=$TF AppStore=$AS Codemagic=$CM → using $NEXT"
           echo "NATIVE_BUILD_NUMBER=$NEXT" >> "$CM_ENV"
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios-native/SpaceSwoosh/Info.plist
-          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" ios-native/SpaceSwoosh/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $MARKETING_VERSION" ios-native/SpaceSwoosh/Info.plist
+          echo "Info.plist CFBundleShortVersionString=$MARKETING_VERSION"
           STAMPED=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios-native/SpaceSwoosh/Info.plist)
           echo "Info.plist CFBundleVersion=$STAMPED"
           if [ "$STAMPED" = "1" ] || [ "$STAMPED" = "2" ] || [ "$STAMPED" = '$(CURRENT_PROJECT_VERSION)' ]; then
@@ -133,7 +136,7 @@ workflows:
         script: |
           EXPORT_PLIST=/Users/builder/export_options.plist
           : "${NATIVE_BUILD_NUMBER:=3}"
-          XCARGS="CURRENT_PROJECT_VERSION=${NATIVE_BUILD_NUMBER} MARKETING_VERSION=1.0.0"
+          XCARGS="CURRENT_PROJECT_VERSION=${NATIVE_BUILD_NUMBER} MARKETING_VERSION=${MARKETING_VERSION}"
           if [ -f "$EXPORT_PLIST" ]; then
             xcode-project build-ipa \
               --project "$XCODE_PROJECT" \

@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: Link RevenueCat SPM (purchases-ios) next to Firebase Analytics.
+// Changes: MARKETING_VERSION 1.0.1 after ASC approved 1.0.0. RevenueCat SPM + Firebase Analytics.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -360,7 +360,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -387,7 +387,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

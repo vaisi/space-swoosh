@@ -1,7 +1,9 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Removed leftover homescreen BUILD stamp (`buildStamp.js` +
-     Vite increment plugin). Menu never drew it; iOS never had a badge.
+<!-- Changes: Native iOS marketing version 1.0.1 — ASC closed approved
+     1.0.0 (Codemagic 90062 / 90186). Removed leftover homescreen BUILD
+     stamp (`buildStamp.js` + Vite increment plugin). Menu never drew it;
+     iOS never had a badge.
      Native iOS black hole matches Android/web Canvas — solid ink
      disc (no hole-punch donut), alpha halo out to 4× radius, 2pt pulse
      ring at size×(1.2 ± 0.2×sin(phase)), phase 3.0 rad/s. Repulsor still
@@ -74,8 +76,8 @@
 > file is missing. Synth boop/collect/portal/swoosh do not need MP3s. Spec: [`shared/game-constants.json`](shared/game-constants.json) v3
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
-> × (100/60)`. Playfield is the full device. Codemagic stamps
-> `CFBundleVersion` ≥ 13 on each TestFlight upload.
+> × (100/60)`. Playfield is the full device. Codemagic stamps marketing
+> version **1.0.1** and `CFBundleVersion` ≥ 13 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
