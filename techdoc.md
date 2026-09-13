@@ -1,6 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS black hole matches Android/web Canvas — solid ink
+<!-- Changes: Removed leftover homescreen BUILD stamp (`buildStamp.js` +
+     Vite increment plugin). Menu never drew it; iOS never had a badge.
+     Native iOS black hole matches Android/web Canvas — solid ink
      disc (no hole-punch donut), alpha halo out to 4× radius, 2pt pulse
      ring at size×(1.2 ± 0.2×sin(phase)), phase 3.0 rad/s. Repulsor still
      uses additive glowInk. Native iOS drift lanes cache a dashed hairline
@@ -11,7 +13,8 @@
      links. Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play 1.0.44 follow-ups — edge-to-edge,
+     shield is 5s wall-clock. Android Play default is 45 / 1.0.45 (above
+     store snapshot 44). Play 1.0.44 follow-ups — edge-to-edge,
      unlock orientation with 2:3 landscape letterbox, release R8 minify. -->
 
 > How the project currently works, for developers. Keep this up to date as the
@@ -133,9 +136,10 @@
 > a store refresh then restores real purchases. Advertising ID: collection disabled
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
-> so Play Console declaration can stay **No**. Play store snapshot: versionCode
-> **44** / versionName **1.0.44**. `buildStamp.js` still increments on vite build
-> even though the menu no longer draws it — see §2.
+> so Play Console declaration can stay **No**. Play upload default:
+> versionCode **45** / versionName **1.0.45** (must be higher than any
+> code already on Play, including Codemagic drafts). There is no on-screen
+> BUILD badge on web, Android, or native iOS.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
 > (fill-rate coolant: hitch clamp ≤1/30 s, opaque context) plus **cheap Canvas**
@@ -201,13 +205,11 @@ npm run open:android  # open the Android Studio project
 npm run open:ios      # open the Xcode project (macOS / Codemagic)
 ```
 
-**Homescreen BUILD stamp:** `src/core/buildStamp.js` (`BUILD_NUMBER`). Vite
-increments it on every production build (`vite build` / `build:native`, not
-`npm run dev`). The Capacitor/web menu **does not draw** the stamp. Restore the
-badge from `Game.js` (`BUILD N · NATIVE` / `WEB`) if a device install needs a
-visible check. If a phone still shows an old web bundle, Android Studio ran an
-old dist — rebuild, then Run; uninstall the app if WebView cached the old
-assets. Play `versionCode` 44 / `versionName` 1.0.44 is the current store snapshot and is not auto-bumped (override with `VERSION_CODE` / `VERSION_NAME` env vars).
+If a phone still shows an old web bundle, Android Studio ran an old dist —
+run `npm run build:native`, then Run; uninstall the app if WebView cached the
+old assets. Play default is `versionCode` 45 / `versionName` 1.0.45. Override
+with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
+`$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
 Credentials live in `.env` (`VITE_SUPABASE_*`, `VITE_REVENUECAT_*`). See `.env.example`.
 For a working leaderboard locally, copy `.env.example` → `.env` and set the
@@ -1193,8 +1195,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
   `--safe-area-inset-*` / `env(safe-area-inset-*)` padding.
   `theme-color` matches the surround. Native system-bar glyphs use
   `SystemBarsStyle.Dark` on night paper. Release Android enables R8
-  (`minifyEnabled` + `shrinkResources`). Menu BUILD stamp is **not drawn**
-  (`buildStamp.js` still increments on each `vite build` if the badge is restored later).
+  (`minifyEnabled` + `shrinkResources`). No on-screen BUILD / version badge.
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset. **Arc is locked until Day 42 is actually
   cleared** (`isArcUnlocked`; `UNLOCK_ALL_LEVELS` / `?unlocklevels=1` does not unlock it).

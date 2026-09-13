@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Removed leftover homescreen BUILD stamp notes; menu never draws a
+//   version / BUILD badge (iOS never had one).
 // - Depth field: after drawPaper, DepthField paints wrapping twinkle dust
 //   on night paper only (Light Mode stays flat). ?kill=stars skips it.
 //   The L42 epilogue paints its own quieter night field after the black hold.
@@ -10,8 +12,6 @@
 // - In-run pause control is two ink bars (`.ss-pause`), not the U+23F8 emoji.
 //   Android Noto Color Emoji rendered that glyph as an orange tile; ink
 //   follows light/dark like iOS PauseBars.
-// - Homescreen BUILD stamp is no longer drawn on web/Android. buildStamp.js
-//   still increments on vite build if the badge is restored later.
 // - KM / fuel use GameConfig.kmDelta (reference height 800) so a full-height
 //   desktop stage does not empty the tank by 2000 KM.
 // - L42: no intro voice or captions; after the gate, fade to black, pause,
