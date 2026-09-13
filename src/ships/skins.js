@@ -1,6 +1,7 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
+// - `skinRosterMark(id)` is the home hangar pager (`5 / 42`); hidden skins omitted.
 // - SHIP_SKIN_LIST omits `hidden` skins (Merlin, Rook). resolve/load/save treat
 //   a hidden id as unknown so a leftover shipSkinId falls back to Flicker.
 // - Default equipped ship is Flicker (`DEFAULT_SHIP_SKIN`) when unset / unknown
@@ -30,6 +31,21 @@ export const skins = Object.fromEntries(SKIN_DEFS.map((skin) => [skin.id, skin])
 
 /** Hangar / menu / yearly pick — withheld skins stay in `skins` for lookup. */
 export const SHIP_SKIN_LIST = SKIN_DEFS.filter((skin) => !skin.hidden);
+
+/** Home hangar pager, 1-based. Hidden skins omitted. */
+export function skinRosterParts(id) {
+    const total = SHIP_SKIN_LIST.length;
+    if (total === 0) return { index: 0, total: 0 };
+    let i = SHIP_SKIN_LIST.findIndex((skin) => skin.id === id);
+    if (i < 0) i = 0;
+    return { index: i + 1, total };
+}
+
+/** Home hangar pager label — `"5 / 42"`. Hidden skins omitted. */
+export function skinRosterMark(id) {
+    const { index, total } = skinRosterParts(id);
+    return `${index} / ${total}`;
+}
 
 function isListedSkin(id) {
     return Boolean(skins[id]) && !skins[id].hidden;

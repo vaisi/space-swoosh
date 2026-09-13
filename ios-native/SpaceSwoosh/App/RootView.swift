@@ -1,6 +1,6 @@
 // RootView.swift
-// Changes: Options Rate chip calls ReviewPromptStore.rateFromOptions() with no
-// RequestReviewAction (StoreKit scene API), matching Codemagic Xcode 26.4.
+// Changes: home screen swipe (above the action buttons) cycles the hangar via
+// ShipPreview's browse binding — same left=next / right=previous as Android.
 
 import SwiftUI
 
@@ -26,6 +26,7 @@ struct RootView: View {
     @State private var launch: PlayLaunch = .openSpace
     @State private var logbookReturn: ShellScreen = .menu
     @State private var menuFlavor = CopyBank.pick(.menu)
+    @State private var menuBrowseId: SkinId = SettingsStore.shared.shipSkinId
     @State private var journeyBlurb = CopyBank.pick(.modeJourney)
     @State private var openBlurb = CopyBank.pick(.modeOpenWorld)
 
@@ -90,19 +91,23 @@ struct RootView: View {
 
     private var menu: some View {
         VStack(spacing: 14) {
-            Spacer()
-            Text("SPACE SWOOSH")
-                .font(BrandType.display(38))
-                .tracking(BrandType.displayTracking(38))
-                .foregroundStyle(BrandColors.ink)
-            Text(menuFlavor)
-                .font(BrandType.body(15))
-                .foregroundStyle(BrandColors.ink55)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 36)
-            ShipPreview()
-                .padding(.top, 8)
-            Spacer()
+            VStack(spacing: 14) {
+                Spacer()
+                Text("SPACE SWOOSH")
+                    .font(BrandType.display(38))
+                    .tracking(BrandType.displayTracking(38))
+                    .foregroundStyle(BrandColors.ink)
+                Text(menuFlavor)
+                    .font(BrandType.body(15))
+                    .foregroundStyle(BrandColors.ink55)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 36)
+                ShipPreview(browseId: $menuBrowseId)
+                    .padding(.top, 8)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+            .simultaneousGesture(menuShipSwipe)
             VStack(spacing: 12) {
                 ShellChrome.brandButton("Play", tag: "▶", primary: true) {
                     journeyBlurb = CopyBank.pick(.modeJourney)
@@ -119,6 +124,16 @@ struct RootView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 28)
         }
+    }
+
+    private var menuShipSwipe: some Gesture {
+        DragGesture(minimumDistance: 28)
+            .onEnded { value in
+                let dx = value.translation.width
+                let dy = value.translation.height
+                guard abs(dx) >= 40, abs(dx) > abs(dy) * 1.15 else { return }
+                MenuHangar.cycle(browseId: &menuBrowseId, delta: dx < 0 ? 1 : -1)
+            }
     }
 
     private var modeSelect: some View {

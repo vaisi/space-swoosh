@@ -37,7 +37,7 @@
 > then Open Space on two tall, centered cards. High Scores
 > is the same online SPACE BOARD as Android (Zigzag/Arc, distance or obstacles).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
-> Cycle ships on the home screen (◀ / ▶) or pick one under
+> Cycle ships on the home screen (swipe, or ◀ / ▶) or pick one under
 > Options → Ship; your choice is saved. The
 > whimsical ships (Lantern through Chime) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s Spine bar, and
@@ -239,10 +239,11 @@ When the game loads you land on the main menu. The tagline under the title
 changes each visit — dry science-officer commentary. Crash and level-clear
 screens do the same with their own lines.
 
-Under the title, your ship is shown with its name. Tap the triangle arrows
-beside it (or press **Left** / **Right** on a keyboard) to browse the full
-roster — owned ships equip and save. Locked ships show a price (tap the
-ship to unlock on the apps). Options → Ship has the same roster in a grid.
+Under the title, your ship is shown with its name and a quiet hangar index
+(for example **5 / 42**). On the phone apps, swipe left or right on the home
+screen to change ships — or tap the triangle arrows. On a keyboard, press
+**Left** / **Right**. Owned ships equip and save. Locked ships show a price
+(tap the ship to unlock on the apps). Options → Ship has the same roster in a grid.
 
 - **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.

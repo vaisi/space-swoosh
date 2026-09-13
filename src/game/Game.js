@@ -59,6 +59,8 @@
 //   card keeps stats-above-field order and centers in the remaining viewport.
 // - Main menu: cycle hangar roster (menuShipBrowseId; hidden skins omitted);
 //   owned equips, locked shows price + tap-to-buy; Play uses last owned shipSkinId.
+//   Mobile swipe left/right on the menu cycles ships; quiet `n / total` index
+//   sits above the hull (Space Mono — current ink80, total ink55).
 // - Options hub: Ship / Controls / Sound / Theme + Restore. Native Rate ★
 //   is a compact header chip (same as Space Board Zigzag), not a hub row.
 // - Options → Sound: Music / Sound FX / Voice channel toggles (SoundManager);
@@ -238,6 +240,7 @@ import {
     getSkin,
     loadShipSkinId,
     saveShipSkinId,
+    skinRosterParts,
 } from '../ships/skins.js';
 import {
     screenLayout,
@@ -364,6 +367,8 @@ export class Game {
         this.shipSkinId = loadShipSkinId();
         /** Main-menu preview (may be locked); Play always uses shipSkinId. */
         this.menuShipBrowseId = this.shipSkinId;
+        /** Finger origin for a horizontal hangar swipe on `menu`. */
+        this.menuSwipe = null;
         this.flightStyle = loadFlightStyle();
         this.menuButtons = {};
         this.optionsButtons = {};
@@ -1920,11 +1925,13 @@ export class Game {
         const previewH = previewR * 5.6; // hull + fading wake
         const namePx = Math.max(10, unit * 0.95);
         const pricePx = Math.max(10, unit * 1.0);
+        const indexPx = Math.max(10, unit * 0.95);
+        const indexH = indexPx * 1.55;
 
         // Section stack: identity, ship, actions — centred as one block.
         const identityH = titlePx * 1.1 + L.row + taglinePx * 1.3;
-        // Extra line for locked price / purchase status under the ship name.
-        const shipH = previewH + L.row + namePx * 1.4 + pricePx * 1.2;
+        // Hangar index above the hull; name + reserved price line below.
+        const shipH = indexH + previewH + L.row + namePx * 1.4 + pricePx * 1.2;
         const totalH = identityH + L.section + shipH + L.section * 1.2 + buttonsH;
         let y = Math.max(L.top + unit, (this.height - totalH) / 2);
 
@@ -1949,7 +1956,7 @@ export class Game {
         this.menuButtons = {};
         const browseId = this.menuShipBrowseId || this.shipSkinId;
         const browseOwned = isSkinOwned(browseId);
-        const previewCy = y + previewR * 1.2;
+        const previewCy = y + indexH + previewR * 1.2;
         drawSkinPreview(ctx, browseId, L.centerX, previewCy, previewR);
 
         // Same glyph as Play's motif tag (\u25B6), mirrored for previous.
@@ -1984,28 +1991,29 @@ export class Game {
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        this.drawHangarIndex(L.centerX, y + indexPx * 0.55, indexPx, browseId);
         ctx.fillStyle = color.ink;
         ctx.font = `700 ${arrowPx}px ${font.mono}`;
         ctx.fillText('\u25C0', prevX, arrowCy);
         ctx.fillText('\u25B6', nextX, arrowCy);
         setLabelType(ctx, namePx);
         ctx.fillStyle = browseOwned ? color.ink55 : color.ink;
-        ctx.fillText(getSkin(browseId).name.toUpperCase(), L.centerX, y + previewH + L.row);
+        const nameY = y + indexH + previewH + L.row;
+        ctx.fillText(getSkin(browseId).name.toUpperCase(), L.centerX, nameY);
         resetType(ctx);
+
         if (!browseOwned) {
-            const pricePx = Math.max(10, unit * 1.0);
             setMonoType(ctx, pricePx);
             ctx.fillStyle = color.signal;
             const price = getSkinPriceLabel(browseId);
             const priceLine = this.purchaseStatus
                 || (price ? price : 'LOCKED · TAP TO UNLOCK');
-            ctx.fillText(priceLine, L.centerX, y + previewH + L.row + namePx * 0.95);
+            ctx.fillText(priceLine, L.centerX, nameY + namePx * 1.15);
             resetType(ctx);
         } else if (this.purchaseStatus) {
-            const statusPx = Math.max(10, unit * 1.0);
-            setMonoType(ctx, statusPx);
+            setMonoType(ctx, pricePx);
             ctx.fillStyle = color.signal;
-            ctx.fillText(this.purchaseStatus, L.centerX, y + previewH + L.row + namePx * 0.95);
+            ctx.fillText(this.purchaseStatus, L.centerX, nameY + namePx * 1.15);
             resetType(ctx);
         }
         ctx.restore();
@@ -2446,6 +2454,32 @@ export class Game {
         }
     }
 
+    /** Quiet hangar pager above the home-screen hull — current ink80, total ink55. */
+    drawHangarIndex(cx, y, px, skinId) {
+        const ctx = this.ctx;
+        const roster = skinRosterParts(skinId);
+        const cur = String(roster.index);
+        const all = String(roster.total);
+        setMonoType(ctx, px, 400);
+        const gap = px * 0.4;
+        const curW = ctx.measureText(cur).width;
+        const slashW = ctx.measureText('/').width;
+        const allW = ctx.measureText(all).width;
+        let tx = cx - (curW + gap + slashW + gap + allW) / 2;
+        const prevAlign = ctx.textAlign;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = color.ink80;
+        ctx.fillText(cur, tx, y);
+        tx += curW + gap;
+        ctx.fillStyle = color.ink30;
+        ctx.fillText('/', tx, y);
+        tx += slashW + gap;
+        ctx.fillStyle = color.ink55;
+        ctx.fillText(all, tx, y);
+        ctx.textAlign = prevAlign;
+        resetType(ctx);
+    }
+
     /**
      * Browse the hangar roster on the main menu (wraps; hidden skins omitted).
      * Owned skins equip; locked skins preview only (price shown; tap centre to buy).
@@ -2470,7 +2504,7 @@ export class Game {
         this.setPurchaseStatus(null, 0);
     }
 
-    /** ArrowLeft / ArrowRight change ship on the main menu only. */
+    /** ArrowLeft / ArrowRight and a horizontal swipe change ship on the main menu. */
     setupMenuShipKeys() {
         window.addEventListener('keydown', (e) => {
             if (this.appScreen !== 'menu') return;
@@ -2483,6 +2517,35 @@ export class Game {
                 this.cycleMenuShip(1);
             }
         });
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (this.appScreen !== 'menu') return;
+            const touch = e.touches[0];
+            if (!touch) return;
+            this.menuSwipe = { x: touch.clientX, y: touch.clientY };
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchcancel', () => {
+            this.menuSwipe = null;
+        }, { passive: true });
+    }
+
+    /**
+     * Home-screen hangar swipe: left shows the next hull, right the previous.
+     * @returns {boolean} true when the gesture consumed the touch (skip taps).
+     */
+    consumeMenuShipSwipe(touch) {
+        const start = this.menuSwipe;
+        this.menuSwipe = null;
+        if (!start || this.appScreen !== 'menu') return false;
+        const dx = touch.clientX - start.x;
+        const dy = touch.clientY - start.y;
+        const swipePx = 40;
+        if (Math.abs(dx) < swipePx || Math.abs(dx) <= Math.abs(dy) * 1.15) {
+            return false;
+        }
+        this.cycleMenuShip(dx < 0 ? 1 : -1);
+        return true;
     }
 
     async handleShipTileClick(skinId) {
@@ -3885,6 +3948,8 @@ export class Game {
         // Touch events
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
+            const ended = e.changedTouches[0];
+            if (ended && this.consumeMenuShipSwipe(ended)) return;
             // A drag on a scrollable list wasn't aiming at a tile/button.
             if ((this.appScreen === 'journeyMap'
                 || this.appScreen === 'optionsShip'

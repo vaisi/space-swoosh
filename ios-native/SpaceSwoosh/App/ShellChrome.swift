@@ -1,6 +1,6 @@
 // ShellChrome.swift
-// Changes: framedTile can fillHeight for tall PLAY cards; brandButton labelSize;
-// ruledLabel matches Android's dotted section header.
+// Changes: home ShipPreview swipes left/right to cycle the hangar and shows a
+// quiet "n / total" roster mark under the name (Space Mono, ink30).
 
 import SwiftUI
 import UIKit
@@ -281,15 +281,27 @@ enum ShipArt {
     }
 }
 
+enum MenuHangar {
+    /// Left swipe / ▶ → next; right swipe / ◀ → previous. Owned hulls equip.
+    static func cycle(browseId: inout SkinId, delta: Int) {
+        browseId = SkinCatalog.adjacent(after: browseId, delta: delta)
+        if EntitlementsStore.shared.owns(browseId) {
+            SettingsStore.shared.setShipSkin(browseId)
+        }
+        EntitlementsStore.shared.setStatus(nil)
+    }
+}
+
 struct ShipPreview: View {
+    @Binding var browseId: SkinId
     @ObservedObject private var settings = SettingsStore.shared
     @ObservedObject private var entitlements = EntitlementsStore.shared
-    @State private var browseId: SkinId = SettingsStore.shared.shipSkinId
 
     var body: some View {
         let skin = SkinCatalog.def(browseId)
         let owned = entitlements.owns(browseId)
         VStack(spacing: 6) {
+            hangarIndex(SkinCatalog.rosterOrdinal(of: browseId))
             HStack(spacing: 18) {
                 Button { cycle(-1) } label: {
                     Text("◀")
@@ -298,16 +310,15 @@ struct ShipPreview: View {
                         .frame(width: 36, height: 44)
                 }
                 .buttonStyle(.plain)
-                Button {
-                    Task { await tapHull(owned: owned) }
-                } label: {
-                    Image(uiImage: ShipArt.preview(browseId))
-                        .resizable()
-                        .interpolation(.high)
-                        .scaledToFit()
-                        .frame(width: 88, height: 150)
-                }
-                .buttonStyle(.plain)
+                Image(uiImage: ShipArt.preview(browseId))
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .frame(width: 88, height: 150)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        Task { await tapHull(owned: owned) }
+                    }
                 Button { cycle(1) } label: {
                     Text("▶")
                         .font(BrandType.mono(22))
@@ -332,16 +343,26 @@ struct ShipPreview: View {
                     .foregroundStyle(BrandColors.signal)
             }
         }
+        .frame(maxWidth: .infinity)
         .onAppear { browseId = settings.shipSkinId }
         .onChange(of: settings.shipSkinId) { _, next in browseId = next }
     }
 
-    private func cycle(_ delta: Int) {
-        browseId = SkinCatalog.adjacent(after: browseId, delta: delta)
-        if entitlements.owns(browseId) {
-            settings.setShipSkin(browseId)
+    private func hangarIndex(_ mark: (index: Int, total: Int)) -> some View {
+        HStack(spacing: 5) {
+            Text("\(mark.index)")
+                .foregroundStyle(BrandColors.ink80)
+            Text("/")
+                .foregroundStyle(BrandColors.ink30)
+            Text("\(mark.total)")
+                .foregroundStyle(BrandColors.ink55)
         }
-        entitlements.setStatus(nil)
+        .font(BrandType.mono(11, bold: false))
+        .accessibilityLabel("Ship \(mark.index) of \(mark.total)")
+    }
+
+    private func cycle(_ delta: Int) {
+        MenuHangar.cycle(browseId: &browseId, delta: delta)
     }
 
     private func tapHull(owned: Bool) async {

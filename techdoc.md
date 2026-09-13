@@ -365,7 +365,7 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, ship preview with ▶/◀ browse of full roster (`menuShipBrowseId`); locked shows price + tap-to-buy; Play / Space Log / Options / High Scores. |
+| `menu` | Title, ship preview with ▶/◀ / swipe browse of full roster (`menuShipBrowseId`); quiet `n / total` hangar index (`skinRosterMark` / iOS `SkinCatalog.rosterMark`); locked shows price + tap-to-buy; Play / Space Log / Options / High Scores. |
 | `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Cards are `cardH = min(unit×17, (area−gap)/2)` and vertically centered between header and footnote (iOS `RootView.modeSelect` matches). Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
@@ -1109,8 +1109,11 @@ Native iOS live-draws Nyan / Halo / Orbit plus Lantern…Rook; other Focus–Cin
   unless that skin is `hidden` (Merlin / Rook remount to Flicker).
 - Main menu quick-cycle: `Game.cycleMenuShip(delta)` walks `SHIP_SKIN_LIST`
   (wraps; hidden skins omitted), then `saveShipSkinId`. Wired from chevron
-  hit-boxes (`menuButtons.prevShip` / `nextShip`) and `setupMenuShipKeys()`
-  (no key-repeat spam). Main menu browses the hangar (`menuShipBrowseId`);
+  hit-boxes (`menuButtons.prevShip` / `nextShip`), a horizontal touch swipe
+  on `menu` (left → next; 40px, mostly horizontal), and `setupMenuShipKeys()`
+  (no key-repeat spam). iOS native uses `MenuHangar.cycle` on the home hangar
+  (swipe above the action buttons). Hangar index is `skinRosterMark` /
+  `SkinCatalog.rosterMark`. Main menu browses the hangar (`menuShipBrowseId`);
   locked skins show price and tap-to-buy; Play always uses the last owned
   `shipSkinId`.
 

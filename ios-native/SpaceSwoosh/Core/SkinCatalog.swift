@@ -1,6 +1,7 @@
 // SkinCatalog.swift
-// Changes: Merlin and Rook stay in SkinId / allDefs but are omitted from `roster`
-// (hangar, home arrows, store prices). resolve() maps a leftover id to Flicker.
+// Changes: `rosterMark` is the home hangar pager (`5 / 42`). Merlin and Rook stay
+// in SkinId / allDefs but are omitted from `roster` (hangar, home arrows, store
+// prices). resolve() maps a leftover id to Flicker.
 // Unset / unknown skin id resolves to Flicker (matches JS DEFAULT_SHIP_SKIN).
 // Seal slim almond + paired aft vortex; Orbit Spine bar + helix wake.
 // Rook wake tucks at the fuselage tail (trailTailOffset 0.95).
@@ -98,6 +99,19 @@ enum SkinCatalog {
 
     static func isPremium(_ id: SkinId) -> Bool {
         def(id).productId != nil
+    }
+
+    /// Home hangar pager, 1-based. Hidden skins omitted.
+    static func rosterOrdinal(of id: SkinId) -> (index: Int, total: Int) {
+        let n = roster.count
+        guard n > 0 else { return (0, 0) }
+        return ((roster.firstIndex(of: id) ?? 0) + 1, n)
+    }
+
+    /// Home hangar pager label — `"5 / 42"`. Hidden skins omitted.
+    static func rosterMark(for id: SkinId) -> String {
+        let mark = rosterOrdinal(of: id)
+        return "\(mark.index) / \(mark.total)"
     }
 
     /// Home arrows browse every hull, including locked.
