@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- AndroidManifest.xml — Capacitor host. Changes: disable Firebase AD ID collection and strip AD_ID permission so Play "No" declaration matches the AAB. -->
+<!-- AndroidManifest.xml — Capacitor host. Changes: drop screenOrientation
+     portrait lock (Play large-screen guidance); the 2:3 playfield letterboxes
+     in landscape via CSS. Edge-to-edge insets stay in CSS. Disable Firebase
+     AD ID collection and strip AD_ID permission so Play "No" matches the AAB. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <application
@@ -8,9 +11,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:resizeableActivity="true"
         android:theme="@style/AppTheme">
-        <!-- The game is a fixed 2:3 portrait surface; landscape would letterbox
-             it and rebuild the canvas mid-run. -->
+        <!-- Portrait fill / landscape 2:3 letterbox is CSS. configChanges
+             keeps the WebView alive across rotation so a run does not restart. -->
         <!-- adjustResize: shrink the WebView above the soft keyboard so the
              Submit Signal call-sign field stays inside the modal (adjustPan
              was panning the page and desyncing the DOM input from the canvas). -->
@@ -20,7 +24,7 @@
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"
+            android:resizeableActivity="true"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>

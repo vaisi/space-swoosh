@@ -1,11 +1,14 @@
-// Updated: registers InAppReviewPlugin (Play review sheet + store URL).
-// Registers HapticSmashPlugin (quiet Light-impact smash tick).
-// Registers RefreshRatePlugin (display 120 Hz pin during runs).
-// HapticTickPlugin removed — Cap ImpactStyle.Light is enough once OS haptics
-// intensity is non-zero.
+// MainActivity.java
+// Changes: EdgeToEdge.enable() before super.onCreate so Android 14 and
+// earlier draw under the system bars the same way Android 15+ does by
+// default (Play "edge-to-edge may not display for all users"). Insets
+// are applied in CSS via Capacitor SystemBars. Registers InAppReview,
+// HapticSmash, and RefreshRate plugins.
 package com.orbi.spaceswoosh;
 
 import android.os.Bundle;
+
+import androidx.activity.EdgeToEdge;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -15,6 +18,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(RefreshRatePlugin.class);
         registerPlugin(HapticSmashPlugin.class);
         registerPlugin(InAppReviewPlugin.class);
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
     }
 }

@@ -1,21 +1,34 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# proguard-rules.pro
+# Changes: R8 keep rules for Capacitor plugins, WebView JS bridges, Play
+# Review, and Firebase Analytics so minifyEnabled release builds still
+# resolve plugin methods by name.
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Capacitor-android already ships consumer rules for @CapacitorPlugin and
+# Plugin subclasses. These extras cover JS interfaces and first-party SDKs
+# that the app calls from Java.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# WebView JavaScript interfaces (Capacitor SystemBars injects one).
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# First-party plugins registered from MainActivity (also covered by
+# "extends Plugin", kept explicit so a rename cannot silently strip them).
+-keep class com.orbi.spaceswoosh.InAppReviewPlugin { *; }
+-keep class com.orbi.spaceswoosh.HapticSmashPlugin { *; }
+-keep class com.orbi.spaceswoosh.RefreshRatePlugin { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Play In-App Review (called from InAppReviewPlugin).
+-keep class com.google.android.play.core.review.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }
+
+# Firebase Analytics (Capacitor plugin + Play Data Safety "no AD_ID").
+-keep class com.google.firebase.analytics.** { *; }
+-keep class io.capawesome.capacitorjs.plugins.firebase.analytics.** { *; }
+
+# RevenueCat ships its own consumer rules; keep the Capacitor bridge class.
+-keep class com.revenuecat.purchases.capacitor.** { *; }
+
+# Keep line numbers in crash traces without leaking source paths.
+-keepattributes SourceFile,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault
+-renamesourcefileattribute SourceFile

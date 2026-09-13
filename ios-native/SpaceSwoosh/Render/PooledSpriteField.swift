@@ -1,5 +1,6 @@
 // PooledSpriteField.swift
-// Changes: Drift current uses dashed SKShapeNode hairlines (Android Canvas
+// Changes: Latched sparkles scale/pulse up as magnetMix climbs (JS suck-in).
+// Drift current uses dashed SKShapeNode hairlines (Android Canvas
 // setLineDash + lineDashOffset) so lanes flow instead of flashing. Screen
 // origin uses CinematicFlight.cruiseSeat. Wormholes match Android — spinning
 // dashed stroke only, no additive inner glow. Path diameter is 2×radius×pulse
@@ -184,7 +185,8 @@ final class PooledSpriteField: SKNode {
             node.position = CGPoint(x: p.x, y: screenY + (p.y - cameraY))
             switch p.kind {
             case .sparkle:
-                let pulse = 1 + sin(p.phase) * 0.12
+                let mix = p.magnetLatched ? p.magnetMix : 0
+                let pulse = (1 + sin(p.phase) * (0.12 + 0.08 * mix)) * (1 + 0.1 * mix)
                 node.texture = bake.sparkle
                 node.color = .white
                 node.colorBlendFactor = 0

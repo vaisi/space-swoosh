@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: Mobile web is a store download prompt
+<!-- index.html — page shell. Changes: First paint defaults to night paper
+     (data-theme from ssTheme, else dark). Mobile web is a store download prompt
      (no canvas). Desktop web shows App Store / Play QR rails. Android 15
      edge-to-edge padding uses Capacitor --safe-area-inset-* with env()
      fallback. Native portrait fills the inset stage; landscape letterboxes
@@ -24,6 +25,12 @@
             }
             var root = document.documentElement;
             root.dataset.shell = native ? 'native' : 'web';
+            var theme = 'dark';
+            try {
+                var stored = localStorage.getItem('ssTheme');
+                if (stored === 'light' || stored === 'dark') theme = stored;
+            } catch (e) {}
+            root.dataset.theme = theme;
             if (native) return;
             var ua = navigator.userAgent || '';
             var ios = /iPad|iPhone|iPod/i.test(ua)
@@ -42,7 +49,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1A1A1A">
+    <meta name="theme-color" content="#12100E">
     <meta name="description" content="A one-thumb space dodge game in a paper universe. Steer, survive, climb. Get it on the App Store or Google Play.">
     <title>Space Swoosh</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -76,7 +83,7 @@
             min-width: 280px;
             aspect-ratio: 2/3;
             position: relative;
-            background: var(--ss-paper, #E1D9C1);
+            background: var(--ss-paper, #1C1A16);
             overflow: hidden;
             z-index: 1;
         }
@@ -85,7 +92,7 @@
             height: 100%;
             display: block;
             touch-action: none;
-            background: var(--ss-paper, #E1D9C1);
+            background: var(--ss-paper, #1C1A16);
         }
 
         /* Dark: charcoal page, beige tunnel so the playfield edge still reads. */
@@ -273,9 +280,9 @@
         .web-store-gate__card {
             width: min(100%, 360px);
             padding: 32px 24px 28px;
-            background: var(--ss-paper, #E1D9C1);
-            color: var(--ss-ink, #1A1A1A);
-            border: 1.5px solid var(--ss-ink, #1A1A1A);
+            background: var(--ss-paper, #1C1A16);
+            color: var(--ss-ink, #E1D9C1);
+            border: 1.5px solid var(--ss-ink, #E1D9C1);
             text-align: center;
         }
         .web-store-gate__kicker {

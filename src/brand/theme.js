@@ -3,6 +3,8 @@
 // SPACE SWOOSH — Light / dark (night paper) theme switching.
 //
 // Changes:
+// - First launch (no ssTheme) is night paper on web, Android, and iOS.
+//   Stored light still wins. Invalid applyTheme ids fall back to dark.
 // - Rook copper/spark lift on night paper (deep bronze → gold).
 // - Dark signal is ice blue `#5CC8FF` (was vivid mint `#3DFF9A`).
 // - Argus peacock rim lifts on night paper (deep teal → electric mint).
@@ -116,7 +118,7 @@ const PALETTES = {
 };
 
 /** @type {ThemeId} */
-let currentTheme = THEME_LIGHT;
+let currentTheme = THEME_DARK;
 
 /** @returns {ThemeId} */
 export function getTheme() {
@@ -140,7 +142,7 @@ export function loadStoredTheme() {
     } catch (_) {
         /* private mode */
     }
-    return THEME_LIGHT;
+    return THEME_DARK;
 }
 
 /** @param {ThemeId} id */
@@ -218,8 +220,8 @@ function syncPageShell() {
  * @param {{ persist?: boolean }} [opts]
  */
 export function applyTheme(id, { persist = true } = {}) {
-    const palette = PALETTES[id] || PALETTES[THEME_LIGHT];
-    currentTheme = PALETTES[id] ? id : THEME_LIGHT;
+    const palette = PALETTES[id] || PALETTES[THEME_DARK];
+    currentTheme = PALETTES[id] ? id : THEME_DARK;
     Object.assign(color, palette);
     refreshDerivedTokens();
     syncPaintConsts();

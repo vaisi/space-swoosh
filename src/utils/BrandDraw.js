@@ -8,6 +8,8 @@
 //   document.fonts.ready (Android WebView can hang forever on a missing
 //   @font-face). Missing files fall back to the system stack instead of
 //   pinning the native splash.
+// - Paper fill is the ground only; DepthField paints drifting sparkle dust
+//   after drawPaper on night paper only (not here — BrandDraw stays static).
 // - Night paper: drawPaper is flat night ground; primary button hairline uses
 //   paperRgb so dividers read on bone-ink primary fills.
 // - drawFramedButton insets the label with horizontal padding and shrinks the
@@ -82,8 +84,8 @@ export function resetType(ctx) {
 }
 
 // --- Paper (the ground) ------------------------------------------------------
-// Clean, flat night paper. Every surface — gameplay and end screens alike — sits
-// on this so shapes and type read clearly with no background texture.
+// Clean, flat night or cream paper. DepthField adds the wrapping sparkle
+// layer after this fill on night paper only.
 export function drawPaper(ctx, width, height) {
     ctx.save();
     ctx.fillStyle = color.paper;

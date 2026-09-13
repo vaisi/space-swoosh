@@ -1,10 +1,13 @@
 // GameConfig.swift
-// Changes: driftLaneSlots (4 currents × 7 Android shear lines). Android
-// catch-up camera knobs + mobile baseUnit (min(w/45, h/75)). feelSpeed 1.0
-// so native iOS cruise matches Android/web snappy tick. Fuel.dyingStopSpeed
-// 0.01 so fuel-out waits until the hull stops. Fuel.voiceLowThreshold 0.20
-// for NAV low-fuel lines (HUD stays 0.28). Dropped 1000 KM "Breaking
-// atmosphere..." HUD line.
+// Changes: Fuel magnet ease-in + closing accel (latchMin / ramp / pull 0.16).
+// Flicker.speedBoostSeconds 5.0 (wall-clock wall-boost rush).
+// Flicker.shieldSeconds 5.0 (wall-clock, matches Android/web).
+// cruiseSpeedMultiplier 1.1 is shared by Open Space and Journey. driftLaneSlots
+// (4 currents × 7 Android shear lines). Android catch-up camera knobs + mobile
+// baseUnit (min(w/45, h/75)). feelSpeed 1.0 so native iOS cruise matches
+// Android/web snappy tick. Fuel.dyingStopSpeed 0.01 so fuel-out waits until
+// the hull stops. Fuel.voiceLowThreshold 0.20 for NAV low-fuel lines (HUD
+// stays 0.28). Dropped 1000 KM "Breaking atmosphere..." HUD line.
 
 import Foundation
 import CoreGraphics
@@ -17,6 +20,9 @@ enum GameConfig {
     /// iOS feel knob — 1.0 matches Android/web snappy travel (was 0.90).
     static let feelSpeed: CGFloat = 1.0
     static func motionTickScale(dt: CGFloat) -> CGFloat { dt * snappyHz * feelSpeed }
+    /// Same cruise as JS GameConfig.cruiseSpeedMultiplier. Open Space and
+    /// Journey both use this so travel is identical on every platform.
+    static let cruiseSpeedMultiplier: CGFloat = 1.1
     /// JS: abs(Δcamera.y) * (100/60) in CSS pixels. Scale to this height so
     /// a tall iPhone and a short Android CSS canvas award KM at the same pace.
     static let kmPerPixel: CGFloat = 100.0 / 60.0
@@ -51,8 +57,12 @@ enum GameConfig {
         static let boopCooldownMs: CGFloat = 180
         static let shieldHitboxScale: CGFloat = 1.5
         static let hullDrawPad: CGFloat = 3.2
-        /// iOS feel — pickup / portal / clear flyout. Android remains 5s.
-        static let shieldSeconds: CGFloat = 4.0
+        /// Pickup / portal / clear flyout. Wall-clock seconds — matches
+        /// Android/web GameConfig.shieldDurationMs (5000).
+        static let shieldSeconds: CGFloat = 5.0
+        /// Wall-boost speed rush. Wall-clock seconds — matches
+        /// Android/web GameConfig.speedBoostDurationMs (5000).
+        static let speedBoostSeconds: CGFloat = 5.0
     }
 
     enum Camera {
@@ -91,7 +101,9 @@ enum GameConfig {
         static let lowThreshold: CGFloat = 0.28
         static let voiceLowThreshold: CGFloat = 0.20
         static let magnetRadiusScale: CGFloat = 4.25
-        static let magnetPull: CGFloat = 0.15
+        static let magnetLatchMin: CGFloat = 0.03
+        static let magnetLatchRampMs: CGFloat = 340
+        static let magnetPull: CGFloat = 0.16
     }
 
     enum Points {

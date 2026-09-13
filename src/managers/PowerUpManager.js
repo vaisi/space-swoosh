@@ -4,6 +4,8 @@
 // - Day 42: skip plus / wall-boost spawns past the finish gate.
 // - Wall boost on collect: button-press retract into the edge + wall BOOP,
 //   then remove once the press anim finishes (buffs still grant on contact).
+//   Speed rush is 5.0s wall-clock (GameConfig.speedBoostDurationMs), same as
+//   the shield — not the old 60fps tick that expired in ~2.5s.
 // - Wall boost unlocks at 12000 KM (separate from plus); spawn ~22s; much rarer.
 // - WallBoostPowerUp: thin Signal-Blue edge slab (random left or right);
 //   collect → shield + speed boost (refresh both).

@@ -3,11 +3,16 @@
 // how thickly) lives in modes/RunProfile.js and config/JourneyConfig.js; what's
 // left here is what every run shares.
 // Changes:
+// - speedBoostDurationMs 5000 is wall-clock (matches iOS Flicker.speedBoostSeconds 5).
+// - cruiseSpeedMultiplier 1.1 is the one cruise dial for Open Space and
+//   Journey on every platform (iOS native, Android Capacitor, web). Journey
+//   no longer lerps speed with difficulty.
+// - shieldDurationMs 5000 is wall-clock (matches iOS Flicker.shieldSeconds 5).
 // - Dropped the 1000 KM "Breaking atmosphere..." HUD line.
 // - Camera reseat knobs (all JS platforms): after 5s below the
 //   ideal seat, an 8s ease-in-out creeps the ship back.
-// - Soft sparkle magnet: radius 4.25× ship + magnetPull 0.15 so near-miss
-//   diamonds ease in more readily; collect still requires contact.
+// - Sparkle magnet latches, then ease-in + closing acceleration (readable
+//   suck-in, still guaranteed to finish). Peak magnetPull 0.16.
 // - Fuel drainPerKm 0.00025 ≈ 4000 KM full tank (playtest: 2700 still too
 //   stressful when the next sparkle is far).
 // - Added `fuel`: depleting 0–1 tank (distance drain, diamond refill, dying
@@ -27,6 +32,15 @@
 // - Added `points`: smash / swoosh style scores (sparkles refill fuel instead).
 
 export const GameConfig = {
+    // Forward cruise vs base spacecraft.speed. Open Space and Journey both
+    // read this so travel is identical on iOS / Android / web. Hazard Lab
+    // still uses its own difficulty lerp.
+    cruiseSpeedMultiplier: 1.1,
+    // Shield pickup / portal / clear-flyout grant. Wall-clock ms — Spacecraft
+    // drains with snappyHz so 5000 is 5.0s of play, not 2.5s from a 60fps tick.
+    shieldDurationMs: 5000,
+    // Wall-boost speed rush. Same wall-clock drain as the shield (5000 = 5.0s).
+    speedBoostDurationMs: 5000,
     // Survival fuel — separate from KM and from style `points`. Live only once
     // collectibles are enabled for the run (see Game.isFuelLive).
     fuel: {
@@ -40,10 +54,12 @@ export const GameConfig = {
         dyingDurationMs: 900, // coast; salvage sparkles until the hull stops
         lowThreshold: 0.28,
         voiceLowThreshold: 0.20, // NAV warning; HUD pulse stays on lowThreshold
-        // Soft magnet assist — sparkles ease toward the ship when close; collect
-        // still needs circle overlap. Radius is × spacecraft.radius.
+        // Magnet latches inside this radius (× spacecraft.radius), then eases
+        // in and accelerates as it closes. Min crawl + peak extra per 60fps tick.
         magnetRadiusScale: 4.25,
-        magnetPull: 0.15, // ease per 60fps tick (× tickScale × proximity falloff)
+        magnetLatchMin: 0.03,
+        magnetLatchRampMs: 340,
+        magnetPull: 0.16,
     },
     // Style points — smash / swoosh only. Not a survival meter; not Journey star 2.
     points: {

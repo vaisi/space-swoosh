@@ -1,5 +1,8 @@
 // CombatSimulator.swift
-// Changes: Simple rocks pick circle/triangle/square independently (Android
+// Changes: Sparkle magnet latches, then ease-in + closing acceleration
+// (readable suck-in; still finishes if you fly past).
+// Wall-boost rush grants Flicker.speedBoostSeconds (5.0 wall-clock).
+// Simple rocks pick circle/triangle/square independently (Android
 // SimpleAsteroid.shapeType), including paired-belt lane clusters and wormhole
 // debris. Lane clusters jitter via findValidPosition. First-boop voice waits
 // until LEVEL N is done (Android isLevelIntroVoiceBlocking) — synth BOOP +
@@ -132,6 +135,10 @@ struct RunState {
     mutating func grantShield(seconds: CGFloat = GameConfig.Flicker.shieldSeconds) {
         shieldTimer = seconds
         shieldWarningStarted = false
+    }
+
+    mutating func grantSpeedBoost(seconds: CGFloat = GameConfig.Flicker.speedBoostSeconds) {
+        speedBoostTimer = seconds
     }
 
     mutating func extendShield(minimum seconds: CGFloat) {
@@ -288,7 +295,7 @@ enum CombatSimulator {
         moveHazards(world: &world, run: &run, dt: dt)
         HazardCollision.applyFields(world: &world, run: run, dt: dt)
         recycleBehind(world: &world)
-        magnetSparkles(world: &world, run: run, dt: dt)
+        magnetSparkles(world: &world, dt: dt)
         collectPickups(world: &world, run: &run)
         noteFuelLowVoice(run: &run)
         detectSwoosh(world: world, run: &run)
@@ -951,7 +958,11 @@ enum CombatSimulator {
             let margin = world.baseUnit * 4
             x = margin + rand01(&run.rng) * (world.width - margin * 2)
         }
-        world.pickups[i] = PickupState(active: true, kind: kind, x: x, y: y, phase: rand01(&run.rng) * .pi * 2)
+        world.pickups[i] = PickupState(
+            active: true, kind: kind, x: x, y: y,
+            phase: rand01(&run.rng) * .pi * 2,
+            magnetLatched: false, magnetAge: 0, magnetFromDist: 0, magnetMix: 0
+        )
         run.logbookMarks.append(.observe(LogbookCatalog.pickupId(for: kind)))
     }
 
@@ -1071,21 +1082,32 @@ enum CombatSimulator {
         }
     }
 
-    private static func magnetSparkles(world: inout WorldState, run: RunState, dt: CGFloat) {
-        guard !run.fuelDying else { return }
+    private static func magnetSparkles(world: inout WorldState, dt: CGFloat) {
         let shipR = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let magnetR = shipR * GameConfig.Fuel.magnetRadiusScale
-        let pull = GameConfig.Fuel.magnetPull * (dt * 60)
+        let rampSec = GameConfig.Fuel.magnetLatchRampMs / 1000
+        let minPull = GameConfig.Fuel.magnetLatchMin
+        let peak = GameConfig.Fuel.magnetPull
         for i in 0..<world.pickups.count {
             guard world.pickups[i].active, world.pickups[i].kind == .sparkle else { continue }
             let dx = world.ship.x - world.pickups[i].x
             let dy = world.ship.y - world.pickups[i].y
             let dist = hypot(dx, dy)
-            if dist > 0, dist < magnetR {
-                let t = pull * (1 - dist / magnetR)
-                world.pickups[i].x += dx * t
-                world.pickups[i].y += dy * t
+            if dist > 0, dist < magnetR, !world.pickups[i].magnetLatched {
+                world.pickups[i].magnetLatched = true
+                world.pickups[i].magnetFromDist = dist
+                world.pickups[i].magnetAge = 0
             }
+            guard world.pickups[i].magnetLatched, dist > 0 else { continue }
+            world.pickups[i].magnetAge += dt
+            let easeIn = min(1, world.pickups[i].magnetAge / max(0.001, rampSec))
+            let closing = 1 - min(1, dist / max(world.pickups[i].magnetFromDist, 1))
+            let mix = max(easeIn * easeIn, closing)
+            world.pickups[i].magnetMix = mix
+            let t = min(0.32, (minPull + peak * mix) * (dt * 60))
+            world.pickups[i].x += dx * t
+            world.pickups[i].y += dy * t
+            world.pickups[i].phase += dt * 6 * mix
         }
     }
 
@@ -1147,7 +1169,7 @@ enum CombatSimulator {
                 run.sfxShield = true
             case .wallBoost:
                 run.grantShield()
-                run.speedBoostTimer = 5
+                run.grantSpeedBoost()
                 run.sfxShield = true
             }
         }
@@ -1747,4 +1769,8 @@ struct PickupState {
     var x: CGFloat
     var y: CGFloat
     var phase: CGFloat
+    var magnetLatched: Bool = false
+    var magnetAge: CGFloat = 0
+    var magnetFromDist: CGFloat = 0
+    var magnetMix: CGFloat = 0
 }

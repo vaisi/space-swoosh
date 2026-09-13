@@ -1,4 +1,6 @@
-<!-- Changes: On a phone browser, spaceswoosh.app asks you to install the
+<!-- Changes: Fuel sparkles lock on once you fly close and chase the ship
+     until collected. New installs start in Dark Mode. Tiny drifting stars sit in the
+     depth on Dark Mode only; Light Mode is flat cream paper. On a phone browser, spaceswoosh.app asks you to install the
      iPhone or Android app instead of playing in the tab. On a computer it
      still plays, with App Store and Google Play QR codes beside the stage.
      Wall-boost speed rush lasts five seconds of flying (iPhone,
@@ -88,10 +90,12 @@
 > Journey and Open Space play short session voice cues on your first wall BOOP
 > and on each Style Swoosh (swoosh is voice-only; music keeps playing under it).
 >
-> **Look (this build):** Starts in **Light Mode** (cream paper + Signal Blue).
-> Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
-> night paper — charcoal ground, light ink, shiny ice-blue accents. In Dark Mode
-> the whole page stays charcoal; a beige frame marks the edges of the playfield.
+> **Look (this build):** Starts in **Dark Mode** (charcoal night paper, bone ink,
+> ice-blue accents). Options has a **Light Mode / Dark Mode** toggle (saved on
+> your device). Tiny stars drift and sparkle in the depth behind menus and the
+> run (a few flash like distant sparks). Light Mode is cream paper with no
+> starfield. In Dark Mode the whole page stays charcoal; a beige frame marks
+> the edges of the playfield.
 > **Phones and tablets:** Open https://spaceswoosh.app on a phone and it will
 > not start the browser game. iPhone and iPad get the App Store; Android gets
 > Google Play. Fly in the installed app.
@@ -508,16 +512,17 @@ shows how much is left. A full tank lasts about the same distance on a phone
 or a tall desktop window — screen size does not empty the tank sooner.
 
 - **Collect a diamond → refill fuel.** A glowing **Signal-Blue four-point
-  sparkle** drifts down the corridor. Fly close and it gently slides toward your
-  ship; you still need to touch it to collect — you'll hear a short chime and
-  see **+FUEL**. The tank does not overfill. When the bar gets low (below a
-  fifth), NAV may say one line (Journey and Open Space; follows **Voice**,
-  not Sound FX). Background music keeps playing under it. Miss several
-  diamonds in a row and the bar bottoms out: you'll hear the engine sputter
-  three times, each a bit lower, then engines coast. If you still touch a
-  sparkle before the ship fully stops, it refills and you keep flying. Once
-  you have stopped with an empty tank, the run fails (**Out of fuel**). The
-  sputter follows **Sound FX** (and the pause Sound mute).
+  sparkle** drifts down the corridor. Fly close enough and it **locks on**,
+  then slides in faster as it nears your ship — you'll hear a short chime and
+  see **+FUEL**. The tank
+  does not overfill. When the bar gets low (below a fifth), NAV may say one
+  line (Journey and Open Space; follows **Voice**, not Sound FX). Background
+  music keeps playing under it. Miss several diamonds in a row and the bar
+  bottoms out: you'll hear the engine sputter three times, each a bit lower,
+  then engines coast. If you still get close enough to a sparkle before the
+  ship fully stops, it locks on, refills, and you keep flying. Once you have
+  stopped with an empty tank, the run fails (**Out of fuel**). The sputter
+  follows **Sound FX** (and the pause Sound mute).
 - Diamonds are always safe to touch — blue means "good" here (same family as
   the shield).
 

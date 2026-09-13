@@ -7,8 +7,8 @@
  * - In-run pause control (`.ss-pause`) is two ink bars, not the U+23F8 emoji.
  *   Android Noto Color Emoji painted that glyph as an orange tile; currentColor
  *   follows --ss-ink so light/dark match iOS PauseBars.
- * - Theme defaults to light cream/ink/Signal Blue; dark night-paper overrides
- *   via brand/theme.js at boot / Options toggle.
+ * - Theme defaults to night paper; light cream overrides when
+ *   html[data-theme=light] (stored ssTheme) or theme.js applies cream.
  * - Dark surround is charcoal (`theme.js` --ss-surround); beige tunnel lives
  *   on #gameContainer. Light still uses ink letterbox vs cream stage.
  * - Created file: mirrors src/brand/tokens.js for DOM/CSS surfaces (index.html,
@@ -68,22 +68,23 @@
 }
 
 :root {
-    /* Color — ground (light cream; dark overridden by theme.js) */
-    --ss-paper:       #E1D9C1;
-    --ss-paper-tint:  #EAE4D2;
-    --ss-paper-deep:  #D3C9AC;
+    /* Color — night paper (default). Light cream is html[data-theme=light]. */
+    --ss-paper:       #1C1A16;
+    --ss-paper-tint:  #2A2620;
+    --ss-paper-deep:  #12100E;
+    --ss-surround:    #12100E;
 
-    /* Color — ink */
-    --ss-ink:      #1A1A1A;
-    --ss-ink-80:   rgba(26, 26, 26, 0.80);
-    --ss-ink-55:   rgba(26, 26, 26, 0.55);
-    --ss-ink-30:   rgba(26, 26, 26, 0.30);
-    --ss-ink-12:   rgba(26, 26, 26, 0.12);
-    --ss-ink-06:   rgba(26, 26, 26, 0.06);
+    /* Color — bone ink */
+    --ss-ink:      #E1D9C1;
+    --ss-ink-80:   rgba(225, 217, 193, 0.80);
+    --ss-ink-55:   rgba(225, 217, 193, 0.55);
+    --ss-ink-30:   rgba(225, 217, 193, 0.30);
+    --ss-ink-12:   rgba(225, 217, 193, 0.12);
+    --ss-ink-06:   rgba(225, 217, 193, 0.06);
 
     /* Color — signal (the one accent) */
-    --ss-signal:      #0000FF;
-    --ss-signal-soft: rgba(0, 0, 255, 0.14);
+    --ss-signal:      #5CC8FF;
+    --ss-signal-soft: rgba(92, 200, 255, 0.32);
 
     /* Typography */
     --ss-font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
@@ -111,6 +112,21 @@
     --ss-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
     --ss-dur-fast: 120ms;
     --ss-dur-base: 240ms;
+}
+
+html[data-theme="light"] {
+    --ss-paper:       #E1D9C1;
+    --ss-paper-tint:  #EAE4D2;
+    --ss-paper-deep:  #D3C9AC;
+    --ss-surround:    #1A1A1A;
+    --ss-ink:      #1A1A1A;
+    --ss-ink-80:   rgba(26, 26, 26, 0.80);
+    --ss-ink-55:   rgba(26, 26, 26, 0.55);
+    --ss-ink-30:   rgba(26, 26, 26, 0.30);
+    --ss-ink-12:   rgba(26, 26, 26, 0.12);
+    --ss-ink-06:   rgba(26, 26, 26, 0.06);
+    --ss-signal:      #0000FF;
+    --ss-signal-soft: rgba(0, 0, 255, 0.14);
 }
 
 /* Framed motif-tile — the shared "boxed" treatment for cards, panels, sections. */

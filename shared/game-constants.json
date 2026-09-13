@@ -12,7 +12,9 @@
     "lowThreshold": 0.28,
     "voiceLowThreshold": 0.2,
     "magnetRadiusScale": 4.25,
-    "magnetPull": 0.15
+    "magnetLatchMin": 0.03,
+    "magnetLatchRampMs": 340,
+    "magnetPull": 0.16
   },
   "points": {
     "perAsteroid": 1,

@@ -15,6 +15,8 @@
 // - Open Instagram → https://www.instagram.com/spaceswoosh.app
 // - One reply per device: replay skips the prompt and does not submit again.
 // - Submit also records the equipped ship (game.shipSkinId) next to the reply.
+// - After the #050505 hold fill, DepthField paints a quieter night starfield
+//   so the letter still has depth on the black void.
 // - Firebase: journey_epilogue_send / journey_epilogue_skip with ship_id.
 
 import {
@@ -595,6 +597,7 @@ export class JourneyEpilogueSequence {
         ctx.save();
         ctx.fillStyle = '#050505';
         ctx.fillRect(0, 0, w, h);
+        this.game.depthField?.render(ctx, { forceNight: true, quiet: true });
 
         if (this.caption && this.captionAlpha > 0) {
             ctx.save();

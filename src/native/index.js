@@ -1,6 +1,11 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
+// - Android 15+ edge-to-edge: syncStatusBarTheme() uses Capacitor SystemBars
+//   (setStyle only). Dropped @capacitor/status-bar setBackgroundColor /
+//   setOverlaysWebView — those call Window.setStatusBarColor, which Play flags
+//   as deprecated and which is a no-op on API 35+. Insets are CSS
+//   --safe-area-inset-* / env(safe-area-inset-*).
 // - requestNativeReview() / openStoreListing() wrap the InAppReview plugin
 //   (Play review sheet; store URL only from Options if the sheet cannot start).
 // - Splash hide is first in initNative() (menu already paints) plus a finally
@@ -16,9 +21,8 @@
 // - hapticWallBoop(): Cap ImpactStyle.Light (soft tick). Phone haptics must be
 //   on — earlier "no feel" was OS intensity at 0, not a dead plugin. Dropped
 //   the heavy vibrate()/HapticTick/startup-thump path that felt too strong.
-// - Theme toggle: syncStatusBarTheme() matches light/dark paper + glyph style.
-// - Night paper: status bar uses Style.Dark + charcoal paper background so light
-//   glyphs read on the dark stage.
+// - Theme toggle: syncStatusBarTheme() matches light/dark glyph style.
+// - Night paper: SystemBarsStyle.Dark so light glyphs read on the dark stage.
 // - Created file: hardware back navigation, app lifecycle pausing, screen
 //   wake-lock during a run, status bar colouring and splash dismissal.
 //
@@ -26,10 +30,9 @@
 // the web bundle never pays for native code it cannot use, and so a browser
 // build has no chance of invoking an unimplemented plugin.
 
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin, SystemBars, SystemBarsStyle } from '@capacitor/core';
 
 import { goBack } from '../game/BackNavigation.js';
-import { color } from '../brand/tokens.js';
 import { isDarkTheme } from '../brand/theme.js';
 import { storeReviewUrl } from '../services/StoreLinks.js';
 
@@ -83,9 +86,6 @@ export async function openStoreListing() {
         }
     }
 }
-
-/** @type {{ StatusBar: import('@capacitor/status-bar').StatusBarPlugin, Style: typeof import('@capacitor/status-bar').Style } | null} */
-let statusBarApi = null;
 
 /** @type {typeof import('@capacitor/haptics') | null} */
 let hapticsApi = null;
@@ -254,25 +254,16 @@ async function wireLifecycle(game, App) {
 }
 
 // --- Chrome ------------------------------------------------------------------
-/** Match the status bar to the active light/dark paper theme. */
+/** Match system-bar glyph contrast to the active light/dark paper theme. */
 export async function syncStatusBarTheme() {
-    if (!isNative() || !statusBarApi) return;
-    const { StatusBar, Style } = statusBarApi;
+    if (!isNative()) return;
     try {
-        // Style.Dark = light glyphs on dark bg; Style.Light = dark glyphs on light bg.
-        await StatusBar.setStyle({
-            style: isDarkTheme() ? Style.Dark : Style.Light,
+        // Dark = light glyphs on dark paper; Light = dark glyphs on cream paper.
+        await SystemBars.setStyle({
+            style: isDarkTheme() ? SystemBarsStyle.Dark : SystemBarsStyle.Light,
         });
-
-        if (Capacitor.getPlatform() === 'android') {
-            // Keep the bar as its own paper strip rather than letting the
-            // WebView slide under it — the CSS safe-area padding then has
-            // nothing to compensate for and the HUD sits where it was designed.
-            await StatusBar.setBackgroundColor({ color: color.paper });
-            await StatusBar.setOverlaysWebView({ overlay: false });
-        }
     } catch {
-        // Not fatal — worst case the bar keeps the system default.
+        // Not fatal — worst case the bars keep the system default.
     }
 }
 
@@ -331,12 +322,8 @@ export async function initNative(game) {
     await hideSplashScreen();
 
     try {
-        const [{ App }, { StatusBar, Style }] = await Promise.all([
-            import('@capacitor/app'),
-            import('@capacitor/status-bar'),
-        ]);
+        const { App } = await import('@capacitor/app');
 
-        statusBarApi = { StatusBar, Style };
         await syncStatusBarTheme();
         await wireBackButton(game, App);
         await wireLifecycle(game, App);

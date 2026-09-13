@@ -4,9 +4,12 @@
 // keeps the stair-with-plateaus curve honest: hold `d` and nothing gets harder,
 // however many levels pass.
 // Changes:
+// - speedMultiplier is GameConfig.cruiseSpeedMultiplier (1.1) — same cruise as
+//   Open Space on iOS / Android / web. Difficulty still lerps density/gaps,
+//   not travel speed.
 // - Late belt: corridor mid-fill, no back-to-back heavies, more simple clusters.
 // - L20+ late belt: lower simpleChance, denser row mix, wider maxOnScreen,
-//   slightly tighter gaps — speed lerp is unchanged.
+//   slightly tighter gaps — cruise stays the shared 1.1× (not a speed ramp).
 // - Exposes pairTheme / comboTheme / encounterCount / usesPairedBelt (L6+) /
 //   isLateJourney / rollRowSpawnCount.
 // - introBeats exposes LEVEL_INTRO_BEATS (sentence-at-a-time; voice on 1–41;
@@ -44,7 +47,6 @@ const TUNING = {
     // Fraction of canvas height between spawn rows — tighter as it gets harder.
     minGap: [0.30, 0.16],
     gapSpread: 1.35,
-    speed: [0.95, 1.38],
     // Plain-asteroid clusters: one rock at the soft end, up to four at the hard.
     baseCluster: [1, 4],
     // Absolute ceiling on rocks in one simple cluster.
@@ -137,9 +139,8 @@ export class JourneyProfile extends RunProfile {
         return false;
     }
 
-    get speedMultiplier() {
-        return lerp(TUNING.speed[0], TUNING.speed[1], this.d);
-    }
+    // speedMultiplier inherited from RunProfile — GameConfig.cruiseSpeedMultiplier
+    // (same 1.1× cruise as Open Space on every platform).
 
     // --- Pickups ---------------------------------------------------------
     get shieldsFromScore() {

@@ -15,6 +15,9 @@
     "Keyboard": {
       "resize": "native",
       "resizeOnFullScreen": true
+    },
+    "SystemBars": {
+      "insetsHandling": "css"
     }
   },
   "android": {

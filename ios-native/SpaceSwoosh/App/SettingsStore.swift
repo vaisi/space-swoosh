@@ -1,5 +1,6 @@
 // SettingsStore.swift
-// Changes: Hidden roster ships (Merlin, Rook) cannot be equipped; leftover
+// Changes: First launch with no ssTheme is Dark Mode (matches JS / Android).
+// Stored "light" still wins. Hidden roster ships (Merlin, Rook) cannot be equipped; leftover
 // shipSkinId remounts to Flicker via SkinCatalog.resolve.
 // Unowned / missing shipSkinId falls back to Flicker (JS DEFAULT_SHIP_SKIN).
 // Init from locals so Swift does not read self before all stored properties are set.
@@ -38,7 +39,7 @@ final class SettingsStore: ObservableObject {
         }
         flightStyle = resolvedStyle
         shipSkinId = resolvedSkin
-        isDark = UserDefaults.standard.string(forKey: "ssTheme") == "dark"
+        isDark = UserDefaults.standard.string(forKey: "ssTheme") != "light"
         muted = UserDefaults.standard.bool(forKey: "soundMuted")
         musicEnabled = Self.flag("soundMusicEnabled", default: true)
         sfxEnabled = Self.flag("soundSfxEnabled", default: true)

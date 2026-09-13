@@ -1,6 +1,9 @@
 <!--
  ios-native/README.md
- Changes: Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app.
+ Changes: Wall-boost rush is 5s wall-clock (Flicker.speedBoostSeconds).
+ Shield is 5s wall-clock (Flicker.shieldSeconds), same as Android/web.
+ Journey cruise uses GameConfig.cruiseSpeedMultiplier (1.1), same as Open Space.
+ Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app.
  UNLOCK_ALL_LEVELS is false; Hazard Lab tile hidden (showHazardLab).
 -->
 
@@ -40,14 +43,15 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Persistence: `journeyProgress`, `logbookProgress`, `shipSkinId`, `ownedSkinIds`, `soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`, `playerName` (same keys as Android)
 - Audio: looping `background.mp3` (ducks under NAV); **decoded** turn / crash / shield / shield-crash / **level-N** / **first-boop** / **swoosh-voice** on the engine pool (synth fallback for turn/crash/shield); baked boop/collect/portal/swoosh. LEVEL N and synth wall-boop share the engine so both can be heard. Spoken first-boop waits until intro voice is done. Clear-flyout smash SFX throttled to 120 ms
 - HUD: Android mockup C (pause glyph + route / fuel / smash icon rows). Stagger: KM+fuel at 2s, pause at 3s, smash after first event
-- Shield: two Signal stroke rings sized like Android Canvas (sprite radius includes half-stroke); **4s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
+- Shield: two Signal stroke rings sized like Android Canvas (sprite radius includes half-stroke); **5s** (`Flicker.shieldSeconds`); pulse, then faster warning in the last 1.5s
+- Wall boost: same shield grant plus **5s** speed rush (`Flicker.speedBoostSeconds`; JS `speedBoostDurationMs` 5000 wall-clock)
 - Sparkles: 8-vertex 4-point star (`innerRatio` 0.4) at Android radius `1.15×` unit (sprite diameter `2r`); filled `signalDisc` halo diameter `3.8r` (`signalSoft` alpha, not additive glow)
 - Wormholes: Android `WormholeGate` look — spinning dashed stroke in signal/ink/ink30, path diameter `2×size×pulse`, no additive inner glow
 - Flicker wake: one continuous `SKShapeNode` ribbon tucked under the hull center; smudge tapers at the join; spring path wiggle on wall BOOP
 - Focus ripple dots / Ember twin-dots / Saber bloom+core+crackle reuse pooled sprites (no per-frame `SKShapeNode` allocs). Live ships: pooled hull graph + dedicated wakes. Remaining premiums: classic ribbon/mark wakes (not a particle dump)
 - Drift / wind: 7 thin ink30 SKShapeNode hairlines (Android `setLineDash` +
   `lineDashOffset`), `baseUnit`-scaled period, flow matches shove direction
-- Cruise: Android snappy tick × **1.0** (`GameConfig.feelSpeed`)
+- Cruise: Android snappy tick × **1.0** (`GameConfig.feelSpeed`); Open Space and Journey share `cruiseSpeedMultiplier` **1.1**
 - Menu / pause / outcome: Space Grotesk/Mono, framed ink buttons, paper wash, two-bar **MISSION PAUSED**. Open Space game over includes High Scores
 - Wall **BOOP** is one-shot (180 ms cooldown) and fades at Android’s 0.028/tick.
   The ink label sits at hull height on the **open** side (left wall → right of

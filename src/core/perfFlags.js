@@ -2,7 +2,7 @@
 // URL / query-string flags for Phase 0 frame diagnostics and Phase 1 cheap Canvas.
 // Changes:
 // - Created: ?perf=1 overlay; ?nodraw=1 / ?drawonly=1; ?kill=trails,glows,hud,
-//   hulls,obstacles; ?fullvfx=1 disables iOS draw LOD; ?cheap=0|1; ?dpr=N.
+//   hulls,obstacles,stars; ?fullvfx=1 disables iOS draw LOD; ?cheap=0|1; ?dpr=N.
 
 /**
  * @typedef {object} PerfFlags

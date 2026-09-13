@@ -1,9 +1,7 @@
 // RunProfile.swift
-// Changes: Journey/Lab clusterCount adds Int(roll * dens) like Android
-// spawnSimpleAsteroids. Hazard Lab uses advanced black-hole Y-pull (matches
-// JS sandbox). Journey L6+ mixed rows / L20+ late knobs; pairTheme +
-// comboTheme + encounterCount from spec. Open Space weather, belt density
-// (tighter vertical pack by 5k / 12.5k / 20k), and +10% cruise are live from KM.
+// Changes: Journey cruise is GameConfig.cruiseSpeedMultiplier (1.1), same as
+// Open Space — difficulty no longer lerps travel speed. Journey/Lab
+// clusterCount adds Int(roll * dens) like Android spawnSimpleAsteroids.
 
 import Foundation
 import CoreGraphics
@@ -81,7 +79,7 @@ struct RunProfile {
             density1: GameConfig.Obstacles.scaling.maxDensity,
             minGapFrac: 0.25,
             gapSpread: 1.6,
-            speedMultiplier: 1.1,
+            speedMultiplier: GameConfig.cruiseSpeedMultiplier,
             maxOnScreen: 64,
             baseCluster0: 2,
             baseCluster1: 2,
@@ -131,7 +129,7 @@ struct RunProfile {
             density1: 2.05,
             minGapFrac: late ? lerp(0.18, 0.14, tLate) : lerp(0.30, 0.16, spec.difficulty),
             gapSpread: 1.35,
-            speedMultiplier: lerp(0.95, 1.38, spec.difficulty),
+            speedMultiplier: GameConfig.cruiseSpeedMultiplier,
             maxOnScreen: late ? 14 : lerpInt(5, 10, spec.difficulty),
             baseCluster0: 1,
             baseCluster1: 4,

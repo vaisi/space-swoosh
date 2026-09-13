@@ -4,8 +4,10 @@
 // - Arc startMovement records left/right on ObstacleManager so Open World
 //   steer cues dismiss the same way zigzag flips do.
 // - isEffectivelyStopped(): fuel-out death waits until displacement is noise.
-// - Gameplay `speedBoost` (1.82×, 5s, refreshable) from wall-boost pickups —
+// - Gameplay `speedBoost` (1.82×, refreshable) from wall-boost pickups —
 //   separate from cinematic `boost` so level-clear flyout is untouched.
+//   Timer drains in wall-clock ms via snappyHz (5000 = 5.0s of play), same
+//   as the shield. Old (1000/60)*tickScale expired the rush in 2.5s.
 // - Arc banks: linear full-π half-turn so X closes to startX (snap on finish).
 //   Mid-arc key/tap always starts a fresh full-duration arc from the current
 //   seat (no 0.55× redirect). Vertical speed eases toward the arc target so
@@ -30,6 +32,8 @@
 // - updateTrail mutates opacities in place (no map/filter/slice per frame) to
 //   cut GC pressure on iOS WKWebView.
 // - Forward motion is one smooth step per frame via `game.tickScale`.
+// - Shield timer drains in wall-clock ms via snappyHz (5000 = 5.0s of play on
+//   iOS / Android / web). Old (1000/60)*tickScale expired the shield in 2.5s.
 // - Direction changes: bank eases via BANK_SMOOTHING (hull lean, not path).
 // - Zigzag flight style: constant straight lean at ±zigzagAngleDeg from up;
 //   tap/key flips lean — no arcs; touch swipe ignored.
@@ -88,7 +92,7 @@ export class Spacecraft {
 
         // Gameplay speed boost from wall-slab pickups (independent of cinematic boost).
         this.speedBoostTimer = 0;
-        this.speedBoostDuration = 5000;
+        this.speedBoostDuration = game.config.speedBoostDurationMs ?? 5000;
         this.speedBoostFactor = 1.82; // 30% bigger than the original 1.4× wall boost
 
         this.trail = [];
@@ -110,7 +114,7 @@ export class Spacecraft {
         
         this.shieldActive = false;
         this.shieldTimer = 0;
-        this.shieldDuration = 5000; // Increased from 3000 to 5000 (5 seconds)
+        this.shieldDuration = game.config.shieldDurationMs ?? 5000;
         this.shieldPulse = 0;
         this.shieldWarningStarted = false; // For visual feedback when shield is about to end
         
@@ -309,7 +313,11 @@ export class Spacecraft {
 
     updateShield(tickScale) {
         if (!this.shieldActive) return;
-        this.shieldTimer -= (1000 / 60) * tickScale;
+        // tickScale = frameTime * snappyHz (120). Drain in wall-clock ms so
+        // shieldDuration 5000 is 5.0s of play. (1000/60)*tickScale was 2× too
+        // fast — a leftover 60fps tick on the 120 Hz snappy clock.
+        const hz = this.game.snappyHz ?? 120;
+        this.shieldTimer -= (1000 / hz) * tickScale;
         // Slightly snappier pulse while speed-boosted so the dual buff reads.
         const pulseRate = this.speedBoostTimer > 0 ? 0.14 : 0.1;
         this.shieldPulse += pulseRate * tickScale;
@@ -327,7 +335,9 @@ export class Spacecraft {
 
     updateSpeedBoost(tickScale) {
         if (this.speedBoostTimer <= 0) return;
-        this.speedBoostTimer -= (1000 / 60) * tickScale;
+        // Same wall-clock drain as the shield: 5000 ms is 5.0s of play.
+        const hz = this.game.snappyHz ?? 120;
+        this.speedBoostTimer -= (1000 / hz) * tickScale;
         if (this.speedBoostTimer < 0) this.speedBoostTimer = 0;
     }
 

@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Depth field: after drawPaper, DepthField paints wrapping twinkle dust
+//   on night paper only (Light Mode stays flat). ?kill=stars skips it.
+//   The L42 epilogue paints its own quieter night field after the black hold.
 // - Journey smash HUD: dots when smashTarget ≤ 6 (days 5–13); `n / target`
 //   count from day 14 where the smash star is 8–20 asteroids.
 // - In-run pause control is two ink bars (`.ss-pause`), not the U+23F8 emoji.
@@ -216,6 +219,7 @@ import {
 import { drawLivesChip } from '../ui/LivesChip.js';
 import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme, requestNativeReview, openStoreListing } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
+import { DepthField } from '../utils/DepthField.js';
 import { color, font } from '../brand/tokens.js';
 import { themeLabel, toggleTheme, getTheme } from '../brand/theme.js';
 import {
@@ -575,6 +579,7 @@ export class Game {
         if (this.spacecraft) {
             this.spacecraft.radius = this.baseUnit;
         }
+        this.depthField?.resize();
         // Hull bitmaps are sized to radius — drop them when the layout unit changes.
         clearHullCache();
     }
@@ -589,10 +594,16 @@ export class Game {
     initializeGame() {
         console.log('Initializing game components...'); // Debug log
         this.camera = new Camera(this);
+        this.depthField = new DepthField(this);
         this.spacecraft = new Spacecraft(this);
         this.obstacleManager = new ObstacleManager(this);
         this.inputHandler = new InputHandler(this);
         this.milestoneManager = new MilestoneManager(this);
+    }
+
+    paintDepthField(opts) {
+        if (isKilled(this.perfFlags, 'stars')) return;
+        this.depthField?.render(this.ctx, opts);
     }
 
     start() {
@@ -746,6 +757,7 @@ export class Game {
                 this.render();
             } else {
                 // Empty-draw: still clear paper so the screen isn't stale garbage.
+                // Skip the depth field — ?nodraw=1 is a fill-rate probe.
                 this.ensureHiDpiTransform();
                 drawPaper(this.ctx, this.width, this.height);
             }
@@ -1029,6 +1041,7 @@ export class Game {
     render() {
         this.ensureHiDpiTransform();
         drawPaper(this.ctx, this.width, this.height);
+        this.paintDepthField();
 
         if (this.appScreen === 'menu') {
             this.renderMainMenu();

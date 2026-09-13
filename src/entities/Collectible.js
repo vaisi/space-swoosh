@@ -5,6 +5,9 @@
 // and means "good / active" (the same hue as the shield), so it reads as safe
 // to grab versus the solid-ink hazards.
 // Changes:
+// - Magnet latches on first enter of ~4.25× ship radius, then eases in and
+//   accelerates as it closes (no unlatch) so the suck-in is readable. New
+//   latches still work during the engines-out coast so a near miss salvages.
 // - Soft magnet: when within ~4.25× ship radius (and not fuelDying), ease world
 //   position toward the ship with proximity falloff (pull 0.15); collect still
 //   on contact (including during the engines-out coast).
@@ -29,6 +32,10 @@ export class Collectible {
         this.size = game.baseUnit * 1.15;
         this.pulsePhase = Math.random() * Math.PI * 2;
         this.rotation = 0;
+        this.latched = false;
+        this.latchAge = 0;
+        this.latchFromDist = 0;
+        this.latchMix = 0;
     }
 
     update() {
@@ -38,23 +45,38 @@ export class Collectible {
         this.pulsePhase += 0.06 * tickScale;
         this.rotation += 0.01 * tickScale;
 
-        // Tight soft magnet — near-miss assist only; no salvage once engines die.
+        // Latch on first enter of the magnet radius, then chase until collect.
         const ship = this.game?.spacecraft;
-        if (!ship || this.game.fuelDying) return;
+        if (!ship) return;
 
         const fuelCfg = this.game.config?.fuel;
         const magnetRadius = ship.radius * (fuelCfg?.magnetRadiusScale ?? 4.25);
         const dx = ship.x - this.x;
         const dy = ship.y - this.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist <= 0 || dist >= magnetRadius) return;
+        if (dist > 0 && dist < magnetRadius && !this.latched) {
+            this.latched = true;
+            this.latchFromDist = dist;
+            this.latchAge = 0;
+        }
+        if (!this.latched || dist <= 0) return;
 
-        const pull = fuelCfg?.magnetPull ?? 0.15;
-        const t = pull * tickScale * (1 - dist / magnetRadius);
+        const dt = this.game.dt ?? (tickScale / 60);
+        this.latchAge += dt;
+        const rampSec = (fuelCfg?.magnetLatchRampMs ?? 340) / 1000;
+        const easeIn = Math.min(1, this.latchAge / Math.max(0.001, rampSec));
+        const closing = 1 - Math.min(1, dist / Math.max(this.latchFromDist, 1));
+        // Time ramp or closing — whichever is ahead — so fly-bys still finish
+        // and near grabs still speed up at the end like the old suck-in.
+        const mix = Math.max(easeIn * easeIn, closing);
+        this.latchMix = mix;
+
+        const minPull = fuelCfg?.magnetLatchMin ?? 0.03;
+        const peak = fuelCfg?.magnetPull ?? 0.16;
+        const t = Math.min(0.32, (minPull + peak * mix) * tickScale);
         this.x += dx * t;
         this.y += dy * t;
-        // Slight spin-up while magnetized so the grab reads as "alive".
-        this.rotation += 0.02 * tickScale * (1 - dist / magnetRadius);
+        this.rotation += (0.01 + 0.06 * mix) * tickScale;
     }
 
     render(ctx) {
@@ -65,8 +87,9 @@ export class Collectible {
             return;
         }
 
-        const pulse = 1 + Math.sin(this.pulsePhase) * 0.12;
-        const r = this.size * pulse;
+        const mix = this.latched ? this.latchMix : 0;
+        const pulse = 1 + Math.sin(this.pulsePhase) * (0.12 + 0.08 * mix);
+        const r = this.size * pulse * (1 + 0.1 * mix);
 
         ctx.save();
         ctx.translate(this.x, relativeY);

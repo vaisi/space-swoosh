@@ -5,9 +5,10 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - Open Space speedMultiplier reads GameConfig.cruiseSpeedMultiplier (1.1) —
+//   the same constant Journey uses, so cruise matches on iOS / Android / web.
 // - Open Space weather + belt density live on OpenWorldProfile (tighter vertical
 //   pack than Journey's 0.14 gaps — Open Space rows are thinner).
-// - Open Space speedMultiplier 1.1 so web matches Android cruise.
 // - Journey L6+ pairing / L20+ comboTheme / encounters live on JourneyProfile.
 // - OPEN_WORLD_UNLOCKS messages are null — types still unlock by KM, but
 //   Open Space no longer flashes hazard-name banners.
@@ -27,6 +28,7 @@
 //   there is now one source of truth for it.
 
 import { clamp01 } from '../utils/math.js';
+import { GameConfig } from '../config/GameConfig.js';
 import {
     OPEN_SPACE_PAIRED_FROM_KM,
     beltAt,
@@ -120,9 +122,9 @@ export class RunProfile {
         return true;
     }
 
-    /** Scales the ship's forward speed, and so the whole run's pace. */
+    /** Shared Open Space + Journey cruise (GameConfig.cruiseSpeedMultiplier). */
     get speedMultiplier() {
-        return 1;
+        return this.game?.config?.cruiseSpeedMultiplier ?? GameConfig.cruiseSpeedMultiplier;
     }
 
     // --- Pickups ---------------------------------------------------------
@@ -266,10 +268,7 @@ export class OpenWorldProfile extends RunProfile {
         return this.game.TOTAL_DISTANCE * 100;
     }
 
-    /** Web and Android Capacitor: +10% so Open Space matches the snappier Android feel. */
-    get speedMultiplier() {
-        return 1.1;
-    }
+    // speedMultiplier inherited — same GameConfig.cruiseSpeedMultiplier as Journey.
 
     get usesPairedBelt() {
         return this.game.score >= OPEN_SPACE_PAIRED_FROM_KM;

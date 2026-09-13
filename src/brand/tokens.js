@@ -13,8 +13,9 @@
 // - Added `saber` / `saberRgb` / `saberCoreRgb` — bright purple lightsaber
 //   wake accents for the free Saber ship (trail-only; not HUD / buttons).
 // - Motif `wallBoost`: thin Signal-Blue edge slab (shield + speed pickup).
-// - Theme toggle: `color` is mutated in place by brand/theme.js (light cream /
-//   dark night-paper). Defaults below are light until initTheme() runs.
+// - Theme toggle: `color` is mutated in place by brand/theme.js (dark night-paper
+//   default; light cream when ssTheme is light). Defaults below are night paper
+//   until initTheme() runs.
 // - Night paper (feat/night-paper): dark palette + ice-blue signal live in theme.js;
 //   light keeps cream paper, near-black ink, Signal Blue. Added `paperRgb`.
 // - Added `ember` / `emberRgb` — warm trail-only accent for special ship wakes
@@ -42,65 +43,65 @@
 // -----------------------------------------------------------------------------
 
 // --- Color -------------------------------------------------------------------
-// Light (default): warm paper ground, near-black ink, Signal Blue accent.
-// Dark night-paper values are applied at runtime via brand/theme.js.
+// Night paper (default): charcoal ground, bone ink, ice-blue signal.
+// Light cream values are applied at runtime via brand/theme.js.
 export const color = {
-    // Ground — warm bone/sand. The whole universe sits on this.
-    paper:        '#E1D9C1',
-    paperTint:    '#EAE4D2', // raised surfaces / cards
-    paperDeep:    '#D3C9AC', // recessed wells / pressed states
-    paperRgb:     '225, 217, 193',
+    // Ground — charcoal night paper. The whole universe sits on this.
+    paper:        '#1C1A16',
+    paperTint:    '#2A2620', // raised surfaces / cards
+    paperDeep:    '#12100E', // recessed wells / pressed states
+    paperRgb:     '28, 26, 22',
 
-    // Ink — near-black, never pure #000. Used for shapes, text, structure.
-    ink:          '#1A1A1A',
-    ink80:        'rgba(26, 26, 26, 0.80)', // secondary text
-    ink55:        'rgba(26, 26, 26, 0.55)', // muted text / hints
-    ink30:        'rgba(26, 26, 26, 0.30)', // dotted trails / dividers
-    ink12:        'rgba(26, 26, 26, 0.12)', // grid lines / fills
-    ink06:        'rgba(26, 26, 26, 0.06)', // faint pattern wash
-    inkRgb:       '26, 26, 26',
+    // Ink — bone, never pure #FFF. Used for shapes, text, structure.
+    ink:          '#E1D9C1',
+    ink80:        'rgba(225, 217, 193, 0.80)', // secondary text
+    ink55:        'rgba(225, 217, 193, 0.55)', // muted text / hints
+    ink30:        'rgba(225, 217, 193, 0.30)', // dotted trails / dividers
+    ink12:        'rgba(225, 217, 193, 0.12)', // grid lines / fills
+    ink06:        'rgba(225, 217, 193, 0.06)', // faint pattern wash
+    inkRgb:       '225, 217, 193',
 
     // Signal — the one accent. Reserved for meaning: shield, focus, "active".
-    signal:       '#0000FF',
-    signalSoft:   'rgba(0, 0, 255, 0.14)',
-    signalRgb:    '0, 0, 255',
+    signal:       '#5CC8FF',
+    signalSoft:   'rgba(92, 200, 255, 0.32)',
+    signalRgb:    '92, 200, 255',
 
     // Ember — warm trail heat for ship wakes only (never HUD / buttons).
-    ember:        '#A65D3F',
-    emberSoft:    'rgba(166, 93, 63, 0.18)',
-    emberRgb:     '166, 93, 63',
+    ember:        '#C47855',
+    emberSoft:    'rgba(196, 120, 85, 0.22)',
+    emberRgb:     '196, 120, 85',
 
     // Lantern — biolume teal / gold for the jellyfish wake (never HUD).
-    lanternTeal:    '#2E8B8A',
-    lanternTealSoft:'rgba(46, 139, 138, 0.20)',
-    lanternTealRgb: '46, 139, 138',
-    lanternGold:    '#E8B84A',
-    lanternGoldSoft:'rgba(232, 184, 74, 0.22)',
-    lanternGoldRgb: '232, 184, 74',
+    lanternTeal:    '#5EE0D4',
+    lanternTealSoft:'rgba(94, 224, 212, 0.28)',
+    lanternTealRgb: '94, 224, 212',
+    lanternGold:    '#F5D06A',
+    lanternGoldSoft:'rgba(245, 208, 106, 0.28)',
+    lanternGoldRgb: '245, 208, 106',
 
     // Spore — amber / violet biolume for the mushroom wake (never HUD).
-    sporeAmber:     '#C47A3A',
-    sporeAmberRgb:  '196, 122, 58',
-    sporeViolet:    '#7A4E9E',
-    sporeVioletRgb: '122, 78, 158',
+    sporeAmber:     '#E8A05A',
+    sporeAmberRgb:  '232, 160, 90',
+    sporeViolet:    '#B57AE0',
+    sporeVioletRgb: '181, 122, 224',
 
     // Sprout — leaf green for the seed-ship wake (never HUD).
-    sproutGreen:    '#3E8B5A',
-    sproutGreenRgb: '62, 139, 90',
+    sproutGreen:    '#6EDC8A',
+    sproutGreenRgb: '110, 220, 138',
 
     // Luna — moth-wing dust (trail / hull motes only; never HUD).
-    mothLavender:    '#8B6BB0',
-    mothLavenderRgb: '139, 107, 176',
+    mothLavender:    '#C9A6F0',
+    mothLavenderRgb: '201, 166, 240',
 
     // Argus — peacock eyespot rim for the wake only (never HUD).
-    argusTeal:       '#105C58',
-    argusTealRgb:    '16, 92, 88',
+    argusTeal:       '#40E4C4',
+    argusTealRgb:    '64, 228, 196',
 
-    // Rook — bronze vanes / dust (deep on cream, gold on night). Never HUD.
-    rookCopper:      '#8A4A16',
-    rookCopperRgb:   '138, 74, 22',
-    rookSpark:       '#C45A28',
-    rookSparkRgb:    '196, 90, 40',
+    // Rook — gold vanes / dust on night paper. Never HUD.
+    rookCopper:      '#F5D06A',
+    rookCopperRgb:   '245, 208, 106',
+    rookSpark:       '#FFE4B0',
+    rookSparkRgb:    '255, 228, 176',
 
     // Saber — bright purple lightsaber wake (Saber ship only; never HUD).
     saber:        '#A855FF',

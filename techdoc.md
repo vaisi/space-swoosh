@@ -1,6 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Mobile browsers on spaceswoosh.app never boot the canvas —
+<!-- Changes: Sparkle magnet latches (JS + iOS) then constant chase until
+     collect. Default theme is dark (no ssTheme). DepthField is night-paper
+     only. Mobile browsers on spaceswoosh.app never boot the canvas —
      store gate + App Store / Play links. Desktop web shows cream/ink QR
      rails (`public/qr/`, `npm run assets:qr`). Wall-boost speed rush is 5s
      wall-clock on iOS / Android / web (speedBoostDurationMs /
@@ -110,8 +112,9 @@
 > accrues). Separate from cinematic `Spacecraft.boost` used by level-clear flyout.
 >
 > **Themes:** Dual theme via Options → **Light Mode / Dark Mode**
-> (`brand/theme.js`, key `ssTheme`). **Default is light** (cream + Signal Blue)
-> when nothing is stored. Dark: charcoal paper, bone ink, ice blue (`#5CC8FF`).
+> (`brand/theme.js`, key `ssTheme`). **Default is dark** (charcoal paper, bone
+> ink, ice blue `#5CC8FF`) when nothing is stored — web, Android, and native iOS.
+> Light: cream paper + Signal Blue. `DepthField` paints only on night paper.
 > `applyTheme()` mutates shared tokens + CSS vars and clears hull/glow caches.
 >
 > **BUILD 28 (Android store):** Firebase Analytics on Capacitor Android
@@ -138,7 +141,7 @@
 > on iPhone/iPad: DPR ≤ 1.5, baked hull `drawImage`, glow sprites (halos/black-hole/
 > swoosh flash restored without path radials), flat ribbon fills. Same plain
 > one-update-per-paint rAF loop as Android (no paint throttle). Phase 0 URL
-> harness: `?perf=1`, `?nodraw=1`, `?drawonly=1`, `?kill=trails,glows,hud,hulls,obstacles,gradients`,
+> harness: `?perf=1`, `?nodraw=1`, `?drawonly=1`, `?kill=trails,glows,hud,hulls,obstacles,gradients,stars`,
 > `?fullvfx=1`, `?cheap=0|1`, `?dpr=N`. See §6.
 >
 > **Supabase:** Open Space leaderboard uses **vaisi's Project**
@@ -329,11 +332,12 @@ game build env. Journey progress and Open Space personal best stay in
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
 | `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–41 voice (Day 42 skips intro text); holds belt until done. |
 | `utils/BrandDraw.js` | Paper, framed tiles/buttons, sparkle glyph. |
+| `utils/DepthField.js` | Wrapping depth sparkles after `drawPaper` on night paper only: bone specks + rare ice glints / tiny flares; cheap/LOD thins the field; `?kill=stars` skips it. Light Mode stays flat. |
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
 | `core/Camera.js` | Scroll position + `getRelativeY()` world→screen mapping, shake. |
 | `core/InputHandler.js` | Keyboard/touch input → ship movement (only while `isPlaying()`). |
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
-| `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision + soft magnet pull). |
+| `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision + latched magnet chase). |
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
 | `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. L6+ mixed pairs + `EncounterDirector` spikes/storms. Shield smash: `playSmashCrashFeedback()` (crash SFX + `hapticShieldSmash`), 120 ms flyout gate. |
 | `config/EncounterCatalog.js` | Authored gauntlets for Journey spikes and Open Space storms. Source of truth — `npm run constants:export` copies them into `shared/game-constants.json` and `GeneratedJourneyData.encounterCatalog`. |
@@ -352,6 +356,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear / Play mode-select blurbs. |
 | `ui/ScreenKit.js` | Screen layout grid + rhythm, dotted rules/ruled labels, text fitting & wrapping. |
 | `utils/BrandDraw.js` | Canvas brand primitives: paper, framed tiles/buttons, reticle, **sparkle**, type presets. |
+| `utils/DepthField.js` | Time-based wrapping star field on night paper only (idle drift + in-run camera parallax). |
 | `utils/DrawUtils.js` | Lower-level draw helpers (dotted lines, shield path, colors). |
 | `utils/math.js` | `clamp01` / `lerp` / `lerpInt` — the difficulty curve's arithmetic. |
 
@@ -1133,8 +1138,16 @@ with a linear gradient along the wake's chord for the length-wise fade.
   ribbon fills skip `createLinearGradient`. Hitch clamps stay on `iosCanvasBudget`.
 - **Phase 0 harness** (`core/perfFlags.js`, `core/PerfMonitor.js`): `?perf=1`
   overlays p50/p95/p99 + histogram (not average fps). `?nodraw=1` = full sim, paper
-  clear only. `?drawonly=1` = freeze updates, keep drawing. `?kill=…` bisects
-  renderer families. `?fullvfx=1` turns off draw LOD for A/B.
+  clear only (no depth field). `?drawonly=1` = freeze updates, keep drawing. `?kill=…` bisects
+  renderer families (`stars` skips `DepthField`). `?fullvfx=1` turns off draw LOD for A/B.
+- **Depth field** (`utils/DepthField.js`): `Game.render()` paints `drawPaper` then
+  `DepthField` before world/UI. Three wrap layers (two on cheap/iOS LOD) of 1–2px
+  rects; bone ink + rare signal glints and a few 4-point flares. Light Mode skips
+  the field (flat cream). Idle drift always; camera
+  `totalDistance` parallax only while `playing` / `gameover`. The L42 epilogue
+  overpaints `#050505` then draws a quieter forced-night field. No extra
+  `update()` — motion is `performance.now()` so the menu 30 Hz idle governor still
+  twinkles.
 - Opaque 2D context (`{ alpha: false }`) on native **and** iOS web (paper is
   always painted first). Active-play UI hits skip `getBoundingClientRect` (InputHandler
   owns steering). Trail/wake paths mutate or reuse scratch arrays.
@@ -1260,13 +1273,13 @@ UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly
    obstacle cutscenes, wormhole transit, ~1.4s after a portal hop (camera
    catch-up must not bill teleport distance as fuel), and while wall-boost
    `speedBoostTimer > 0` (free flight during the blue-edge rush).
-3. **Magnet assist:** While not `fuelDying`, each sparkle in
-   `Collectible.update` eases toward the ship when
-   `dist < spacecraft.radius * fuel.magnetRadiusScale` (4.25). Pull strength is
-   `fuel.magnetPull` (0.15) × `tickScale` × proximity falloff
-   `(1 - dist / magnetRadius)`. Collection still requires circle overlap
-   (`size + ship.radius`). Magnet stays off during the engines-out coast;
-   contact collect still works.
+3. **Magnet assist:** On first enter of
+   `spacecraft.radius * fuel.magnetRadiusScale` (4.25), the sparkle **latches**
+   (`Collectible.latched` / iOS `PickupState.magnetLatched`) and chases the ship
+   with an ease-in over `magnetLatchRampMs` (340) plus a closing boost
+   (`magnetLatchMin` 0.03 + `magnetPull` 0.16 × mix) until circle-overlap
+   collect (`size + ship.radius`). Leaving the radius does not unlatch. Latch
+   and chase stay on during the engines-out coast so a near miss still salvages.
 4. **Refill:** `CollectibleManager.collect` adds `refillPerCollectible` (0.45),
    clamped to `fuel.max` (1). Popup `+FUEL`. Contact during `fuelDying` salvages:
    refill + `Game.cancelFuelDying()` (iOS: clear `fuelDying` / `fuelDyingT`).
@@ -1292,7 +1305,7 @@ UI: `ProPaywallScreen` when lives are empty; `AnnualShipPickScreen` after yearly
 1. **Destroying an asteroid** (shield active): `game.points +=
    config.points.perAsteroid`, ink `+1` popup; distance bonus / destroyed
    counter still apply.
-2. **Collecting a sparkle:** soft magnet may slide it in when close; on contact
+2. **Collecting a sparkle:** latched magnet chases once you get close; on contact
    refills fuel + increments `sparklesCollected` (see fuel system). Does not
    award style points.
 3. **Style swoosh (near-miss):** `StyleSwooshManager` awards
@@ -1303,15 +1316,18 @@ Tune values in `config/GameConfig.js → fuel`, `points`, and `styleSwoosh`.
 
 ## 8. Brand system (how visuals stay consistent)
 
-`brand/tokens.js` holds the live `color` object (light defaults); `brand/theme.js`
+`brand/tokens.js` holds the live `color` object (night-paper defaults); `brand/theme.js`
 switches **light** (cream, near-black ink, Signal Blue) vs **dark** (charcoal
-`#1C1A16`, bone ink, ice blue `#5CC8FF`). Default with no `ssTheme` is light.
+`#1C1A16`, bone ink, ice blue `#5CC8FF`). Default with no `ssTheme` is dark
+(web, Android Capacitor, native iOS `SettingsStore`).
 Options hub toggles and persists. Trail wakes / shields read tokens at draw time;
 milestone toasts use a paper-rgb plate so ink text stays readable on both themes. Canvas code draws through
 `utils/BrandDraw.js` helpers so every surface matches. Obstacles and VFX must use
 `color.ink` / `color.inkRgb` — not hard-coded black. The points collectible is a
 four-point **sparkle** (`drawSparkle`) — deliberately distinct from the filled-ink
-8-point "hostile" star.
+8-point "hostile" star. Background depth motes (`DepthField`) use the same ink /
+signal RGBs as 1–2px rects; hero flares are a tiny bone four-point, never the
+collectible-scale `drawSparkle`.
 
 ### Spock copy (`brand/CopyBank.js`)
 
@@ -1339,7 +1355,7 @@ rotates. Journey stores the pick on `levelOutcome.flavor` inside
   `HULL_META` when using a non-default jelly profile.
 - **New collectible / fuel tuning:** edit `CollectibleManager` (cadence,
   placement) and `GameConfig.fuel` (drain / refill / dying / magnet radius +
-  pull).
+  latch pull). iOS mirrors `Fuel.magnetPull` / `PickupState.magnetLatched`.
 - **New obstacle:** add a `BaseObstacle` subclass in `ObstacleManager.js`, add a
   `spawnX()` + `spawnObstacleByType` case, then add it to `OPEN_WORLD_UNLOCKS`
   (`modes/RunProfile.js`) with the distance that unlocks it, and give it a
