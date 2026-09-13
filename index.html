@@ -1,22 +1,49 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: quiet “Soon on iOS & Android” only on
-     the right leftover column (no store cards, no left copy). Stage still 2:3;
-     dark charcoal surround + beige tunnel; light letterboxes in ink. -->
+<!-- index.html — page shell. Changes: Mobile web is a store download prompt
+     (no canvas). Desktop web shows App Store / Play QR rails. Android 15
+     edge-to-edge padding uses Capacitor --safe-area-inset-* with env()
+     fallback. Native portrait fills the inset stage; landscape letterboxes
+     2:3 (Play large-screen, no screenOrientation lock). Dark charcoal
+     surround + beige tunnel; light letterboxes in ink. -->
 <html lang="en">
 <head>
     <!-- Analytics is injected from src/services/Analytics.js, and only on the
          web. The packaged app must not pull a remote tracker: it fails offline
          and it drags a third-party SDK into both stores' privacy disclosures. -->
     <meta charset="UTF-8">
+    <!-- Classify web vs native before CSS so phones never flash the playfield.
+         Capacitor injects window.Capacitor in the native WebView; browsers do
+         not. iOS/Android UA, or no hover+fine pointer, shows the store gate.
+         Desktop gets QR rails. -->
+    <script>
+        (function () {
+            var cap = window.Capacitor;
+            var native = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+            if (!native && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge) {
+                native = true;
+            }
+            var root = document.documentElement;
+            root.dataset.shell = native ? 'native' : 'web';
+            if (native) return;
+            var ua = navigator.userAgent || '';
+            var ios = /iPad|iPhone|iPod/i.test(ua)
+                || (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
+            var android = /Android/i.test(ua);
+            var desktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+            root.dataset.webGate = (ios || android || !desktop) ? 'store' : 'desktop';
+            root.dataset.storeTarget = ios ? 'ios' : android ? 'android' : 'both';
+        })();
+    </script>
     <!-- viewport-fit=cover lets the surround reach the notch / home
-         indicator; the stage is inset by env(safe-area-inset-*) below
-         so the HUD never sits under hardware. -->
+         indicator; the stage is inset by --safe-area-inset-* (Capacitor
+         SystemBars) with env(safe-area-inset-*) fallback so the HUD never
+         sits under hardware on Android 15+ edge-to-edge. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1A1A1A">
-    <meta name="description" content="A one-thumb space dodge game in a paper universe. Steer, survive, climb.">
+    <meta name="description" content="A one-thumb space dodge game in a paper universe. Steer, survive, climb. Get it on the App Store or Google Play.">
     <title>Space Swoosh</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -70,27 +97,70 @@
             display: none;
         }
 
-        /* Mobile / packaged app: fill the safe area with the stage; surround
-           shows in the notch / home-indicator insets so the stage edge still
-           reads. */
+        /* Capacitor SystemBars injects --safe-area-inset-* (Android WebView
+           < 140); env() is iOS / modern Chromium. HUD stays out of the
+           status / nav / cutout regions under Android 15 edge-to-edge. */
+        html[data-shell="native"] body {
+            box-sizing: border-box;
+            padding:
+                var(--safe-area-inset-top, env(safe-area-inset-top, 0px))
+                var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
+                var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))
+                var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+        }
+        /* Native portrait (and phone portrait web): fill the inset stage. */
+        html[data-shell="native"] #gameContainer {
+            max-width: 100%;
+            width: 100%;
+            min-width: 0;
+            height: 100%;
+            aspect-ratio: auto;
+            box-shadow: none;
+        }
+        /* Landscape: keep a tall 2:3 playfield instead of a wide corridor
+           (Play large-screen — no android:screenOrientation lock). */
+        @media (orientation: landscape) {
+            html[data-shell="native"] #gameContainer {
+                width: auto;
+                height: 100%;
+                max-width: 100%;
+                max-height: 100%;
+                aspect-ratio: 2 / 3;
+            }
+        }
+
+        /* Phone browsers: same inset fill as native — only if they are
+           allowed to play (DEV ?webplay=1). Store-gate phones never paint it. */
         @media (max-width: 768px) {
-            body {
+            html[data-web-gate="play"] body,
+            html[data-shell="native"] body {
                 box-sizing: border-box;
                 padding:
-                    env(safe-area-inset-top)
-                    env(safe-area-inset-right)
-                    env(safe-area-inset-bottom)
-                    env(safe-area-inset-left);
+                    var(--safe-area-inset-top, env(safe-area-inset-top, 0px))
+                    var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
+                    var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))
+                    var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
             }
-            #gameContainer {
+            html[data-web-gate="play"] #gameContainer {
                 max-width: 100%;
                 aspect-ratio: auto;
                 height: 100%;
                 box-shadow: none;
             }
         }
+        @media (max-width: 768px) and (orientation: landscape) {
+            html[data-web-gate="play"] #gameContainer {
+                width: auto;
+                height: 100%;
+                max-width: 100%;
+                max-height: 100%;
+                min-width: 0;
+                aspect-ratio: 2 / 3;
+            }
+        }
 
-        /* Desktop web: stage fills viewport height, leftover width is rails. */
+        /* Desktop web: stage fills viewport height (2:3). Side columns are
+           leftover width only — they must not shrink the playfield. */
         @media (min-width: 769px) {
             html[data-shell="web"] body {
                 display: grid;
@@ -104,30 +174,149 @@
                 max-height: 100%;
                 width: auto;
                 max-width: none;
+                min-width: 0;
                 aspect-ratio: 2 / 3;
             }
             html[data-shell="web"] .store-rail {
                 display: flex;
-                align-items: flex-end;
+                align-items: center;
                 justify-content: center;
-                padding: 0 20px 40px;
+                padding: 24px 16px;
                 min-width: 0;
             }
             html[data-shell="web"] .store-rail--left { grid-column: 1; }
             html[data-shell="web"] .store-rail--right { grid-column: 3; }
         }
 
-        .store-rail__note {
+        .store-qr {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-sizing: border-box;
+            width: min(160px, 100%);
+            padding: 14px 14px 16px;
+            background: #EAE4D2;
+            border: 1.5px solid #1A1A1A;
+            color: #1A1A1A;
+            text-decoration: none;
+            pointer-events: auto;
+            touch-action: auto;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .store-qr:hover {
+            transform: translateY(-2px);
+            transition: transform var(--ss-dur-fast, 120ms) var(--ss-ease-standard, cubic-bezier(0.2, 0, 0, 1));
+        }
+        .store-qr:focus-visible {
+            outline: 1.5px solid var(--ss-signal, #0000FF);
+            outline-offset: 3px;
+        }
+        .store-qr img {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1;
+        }
+        .store-qr__label {
             margin: 0;
-            max-width: 16em;
             font-family: var(--ss-font-ui, system-ui, sans-serif);
-            font-size: 13px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: var(--ss-track-wide, 0.08em);
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+        .store-qr__hint {
+            margin: -4px 0 0;
+            font-family: var(--ss-font-ui, system-ui, sans-serif);
+            font-size: 11px;
             font-weight: 500;
-            letter-spacing: 0.02em;
-            line-height: 1.35;
+            letter-spacing: 0.04em;
+            line-height: 1.3;
+            color: rgba(26, 26, 26, 0.55);
             text-align: center;
-            color: #E1D9C1;
-            opacity: 0.38;
+        }
+
+        /* Mobile web: full-viewport store prompt. Canvas stays unbooted. */
+        .web-store-gate {
+            display: none;
+        }
+        html[data-web-gate="store"] body {
+            touch-action: auto;
+            -webkit-user-select: auto;
+            user-select: auto;
+            -webkit-touch-callout: default;
+        }
+        html[data-web-gate="store"] #gameContainer,
+        html[data-web-gate="store"] .store-rail {
+            display: none !important;
+        }
+        html[data-web-gate="store"] .web-store-gate {
+            display: flex;
+            box-sizing: border-box;
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            align-items: center;
+            justify-content: center;
+            padding:
+                max(24px, env(safe-area-inset-top, 0px))
+                max(20px, env(safe-area-inset-right, 0px))
+                max(24px, env(safe-area-inset-bottom, 0px))
+                max(20px, env(safe-area-inset-left, 0px));
+            background: var(--ss-surround, var(--ss-ink, #1A1A1A));
+            touch-action: auto;
+            overflow: auto;
+        }
+        .web-store-gate__card {
+            width: min(100%, 360px);
+            padding: 32px 24px 28px;
+            background: var(--ss-paper, #E1D9C1);
+            color: var(--ss-ink, #1A1A1A);
+            border: 1.5px solid var(--ss-ink, #1A1A1A);
+            text-align: center;
+        }
+        .web-store-gate__kicker {
+            margin: 0 0 10px;
+            font-family: var(--ss-font-ui, system-ui, sans-serif);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: var(--ss-track-label, 0.18em);
+            text-transform: uppercase;
+            color: var(--ss-ink-55, rgba(26, 26, 26, 0.55));
+        }
+        .web-store-gate__title {
+            margin: 0 0 12px;
+            font-family: var(--ss-font-display, system-ui, sans-serif);
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: var(--ss-track-tight, -0.02em);
+            line-height: 1.1;
+        }
+        .web-store-gate__copy {
+            margin: 0 0 24px;
+            font-family: var(--ss-font-ui, system-ui, sans-serif);
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.45;
+            color: var(--ss-ink-80, rgba(26, 26, 26, 0.80));
+        }
+        .web-store-gate__actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .web-store-gate__cta {
+            width: 100%;
+            justify-content: center;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        html[data-store-target="ios"] .web-store-gate__cta--play,
+        html[data-store-target="android"] .web-store-gate__cta--ios {
+            display: none;
         }
 
         /* dvh accounts for the collapsing browser chrome on mobile Safari /
@@ -143,12 +332,59 @@
     <script type="module" src="/src/main.js"></script>
 </head>
 <body>
-    <aside class="store-rail store-rail--left" aria-hidden="true"></aside>
+    <aside class="store-rail store-rail--left">
+        <a class="store-qr"
+           data-store="ios"
+           href="https://apps.apple.com/app/id6801885446"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Download Space Swoosh on the App Store">
+            <img src="/qr/ios.svg" width="240" height="240" alt="">
+            <p class="store-qr__label">App Store</p>
+            <p class="store-qr__hint">Scan to fly on iPhone</p>
+        </a>
+    </aside>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
     </div>
-    <aside class="store-rail store-rail--right" aria-hidden="true">
-        <p class="store-rail__note">Soon on iOS &amp; Android</p>
+    <aside class="store-rail store-rail--right">
+        <a class="store-qr"
+           data-store="play"
+           href="https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Download Space Swoosh on Google Play">
+            <img src="/qr/android.svg" width="240" height="240" alt="">
+            <p class="store-qr__label">Google Play</p>
+            <p class="store-qr__hint">Scan to fly on Android</p>
+        </a>
     </aside>
+
+    <section class="web-store-gate" aria-labelledby="webStoreGateTitle">
+        <div class="web-store-gate__card">
+            <p class="web-store-gate__kicker">Phone app</p>
+            <h1 id="webStoreGateTitle" class="web-store-gate__title">Space Swoosh</h1>
+            <p class="web-store-gate__copy">
+                The cockpit is a phone. This browser is not it.
+                Download the app for your device.
+            </p>
+            <div class="web-store-gate__actions">
+                <a class="ss-btn ss-btn--primary web-store-gate__cta web-store-gate__cta--ios"
+                   data-store="ios"
+                   href="https://apps.apple.com/app/id6801885446"
+                   rel="noopener noreferrer">
+                    <span class="ss-btn__label">App Store</span>
+                    <span class="ss-btn__tag">iPhone</span>
+                </a>
+                <a class="ss-btn ss-btn--primary web-store-gate__cta web-store-gate__cta--play"
+                   data-store="play"
+                   href="https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh"
+                   rel="noopener noreferrer">
+                    <span class="ss-btn__label">Google Play</span>
+                    <span class="ss-btn__tag">Android</span>
+                </a>
+            </div>
+        </div>
+    </section>
 </body>
 </html>

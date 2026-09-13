@@ -1,6 +1,8 @@
 // main.js
 // Entry point: bootstraps the game.
 // Changes:
+// - Mobile web never starts Game — store gate + analytics only. Native apps
+//   and desktop browsers still boot the canvas.
 // - Do not await RevenueCat / entitlements before the menu: the free roster
 //   plus ownedSkinIds cache is enough for the first hangar paint. A
 //   Play Billing hang must not pin the native splash.
@@ -23,24 +25,46 @@ import { Game } from './game/Game.js';
 import { GameConfig } from './config/GameConfig.js';
 import { ensureBrandFonts } from './utils/BrandDraw.js';
 import { initTheme } from './brand/theme.js';
-import { markDocumentShell } from './core/platform.js';
+import {
+    markDocumentShell,
+    preferredStoreTarget,
+    shouldBlockBrowserPlay,
+} from './core/platform.js';
 import { hideSplashScreen, initNative } from './native/index.js';
-import { initAnalytics } from './services/Analytics.js';
+import { initAnalytics, track } from './services/Analytics.js';
+import { PLAY_STORE_URL, appStoreUrl } from './services/StoreLinks.js';
 import { initEntitlements } from './services/Entitlements.js';
 import { playtestLevelFromQuery } from './services/JourneyProgress.js';
 
 const SPLASH_FAILSAFE_MS = 3000;
 
-window.addEventListener('load', async () => {
-    const splashFailsafe = setTimeout(() => {
-        hideSplashScreen().catch(() => {});
-    }, SPLASH_FAILSAFE_MS);
+function applyStoreHrefs() {
+    const ios = appStoreUrl();
+    const play = PLAY_STORE_URL;
+    for (const node of document.querySelectorAll('[data-store="ios"]')) {
+        if (ios) node.setAttribute('href', ios);
+    }
+    for (const node of document.querySelectorAll('[data-store="play"]')) {
+        if (play) node.setAttribute('href', play);
+    }
+}
 
+window.addEventListener('load', async () => {
     initAnalytics();
 
     // Tokens + page shell before fonts/canvas so the first frame matches preference.
     initTheme();
     markDocumentShell();
+    applyStoreHrefs();
+
+    if (shouldBlockBrowserPlay()) {
+        track('web_store_gate', { store_target: preferredStoreTarget() });
+        return;
+    }
+
+    const splashFailsafe = setTimeout(() => {
+        hideSplashScreen().catch(() => {});
+    }, SPLASH_FAILSAFE_MS);
 
     // Time-capped: a hung WebView font request must not block the menu.
     await ensureBrandFonts();

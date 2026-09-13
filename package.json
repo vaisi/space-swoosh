@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "assets:qr": "node scripts/generate-store-qr.mjs",
     "assets:generate": "node scripts/generate-brand-assets.mjs",
     "assets:iap": "node scripts/generate-iap-icons.mjs",
     "assets:sync": "npm run assets:generate && capacitor-assets generate --iconBackgroundColor \"#E1D9C1\" --iconBackgroundColorDark \"#1A1A1A\" --splashBackgroundColor \"#E1D9C1\" --splashBackgroundColorDark \"#1A1A1A\"",
@@ -30,6 +31,7 @@
     "@capacitor/assets": "^3.0.5",
     "@napi-rs/canvas": "^1.0.3",
     "gh-pages": "^6.2.0",
+    "qrcode": "^1.5.4",
     "sharp": "^0.34.5",
     "vite": "^5.4.11"
   },
@@ -44,7 +46,6 @@
     "@capacitor/ios": "^8.5.0",
     "@capacitor/keyboard": "^8.0.5",
     "@capacitor/splash-screen": "^8.0.2",
-    "@capacitor/status-bar": "^8.0.3",
     "@revenuecat/purchases-capacitor": "^13.3.0",
     "@supabase/supabase-js": "^2.47.10",
     "firebase": "^12.17.1"

@@ -1,6 +1,9 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
+// - shouldBlockBrowserPlay() / preferredStoreTarget(): mobile web cannot run
+//   the canvas; html[data-web-gate=store|desktop|play] drives the download
+//   prompt and desktop QR rails. Vite `?webplay=1` bypasses the gate in DEV.
 // - clientPlatform(): 'ios' | 'android' | 'web' for analytics + Supabase rows.
 // - isDesktopWeb() / isNativeApp() / markDocumentShell(): Open World teach copy
 //   and the desktop store rails branch on desktop web vs native/touch.
@@ -31,6 +34,53 @@ export function isIosDevice() {
         return true;
     }
     return false;
+}
+
+/** True for Android browsers and WebViews. Desktop Chrome is not Android. */
+export function isAndroidDevice() {
+    if (typeof navigator === 'undefined') return false;
+    return /Android/i.test(navigator.userAgent || '');
+}
+
+/**
+ * Store the mobile-web download prompt should emphasize.
+ * @returns {'ios' | 'android' | 'both'}
+ */
+export function preferredStoreTarget() {
+    if (isIosDevice()) return 'ios';
+    if (isAndroidDevice()) return 'android';
+    return 'both';
+}
+
+/** Vite-only escape hatch so device-mode can still boot the canvas. */
+export function allowBrowserPlayBypass() {
+    if (!import.meta.env.DEV) return false;
+    if (typeof window === 'undefined') return false;
+    try {
+        return new URLSearchParams(window.location.search).has('webplay');
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Phone / tablet browsers (iOS or Android), including DevTools device mode.
+ * Desktop Chrome/Safari/Edge UAs are not mobile.
+ */
+export function isMobileBrowser() {
+    return isIosDevice() || isAndroidDevice();
+}
+
+/**
+ * Phone and tablet browsers must not run the game — they get a store prompt.
+ * Packaged apps and desktop (hover + fine pointer, and not an iOS/Android UA)
+ * still play.
+ */
+export function shouldBlockBrowserPlay() {
+    if (isNativeApp()) return false;
+    if (allowBrowserPlayBypass()) return false;
+    if (isMobileBrowser()) return true;
+    return !isDesktopWeb();
 }
 
 /**
@@ -92,8 +142,36 @@ export function isDesktopWeb() {
     return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 }
 
-/** `html[data-shell=web|native]` so CSS can hide store rails in the app. */
+/**
+ * `html[data-shell=web|native]` so CSS can hide store rails in the app.
+ * `data-web-gate` chooses the mobile download prompt vs desktop QR rails.
+ */
 export function markDocumentShell() {
     if (typeof document === 'undefined') return;
-    document.documentElement.dataset.shell = isNativeApp() ? 'native' : 'web';
+    const root = document.documentElement;
+    root.dataset.shell = isNativeApp() ? 'native' : 'web';
+    if (isNativeApp()) {
+        delete root.dataset.webGate;
+        delete root.dataset.storeTarget;
+        syncWebStoreDom(root);
+        return;
+    }
+    root.dataset.storeTarget = preferredStoreTarget();
+    if (shouldBlockBrowserPlay()) {
+        root.dataset.webGate = 'store';
+    } else if (isDesktopWeb()) {
+        root.dataset.webGate = 'desktop';
+    } else {
+        root.dataset.webGate = 'play';
+    }
+    syncWebStoreDom(root);
+}
+
+/** Keep the download prompt out of the accessibility tree when it is hidden. */
+function syncWebStoreDom(root) {
+    const gate = document.querySelector('.web-store-gate');
+    if (!gate) return;
+    const blocked = root.dataset.webGate === 'store';
+    gate.inert = !blocked;
+    gate.setAttribute('aria-hidden', blocked ? 'false' : 'true');
 }

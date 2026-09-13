@@ -1,8 +1,15 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Options Rate on native iOS uses AppStore.requestReview(in:) /
-     SKStoreReviewController on a UIWindowScene — not SwiftUI
-     RequestReviewAction — so Codemagic Xcode 26.4 can archive. -->
+<!-- Changes: Mobile browsers on spaceswoosh.app never boot the canvas —
+     store gate + App Store / Play links. Desktop web shows cream/ink QR
+     rails (`public/qr/`, `npm run assets:qr`). Wall-boost speed rush is 5s
+     wall-clock on iOS / Android / web (speedBoostDurationMs /
+     Flicker.speedBoostSeconds; JS drains via snappyHz).
+     Journey cruise matches Open Space (1.1×, all platforms).
+     iOS native shield is 5s wall-clock, same as Android/web. Android Play
+     1.0.44 follow-ups — edge-to-edge (SystemBars + CSS insets), drop
+     @capacitor/status-bar, unlock orientation with 2:3 landscape letterbox,
+     release R8 minify. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -42,7 +49,7 @@
 > if a file is missing. Boop, collect, portal hop, and style-swoosh whoosh stay
 > baked synths. After NAV/title, mockup-C HUD staggers like Android: route/fuel
 > at 2s, pause at 3s, smash after the first smash. Shield is two Signal rings
-> for **4s** (`Flicker.shieldSeconds`; Android stays 5s) with a last-1.5s
+> for **5s** (`Flicker.shieldSeconds`; same wall-clock 5s as Android/web) with a last-1.5s
 > warning pulse. Visual ring size matches Android Canvas: sprite diameter
 > includes the half-stroke (`1.5r + 0.1r` inner, `1.65r + 0.05r` outer) so the
 > outer edge is not smaller than the JS `stroke` centered on `1.5r`. Hitbox
@@ -97,8 +104,9 @@
 >
 > **Wall Boost:** `PowerUpManager` spawns a thin Signal-Blue edge slab
 > (random L/R, ~22s) only after `wallBoostsFromScore` (12000 KM). Collect →
-> `activateShield()` + `activateSpeedBoost()` (1.82× gameplay speed for 5s;
-> refreshes). While `speedBoostTimer > 0`, fuel drain is skipped (KM still
+> `activateShield()` + `activateSpeedBoost()` (1.82× gameplay speed for 5s
+> wall-clock on iOS / Android / web; refreshes). While `speedBoostTimer > 0`,
+> fuel drain is skipped (KM still
 > accrues). Separate from cinematic `Spacecraft.boost` used by level-clear flyout.
 >
 > **Themes:** Dual theme via Options → **Light Mode / Dark Mode**
@@ -168,7 +176,9 @@ There are **two play modes**, chosen from Play:
   `initEntitlements()` (RevenueCat) runs in the background after `start()` so a
   Play Billing hang cannot block the menu. On native, `initNative()` hides the
   Capacitor splash **first** (`launchAutoHide: false`; 3s failsafe hide) then
-  wires hardware back, lifecycle pause, keep-awake, and status bar. Brand
+  wires hardware back, lifecycle pause, keep-awake, and Capacitor `SystemBars`
+  style (no `@capacitor/status-bar`; Android 15+ is edge-to-edge with CSS
+  `--safe-area-inset-*`). Brand
   woff2s live in `public/fonts/` (latin subset).
 - **Rendering:** everything is drawn to `#gameCanvas` each frame; there is no DOM
   UI except the pause button and the name-input field.
@@ -274,12 +284,12 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Path | Responsibility |
 | --- | --- |
-| `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. |
-| `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, status bar; wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight`. `requestNativeReview()` / `openStoreListing()` wrap `InAppReview` (Play Core). |
+| `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. Mobile **web** returns after `web_store_gate` and never constructs `Game`. |
+| `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, `SystemBars.setStyle` (edge-to-edge; no StatusBar color/overlay APIs); wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight`. `requestNativeReview()` / `openStoreListing()` wrap `InAppReview` (Play Core). |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. Review overlay treats back as Later. |
-| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. |
+| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. Mobile web gate: `web_store_gate` (`store_target` ios\|android\|both). |
 | `services/ReviewPrompt.js` | Enjoyment card eligibility (`ssReviewPrompt`): pending → Day 6; Later snoozes to Day 13 then `done`. Native only. |
-| `services/StoreLinks.js` | Play listing URL from package `com.orbi.spaceswoosh`; App Store write-review URL from `VITE_APP_STORE_APPLE_ID`. |
+| `services/StoreLinks.js` | Play listing `com.orbi.spaceswoosh`; App Store id `6801885446` (`VITE_APP_STORE_APPLE_ID` override). `appStoreUrl()` is locale-neutral. Feeds Rate, the mobile web gate, and desktop QR generation (`npm run assets:qr`). |
 | `ui/screens/ReviewPromptScreen.js` | Paper overlay on a Journey clear: Enjoying so far? / It's great / Not really / Later. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. |
@@ -330,7 +340,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `config/OpenSpaceWeather.js` | Open Space KM pair/combo/focus, belt density lerp, and storm marks. |
 | `config/HazardPairs.js` | Compatible same-row mixes, pair-theme hints, `usesPairedBelt` from L6. |
 | `game/EncounterDirector.js` | Journey 6+: 1–2 catalog spikes. Open Space: KM-anchored storms (dual after 25k). |
-| `managers/PowerUpManager.js` | Shield plus (~5s) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield (+ 1.82× speed for wall). |
+| `managers/PowerUpManager.js` | Shield plus (5s wall-clock grant) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield + 1.82× speed for 5s wall-clock. |
 | `managers/CollectibleManager.js` | Fuel diamonds: spawn cadence, collect → clamped fuel refill + `sparklesCollected`, `+FUEL` popup + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text beside the hull on the open side, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
@@ -477,7 +487,7 @@ built by `createRunProfile()` and hung off `game.profile`:
 | `goalScore`, `isRunComplete()`, `progress()`, `isEndless` | `Game.update()` win check, HUD goal bar |
 | `density()`, `baseClusterCount()`, `maxOnScreen`, `gapRange()`, `simpleChance`, `focusType`, `pairTheme`, `comboTheme`, `encounterCount`, `usesPairedBelt`, `rollRowSpawnCount()`, `unlocksBy()`, `advancedBlackHoles`, `obstaclesFromScore` (default 0) | `ObstacleManager` / `EncounterDirector` |
 | `shieldsFromScore` / `wallBoostsFromScore` / `collectiblesFromScore` | `PowerUpManager` / `CollectibleManager` |
-| `speedMultiplier` | `Spacecraft.baseSpeed` |
+| `speedMultiplier` | `Spacecraft.baseSpeed` (Open Space + Journey share `GameConfig.cruiseSpeedMultiplier` 1.1) |
 | `runsTutorial` | `ObstacleManager` tutorial phase |
 | `submitsScore`, `introMessage`, `introBeats`, `title` | `Game` end-of-run flow, milestone / intro narration |
 
@@ -557,15 +567,16 @@ is **Write it here.** Session cues:
 
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
-(`gapSpread` 1.35), `speedMultiplier` 0.95→1.38, cluster size 1→4 (capped by
+(`gapSpread` 1.35), `speedMultiplier` **1.1** (same `GameConfig.cruiseSpeedMultiplier`
+as Open Space on iOS / Android / web — difficulty no longer lerps travel speed),
+cluster size 1→4 (capped by
 `maxClusterCount` 3→5) plus a density roll (`base + floor(random * density)`
 on Android `spawnSimpleAsteroids`; iOS `RunProfile.clusterCount` uses the
 same `base + Int(roll * dens)`), `maxRowSpawns` 2→3, `simpleChance` 0.70→0.42.
 **From level 6**, mixed rows use `planPairedRow` (corridor mid-fill, heavy
 cooldown, 2-well cap) and each day fires **one** catalog spike near ~42% of
-the goal. `comboTheme` stays off until 20. **From level 20**, speed is **not**
-raised further as a difficulty lever (`speedMultiplier` still follows the same
-lerp). Instead the late belt tightens: `simpleChance` 0.40→0.26, min gap
+the goal. `comboTheme` stays off until 20. **From level 20**, speed stays
+the shared 1.1× cruise. Instead the late belt tightens: `simpleChance` 0.40→0.26, min gap
 0.18→0.14 of screen height, `maxOnScreen` 14, `focusChance` 0.32, row mix
 about 35/45/20 for 1/2/3 slots.
 2-slot rows pick a mixed pair on opposite lanes; **corridor** types (side
@@ -905,14 +916,18 @@ use an AABB (thin edge bar) against `spacecraft.radius`. Wall bounce plus
 to stroke the live circles in Signal Blue over the ship.
 
 **Power-ups (`PowerUpManager`):** typed by `kind`. After `profile.shieldsFromScore`,
-spawns the floating plus every 5s → `activateShield()` only. After
+spawns the floating plus every 5s → `activateShield()` only (`shieldDurationMs`
+5000 wall-clock; iOS `Flicker.shieldSeconds` 5). After
 `profile.wallBoostsFromScore` (default **12000** KM), spawns `WallBoostPowerUp`
 every ~22s on a random left or right edge → `activateShield()` +
-`activateSpeedBoost()`. On contact the slab runs a ~220ms ease-in retract into
-the edge (button press) and fires `WallBoopManager.triggerBoop`; buffs grant
-immediately, the entity removes when the press finishes. Speed boost is a 5s /
-**1.82×** multiplier on forward speed via `Spacecraft.forwardSpeedScale()`
-(`boost * speedBoostMultiplier()`), independent of cinematic `boost`.
+`activateSpeedBoost()` (`speedBoostDurationMs` 5000 wall-clock; iOS
+`Flicker.speedBoostSeconds` 5 — JS drains via snappyHz so 5000 is 5.0s of
+play, not 2.5s from a leftover 60fps tick). On contact the slab runs a ~220ms
+ease-in retract into the edge (button press) and fires
+`WallBoopManager.triggerBoop`; buffs grant immediately, the entity removes when
+the press finishes. Speed boost is a 5s / **1.82×** multiplier on forward speed
+via `Spacecraft.forwardSpeedScale()` (`boost * speedBoostMultiplier()`),
+independent of cinematic `boost`.
 While `speedBoostTimer > 0`, `Game.drainFuel` skips burn (KM still accrues).
 Re-collecting refreshes both timers.
 
@@ -1135,13 +1150,24 @@ with a linear gradient along the wake's chord for the length-wise fade.
   **Page shell:** `html`/`body` use `--ss-surround`. Light letterboxes the cream
   stage in near-black ink. Dark uses charcoal `paperDeep` (`#12100E`) for the
   whole page (not bone beige) and a beige `#E1D9C1` tunnel frame on
-  `#gameContainer` so the playfield edge still reads. Desktop **web** fills
-  viewport height with a 2:3 stage and a quiet “Soon on iOS & Android” line in
-  the leftover right column (`html[data-shell=web]`, hidden in the native
-  app and on viewports ≤768px). Mobile fills the safe area. `theme-color` matches the
-  surround. Native status bar uses `Style.Dark` + charcoal background in dark
-  mode. Menu BUILD stamp is **not drawn** (`buildStamp.js` still increments on
-  each `vite build` if the badge is restored later).
+  `#gameContainer` so the playfield edge still reads. Desktop **web**
+  (`html[data-web-gate=desktop]`) fills viewport height with a 2:3 stage and
+  cream/ink QR cards for the App Store (left) and Google Play (right) in the
+  leftover side columns — the stage still fills viewport height. Phone/tablet browsers
+  (`html[data-web-gate=store]`) never paint the canvas — a paper card links
+  to the matching store (`data-store-target=ios|android|both`). iOS/Android
+  user agents are always gated (so DevTools device mode works even when the
+  pointer still reports `fine`). Native apps
+  and Vite `?webplay=1` (DEV only) still boot the game. Store rails stay
+  hidden in the native app (`html[data-shell=native]`). Native Android is edge-to-edge (`EdgeToEdge.enable`
+  plus Capacitor `SystemBars` `insetsHandling: css`). Portrait fills the inset
+  safe area; landscape letterboxes 2:3 (no `screenOrientation` lock). Phone
+  browsers that are allowed to play (DEV bypass) use the same
+  `--safe-area-inset-*` / `env(safe-area-inset-*)` padding.
+  `theme-color` matches the surround. Native system-bar glyphs use
+  `SystemBarsStyle.Dark` on night paper. Release Android enables R8
+  (`minifyEnabled` + `shrinkResources`). Menu BUILD stamp is **not drawn**
+  (`buildStamp.js` still increments on each `vite build` if the badge is restored later).
 - **Flight style** (`config/flightStyle.js`, `game.flightStyle`): `arc` | `zigzag`.
   Default is **zigzag** when unset. **Arc is locked until Day 42 is actually
   cleared** (`isArcUnlocked`; `UNLOCK_ALL_LEVELS` / `?unlocklevels=1` does not unlock it).

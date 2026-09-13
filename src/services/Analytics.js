@@ -4,6 +4,7 @@
 // - Web: Firebase Analytics JS (same project as iOS/Android, spaceswoosh-faa9c)
 //   instead of standalone gtag. Falls back to gtag if VITE_FIREBASE_APP_ID is
 //   missing. Native still uses @capacitor-firebase/analytics.
+// - Web store gate logs `web_store_gate` with `store_target` (ios|android|both).
 // - Every event auto-attaches `platform` (ios|android|web).
 // - GA4 `purchase` helper (value + currency) for RevenueCat revenue in Firebase.
 // - User properties: equipped_ship, max_journey_level, theme.

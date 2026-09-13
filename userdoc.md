@@ -1,9 +1,14 @@
-<!-- Changes: Smash-star asteroid targets climb after day 13 (8 / 10 / 15 /
-     17 / 20 by chapter). Early days still show smash dots; later days show
-     a count. Merlin and Rook withheld from hangar. New players start in
-     Flicker. Journey ending Open Instagram → @spaceswoosh.app. Premium ships
-     lock except Focus/Flicker/Ember/Saber. Pause is two ink bars. Hazard Lab
-     tile not shown. Journey days unlock sequentially. -->
+<!-- Changes: On a phone browser, spaceswoosh.app asks you to install the
+     iPhone or Android app instead of playing in the tab. On a computer it
+     still plays, with App Store and Google Play QR codes beside the stage.
+     Wall-boost speed rush lasts five seconds of flying (iPhone,
+     Android, browser), same as the shield. Journey and Open Space share the
+     same cruise. Shield lasts five seconds on iPhone, same as Android.
+     Android phones/tablets may rotate;
+     the playfield stays a tall stage (landscape letterboxes). HUD stays out
+     of the status bar and home indicator. Smash-star asteroid targets climb
+     after day 13 (8 / 10 / 15 / 17 / 20 by chapter). Merlin and Rook
+     withheld from hangar. New players start in Flicker. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -45,7 +50,7 @@
 > Wall BOOP (the word
 > fades after the bounce), each ship’s own hull and wake,
 > flowing wind dashes, a pulsing two-ring shield that matches Android’s size
-> (about four seconds on iPhone),
+> (about **five seconds** on iPhone, the same as Android),
 > the same four-point sparkle as Android with a soft blue disc behind it, blue `+FUEL`,
 > small asteroids that mix circles, triangles, and squares in clusters like Android,
 > NAV captions, a Space Log, and the same
@@ -72,8 +77,9 @@
 >
 > **Wall Boost:** On very long runs (after **12000 KM**), a thin blue bar
 > sometimes lights up on the left or right edge. Bank into it for a fresh shield
-> and a strong speed rush — fuel does not drain during the rush. Black side
-> barriers are still deadly — only the blue edge is a gift.
+> and a strong speed rush that lasts **five seconds** (iPhone, Android, and the
+> browser) — fuel does not drain during the rush. Black side barriers are still
+> deadly — only the blue edge is a gift.
 >
 > Open Space high scores are online per flight style (Zigzag and Arc boards;
 > call sign, ship, + distance; top 100 each). Auto call-sign prompt only for
@@ -86,8 +92,13 @@
 > Options has a **Light Mode / Dark Mode** toggle (saved on your device). Dark is
 > night paper — charcoal ground, light ink, shiny ice-blue accents. In Dark Mode
 > the whole page stays charcoal; a beige frame marks the edges of the playfield.
-> On a desktop browser the game fills the window height, with a quiet
-> “Soon on iOS & Android” line in the leftover space on the right.
+> **Phones and tablets:** Open https://spaceswoosh.app on a phone and it will
+> not start the browser game. iPhone and iPad get the App Store; Android gets
+> Google Play. Fly in the installed app.
+>
+> On a **computer**, the game fills the window height. Cream QR cards sit in
+> the leftover space (App Store on the left, Google Play on the right) so you
+> can scan the listing onto a phone.
 >
 > **Lives:** Not active in this build. Journey and Open Space can be retried
 > as often as you like after a crash or empty tank. (A lives pool and Pro
@@ -139,7 +150,8 @@ row after row. **Open Space** gets busier the farther you fly — by about 5,000
 the sky is packed like a late Journey day (not long empty corridors), and past
 12,500 KM the odd storm is a real patch of trouble with only a short breath after.
 Cruise is a little snappier than it used to be, without turning
-into a speed contest. The sparkles star opens when fuel diamonds
+into a speed contest — **Journey and Open Space fly at the same cruise** on
+phone, tablet, and browser. The sparkles star opens when fuel diamonds
 do (level 4); the smash star opens with the shield (level 5). Smash targets stay
 small through day 13, then climb by chapter: 8 asteroids on days 14–23, 10 on
 24–30, 15 on 31–36, 17 on 37–40, and 20 on the last two days.
@@ -477,7 +489,9 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
-ink may show in the notch / home-indicator strips). Turn arcs and cruise speed
+ink may show in the notch / home-indicator strips). Turn the phone on its side
+and the stage stays a tall rectangle with charcoal on the left and right — the
+run does not stretch into a wide corridor. Turn arcs and cruise speed
 are meant to feel the same on computer, Android, and native iPhone.
 
 **iPhone / iPad (Safari or Chrome):** the game targets a steadier ~60 frames per
@@ -522,7 +536,8 @@ Optional flair — not fuel, not the sparkles star:
 
 ## Shields
 
-Blue shield pickups (the pulsing **plus**) give you a temporary shield. While
+Blue shield pickups (the pulsing **plus**) give you a temporary shield that
+lasts **five seconds** of flying (iPhone, Android, and the browser). While
 it's up you can plow through asteroids (destroying them for points) instead of
 crashing. Each smash also gives a quieter version of the wall **BOOP** phone
 tick on devices that support haptics (not in the browser App Preview). On a big asteroid
@@ -532,10 +547,12 @@ thing goes. The shield pulses faster right before it runs out — pick your mome
 
 A rare **wall boost** appears only after **12000 KM**: a thin blue slab on a
 random left or right edge. Fly into it and it presses into the wall like a
-button (with a **BOOP**), giving you the same shield plus a strong speed burst.
-While that speed rush is on, your fuel bar does not drain. Grabbing another plus
-or wall boost while you're already powered up refreshes the timers. Don't confuse
-it with the thick **black** side barriers — those still end the run.
+button (with a **BOOP**), giving you the same five-second shield plus a strong
+speed burst that also lasts **five seconds** of flying (iPhone, Android, and
+the browser). While that speed rush is on, your fuel bar does not drain.
+Grabbing another plus or wall boost while you're already powered up refreshes
+the timers. Don't confuse it with the thick **black** side barriers — those
+still end the run.
 
 Blue **portal** rings are a boost, not a threat: they look like a hollow spinning
 dashed circle (accent blue, no fill or glow — same on iPhone and Android). Fly
