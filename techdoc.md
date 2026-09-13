@@ -1,19 +1,18 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS drift lanes cache a dashed hairline and slide in X
-     (Android lineDashOffset) — no per-frame dashingWithPhase rebuild.
-     Sparkle magnet latches (JS + iOS) then constant chase until
-     collect. Default theme is dark (no ssTheme). DepthField is night-paper
-     only. Mobile browsers on spaceswoosh.app never boot the canvas —
-     store gate + App Store / Play links. Desktop web shows cream/ink QR
-     rails (`public/qr/`, `npm run assets:qr`). Wall-boost speed rush is 5s
-     wall-clock on iOS / Android / web (speedBoostDurationMs /
-     Flicker.speedBoostSeconds; JS drains via snappyHz).
-     Journey cruise matches Open Space (1.1×, all platforms).
-     iOS native shield is 5s wall-clock, same as Android/web. Android Play
-     1.0.44 follow-ups — edge-to-edge (SystemBars + CSS insets), drop
-     @capacitor/status-bar, unlock orientation with 2:3 landscape letterbox,
-     release R8 minify. -->
+<!-- Changes: Native iOS black hole matches Android/web Canvas — solid ink
+     disc (no hole-punch donut), alpha halo out to 4× radius, 2pt pulse
+     ring at size×(1.2 ± 0.2×sin(phase)), phase 3.0 rad/s. Repulsor still
+     uses additive glowInk. Native iOS drift lanes cache a dashed hairline
+     and slide in X (Android lineDashOffset). Sparkle magnet latches
+     (JS + iOS) then constant chase until collect. Default theme is dark
+     (no ssTheme). DepthField is night-paper only. Mobile browsers on
+     spaceswoosh.app never boot the canvas — store gate + App Store / Play
+     links. Desktop web shows cream/ink QR rails (`public/qr/`,
+     `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
+     Android / web. Journey cruise matches Open Space (1.1×). iOS native
+     shield is 5s wall-clock. Android Play 1.0.44 follow-ups — edge-to-edge,
+     unlock orientation with 2:3 landscape letterbox, release R8 minify. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -719,6 +718,14 @@ shader strip also strobed on wrap.
 
 **Wormhole:** paired entry/exit portals; lab includes them for practice. Exit
 uses the original camera catch-up wobble (no custom framing).
+
+**Black hole:** gravity well. Canvas (`BlackHoleObstacle`) draws a solid ink
+disc, a soft halo to `size×4` (ink 0.4 → 0), and a 2px pulse ring at
+`size×(1.2 + sin(phase)×0.2)` (`pulsePhase += 0.05` / frame). Native iOS
+matches that stack: `filledCircle` body (no hole-punch donut), `blackHoleGlow`
+alpha sprite at diameter `8×radius`, pooled 2pt `SKShapeNode` ring, phase
+`3.0 rad/s`. Hit is core radius only; glow and ring are VFX. Repulsor glow
+stays the older additive `glowInk` blob.
 
 Style Swoosh skips Sweep / Repulsor / Drift Current.
 

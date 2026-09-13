@@ -1,5 +1,6 @@
 // CombatSimulator.swift
-// Changes: Sparkle magnet latches, then ease-in + closing acceleration
+// Changes: Black-hole phase ticks at 3.0 rad/s (Android +0.05/frame at 60 fps).
+// Sparkle magnet latches, then ease-in + closing acceleration
 // (readable suck-in; still finishes if you fly past).
 // Wall-boost rush grants Flicker.speedBoostSeconds (5.0 wall-clock).
 // Simple rocks pick circle/triangle/square independently (Android
@@ -999,7 +1000,14 @@ enum CombatSimulator {
                     fireShot(world: &world, from: world.obstacles[i], run: &run)
                 }
             case .wormhole, .repulsor, .blackhole, .drift:
-                world.obstacles[i].phase += dt * (world.obstacles[i].kind == .drift ? world.baseUnit * 3.4 : 3.2)
+                // Black hole: Android pulsePhase += 0.05 / frame ≈ 3.0 rad/s at 60 fps.
+                let rate: CGFloat
+                switch world.obstacles[i].kind {
+                case .drift: rate = world.baseUnit * 3.4
+                case .blackhole: rate = 3.0
+                default: rate = 3.2
+                }
+                world.obstacles[i].phase += dt * rate
             case .projectile:
                 world.obstacles[i].x += world.obstacles[i].vx * dt
                 world.obstacles[i].y += world.obstacles[i].originX * dt

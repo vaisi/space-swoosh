@@ -1,15 +1,17 @@
-<!-- Changes: iPhone wind dashes travel left or right like Android (not
-     vertically). Fuel sparkles lock on once you fly close and chase the ship
-     until collected. New installs start in Dark Mode. Tiny drifting stars sit in the
-     depth on Dark Mode only; Light Mode is flat cream paper. On a phone browser, spaceswoosh.app asks you to install the
-     iPhone or Android app instead of playing in the tab. On a computer it
-     still plays, with App Store and Google Play QR codes beside the stage.
-     Wall-boost speed rush lasts five seconds of flying (iPhone,
-     Android, browser), same as the shield. Journey and Open Space share the
-     same cruise. Shield lasts five seconds on iPhone, same as Android.
-     Android phones/tablets may rotate;
-     the playfield stays a tall stage (landscape letterboxes). HUD stays out
-     of the status bar and home indicator. Smash-star asteroid targets climb
+<!-- Changes: iPhone black holes match Android — solid well, soft shaded
+     halo, thin pulsing ring (not a donut). iPhone wind dashes travel left
+     or right like Android (not vertically). Fuel sparkles lock on once you
+     fly close and chase the ship until collected. New installs start in
+     Dark Mode. Tiny drifting stars sit in the depth on Dark Mode only;
+     Light Mode is flat cream paper. On a phone browser, spaceswoosh.app
+     asks you to install the iPhone or Android app instead of playing in
+     the tab. On a computer it still plays, with App Store and Google Play
+     QR codes beside the stage. Wall-boost speed rush lasts five seconds of
+     flying (iPhone, Android, browser), same as the shield. Journey and
+     Open Space share the same cruise. Shield lasts five seconds on iPhone,
+     same as Android. Android phones/tablets may rotate; the playfield
+     stays a tall stage (landscape letterboxes). HUD stays out of the
+     status bar and home indicator. Smash-star asteroid targets climb
      after day 13 (8 / 10 / 15 / 17 / 20 by chapter). Merlin and Rook
      withheld from hangar. New players start in Flicker. -->
 # Space Swoosh — Player Guide
@@ -215,6 +217,8 @@ new hazards arrive one step at a time, and the level that introduces a hazard
 leans on it heavily so you can learn it. Later arrivals include wind currents
 (around Day 15; thin dashes flowing left or right), square blooms (Day 20),
 push nodes before black holes (Day 25), and slim sweep lines (Day 31).
+Black holes are a solid well with a soft shaded halo and a thin pulsing
+ring — the same on iPhone as on Android.
 
 Stars unlock with the teach band — early levels only ask for what you’ve learned:
 

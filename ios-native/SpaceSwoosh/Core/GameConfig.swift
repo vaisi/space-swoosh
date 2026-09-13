@@ -1,5 +1,6 @@
 // GameConfig.swift
-// Changes: Fuel magnet ease-in + closing accel (latchMin / ramp / pull 0.16).
+// Changes: blackHoleRingSlots (8) for the Android hairline pulse ring.
+// Fuel magnet ease-in + closing accel (latchMin / ramp / pull 0.16).
 // Flicker.speedBoostSeconds 5.0 (wall-clock wall-boost rush).
 // Flicker.shieldSeconds 5.0 (wall-clock, matches Android/web).
 // cruiseSpeedMultiplier 1.1 is shared by Open Space and Journey. driftLaneSlots
@@ -175,6 +176,8 @@ enum GameConfig {
         static let driftLaneSlots = 28
         static let sparkleSlots = 24
         static let glowSlots = 16
+        /// At most 2 wells ahead; extra slots cover recycle overlap.
+        static let blackHoleRingSlots = 8
         static let pickupSlots = 16
         static let recycleLeadScreens: CGFloat = 2.4
         static let recycleBehindScreens: CGFloat = 0.35

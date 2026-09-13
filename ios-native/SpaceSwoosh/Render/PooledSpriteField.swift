@@ -1,10 +1,9 @@
 // PooledSpriteField.swift
-// Changes: Drift lanes cache a dashed hairline and slide in X (Android
-// lineDashOffset) instead of rebuilding CGPath each frame — that read as
-// vertical strobe. Latched sparkles scale/pulse up as magnetMix climbs
-// (JS suck-in). Screen origin uses CinematicFlight.cruiseSeat. Wormholes
-// match Android — spinning dashed stroke only, no additive inner glow.
-// Path diameter is 2×radius×pulse (plus stroke). Phase core fades fully
+// Changes: Black hole matches Android Canvas — solid disc, alpha halo at
+// 8×radius, 2pt ink pulse ring (1.2 ± 0.2×sin(phase)). Repulsor still uses
+// additive glowInk at 3.4×. Drift lanes cache a dashed hairline and slide
+// in X (Android lineDashOffset). Latched sparkles scale/pulse as magnetMix
+// climbs. Wormholes are spinning dashed stroke only. Phase core fades fully
 // (Android mergeFactor). Piece Y is SpriteKit-up.
 
 import SpriteKit
@@ -13,6 +12,7 @@ final class PooledSpriteField: SKNode {
     private let bodyNodes: [SKSpriteNode]
     private let extraNodes: [SKSpriteNode]
     private let glowNodes: [SKSpriteNode]
+    private let blackHoleRingNodes: [SKShapeNode]
     private let pickupNodes: [SKSpriteNode]
     private let driftLaneNodes: [SKShapeNode]
     private var driftLanePath: CGPath?
@@ -53,6 +53,22 @@ final class PooledSpriteField: SKNode {
         }
         glowNodes = glows
 
+        var rings: [SKShapeNode] = []
+        for _ in 0..<GameConfig.Stress.blackHoleRingSlots {
+            let node = SKShapeNode()
+            node.fillColor = .clear
+            node.strokeColor = BrandColors.UI.ink
+            node.lineWidth = 2
+            node.lineCap = .round
+            node.glowWidth = 0
+            node.isAntialiased = true
+            node.blendMode = .alpha
+            node.isHidden = true
+            node.zPosition = 4.1
+            rings.append(node)
+        }
+        blackHoleRingNodes = rings
+
         var pickups: [SKSpriteNode] = []
         for _ in 0..<GameConfig.Stress.pickupSlots {
             let node = SKSpriteNode(texture: bake.sparkle)
@@ -91,6 +107,7 @@ final class PooledSpriteField: SKNode {
         for node in bodyNodes { addChild(node) }
         for node in extraNodes { addChild(node) }
         for node in glowNodes { addChild(node) }
+        for node in blackHoleRingNodes { addChild(node) }
         for node in pickupNodes { addChild(node) }
         for node in driftLaneNodes { addChild(node) }
     }
@@ -105,6 +122,7 @@ final class PooledSpriteField: SKNode {
         var glowUsed = 0
         var extraUsed = 0
         var driftUsed = 0
+        var ringUsed = 0
 
         for i in 0..<bodyNodes.count {
             let node = bodyNodes[i]
@@ -151,20 +169,45 @@ final class PooledSpriteField: SKNode {
                 )
             }
 
-            // Android WormholeGate is stroke-only (no fill / no radial). Black
-            // holes and repulsors keep their additive glow sprites.
+            // Android WormholeGate is stroke-only. Black holes use an alpha
+            // halo (Canvas size×4) + hairline pulse; repulsors keep additive glowInk.
             if o.glow, o.kind != .wormhole, glowUsed < glowNodes.count {
                 let glow = glowNodes[glowUsed]
                 glowUsed += 1
                 glow.isHidden = false
-                glow.texture = (o.kind == .blackhole || o.kind == .repulsor) ? bake.glowInk : bake.glowSignal
                 glow.position = CGPoint(x: o.x, y: y)
-                glow.size = CGSize(width: o.radius * 3.4, height: o.radius * 3.4)
-                glow.alpha = 0.85
+                if o.kind == .blackhole {
+                    glow.texture = bake.blackHoleGlow
+                    glow.blendMode = .alpha
+                    glow.size = CGSize(width: o.radius * 8, height: o.radius * 8)
+                    glow.alpha = 1
+                } else {
+                    glow.texture = o.kind == .repulsor ? bake.glowInk : bake.glowSignal
+                    glow.blendMode = .add
+                    glow.size = CGSize(width: o.radius * 3.4, height: o.radius * 3.4)
+                    glow.alpha = 0.85
+                }
+            }
+            if o.kind == .blackhole, ringUsed < blackHoleRingNodes.count {
+                let ring = blackHoleRingNodes[ringUsed]
+                ringUsed += 1
+                let pulse = 1.2 + sin(o.phase) * 0.2
+                let r = o.radius * pulse
+                ring.path = CGPath(
+                    ellipseIn: CGRect(x: -r, y: -r, width: r * 2, height: r * 2),
+                    transform: nil
+                )
+                ring.position = CGPoint(x: o.x, y: y)
+                ring.strokeColor = BrandColors.UI.ink
+                ring.lineWidth = 2
+                ring.isHidden = false
             }
         }
         for i in glowUsed..<glowNodes.count {
             glowNodes[i].isHidden = true
+        }
+        for i in ringUsed..<blackHoleRingNodes.count {
+            blackHoleRingNodes[i].isHidden = true
         }
         for i in extraUsed..<extraNodes.count {
             extraNodes[i].isHidden = true

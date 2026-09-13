@@ -1,8 +1,9 @@
 // BakePipeline.swift
-// Changes: windLane is leftover (play drift draws SKShapeNode dashes, not a
-// tiled strip). Wormhole dashed rings are full-bleed (Android stroke-only, no
-// 0.38 inset) and instance-baked per theme. Repulsor ring/ticks use Android
-// hairlines.
+// Changes: Black hole is a solid filled disc (no 0.38 hole-punch donut) plus
+// blackHoleGlow — Canvas halo from core edge (0.25 of outer) at ink 0.4 →
+// clear at 4× radius. glowInk stays the additive blob for repulsors.
+// windLane is leftover (play drift draws SKShapeNode dashes). Wormhole rings
+// are full-bleed (Android stroke-only). Repulsor ring/ticks use Android hairlines.
 
 import SpriteKit
 import UIKit
@@ -10,6 +11,7 @@ import UIKit
 final class BakePipeline {
     let glowSignal: SKTexture
     let glowInk: SKTexture
+    let blackHoleGlow: SKTexture
     let sparkle: SKTexture
     let signalDisc: SKTexture
     let ring: SKTexture
@@ -36,6 +38,7 @@ final class BakePipeline {
     private init() {
         glowSignal = Self.radialGlow(color: BrandColors.UI.signal, size: 96)
         glowInk = Self.radialGlow(color: BrandColors.UI.ink, size: 96)
+        blackHoleGlow = Self.blackHoleGlow(size: 128)
         sparkle = Self.sparkleStar(color: BrandColors.UI.signal, size: 64, fill: true)
         signalDisc = Self.signalDisc(size: 96)
         ring = Self.ring(size: 96)
@@ -48,7 +51,6 @@ final class BakePipeline {
         wormholeInk30 = Self.dashedRing(size: 96, color: BrandColors.UI.ink30)
         let circle = Self.filledCircle(size: 96)
         let square = Self.square(size: 96)
-        let hole = Self.hole(size: 96)
         parts = [
             .circle: circle,
             .triangle: Self.polygon(points: 3, size: 96),
@@ -63,7 +65,7 @@ final class BakePipeline {
             .drift: Self.windDash(width: 256, height: 16),
             .wormhole: wormholeSignal,
             .repulsor: Self.repulsor(size: 128),
-            .blackhole: hole,
+            .blackhole: circle,
             .projectile: circle
         ]
     }
@@ -233,12 +235,31 @@ final class BakePipeline {
         }
     }
 
-    private static func hole(size: CGFloat) -> SKTexture {
-        image(size: size) { cg, mid, r in
-            cg.setFillColor(BrandColors.UI.ink.cgColor)
-            cg.fillEllipse(in: CGRect(x: mid - r, y: mid - r, width: r * 2, height: r * 2))
-            cg.setBlendMode(.clear)
-            cg.fillEllipse(in: CGRect(x: mid - r * 0.38, y: mid - r * 0.38, width: r * 0.76, height: r * 0.76))
+    /// Android `BlackHoleObstacle` live glow: radial from core (`size`) at
+    /// ink 0.4 → clear at `size×4`. Sprite is full-bleed so diameter == 8×radius.
+    private static func blackHoleGlow(size: CGFloat) -> SKTexture {
+        rectImage(width: size, height: size) { cg, w, h in
+            let mid = CGPoint(x: w / 2, y: h / 2)
+            let endR = w / 2
+            let startR = endR * 0.25
+            let colors = [
+                BrandColors.UI.ink.withAlphaComponent(0.4).cgColor,
+                BrandColors.UI.ink.withAlphaComponent(0).cgColor
+            ] as CFArray
+            let locs: [CGFloat] = [0, 1]
+            guard let gradient = CGGradient(
+                colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                colors: colors,
+                locations: locs
+            ) else { return }
+            cg.drawRadialGradient(
+                gradient,
+                startCenter: mid,
+                startRadius: startR,
+                endCenter: mid,
+                endRadius: endR,
+                options: []
+            )
         }
     }
 
