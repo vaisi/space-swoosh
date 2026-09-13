@@ -46,6 +46,7 @@
     "@capacitor/ios": "^8.5.0",
     "@capacitor/keyboard": "^8.0.5",
     "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
     "@revenuecat/purchases-capacitor": "^13.3.0",
     "@supabase/supabase-js": "^2.47.10",
     "firebase": "^12.17.1"
