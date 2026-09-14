@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- AndroidManifest.xml — Capacitor host. Changes: drop screenOrientation
-     portrait lock (Play large-screen guidance); the 2:3 playfield letterboxes
-     in landscape via CSS. Edge-to-edge insets stay in CSS. Disable Firebase
-     AD ID collection and strip AD_ID permission so Play "No" matches the AAB. -->
+<!-- AndroidManifest.xml — Capacitor host. Changes: activity label is blank
+     so a caption bar cannot print "Spac…"; application app_name stays
+     Space Swoosh for the drawer / recents. Drop screenOrientation portrait
+     lock (Play large-screen); 2:3 letterbox is CSS. Strip AD_ID. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <application
@@ -22,6 +22,7 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
+            tools:ignore="EmptyLabel"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
             android:resizeableActivity="true"

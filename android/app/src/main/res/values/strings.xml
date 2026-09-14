@@ -1,7 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
+<!-- strings.xml — Host labels. Changes: title_activity_main is blank so
+     a leftover caption bar cannot render truncated "Space Swoosh".
+     app_name stays Space Swoosh for the launcher / recents. -->
 <resources>
     <string name="app_name">Space Swoosh</string>
-    <string name="title_activity_main">Space Swoosh</string>
+    <string name="title_activity_main" translatable="false"></string>
     <string name="package_name">com.orbi.spaceswoosh</string>
     <string name="custom_url_scheme">com.orbi.spaceswoosh</string>
 </resources>

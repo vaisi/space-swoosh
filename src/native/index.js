@@ -1,8 +1,11 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
-// - Android host chrome (ActionBar / caption bar) is hidden in MainActivity;
-//   this file still only styles system-bar glyphs. Do not re-add a title.
+// - Native boot blanks document.title so WebView / media chrome cannot
+//   reuse "Space Swoosh". Android caption / ActionBar stay hidden in
+//   MainActivity; this file only styles system-bar glyphs. Never call
+//   SystemBars.show() — Capacitor plugin load already shows systemBars
+//   (including captionBar) and that was restoring the "Spac…" strip.
 // - Android 15+ edge-to-edge: syncStatusBarTheme() uses Capacitor SystemBars
 //   (setStyle only). Dropped @capacitor/status-bar setBackgroundColor /
 //   setOverlaysWebView — those call Window.setStatusBarColor, which Play flags
@@ -260,7 +263,8 @@ async function wireLifecycle(game, App) {
 export async function syncStatusBarTheme() {
     if (!isNative()) return;
     try {
-        // Dark = light glyphs on dark paper; Light = dark glyphs on cream paper.
+        // Glyph contrast only. Do not SystemBars.show() — that re-shows
+        // captionBar (the "Spac…" strip) after MainActivity hid it.
         await SystemBars.setStyle({
             style: isDarkTheme() ? SystemBarsStyle.Dark : SystemBarsStyle.Light,
         });
@@ -320,6 +324,12 @@ export async function hideSplashScreen() {
  */
 export async function initNative(game) {
     if (!isNative()) return;
+
+    try {
+        document.title = ' ';
+    } catch {
+        /* ignore */
+    }
 
     await hideSplashScreen();
 

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- styles.xml — Capacitor host themes. Changes: AppTheme is NoActionBar
-     (was Light.DarkActionBar). Launch splash is drawable/splash.png only
-     — do not add splash.xml beside it (duplicate resource). After splash,
-     some Android versions fall back to the application theme and painted
-     a title strip. Transparent system bars; the stage is inset in CSS. -->
+<!-- styles.xml — Capacitor host themes. Changes: AppCompat and android:
+     windowNoTitle / windowActionBar false plus windowContentOverlay null
+     so a splash fallback cannot paint a title strip. Launch splash is
+     drawable/splash.png only — do not add splash.xml beside it. -->
 <resources>
 
     <!-- Application fallback. Must stay NoActionBar: SplashScreen
@@ -11,6 +10,9 @@
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -19,6 +21,9 @@
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
         <item name="android:background">@null</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -29,6 +34,9 @@
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
         <item name="android:background">@drawable/splash</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

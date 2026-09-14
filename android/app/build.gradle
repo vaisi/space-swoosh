@@ -1,4 +1,4 @@
-// Updated: Play versionCode 47 / versionName 1.0.47. R8, EdgeToEdge.
+// Updated: Play versionCode 48 / versionName 1.0.48. Caption guard. R8, EdgeToEdge.
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -17,8 +17,8 @@ android {
         applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "47")
-        versionName System.getenv("VERSION_NAME") ?: "1.0.47"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "48")
+        versionName System.getenv("VERSION_NAME") ?: "1.0.48"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

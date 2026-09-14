@@ -1,4 +1,4 @@
-<!-- Changes: Android 1.0.47 / iPhone build 14 — no "Space…" title chip
+<!-- Changes: Android 1.0.48 / iPhone build 14 — no "Space…" title chip
      (Android host header; iOS has no nav title and Now Playing is cleared).
      iPhone black holes match Android — solid well, soft shaded halo, thin
      pulsing ring (not a donut). iPhone wind dashes travel left or right
@@ -501,7 +501,7 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
-ink may show in the notch / home-indicator strips). Android **1.0.47** and iPhone (build **14**) do not show an
+ink may show in the notch / home-indicator strips). Android **1.0.48** and iPhone (build **14**) do not show an
 app-name chip or leftover icon above the stars — the run starts at the top of
 the stage. Turn the phone on its side
 and the stage stays a tall rectangle with charcoal on the left and right — the

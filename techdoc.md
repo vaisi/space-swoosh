@@ -15,8 +15,9 @@
      links. Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 47 / 1.0.47 (drops
-     the host title strip). Native iOS build 14; marketing stays 1.0.1.
+     shield is 5s wall-clock. Android Play default is 48 / 1.0.48 (caption
+     guard so SystemBars cannot restore the host title strip). Native iOS
+     build 14; marketing stays 1.0.1.
      Play 1.0.44 follow-ups — edge-to-edge, unlock orientation with 2:3
      landscape letterbox, release R8 minify. -->
 
@@ -140,7 +141,7 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **47** / versionName **1.0.47** (must be higher than any
+> versionCode **48** / versionName **1.0.48** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
 > `CFBundleVersion` **14** (marketing **1.0.1**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
@@ -211,7 +212,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 47 / `versionName` 1.0.47. Override
+old assets. Play default is `versionCode` 48 / `versionName` 1.0.48. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
@@ -1194,12 +1195,15 @@ with a linear gradient along the wake's chord for the length-wise fade.
   and Vite `?webplay=1` (DEV only) still boot the game. Store rails stay
   hidden in the native app (`html[data-shell=native]`).   Native Android is edge-to-edge (`EdgeToEdge.enable`
   plus Capacitor `SystemBars` `insetsHandling: css`).   The application theme is
-  `NoActionBar` (not `DarkActionBar`); `MainActivity` hides the ActionBar
-  and Android 15+ caption bar on create / resume / focus so the host cannot
-  keep a title strip (app icon + truncated "Space Swoosh") on the menu,
-  Options, or a run. Native `index.html` does not attach favicon /
-  apple-touch-icon links; HTMLAudio is hidden and Media Session title is blanked
-  so WebView media chrome cannot reuse the page title. Portrait fills the inset
+  `NoActionBar` (not `DarkActionBar`). Capacitor `SystemBars` plugin load
+  posts `show(systemBars)`, which includes the caption bar and used to
+  restore a title strip after a one-shot hide. `MainActivity` therefore
+  re-hides `captionBar` on every inset pass (and on attach / start / resume
+  / focus), zeros caption insets so CSS does not reserve a dark gap, and
+  blanks the activity title. Native boot sets `document.title` to a space
+  and never calls `SystemBars.show()`. Native `index.html` does not attach
+  favicon / apple-touch-icon links; HTMLAudio is hidden and Media Session
+  title is blanked so WebView media chrome cannot reuse the page title. Portrait fills the inset
   safe area; landscape letterboxes 2:3 (no `screenOrientation` lock). Phone
   browsers that are allowed to play (DEV bypass) use the same
   `--safe-area-inset-*` / `env(safe-area-inset-*)` padding.
