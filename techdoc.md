@@ -15,7 +15,7 @@
      links. Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 46 / 1.0.46 (drops
+     shield is 5s wall-clock. Android Play default is 47 / 1.0.47 (drops
      the host title strip). Native iOS build 14; marketing stays 1.0.1.
      Play 1.0.44 follow-ups — edge-to-edge, unlock orientation with 2:3
      landscape letterbox, release R8 minify. -->
@@ -140,7 +140,7 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **46** / versionName **1.0.46** (must be higher than any
+> versionCode **47** / versionName **1.0.47** (must be higher than any
 > code already on Play, including Codemagic drafts). Native iOS
 > `CFBundleVersion` **14** (marketing **1.0.1**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
@@ -211,7 +211,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 46 / `versionName` 1.0.46. Override
+old assets. Play default is `versionCode` 47 / `versionName` 1.0.47. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
