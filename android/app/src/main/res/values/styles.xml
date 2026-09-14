@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- styles.xml — Capacitor host themes. Changes: AppTheme is NoActionBar
-     (was Light.DarkActionBar). After splash, some Android versions fall
-     back to the application theme and painted a title strip — app icon +
-     truncated "Space Swoosh" ("Space…") — above the WebView. Transparent
-     system bars; the stage is inset in CSS, not a solid status-bar colour. -->
+     (was Light.DarkActionBar). Launch splash is drawable/splash.png only
+     — do not add splash.xml beside it (duplicate resource). After splash,
+     some Android versions fall back to the application theme and painted
+     a title strip. Transparent system bars; the stage is inset in CSS. -->
 <resources>
 
     <!-- Application fallback. Must stay NoActionBar: SplashScreen
