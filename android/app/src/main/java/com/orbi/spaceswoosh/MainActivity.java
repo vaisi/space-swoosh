@@ -1,10 +1,10 @@
 // MainActivity.java
-// Changes: Caption guard outlives Capacitor SystemBars. Plugin load posts
-// show(systemBars) which includes captionBar and used to restore the
-// "Spac…" strip after hide. Empty activity title, hide captionBar on
-// every inset pass, zero caption insets, GONE DecorCaption / ActionBar
-// views. Re-hide on attach, start, resume, and window focus. Registers
-// InAppReview, HapticSmash, and RefreshRate.
+// Changes: Look up optional ActionBar overlay ids at runtime — AppCompat
+// 1.7 has no R.id.action_bar_overlay_layout (Studio compile error).
+// Caption guard outlives Capacitor SystemBars. Empty activity title,
+// hide captionBar on every inset pass, zero caption insets, GONE
+// DecorCaption / ActionBar views. Registers InAppReview, HapticSmash,
+// and RefreshRate.
 package com.orbi.spaceswoosh;
 
 import android.os.Bundle;
@@ -116,10 +116,14 @@ public class MainActivity extends BridgeActivity {
         hideCaptionDecorViews(window.getDecorView());
         hideViewById(androidx.appcompat.R.id.action_bar);
         hideViewById(androidx.appcompat.R.id.action_bar_container);
-        hideViewById(androidx.appcompat.R.id.action_bar_overlay_layout);
-        int frameworkCaption = getResources().getIdentifier("caption", "id", "android");
-        if (frameworkCaption != 0) {
-            hideViewById(frameworkCaption);
+        hideViewByName("action_bar_overlay_layout", "androidx.appcompat");
+        hideViewByName("caption", "android");
+    }
+
+    private void hideViewByName(String entry, String pkg) {
+        int id = getResources().getIdentifier(entry, "id", pkg);
+        if (id != 0) {
+            hideViewById(id);
         }
     }
 
