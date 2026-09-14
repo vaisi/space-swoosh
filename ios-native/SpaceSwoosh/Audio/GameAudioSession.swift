@@ -1,8 +1,12 @@
 // GameAudioSession.swift
-// Changes: .playback so TestFlight hears SFX with the Silent switch on.
+// Changes: Clear Now Playing so iOS cannot show a "Space Swoosh" media
+// chip (Control Center / Dynamic Island / in-app transport). Keep
+// .playback so TestFlight hears SFX with the Silent switch on.
 
 import AVFoundation
 import Foundation
+import MediaPlayer
+import UIKit
 
 /// Shared session for synth SFX, file cues, and BGM.
 /// `.ambient` follows the Ring/Silent switch — most iPhones sit on Silent,
@@ -18,6 +22,7 @@ enum GameAudioSession {
         } catch {
             print("GameAudioSession.activate failed: \(error.localizedDescription)")
         }
+        suppressNowPlayingChrome()
         guard !observing else { return }
         observing = true
         NotificationCenter.default.addObserver(
@@ -56,5 +61,20 @@ enum GameAudioSession {
         @unknown default:
             break
         }
+    }
+
+    /// Games are not a music app — do not publish the bundle name as a track.
+    static func suppressNowPlayingChrome() {
+        UIApplication.shared.endReceivingRemoteControlEvents()
+        let info = MPNowPlayingInfoCenter.default()
+        info.nowPlayingInfo = nil
+        info.playbackState = .stopped
+        let commands = MPRemoteCommandCenter.shared()
+        commands.playCommand.isEnabled = false
+        commands.pauseCommand.isEnabled = false
+        commands.togglePlayPauseCommand.isEnabled = false
+        commands.stopCommand.isEnabled = false
+        commands.nextTrackCommand.isEnabled = false
+        commands.previousTrackCommand.isEnabled = false
     }
 }

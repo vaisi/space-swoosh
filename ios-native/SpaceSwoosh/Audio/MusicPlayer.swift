@@ -1,5 +1,6 @@
 // MusicPlayer.swift
-// Changes: Activate .playback session; log when background.mp3 is missing from the bundle.
+// Changes: After play(), clear Now Playing so AVAudioPlayer cannot publish
+// "Space Swoosh" as a media chip. Activate .playback; log missing BGM.
 
 import AVFoundation
 import Foundation
@@ -81,6 +82,7 @@ final class MusicPlayer {
         if !player.isPlaying {
             player.play()
         }
+        GameAudioSession.suppressNowPlayingChrome()
     }
 
     private func applyVolume() {

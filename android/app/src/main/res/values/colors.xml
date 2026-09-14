@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- colors.xml — Host colours. Changes: splash_background matches the
+     Capacitor paper launch so a missing splash bitmap cannot show a
+     broken-image strip (icon + "Space…") above the playfield. -->
+<resources>
+    <color name="splash_background">#E1D9C1</color>
+</resources>

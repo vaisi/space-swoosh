@@ -1,6 +1,8 @@
 // native/index.js
 // Everything the packaged iOS / Android app needs that a browser tab does not.
 // Changes:
+// - Android host chrome (ActionBar / caption bar) is hidden in MainActivity;
+//   this file still only styles system-bar glyphs. Do not re-add a title.
 // - Android 15+ edge-to-edge: syncStatusBarTheme() uses Capacitor SystemBars
 //   (setStyle only). Dropped @capacitor/status-bar setBackgroundColor /
 //   setOverlaysWebView — those call Window.setStatusBarColor, which Play flags

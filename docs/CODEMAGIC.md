@@ -5,6 +5,7 @@
   - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret; SPM product is FirebaseAnalyticsCore.
   - TestFlight uses .playback so Silent switch no longer mutes SFX.
   - iOS marketing version is 1.0.1 — ASC closed the approved 1.0.0 train.
+    Native iOS default build is 14; Android Play default is 46 / 1.0.46.
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
   - iOS Native workflows inject those vars into Info.plist for SPACE BOARD

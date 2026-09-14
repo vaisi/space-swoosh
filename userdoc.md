@@ -1,19 +1,21 @@
-<!-- Changes: iPhone black holes match Android — solid well, soft shaded
-     halo, thin pulsing ring (not a donut). iPhone wind dashes travel left
-     or right like Android (not vertically). Fuel sparkles lock on once you
-     fly close and chase the ship until collected. New installs start in
-     Dark Mode. Tiny drifting stars sit in the depth on Dark Mode only;
-     Light Mode is flat cream paper. On a phone browser, spaceswoosh.app
-     asks you to install the iPhone or Android app instead of playing in
-     the tab. On a computer it still plays, with App Store and Google Play
-     QR codes beside the stage. Wall-boost speed rush lasts five seconds of
+<!-- Changes: Android 1.0.46 / iPhone build 14 — no "Space…" title chip
+     (Android host header; iOS has no nav title and Now Playing is cleared).
+     iPhone black holes match Android — solid well, soft shaded halo, thin
+     pulsing ring (not a donut). iPhone wind dashes travel left or right
+     like Android (not vertically). Fuel sparkles lock on once you fly
+     close and chase the ship until collected. New installs start in Dark
+     Mode. Tiny drifting stars sit in the depth on Dark Mode only; Light
+     Mode is flat cream paper. On a phone browser, spaceswoosh.app asks
+     you to install the iPhone or Android app instead of playing in the
+     tab. On a computer it still plays, with App Store and Google Play QR
+     codes beside the stage. Wall-boost speed rush lasts five seconds of
      flying (iPhone, Android, browser), same as the shield. Journey and
-     Open Space share the same cruise. Shield lasts five seconds on iPhone,
-     same as Android. Android phones/tablets may rotate; the playfield
-     stays a tall stage (landscape letterboxes). HUD stays out of the
-     status bar and home indicator. Smash-star asteroid targets climb
-     after day 13 (8 / 10 / 15 / 17 / 20 by chapter). Merlin and Rook
-     withheld from hangar. New players start in Flicker. -->
+     Open Space share the same cruise. Shield lasts five seconds on
+     iPhone, same as Android. Android phones/tablets may rotate; the
+     playfield stays a tall stage (landscape letterboxes). HUD stays out
+     of the status bar and home indicator. Smash-star asteroid targets
+     climb after day 13 (8 / 10 / 15 / 17 / 20 by chapter). Merlin and
+     Rook withheld from hangar. New players start in Flicker. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -499,7 +501,9 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
-ink may show in the notch / home-indicator strips). Turn the phone on its side
+ink may show in the notch / home-indicator strips). Android **1.0.46** and iPhone (build **14**) do not show an
+app-name chip or leftover icon above the stars — the run starts at the top of
+the stage. Turn the phone on its side
 and the stage stays a tall rectangle with charcoal on the left and right — the
 run does not stretch into a wide corridor. Turn arcs and cruise speed
 are meant to feel the same on computer, Android, and native iPhone.

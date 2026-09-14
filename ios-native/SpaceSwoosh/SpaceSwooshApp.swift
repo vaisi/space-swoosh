@@ -1,6 +1,7 @@
 // SpaceSwooshApp.swift
-// Changes: Configure RevenueCat after Firebase; entitlements refresh does not
-// block the menu. Sync equipped_ship / max_journey_level / theme user properties.
+// Changes: Status bar stays hidden; no system nav title (SwiftUI shell,
+// not UINavigationBar). Now Playing is cleared in GameAudioSession so iOS
+// cannot show a "Space Swoosh" chip. Configure RevenueCat after Firebase.
 
 import SwiftUI
 
@@ -23,6 +24,7 @@ struct SpaceSwooshApp: App {
         WindowGroup {
             RootView()
                 .statusBarHidden(true)
+                .toolbar(.hidden, for: .navigationBar)
                 .preferredColorScheme(settings.isDark ? .dark : .light)
                 .onAppear {
                     GameAudioSession.activate()

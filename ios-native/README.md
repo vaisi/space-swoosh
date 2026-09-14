@@ -1,6 +1,7 @@
 <!--
  ios-native/README.md
- Changes: Marketing version 1.0.1 (ASC closed approved 1.0.0). Drift /
+ Changes: Build 14 with the title-strip guard (no Now Playing chip).
+ Marketing version 1.0.1 (ASC closed approved 1.0.0). Drift /
  wind caches a dashed hairline and slides in X (Android
  lineDashOffset) — no per-frame dashingWithPhase rebuild.
  Wall-boost rush is 5s wall-clock (Flicker.speedBoostSeconds).
@@ -89,7 +90,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Marketing version is **1.0.1** (Apple approved
 **1.0.0**, so that train is closed). Each upload also needs a new
-`CFBundleVersion`. CI stamps **13+**.
+`CFBundleVersion`. CI stamps **14+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

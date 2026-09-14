@@ -1,5 +1,5 @@
-// Updated: Play versionCode 45 / versionName 1.0.45 so a Studio upload
-// is above store snapshot 44 (1.0.44). R8, EdgeToEdge, Play In-App Review.
+// Updated: Play versionCode 46 / versionName 1.0.46 — drop the Android
+// host title strip (app icon + truncated "Space Swoosh"). R8, EdgeToEdge.
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -18,8 +18,8 @@ android {
         applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "45")
-        versionName System.getenv("VERSION_NAME") ?: "1.0.45"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "46")
+        versionName System.getenv("VERSION_NAME") ?: "1.0.46"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

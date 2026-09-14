@@ -15,9 +15,10 @@
      links. Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 45 / 1.0.45 (above
-     store snapshot 44). Play 1.0.44 follow-ups — edge-to-edge,
-     unlock orientation with 2:3 landscape letterbox, release R8 minify. -->
+     shield is 5s wall-clock. Android Play default is 46 / 1.0.46 (drops
+     the host title strip). Native iOS build 14; marketing stays 1.0.1.
+     Play 1.0.44 follow-ups — edge-to-edge, unlock orientation with 2:3
+     landscape letterbox, release R8 minify. -->
 
 > How the project currently works, for developers. Keep this up to date as the
 > code changes.
@@ -77,7 +78,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps marketing
-> version **1.0.1** and `CFBundleVersion` ≥ 13 on each TestFlight upload.
+> version **1.0.1** and `CFBundleVersion` ≥ 14 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -139,8 +140,9 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **45** / versionName **1.0.45** (must be higher than any
-> code already on Play, including Codemagic drafts). There is no on-screen
+> versionCode **46** / versionName **1.0.46** (must be higher than any
+> code already on Play, including Codemagic drafts). Native iOS
+> `CFBundleVersion` **14** (marketing **1.0.1**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
@@ -209,7 +211,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 45 / `versionName` 1.0.45. Override
+old assets. Play default is `versionCode` 46 / `versionName` 1.0.46. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
@@ -1190,8 +1192,14 @@ with a linear gradient along the wake's chord for the length-wise fade.
   user agents are always gated (so DevTools device mode works even when the
   pointer still reports `fine`). Native apps
   and Vite `?webplay=1` (DEV only) still boot the game. Store rails stay
-  hidden in the native app (`html[data-shell=native]`). Native Android is edge-to-edge (`EdgeToEdge.enable`
-  plus Capacitor `SystemBars` `insetsHandling: css`). Portrait fills the inset
+  hidden in the native app (`html[data-shell=native]`).   Native Android is edge-to-edge (`EdgeToEdge.enable`
+  plus Capacitor `SystemBars` `insetsHandling: css`).   The application theme is
+  `NoActionBar` (not `DarkActionBar`); `MainActivity` hides the ActionBar
+  and Android 15+ caption bar on create / resume / focus so the host cannot
+  keep a title strip (app icon + truncated "Space Swoosh") on the menu,
+  Options, or a run. Native `index.html` does not attach favicon /
+  apple-touch-icon links; HTMLAudio is hidden and Media Session title is blanked
+  so WebView media chrome cannot reuse the page title. Portrait fills the inset
   safe area; landscape letterboxes 2:3 (no `screenOrientation` lock). Phone
   browsers that are allowed to play (DEV bypass) use the same
   `--safe-area-inset-*` / `env(safe-area-inset-*)` padding.

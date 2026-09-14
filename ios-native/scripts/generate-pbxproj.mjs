@@ -1,5 +1,6 @@
 // generate-pbxproj.mjs
-// Changes: MARKETING_VERSION 1.0.1 after ASC approved 1.0.0. RevenueCat SPM + Firebase Analytics.
+// Changes: CURRENT_PROJECT_VERSION 14 (title-strip fix). MARKETING_VERSION 1.0.1.
+// RevenueCat SPM + Firebase Analytics.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -351,7 +352,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -378,7 +379,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;

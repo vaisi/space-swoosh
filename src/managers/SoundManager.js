@@ -3,6 +3,9 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // wormhole portal hops, and empty-tank engine sputter.
 // Changes:
+// - HTMLAudio is locked down (no controls, no remote playback, blank
+//   Media Session title) so Android cannot draw an in-page transport
+//   with the page title ("Space…") and a missing artwork slot.
 // - playSwooshVoice does not duck BGM (casual overlay, same as fuel-low).
 //   recoverBgmIfInterrupted() restarts HTMLAudio if the browser pauses it
 //   when Web Audio one-shots resume AudioContext.
@@ -85,19 +88,56 @@ function saveFlag(key, enabled) {
     }
 }
 
+/** HTMLAudio without an in-page / remote transport (Android title strip). */
+function lockMediaElement(el) {
+    el.controls = false;
+    el.preload = 'auto';
+    try {
+        el.disableRemotePlayback = true;
+    } catch {
+        /* older WebViews */
+    }
+    el.setAttribute('playsinline', '');
+    el.setAttribute('webkit-playsinline', '');
+    el.setAttribute('disableRemotePlayback', '');
+}
+
+function createLockedAudio(src) {
+    const el = new Audio(src);
+    lockMediaElement(el);
+    return el;
+}
+
+/** Do not publish "Space Swoosh" as Now Playing / media chrome. */
+function suppressMediaSession() {
+    try {
+        if (!('mediaSession' in navigator)) return;
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: ' ',
+            artist: '',
+            album: '',
+            artwork: [],
+        });
+        navigator.mediaSession.playbackState = 'none';
+    } catch {
+        /* Media Session unsupported or locked down */
+    }
+}
+
 export class SoundManager {
     constructor() {
         const base = '/';
         // Rare / looping cues stay on <audio>. Rapid-retrigger turn/move use
         // decoded AudioBuffers (sfxBuffers) so taps never seek a media element.
         this.sounds = {
-            bgm: new Audio(`${base}sounds/background.mp3`),
-            shield: new Audio(`${base}sounds/shield.mp3`),
-            explosion: new Audio(`${base}sounds/explosion.mp3`),
-            powerup: new Audio(`${base}sounds/powerup.mp3`),
-            shieldCrash: new Audio(`${base}sounds/crash_with_shield.mp3`),
-            crash: new Audio(`${base}sounds/crash.mp3`)
+            bgm: createLockedAudio(`${base}sounds/background.mp3`),
+            shield: createLockedAudio(`${base}sounds/shield.mp3`),
+            explosion: createLockedAudio(`${base}sounds/explosion.mp3`),
+            powerup: createLockedAudio(`${base}sounds/powerup.mp3`),
+            shieldCrash: createLockedAudio(`${base}sounds/crash_with_shield.mp3`),
+            crash: createLockedAudio(`${base}sounds/crash.mp3`)
         };
+        suppressMediaSession();
 
         // Set up background music
         this.sounds.bgm.loop = true;
@@ -448,7 +488,7 @@ export class SoundManager {
                 return;
             }
 
-            const voice = new Audio(url);
+            const voice = createLockedAudio(url);
             voice.volume = VOICE_VOLUME;
             voice.muted = !this.canPlayVoice();
             this.levelVoice = voice;
@@ -752,6 +792,7 @@ export class SoundManager {
                 playPromise
                     .then(() => {
                         this.bgmPlaying = true;
+                        suppressMediaSession();
                     })
                     .catch(error => {
                         console.error("Error playing background music:", error);

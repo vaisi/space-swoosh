@@ -9,8 +9,8 @@
       "backgroundColor": "#e1d9c1",
       "androidScaleType": "CENTER_CROP",
       "showSpinner": false,
-      "splashFullScreen": false,
-      "splashImmersive": false
+      "splashFullScreen": true,
+      "splashImmersive": true
     },
     "Keyboard": {
       "resize": "native",

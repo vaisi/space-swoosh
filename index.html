@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: First paint defaults to night paper
-     (data-theme from ssTheme, else dark). Mobile web is a store download prompt
-     (no canvas). Desktop web shows App Store / Play QR rails. Android 15
-     edge-to-edge padding uses Capacitor --safe-area-inset-* with env()
-     fallback. Native portrait fills the inset stage; landscape letterboxes
-     2:3 (Play large-screen, no screenOrientation lock). Dark charcoal
-     surround + beige tunnel; light letterboxes in ink. -->
+<!-- index.html — page shell. Changes: Native shell skips favicon /
+     apple-touch-icon links (Android WebView can paint a broken icon +
+     truncated "Space Swoosh" as a title strip). Hide <audio>/<video> so
+     HTMLAudio BGM cannot show an in-page transport. First paint defaults
+     to night paper. Mobile web is a store download prompt. Desktop web
+     shows store QR rails. Android 15 edge-to-edge uses Capacitor
+     --safe-area-inset-* with env() fallback. Native portrait fills the
+     inset stage; landscape letterboxes 2:3. -->
 <html lang="en">
 <head>
     <!-- Analytics is injected from src/services/Analytics.js, and only on the
@@ -31,6 +32,17 @@
                 if (stored === 'light' || stored === 'dark') theme = stored;
             } catch (e) {}
             root.dataset.theme = theme;
+            if (!native) {
+                var icon = document.createElement('link');
+                icon.rel = 'icon';
+                icon.type = 'image/x-icon';
+                icon.href = '/favicon.ico';
+                document.head.appendChild(icon);
+                var touch = document.createElement('link');
+                touch.rel = 'apple-touch-icon';
+                touch.href = '/apple-touch-icon.png';
+                document.head.appendChild(touch);
+            }
             if (native) return;
             var ua = navigator.userAgent || '';
             var ios = /iPad|iPhone|iPod/i.test(ua)
@@ -52,8 +64,6 @@
     <meta name="theme-color" content="#12100E">
     <meta name="description" content="A one-thumb space dodge game in a paper universe. Steer, survive, climb. Get it on the App Store or Google Play.">
     <title>Space Swoosh</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <!-- Brand tokens: loads Space Grotesk + Space Mono and exposes var(--ss-*)
          so DOM chrome (pause button, name input) matches the canvas surfaces. -->
     <link rel="stylesheet" href="/src/brand/tokens.css">
@@ -93,6 +103,17 @@
             display: block;
             touch-action: none;
             background: var(--ss-paper, #1C1A16);
+        }
+
+        /* Game audio is HTMLAudio without controls. Some Android WebViews
+           still inject a transport (favicon + page title "Space…"). */
+        audio, video {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         /* Dark: charcoal page, beige tunnel so the playfield edge still reads. */

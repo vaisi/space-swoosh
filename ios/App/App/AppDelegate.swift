@@ -1,3 +1,6 @@
+// AppDelegate.swift
+// Changes: Hide the status bar so a retired Capacitor iOS run cannot show
+// a system title chip (the shipping app is ios-native).
 import UIKit
 import Capacitor
 
@@ -7,7 +10,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // No system title / status-bar chip. Shipping iOS is ios-native;
+        // this Capacitor tree stays fullscreen if anyone still runs it.
+        application.isStatusBarHidden = true
         return true
     }
 
