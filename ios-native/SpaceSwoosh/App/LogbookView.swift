@@ -1,11 +1,14 @@
 // LogbookView.swift
-// Changes: known Journey Day cards replay NAV via a top-right play/stop
-// (VoicePlayer.playLevel). Title/body keep a trailing gutter so copy does not
-// run under the icon. The Call and locked days stay silent. Leaving the
-// screen stops the clip. SPACE LOG header + Grotesk/Mono chrome matching
-// Android logbook. Obstacles/Boosts cards use a 1/3 playfield specimen well
-// (LogbookGlyph). List only observed/known cards. Journey still lists named
-// days. Tabs are filled ink rects like Android LogbookScreen.
+// Changes: journeyPlayButton is @ViewBuilder so the `let playing` + Button
+// body compiles on Xcode 26 archive (implicit return only works for a
+// single expression). Known Journey Day cards replay NAV via a top-right
+// play/stop (VoicePlayer.playLevel). Title/body keep a trailing gutter so
+// copy does not run under the icon. The Call and locked days stay silent.
+// Leaving the screen stops the clip. SPACE LOG header + Grotesk/Mono
+// chrome matching Android logbook. Obstacles/Boosts cards use a 1/3
+// playfield specimen well (LogbookGlyph). List only observed/known cards.
+// Journey still lists named days. Tabs are filled ink rects like Android
+// LogbookScreen.
 
 import SwiftUI
 
@@ -174,6 +177,7 @@ struct LogbookView: View {
         return Int(id.dropFirst("level_".count))
     }
 
+    @ViewBuilder
     private func journeyPlayButton(level: Int) -> some View {
         let playing = playingLevel == level || VoicePlayer.shared.speakingLevel == level
         Button {

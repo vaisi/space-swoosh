@@ -1,11 +1,13 @@
 <!--
   docs/CODEMAGIC.md
   Changes:
+  - TestFlight signing enables Game Center on the App ID and mints a fresh
+    App Store profile so Manual archive matches SpaceSwoosh.entitlements.
   - APP_STORE_APPLE_ID also injects the Options → Rate write-review URL.
   - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret; SPM product is FirebaseAnalyticsCore.
   - TestFlight uses .playback so Silent switch no longer mutes SFX.
   - iOS marketing version is 1.0.1 — ASC closed the approved 1.0.0 train.
-    Native iOS default build is 14; Android Play default is 48 / 1.0.48.
+    Native iOS default build is 14; Android Play default is 49 / 1.0.49.
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
   - iOS Native workflows inject those vars into Info.plist for SPACE BOARD
@@ -83,6 +85,32 @@ openssl genrsa -out ios_distribution_private_key.pem 2048
    that Distribution cert and making a new key.
 5. Re-run **iOS Native → TestFlight**. CI will create/match an App Store cert +
    profile for `com.orbi.spaceswoosh` with that key.
+
+### Game Center entitlement (Friends board)
+
+`ios-native/SpaceSwoosh/SpaceSwoosh.entitlements` includes
+`com.apple.developer.game-center`. Manual Codemagic signing will fail archive
+in ~20s (`xcodebuild` status **65**) if the App Store profile was minted
+before that key existed:
+
+`Provisioning profile doesn't include the com.apple.developer.game-center entitlement`
+
+The **Set up code signing** step now:
+
+1. Looks up the `com.orbi.spaceswoosh` App ID
+2. Enables **Game Center** on it if missing
+3. Deletes the stale **App Store** profile for that App ID
+4. Runs `fetch-signing-files --create` so the new profile includes Game Center
+
+Also tick Game Center on the App Store Connect app record and create the four
+leaderboards listed in [`STORE_COMPLIANCE.md`](./STORE_COMPLIANCE.md). That is
+separate from the provisioning entitlement — without the boards, Friends still
+signs in but scores stay empty.
+
+If **Set up code signing** errors on `enable-capabilities`, the API key needs
+permission to edit Identifiers (App Manager is enough). You can also enable
+Game Center once by hand: developer.apple.com → **Identifiers** →
+`com.orbi.spaceswoosh` → **Game Center** → Save, then re-run the workflow.
 
 ### If create fails (max 3 Distribution certs)
 
@@ -166,6 +194,16 @@ HUD is locked at **16.7 ms / 60 Hz**. Audio (`AVAudioEngine` synth +
 
 Native app: `ios-native/SpaceSwoosh.xcodeproj`, scheme **SpaceSwoosh**, bundle `com.orbi.spaceswoosh`.
 Firebase SPM product is **`FirebaseAnalyticsCore`** (SDK 12 removed `FirebaseAnalyticsWithoutAdIdSupport`; that missing product was a Codemagic archive 65). CI resolves packages, then archives with `-destination generic/platform=iOS`.
+
+Friends needs the **Game Center** App ID capability. CI enables it and recreates
+the App Store profile so Manual signing matches `SpaceSwoosh.entitlements`.
+A profile without that entitlement fails archive in seconds (status 65) before
+Swift even compiles.
+
+Two Swift archive breakers that look the same in the Codemagic step summary:
+`LogbookView.journeyPlayButton` must be `@ViewBuilder` (a `let` plus `Button`
+is not a single-expression `some View`). `HighScoreRow` must not redeclare its
+memberwise `init` in an extension.
 
 Apple treats **version + build** as unique. After **1.0.0** is approved, that
 train is closed (ASC `90062` / `90186`). New uploads must use a higher

@@ -1,6 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Journey sparkles L14+ are ~1 per 1,500 KM minus 1; smash
+<!-- Changes: Codemagic TestFlight enables Game Center on the App ID and
+     mints a fresh App Store profile for Friends (`com.apple.developer.game-center`).
+     Journey sparkles L14+ are ~1 per 1,500 KM minus 1; smash
      bands L24+ are 14 / 18 / 22 / 27. L24+ deep belt and Open Space 20k
      hold ease ~12% (gaps, density, row mix, storm quiet).
      Hangar tiles always draw `skin.blurb` (locked premium no longer
@@ -23,7 +25,7 @@
      links. Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 48 / 1.0.48 (caption
+     shield is 5s wall-clock. Android Play default is 49 / 1.0.49 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
      build 14; marketing stays 1.0.1. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
@@ -157,7 +159,7 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **48** / versionName **1.0.48** (must be higher than any)
+> versionCode **49** / versionName **1.0.49** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
 > `CFBundleVersion` **14** (marketing **1.0.1**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
@@ -228,7 +230,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 48 / `versionName` 1.0.48. Override
+old assets. Play default is `versionCode` 49 / `versionName` 1.0.49. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
@@ -238,7 +240,11 @@ vaisi's Project URL + anon key (Project Settings → API). Restart Vite after
 changing env vars.
 
 Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md).
-**iOS Native → TestFlight** ships a signed IPA. **iOS Native → App Preview**
+**iOS Native → TestFlight** ships a signed IPA. Signing enables **Game Center**
+on App ID `com.orbi.spaceswoosh` and recreates the App Store profile so it
+includes `com.apple.developer.game-center` (required by
+`SpaceSwoosh.entitlements` for Friends). A stale profile fails `xcodebuild
+archive` in seconds with status 65. **iOS Native → App Preview**
 builds an unsigned iPhone-simulator `.app`; after that job finishes, click
 **Quick launch** on the build page to run the game in Codemagic’s browser
 simulator (no Mac or device). The browser session is a **video stream**: a
@@ -1442,7 +1448,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase Global + Game Center Friends chip; style is saved flight style; Submit Signal jumps to the call-sign row), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` (`showHazardLab` false hides the centered LAB tile). `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). `JourneyProgress.UNLOCK_ALL_LEVELS` is **false** (sequential tiles; saved `unlocked` unchanged). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase Global + Game Center Friends chip; style is saved flight style; Submit Signal jumps to the call-sign row), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` (`showHazardLab` false hides the centered LAB tile). `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Journey day cards replay NAV (`journeyPlayButton` is `@ViewBuilder`). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). `JourneyProgress.UNLOCK_ALL_LEVELS` is **false** (sequential tiles; saved `unlocked` unchanged). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
 | `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). `FriendsScoreService` — Game Center auth, silent Open Space submit, friends-only `FriendBoardRow` load (local player + small photos). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip, review prompt). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). `StoreLinks` — Play URL + App Store write-review URL (`APP_STORE_APPLE_ID`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
