@@ -1,4 +1,5 @@
-<!-- Changes: Friends Space Board YOU row shows the Open Space distance
+<!-- Changes: iPhone TestFlight marketing is 1.0.2 (Apple closed 1.0.1).
+     Friends Space Board YOU row shows the Open Space distance
      (and obstacles) you flew on this device even when Game Center / Play
      Games has not indexed the run yet. TestFlight Friends signing now turns on Game Center on the
      Apple App ID (needed for the iPhone Friends board). From day 14 the
@@ -12,7 +13,7 @@
      one recap line and the call-sign field, Submit just above the keys.
      Friends shows the Game Center / Play Games photo already on
      that store profile, on the device only (Photos App Privacy stays off).
-     Android 1.0.49 / iPhone build 14 — no "Space…" title chip
+     Android 1.0.50 / iPhone build 14 — no "Space…" title chip
      (Android host header; iOS has no nav title and Now Playing is cleared).
      iPhone black holes match Android — solid well, soft shaded halo, thin
      pulsing ring (not a donut). iPhone wind dashes travel left or right
@@ -552,7 +553,7 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
-ink may show in the notch / home-indicator strips). Android **1.0.49** and iPhone (build **14**) do not show an
+ink may show in the notch / home-indicator strips). Android **1.0.50** and iPhone (build **14**) do not show an
 app-name chip or leftover icon above the stars — the run starts at the top of
 the stage. Turn the phone on its side
 and the stage stays a tall rectangle with charcoal on the left and right — the

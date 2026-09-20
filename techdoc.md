@@ -1,7 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Codemagic Game Center profile helper is a shell script, not
-     inline Python in codemagic.yaml (that made the workflow file invalid).
+<!-- Changes: Native iOS marketing version 1.0.2 — ASC closed approved
+     1.0.1 (Codemagic 90062 / 90186). Codemagic Game Center profile helper
+     is a shell script, not inline Python in codemagic.yaml.
      Journey sparkles L14+ are ~1 per 1,500 KM minus 1; smash
      bands L24+ are 14 / 18 / 22 / 27. L24+ deep belt and Open Space 20k
      hold ease ~12% (gaps, density, row mix, storm quiet).
@@ -10,8 +11,8 @@
      none, Android `adjustNothing`). Remaining viewport is one paper sheet
      (header, recap line, call-sign field, Submit above the keyboard).
      `?signal=1` / `?kb=N` playtest. Native iOS `SubmitScoreView` matches.
-     Native iOS marketing version 1.0.1 — ASC closed approved
-     1.0.0 (Codemagic 90062 / 90186). Removed leftover homescreen BUILD
+     Native iOS marketing version 1.0.2 — ASC closed approved
+     1.0.1 (Codemagic 90062 / 90186). Removed leftover homescreen BUILD
      stamp (`buildStamp.js` + Vite increment plugin). Menu never drew it;
      iOS never had a badge.
      Native iOS black hole matches Android/web Canvas — solid ink
@@ -27,7 +28,7 @@
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
      shield is 5s wall-clock. Android Play default is 50 / 1.0.50 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
-     build 14; marketing stays 1.0.1. SPACE BOARD phones: Global/Friends
+     build 14; marketing stays 1.0.2. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
      is the flown/saved flight style. Friends YOU row shows the device Open
      Space personal best when the store board still has no score. Opens on
@@ -99,7 +100,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps marketing
-> version **1.0.1** and `CFBundleVersion` ≥ 14 on each TestFlight upload.
+> version **1.0.2** and `CFBundleVersion` ≥ 14 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -163,7 +164,7 @@
 > so Play Console declaration can stay **No**. Play upload default:
 > versionCode **50** / versionName **1.0.50** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
-> `CFBundleVersion` **14** (marketing **1.0.1**). There is no on-screen
+> `CFBundleVersion` **14** (marketing **1.0.2**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**

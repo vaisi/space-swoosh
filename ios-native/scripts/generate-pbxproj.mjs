@@ -1,6 +1,6 @@
 // generate-pbxproj.mjs
 // Changes: Game Center entitlements + GameKit.framework. CURRENT_PROJECT_VERSION
-// 14 (title-strip fix). MARKETING_VERSION 1.0.1. RevenueCat SPM + Firebase Analytics.
+// 14 (title-strip fix). MARKETING_VERSION 1.0.2. RevenueCat SPM + Firebase Analytics.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -369,7 +369,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -399,7 +399,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

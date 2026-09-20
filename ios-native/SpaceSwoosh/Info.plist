@@ -2,8 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: Build 14 with the Android title-strip fix. Marketing 1.0.1.
-	     Status bar hidden; no system nav title. APP_STORE_APPLE_ID; REVENUECAT_IOS_KEY. -->
+	<!-- Changes: Marketing 1.0.2 — ASC closed the approved 1.0.1 train.
+	     Build 14 with the Android title-strip fix. Status bar hidden;
+	     no system nav title. APP_STORE_APPLE_ID; REVENUECAT_IOS_KEY. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -19,7 +20,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.1</string>
+	<string>1.0.2</string>
 	<key>CFBundleVersion</key>
 	<string>14</string>
 	<key>LSRequiresIPhoneOS</key>

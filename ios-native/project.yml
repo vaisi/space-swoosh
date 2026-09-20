@@ -1,6 +1,6 @@
 # XcodeGen spec — on Mac: brew install xcodegen && cd ios-native && xcodegen
 # Changes: Game Center entitlements for the native Friends board.
-# MARKETING_VERSION 1.0.1 (ASC closed the approved 1.0.0 train). Floor CURRENT_PROJECT_VERSION at 9.
+# MARKETING_VERSION 1.0.2 (ASC closed the approved 1.0.1 train). Floor CURRENT_PROJECT_VERSION at 9.
 
 name: SpaceSwoosh
 options:
@@ -11,7 +11,7 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    MARKETING_VERSION: "1.0.1"
+    MARKETING_VERSION: "1.0.2"
     CURRENT_PROJECT_VERSION: "9"
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1,2"
