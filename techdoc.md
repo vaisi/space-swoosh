@@ -1,7 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Codemagic TestFlight enables Game Center on the App ID and
-     mints a fresh App Store profile for Friends (`com.apple.developer.game-center`).
+<!-- Changes: Codemagic Game Center profile helper is a shell script, not
+     inline Python in codemagic.yaml (that made the workflow file invalid).
      Journey sparkles L14+ are ~1 per 1,500 KM minus 1; smash
      bands L24+ are 14 / 18 / 22 / 27. L24+ deep belt and Open Space 20k
      hold ease ~12% (gaps, density, row mix, storm quiet).
@@ -25,7 +25,7 @@
      links. Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 49 / 1.0.49 (caption
+     shield is 5s wall-clock. Android Play default is 50 / 1.0.50 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
      build 14; marketing stays 1.0.1. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
@@ -161,7 +161,7 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **49** / versionName **1.0.49** (must be higher than any)
+> versionCode **50** / versionName **1.0.50** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
 > `CFBundleVersion` **14** (marketing **1.0.1**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
@@ -232,7 +232,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 49 / `versionName` 1.0.49. Override
+old assets. Play default is `versionCode` 50 / `versionName` 1.0.50. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
@@ -242,8 +242,9 @@ vaisi's Project URL + anon key (Project Settings → API). Restart Vite after
 changing env vars.
 
 Native CI: [`codemagic.yaml`](codemagic.yaml) — see [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md).
-**iOS Native → TestFlight** ships a signed IPA. Signing enables **Game Center**
-on App ID `com.orbi.spaceswoosh` and recreates the App Store profile so it
+**iOS Native → TestFlight** ships a signed IPA. Signing runs
+[`ios-native/scripts/ensure-game-center-profile.sh`](ios-native/scripts/ensure-game-center-profile.sh)
+to enable **Game Center** on App ID `com.orbi.spaceswoosh` and recreate the App Store profile so it
 includes `com.apple.developer.game-center` (required by
 `SpaceSwoosh.entitlements` for Friends). A stale profile fails `xcodebuild
 archive` in seconds with status 65. **iOS Native → App Preview**

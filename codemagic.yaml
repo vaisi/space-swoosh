@@ -1,8 +1,7 @@
 # codemagic.yaml
 # Changes:
-# - Enable Game Center on the App ID and mint a fresh App Store profile so
-#   Manual signing matches SpaceSwoosh.entitlements (archive 65).
-# - Tail xcodebuild logs when Build native IPA fails.
+# - Game Center App Store profile via ios-native/scripts/ensure-game-center-profile.sh
+#   (inline Python broke Codemagic YAML parse). Tail xcodebuild logs on IPA fail.
 # - Resolve SPM + archive for generic iOS (Firebase 12 dropped WithoutAdIdSupport).
 # - Native iOS writes GoogleService-Info.plist from GOOGLE_SERVICE_INFO_PLIST.
 # - Add ios-native-simulator: unsigned iPhone simulator .app for App Preview.
@@ -55,75 +54,9 @@ workflows:
             exit 1
           fi
 
-          # Friends boards need com.apple.developer.game-center. The App Store
-          # profile Codemagic already had was minted before that entitlement,
-          # so xcodebuild archive died in ~20s (status 65) at signing check.
-          RID=$(app-store-connect bundle-ids list \
-            --bundle-id-identifier "$BUNDLE_ID" \
-            --strict-match-identifier \
-            --json \
-            | python3 -c '
-import json, sys
-raw = sys.stdin.read().strip()
-try:
-    start = min(i for i in (raw.find("["), raw.find("{")) if i >= 0)
-    data = json.loads(raw[start:])
-except Exception:
-    raise SystemExit(0)
-if isinstance(data, dict):
-    data = data.get("data") or data.get("bundleIds") or [data]
-for item in data:
-    rid = item.get("id") if isinstance(item, dict) else None
-    if rid:
-        print(rid)
-        break
-')
-          if [ -z "$RID" ]; then
-            LIST=$(app-store-connect bundle-ids list \
-              --bundle-id-identifier "$BUNDLE_ID" \
-              --strict-match-identifier || true)
-            echo "$LIST"
-            RID=$(printf '%s\n' "$LIST" | awk -F': *' '/^Id:/{print $2; exit}')
-          fi
-          if [ -z "$RID" ]; then
-            echo "ERROR: No App ID resource for $BUNDLE_ID"
-            exit 1
-          fi
-          echo "App ID resource $RID ($BUNDLE_ID)"
-          CAPS=$(app-store-connect bundle-ids capabilities "$RID" || true)
-          echo "$CAPS"
-          if printf '%s\n' "$CAPS" | grep -qi "Game Center"; then
-            echo "Game Center already enabled on App ID"
-          else
-            app-store-connect bundle-ids enable-capabilities "$RID" --capability "Game Center"
-          fi
-          echo "=== Existing App Store profiles (will recreate) ==="
-          PROFILE_JSON=$(app-store-connect bundle-ids profiles \
-            --bundle-ids "$RID" \
-            --type IOS_APP_STORE \
-            --json || true)
-          echo "$PROFILE_JSON"
-          printf '%s\n' "$PROFILE_JSON" | python3 -c '
-import json, sys
-raw = sys.stdin.read().strip()
-if not raw:
-    raise SystemExit(0)
-try:
-    start = min(i for i in (raw.find("["), raw.find("{")) if i >= 0)
-    data = json.loads(raw[start:])
-except Exception:
-    raise SystemExit(0)
-if isinstance(data, dict):
-    data = data.get("data") or data.get("profiles") or [data]
-for item in data:
-    rid = item.get("id") if isinstance(item, dict) else None
-    if rid:
-        print(rid)
-' | while read -r PID; do
-            [ -n "$PID" ] || continue
-            echo "Deleting stale App Store profile $PID"
-            app-store-connect profiles delete "$PID" --ignore-not-found || true
-          done
+          # Friends boards need com.apple.developer.game-center. Logic lives
+          # in a shell script so this YAML file stays a valid mapping.
+          /bin/sh ios-native/scripts/ensure-game-center-profile.sh "$BUNDLE_ID"
 
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \

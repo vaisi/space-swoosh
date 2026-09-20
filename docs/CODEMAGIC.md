@@ -1,13 +1,13 @@
 <!--
   docs/CODEMAGIC.md
   Changes:
-  - TestFlight signing enables Game Center on the App ID and mints a fresh
-    App Store profile so Manual archive matches SpaceSwoosh.entitlements.
+  - TestFlight Game Center profile via ensure-game-center-profile.sh (not
+    inline Python — that made Codemagic reject codemagic.yaml).
   - APP_STORE_APPLE_ID also injects the Options → Rate write-review URL.
   - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret; SPM product is FirebaseAnalyticsCore.
   - TestFlight uses .playback so Silent switch no longer mutes SFX.
   - iOS marketing version is 1.0.1 — ASC closed the approved 1.0.0 train.
-    Native iOS default build is 14; Android Play default is 49 / 1.0.49.
+    Native iOS default build is 14; Android Play default is 50 / 1.0.50.
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
   - iOS Native workflows inject those vars into Info.plist for SPACE BOARD
@@ -95,7 +95,9 @@ before that key existed:
 
 `Provisioning profile doesn't include the com.apple.developer.game-center entitlement`
 
-The **Set up code signing** step now:
+The **Set up code signing** step runs
+[`ios-native/scripts/ensure-game-center-profile.sh`](../ios-native/scripts/ensure-game-center-profile.sh)
+(kept out of `codemagic.yaml` so Python cannot break the workflow parse), then:
 
 1. Looks up the `com.orbi.spaceswoosh` App ID
 2. Enables **Game Center** on it if missing
