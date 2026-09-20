@@ -1,7 +1,7 @@
 // SpaceSwooshApp.swift
-// Changes: Status bar stays hidden; no system nav title (SwiftUI shell,
-// not UINavigationBar). Now Playing is cleared in GameAudioSession so iOS
-// cannot show a "Space Swoosh" chip. Configure RevenueCat after Firebase.
+// Changes: Game Center authenticate on appear so Open Space can silent-submit
+// to Friends boards. Status bar stays hidden; no system nav title. Now Playing
+// is cleared in GameAudioSession. Configure RevenueCat after Firebase.
 
 import SwiftUI
 
@@ -29,6 +29,7 @@ struct SpaceSwooshApp: App {
                 .onAppear {
                     GameAudioSession.activate()
                     SfxPlayer.shared.start()
+                    FriendsScoreService.authenticate()
                 }
         }
     }

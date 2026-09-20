@@ -1,6 +1,6 @@
 // SubmitScoreView.swift
-// Changes: Keyboard keeps the same card order (stats then call sign). Opaque
-// paper wash hides Mission Failed. Content sits above the IME and below the island.
+// Changes: onDone passes the submitted call sign so Space Board can open
+// Global on that row. Keyboard still keeps stats above the field.
 
 import SwiftUI
 import Combine
@@ -13,7 +13,7 @@ struct SubmitScoreView: View {
     var rankNumber: Int?
     var shipId: SkinId
     var style: FlightStyle
-    var onDone: () -> Void
+    var onDone: (_ callSign: String) -> Void
     var onCancel: () -> Void
 
     @State private var name = UserDefaults.standard.string(forKey: "playerName") ?? ""
@@ -153,7 +153,7 @@ struct SubmitScoreView: View {
             ]
             if let rankNumber { params["rank"] = rankNumber }
             AnalyticsService.track("submit_highscore", params)
-            onDone()
+            onDone(name)
         } catch {
             self.error = (error as? LocalizedError)?.errorDescription ?? "Could not submit. Try again."
         }

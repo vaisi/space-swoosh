@@ -1,6 +1,7 @@
 // ScoreService.swift
-// Changes: ReplyService submit_journey_reply sends p_ship_id + p_platform.
-// High-score inserts write platform=ios.
+// Changes: Friend-board HighScoreRow memberwise init. ReplyService
+// submit_journey_reply sends p_ship_id + p_platform. High-score inserts
+// write platform=ios.
 
 import Foundation
 
@@ -38,6 +39,24 @@ struct HighScoreRow: Identifiable, Decodable {
     var shipName: String? {
         guard let shipId, let skin = SkinId(rawValue: shipId) else { return nil }
         return SkinCatalog.def(skin).name
+    }
+}
+
+extension HighScoreRow {
+    init(
+        id: Int,
+        playerName: String,
+        score: Int,
+        obstaclesDestroyed: Int,
+        flightStyle: String?,
+        shipId: String?
+    ) {
+        self.id = id
+        self.playerName = playerName
+        self.score = score
+        self.obstaclesDestroyed = obstaclesDestroyed
+        self.flightStyle = flightStyle
+        self.shipId = shipId
     }
 }
 

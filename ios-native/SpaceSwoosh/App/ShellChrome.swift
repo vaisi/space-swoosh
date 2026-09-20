@@ -1,6 +1,8 @@
 // ShellChrome.swift
-// Changes: home ShipPreview swipes left/right to cycle the hangar and shows a
-// quiet "n / total" roster mark under the name (Space Mono, ink30).
+// Changes: compactTag for Friends YOU chip. Header still accepts a second
+// compact trailing chip; SPACE BOARD now uses one Global/Friends chip
+// (Zigzag/Arc is the flown style, not a toggle). Home ShipPreview swipes
+// hangar and shows a quiet "n / total" roster mark.
 
 import SwiftUI
 import UIKit
@@ -11,16 +13,21 @@ enum ShellChrome {
         back: @escaping () -> Void,
         trailingTitle: String? = nil,
         trailingTag: String? = nil,
+        extraTrailingTitle: String? = nil,
+        extraTrailingTag: String? = nil,
+        extraTrailing: (() -> Void)? = nil,
         trailing: (() -> Void)? = nil
     ) -> some View {
-        VStack(spacing: 12) {
+        let chipCount = (trailingTitle != nil && trailing != nil ? 1 : 0)
+            + (extraTrailingTitle != nil && extraTrailing != nil ? 1 : 0)
+        return VStack(spacing: 12) {
             ZStack {
                 Text(title)
                     .font(BrandType.display(22))
                     .tracking(BrandType.displayTracking(22))
                     .foregroundStyle(BrandColors.ink)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, trailingTitle == nil ? 72 : 96)
+                    .padding(.horizontal, chipCount >= 2 ? 148 : (chipCount == 1 ? 96 : 72))
                 HStack(alignment: .center, spacing: 8) {
                     Button(action: back) {
                         Text("← Back")
@@ -29,6 +36,9 @@ enum ShellChrome {
                     }
                     .buttonStyle(.plain)
                     Spacer()
+                    if let extraTrailingTitle, let extraTrailing {
+                        compactButton(extraTrailingTitle, tag: extraTrailingTag, action: extraTrailing)
+                    }
                     if let trailingTitle, let trailing {
                         compactButton(trailingTitle, tag: trailingTag, action: trailing)
                     }
@@ -36,6 +46,29 @@ enum ShellChrome {
             }
             dottedRule()
         }
+    }
+
+    /// Quiet YOU / status chip — same framed micro-tag as header toggles, not tappable.
+    static func compactTag(_ title: String, tag: String? = nil) -> some View {
+        HStack(spacing: 0) {
+            Text(title.uppercased())
+                .font(BrandType.ui(11))
+                .tracking(BrandType.uiTracking(11))
+                .foregroundStyle(BrandColors.ink)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+            if let tag {
+                Rectangle()
+                    .fill(BrandColors.ink.opacity(0.12))
+                    .frame(width: 1, height: 14)
+                Text(tag)
+                    .font(BrandType.mono(11))
+                    .foregroundStyle(BrandColors.ink55)
+                    .frame(width: 22)
+            }
+        }
+        .background(BrandColors.paper)
+        .overlay(Rectangle().stroke(BrandColors.ink, lineWidth: 1.5))
     }
 
     static func compactButton(_ title: String, tag: String? = nil, action: @escaping () -> Void) -> some View {

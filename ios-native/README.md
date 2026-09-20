@@ -7,8 +7,9 @@
  Wall-boost rush is 5s wall-clock (Flicker.speedBoostSeconds).
  Shield is 5s wall-clock (Flicker.shieldSeconds), same as Android/web.
  Journey cruise uses GameConfig.cruiseSpeedMultiplier (1.1), same as Open Space.
- Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app.
- UNLOCK_ALL_LEVELS is false; Hazard Lab tile hidden (showHazardLab).
+     Epilogue Open Instagram → https://www.instagram.com/spaceswoosh.app.
+     SPACE BOARD Friends chip (Game Center). UNLOCK_ALL_LEVELS is false;
+     Hazard Lab tile hidden (showHazardLab).
 -->
 
 # Space Swoosh — Native iOS (`ios-native/`)
@@ -24,7 +25,7 @@ True-native iOS client (**SpriteKit + SwiftUI**). Bundle ID `com.orbi.spaceswoos
 - Play: **PLAY** header, Journey (RECOMMENDED) then Open Space (ENDLESS) as tall `unit×17` cards, vertically centered
 - Journey map: **5** columns, `tileH = tileW × 1.15`; Hazard Lab tile hidden (`showHazardLab`)
 - Options hub: Ship ●, Controls ↔, Sound ♪, Light/Dark Mode ◐, Restore Purchases ↻. Controls = Zigzag/Arc. Sound = Music / Sound FX / Voice (`soundMusicEnabled` / `soundSfxEnabled` / `soundVoiceEnabled`). Pause Sound stays master mute
-- **SPACE BOARD**: same `high_scores` table as Android (Zigzag/Arc, DISTANCE/OBSTACLES, 10×10 pages). Submit Score + top-10 auto-prompt. Local PBs still back the PLAY card.
+- **SPACE BOARD**: Global is the same `high_scores` table as Android (DISTANCE/OBSTACLES, 10×10 pages) for the saved flight style (no Z/S chip). Friends is Game Center (header chip Global/Friends; opens there when the list has anyone). Submit Signal stays on Global and jumps to the new call-sign row. Silent Open Space submit to four GC boards. Submit Score + top-10 auto-prompt still write call signs to Supabase. Local PBs still back the PLAY card.
 - **Firebase Analytics**: same project as Android (`spaceswoosh-faa9c`). Events: `game_over`, `journey_level_end`, `hazard_lab_end`, `equip_ship`, `purchase_skin`, `purchase` (revenue), `set_theme`, `set_sound`, `set_sound_channel`, `submit_highscore`, `journey_epilogue_send`, `journey_epilogue_skip`. All include `platform=ios`. Plist is gitignored; Codemagic uses `GOOGLE_SERVICE_INFO_PLIST`. No Advertising Identifier (`FirebaseAnalyticsCore`).
 - Type: bundled Space Grotesk + Space Mono (`BrandType`). Framed ink tiles, 0 radius, dotted rules, **← Back**
 - Equipped id persists as `shipSkinId` (same key as Android). Default if unset / unknown / unowned: **Flicker**

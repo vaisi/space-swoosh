@@ -1,4 +1,5 @@
-// Updated: Play versionCode 48 / versionName 1.0.48. Caption guard. R8, EdgeToEdge.
+// Updated: Play Games v2 for Friends board. Play versionCode 48 /
+// versionName 1.0.48. Caption guard. R8, EdgeToEdge.
 apply plugin: 'com.android.application'
 
 // Release signing for Codemagic / local CI. When CM_KEYSTORE_PATH (or
@@ -66,6 +67,7 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
     implementation 'com.google.android.play:review:2.0.2'
+    implementation 'com.google.android.gms:play-services-games-v2:21.0.0'
 }
 
 apply from: 'capacitor.build.gradle'

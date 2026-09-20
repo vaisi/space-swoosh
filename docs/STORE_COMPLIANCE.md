@@ -1,7 +1,10 @@
 <!--
   docs/STORE_COMPLIANCE.md
-  Changes: Web Firebase Analytics (same project as iOS/Android). App Privacy
-  ticks match native iOS (Firebase + RevenueCat + call signs / Journey replies).
+  Changes: Friends displays Game Center / Play Games photos on-device
+  only — Photos stays unchecked. Native Friends board (Game Center /
+  Play Games). Web Firebase Analytics (same project as iOS/Android).
+  App Privacy ticks match native iOS (Firebase + RevenueCat + call
+  signs / Journey replies / Game Center).
 -->
 
 # Store compliance checklist
@@ -26,27 +29,33 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 
 ## App Store Connect
 
-- [ ] Privacy Policy URL: `https://spaceswoosh.app/privacy.html` (redeploy web so the 28 Aug 2026 text is live).
+- [ ] Privacy Policy URL: `https://spaceswoosh.app/privacy.html` (redeploy web so the 14 Sep 2026 text is live).
 - [ ] App Privacy — **Yes, we collect data from this app**. Tracking = **No** (no ATT, no IDFA).
-- [ ] Tick **only** these data types (leave Name, Email, Payment Info, Location, Crash Data, Advertising Data **unchecked**):
+- [ ] Tick **only** these data types (leave Email, Payment Info, Location, Crash Data, Advertising Data, Photos **unchecked** — Friends shows the Game Center / Play Games photo already on that store profile, on the device only; we do not collect camera-roll photos):
 
   | Data type | Linked to identity? | Tracking? | Purposes |
   | --- | --- | --- | --- |
-  | **User ID** (call sign / handle, not a legal name) | Yes | No | App Functionality, Analytics |
+  | **User ID** (call sign / handle, plus Game Center player id on iPhone) | Yes | No | App Functionality, Analytics |
   | **Device ID** (Firebase app-instance id — **not** Advertising Identifier) | Yes | No | Analytics |
   | **Purchases** (RevenueCat entitlements; Apple bills) | No | No | App Functionality, Analytics |
   | **Product Interaction** (Firebase events: runs, equip, theme, sound) | Yes | No | Analytics |
-  | **Gameplay Content** (ship on a run / board) | No | No | App Functionality, Analytics |
+  | **Gameplay Content** (ship on a run / board; Friends scores) | No | No | App Functionality, Analytics |
   | **Other User Content** (optional Journey ending text) | No | No | App Functionality |
 
-- [ ] Third-party partners used for those types: Google (Firebase Analytics), RevenueCat, Supabase, Apple (StoreKit). Not used for tracking.
+- [ ] Third-party partners used for those types: Google (Firebase Analytics), RevenueCat, Supabase, Apple (StoreKit + Game Center). Not used for tracking.
+- [ ] Enable **Game Center** for `com.orbi.spaceswoosh`. Create four all-time Highest Score leaderboards with ids:
+  `com.orbi.spaceswoosh.zigzag.distance`,
+  `com.orbi.spaceswoosh.zigzag.obstacles`,
+  `com.orbi.spaceswoosh.arc.distance`,
+  `com.orbi.spaceswoosh.arc.obstacles`.
 - [ ] Age rating questionnaire (no unrestricted web, no chat, cartoon violence against geometric shapes).
 - [ ] Paid Apps agreement + tax/banking (required before IAP sandbox works).
 
 ## Google Play Console
 
 - [ ] Privacy policy URL on the store listing.
-- [ ] Data safety form: Name (optional, leaderboard), Gameplay content, Purchase history, **App activity / analytics** (Firebase); data encrypted in transit; users can request deletion via support email. Advertising ID is **not** collected (`google_analytics_adid_collection_enabled=false` + `AD_ID` `tools:node="remove"`). Play **App content → Advertising ID** = **No**.
+- [ ] Data safety form: Name (optional, leaderboard call sign), User IDs (Play Games player id on Friends), Gameplay content, Purchase history, **App activity / analytics** (Firebase); data encrypted in transit; users can request deletion via support email. Advertising ID is **not** collected (`google_analytics_adid_collection_enabled=false` + `AD_ID` `tools:node="remove"`). Play **App content → Advertising ID** = **No**. Photos / camera remain **unchecked** — Friends only draws the Play Games profile image already on the device.
+- [ ] Play Games Services for `com.orbi.spaceswoosh`: create four all-time Highest Score leaderboards (Zigzag/Arc × Distance/Obstacles). `game_services_project_id` is the Firebase project number (`149157024817`). Paste the four `CgkI…` ids into [`android/app/src/main/res/values/games-ids.xml`](../android/app/src/main/res/values/games-ids.xml). Link SHA-1 for debug, upload, and Play App Signing keys or Sign in fails on device. Add the tester Google account under Play Games testers.
 - [ ] IARC content rating questionnaire.
 - [ ] If the developer account is personal and created after Nov 2023: start a closed test with 12 testers for 14 days before production.
 

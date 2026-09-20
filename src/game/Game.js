@@ -44,9 +44,14 @@
 //   journeyProgress; outcome uses LevelOutcomeScreen; exit/back → Journey map.
 //   isLevelRun() covers Journey + Hazard Lab for flyout / outcome UI.
 // - Screen header Back is a quiet text control ("← Back", no frame) shared by
-//   every back-bearing screen. Space Board hosts a compact theme-style
-//   Zigzag/Arc toggle (label + Z / S tag) so SPACE BOARD can read larger;
-//   DISTANCE / OBSTACLES stay as metric tabs.
+//   every back-bearing screen. Space Board keeps the style of the run (no
+//   Zigzag/Arc chip). Native phones show Global/Friends (`#`/`F`); web is
+//   Global only. DISTANCE / OBSTACLES stay as metric tabs. Opens on Friends
+//   when Play Games is signed in and that list has anyone; else Global.
+//   Submit Signal stays on Global and pages to the new call-sign row with
+//   paperTint. Friends pages to the YOU row. Friends rows are store
+//   profiles (avatar / initials, YOU, paperTint). Friends Sign in forces
+//   Play Games signIn() and shows a failure line.
 // - Open Space leaderboard splits by flight style. Rank, submit, and fetch all
 //   filter on `flight_style`. Local personal bests are per-style via
 //   OpenWorldProgress v2.
@@ -62,7 +67,7 @@
 //   Mobile swipe left/right on the menu cycles ships; quiet `n / total` index
 //   sits above the hull (Space Mono — current ink80, total ink55).
 // - Options hub: Ship / Controls / Sound / Theme + Restore. Native Rate ★
-//   is a compact header chip (same as Space Board Zigzag), not a hub row.
+//   is a compact header chip, not a hub row.
 // - Options → Sound: Music / Sound FX / Voice channel toggles (SoundManager);
 //   pause menu Sound stays master mute-all.
 // - Night paper: pause wash / goal-bar rest / crash particles / name-modal dim
@@ -202,6 +207,14 @@ import {
     LeaderboardUnavailableError,
     ScoreService,
 } from '../services/ScoreService.js';
+import { FriendsScoreService } from '../services/FriendsScoreService.js';
+import {
+    SPACE_BOARD_PAGE_SIZE,
+    findLocalFriendIndex,
+    findSubmittedRowIndex,
+    friendsListHasAnyone,
+    pageForRowIndex,
+} from '../services/SpaceBoardFocus.js';
 import { CALL_SIGN_MAX_LEN } from '../services/NameFilter.js';
 import { track, setUserProperty, syncProfileProperties } from '../services/Analytics.js';
 import {
@@ -428,8 +441,18 @@ export class Game {
         // Set by native/index.js Keyboard listeners (CSS px). 0 on web.
         this.softKeyboardHeight = 0;
         this.highScoreTab = 'distance'; // metric tab: distance | obstacles
-        this.highScoreFlightStyle = this.flightStyle; // arc | zigzag board
+        this.highScoreFlightStyle = this.flightStyle; // arc | zigzag board (locked to flown style)
         this.highScorePage = 0; // 0-based page index (10 scores per page)
+        this.highScoreSource = 'global'; // global (Supabase) | friends (Play Games)
+        this.highScoreHighlight = null; // { name, score, obstacles, shipId } after Submit Signal
+        this.highScoreFocusIndex = -1;
+        this.pendingFriendsLoad = null;
+        this.friendsSignedIn = false;
+        this.friendsSourceToggle = null;
+        this.friendsSignInButton = null;
+        this.friendsSignInBusy = false;
+        this.friendsSignInHint = '';
+        this.friendsPhotoImages = new Map();
 
         // Journey state. Progress is local-only; the leaderboard stays Open World.
         this.journeyProgress = loadJourneyProgress();
@@ -1841,8 +1864,8 @@ export class Game {
     // Shared screen header: optional quiet Back on the left, centred display
     // title, optional trailing brand button on the right (same pattern as
     // Options → Light/Dark Mode), closed by a dotted rule.
-    // trailingButton: { label, tag } — e.g. Space Board Zigzag/Arc toggle.
-    drawScreenHeader(title, { back = false, trailingButton = null } = {}) {
+        // trailingButton: { label, tag } — e.g. Space Board Global/Friends.
+    drawScreenHeader(title, { back = false, trailingButton = null, trailingButtons = null } = {}) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
@@ -1858,30 +1881,43 @@ export class Game {
             });
         }
 
-        // Compact theme-style toggle — short width so the title can breathe.
-        let trailingButtonRect = null;
-        if (trailingButton?.label) {
-            const btnH = L.isMobile ? unit * 2.9 : unit * 2.7;
-            const btnW = Math.min(L.width * 0.26, Math.max(unit * 9.2, this.width * 0.2));
-            const labelPx = L.isMobile
-                ? Math.min(unit * 1.2, 12)
-                : Math.min(unit * 1.15, 12);
-            trailingButtonRect = this.drawBrandButton(
-                L.right - btnW,
+        const chips = Array.isArray(trailingButtons) && trailingButtons.length
+            ? trailingButtons
+            : (trailingButton?.label ? [trailingButton] : []);
+        const multi = chips.length > 1;
+        const btnH = L.isMobile ? unit * 2.9 : unit * 2.7;
+        const btnW = multi
+            ? Math.min(L.width * 0.22, Math.max(unit * 7.4, this.width * 0.17))
+            : Math.min(L.width * 0.26, Math.max(unit * 9.2, this.width * 0.2));
+        const labelPx = L.isMobile
+            ? Math.min(unit * 1.2, 12)
+            : Math.min(unit * 1.15, 12);
+        const chipGap = unit * 0.4;
+        const trailingButtonRects = [];
+        let chipRight = L.right;
+        for (let i = chips.length - 1; i >= 0; i -= 1) {
+            const chip = chips[i];
+            trailingButtonRects.unshift(this.drawBrandButton(
+                chipRight - btnW,
                 y + (barH - btnH) / 2,
                 btnW,
                 btnH,
-                trailingButton.label,
-                { tag: trailingButton.tag || null, labelPx },
-            );
+                chip.label,
+                { tag: chip.tag || null, labelPx },
+            ));
+            chipRight -= btnW + chipGap;
         }
+        const trailingButtonRect = trailingButtonRects[trailingButtonRects.length - 1] || null;
+        const trailingClusterW = trailingButtonRects.length
+            ? (L.right - chipRight - chipGap)
+            : 0;
 
         // Title stays centred; side controls stay quiet so the title reads first.
         const sideReserve = Math.max(
             backRect ? backRect.width + unit * 0.6 : 0,
-            trailingButtonRect ? trailingButtonRect.width + unit * 0.6 : 0,
+            trailingClusterW + unit * 0.6,
         );
-        const titleMax = trailingButton
+        const titleMax = chips.length
             ? (L.isMobile ? Math.min(unit * 2.9, 32) : unit * 2.7)
             : (L.isMobile ? Math.min(unit * 2.5, 28) : unit * 2.4);
         ctx.save();
@@ -1903,7 +1939,7 @@ export class Game {
         const ruleY = y + barH + L.block;
         drawDivider(ctx, L.left, L.right, ruleY);
 
-        return { backRect, trailingButtonRect, contentTop: ruleY + L.section };
+        return { backRect, trailingButtonRect, trailingButtonRects, contentTop: ruleY + L.section };
     }
 
     renderMainMenu() {
@@ -2048,7 +2084,7 @@ export class Game {
     }
 
     // Options hub — Ship / Controls / Sound / Theme / Restore. Native Rate ★
-    // uses the same header chip as Space Board Zigzag / Arc.
+    // uses the same compact header chip as Space Board Global / Friends.
     renderOptionsHub() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -3043,26 +3079,33 @@ export class Game {
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
         const isMobile = L.isMobile;
-        const PAGE_SIZE = 10;
+        const PAGE_SIZE = SPACE_BOARD_PAGE_SIZE;
         const MAX_PAGES = 10;
         const RANK_TROPHIES = ['🥇', '🥈', '🥉'];
 
-        // Same pattern as Options → Light/Dark Mode: one framed toggle with a
-        // micro-tag (Z = Zigzag, S = Arc swoosh).
-        const styleZigzag = this.highScoreFlightStyle === FLIGHT_STYLE.zigzag;
+        // Same compact header chip as Options Rate: Global/Friends on phones.
+        // Flight style is the run (or saved) style — no Zigzag/Arc toggle.
+        const friendsBoard = this.highScoreSource === 'friends';
+        const showFriendsChip = FriendsScoreService.isAvailable();
         const header = this.drawScreenHeader('SPACE BOARD', {
             back: true,
-            trailingButton: {
-                label: styleZigzag ? 'Zigzag' : 'Arc',
-                tag: styleZigzag ? 'Z' : 'S',
-            },
+            trailingButtons: showFriendsChip
+                ? [
+                    {
+                        label: friendsBoard ? 'Friends' : 'Global',
+                        tag: friendsBoard ? 'F' : '#',
+                    },
+                ]
+                : [],
         });
         this.highScoresBackButton = header.backRect;
-        this.flightStyleToggle = header.trailingButtonRect;
+        this.friendsSourceToggle = showFriendsChip ? (header.trailingButtonRects?.[0] || null) : null;
+        this.flightStyleToggle = null;
         this.highScorePrevButton = null;
         this.highScoreNextButton = null;
+        this.friendsSignInButton = null;
 
-        // Metric tabs only — flight style lives in the header toggle button.
+        // Metric tabs only — flight style is the flown/saved style.
         const tabWidth = this.width * (isMobile ? 0.4 : 0.3);
         const tabHeight = unit * 3.2;
         const tabSpacing = unit * 2;
@@ -3121,6 +3164,9 @@ export class Game {
         const namePx = isMobile ? Math.min(unit * 1.85, 22) : unit * 1.7;
         const rankColW = unit * 3.2;
         const nameLeft = leftX + rankColW + unit * 0.8;
+        const avatarR = friendsBoard ? Math.min(16, Math.max(12, unit * 1.65)) : 0;
+        const avatarGap = friendsBoard ? unit * 0.7 : 0;
+        const profileNameLeft = friendsBoard ? nameLeft + avatarR * 2 + avatarGap : nameLeft;
 
         const scores = this.highScores || [];
         const totalPages = scores.length === 0
@@ -3135,7 +3181,36 @@ export class Game {
             ctx.font = `500 ${namePx}px ${font.ui}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('No signals logged. Be the first.', this.width / 2, listTop + scoreHeight);
+            const emptyY = listTop + scoreHeight;
+            if (friendsBoard && !this.friendsSignedIn) {
+                ctx.fillText('Sign in to Play Games to see friends.', this.width / 2, emptyY);
+                const btnW = Math.min(this.width * 0.56, unit * 22);
+                const btnH = unit * 5.2;
+                const btnY = emptyY + unit * 3.2;
+                this.friendsSignInButton = this.drawBrandButton(
+                    this.width / 2 - btnW / 2,
+                    btnY,
+                    btnW,
+                    btnH,
+                    this.friendsSignInBusy ? 'Signing in' : 'Sign in',
+                    { tag: 'PG', disabled: this.friendsSignInBusy }
+                );
+                if (this.friendsSignInHint) {
+                    ctx.fillStyle = color.ink55;
+                    ctx.font = `500 ${Math.max(11, namePx * 0.72)}px ${font.ui}`;
+                    const hintY = btnY + btnH + unit * 2.2;
+                    const lines = String(this.friendsSignInHint).split('\n');
+                    lines.forEach((line, i) => {
+                        ctx.fillText(line, this.width / 2, hintY + i * namePx * 1.15);
+                    });
+                }
+            } else {
+                ctx.fillText(
+                    friendsBoard ? 'No friends on this board yet.' : 'No signals logged. Be the first.',
+                    this.width / 2,
+                    emptyY
+                );
+            }
             ctx.restore();
             return;
         }
@@ -3146,16 +3221,37 @@ export class Game {
         );
 
         pageScores.forEach((score, index) => {
-            const rank = this.highScorePage * PAGE_SIZE + index + 1;
+            const pageRank = this.highScorePage * PAGE_SIZE + index + 1;
+            const storedRank = Number(score.rank) || 0;
+            const rank = friendsBoard ? storedRank : pageRank;
             const y = listTop + (scoreHeight + scoreSpacing) * index;
             const midY = y + scoreHeight / 2;
-            const isTop = rank <= 3;
+            const isTop = rank >= 1 && rank <= 3;
+            const metricValue = this.highScoreTab === 'distance'
+                ? Number(score.score) || 0
+                : Number(score.obstacles_destroyed) || 0;
+            const unscored = friendsBoard && rank <= 0 && metricValue <= 0;
+            const nameX = friendsBoard ? profileNameLeft : nameLeft;
+
+            const absIndex = this.highScorePage * PAGE_SIZE + index;
+            const highlightRow = !friendsBoard && absIndex === this.highScoreFocusIndex;
 
             ctx.save();
             ctx.textBaseline = 'middle';
 
+            if ((friendsBoard && score.isLocal) || highlightRow) {
+                ctx.fillStyle = color.paperTint;
+                ctx.fillRect(leftX - unit * 0.35, y, rightX - leftX + unit * 0.7, scoreHeight);
+            }
+
             // Rank — trophy emoji for 1–3, mono number otherwise.
-            if (isTop) {
+            // Friends uses the store rank (— if you are listed with no score).
+            if (friendsBoard && rank <= 0) {
+                ctx.fillStyle = color.ink55;
+                setMonoType(ctx, numPx);
+                ctx.textAlign = 'right';
+                ctx.fillText('—', leftX + rankColW, midY);
+            } else if (isTop) {
                 ctx.font = `${Math.max(numPx * 1.15, 18)}px ${font.ui}`;
                 ctx.textAlign = 'center';
                 ctx.fillText(RANK_TROPHIES[rank - 1], leftX + rankColW / 2, midY);
@@ -3166,14 +3262,38 @@ export class Game {
                 ctx.fillText(`${rank}`, leftX + rankColW, midY);
             }
 
+            if (friendsBoard) {
+                this.drawFriendAvatar(ctx, score, nameLeft + avatarR, midY, avatarR, namePx);
+            }
+
+            const scoreStr = unscored ? '—' : String(score.formattedScore ?? '');
+            setMonoType(ctx, numPx, 700);
+            let scoreBlockW = ctx.measureText(scoreStr).width;
+            if (!unscored && this.highScoreTab === 'distance') {
+                const kmSize = Math.max(9, unit * 0.8);
+                setLabelType(ctx, kmSize);
+                scoreBlockW += ctx.measureText('KM').width + unit * 0.5;
+            }
+            const youPx = Math.max(9, namePx * 0.58);
+            let youW = 0;
+            if (friendsBoard && score.isLocal) {
+                ctx.font = `600 ${youPx}px ${font.ui}`;
+                youW = ctx.measureText('YOU').width + unit * 0.55;
+            }
+            const nameMax = Math.max(8, rightX - scoreBlockW - unit * 0.9 - nameX - youW);
+
             // Call sign (+ ship) — clean gap to the score, no dotted leader.
+            // Friends: store alias only; name column sits after the avatar.
             ctx.fillStyle = color.ink;
             ctx.font = `${isTop ? 700 : 500} ${namePx}px ${font.ui}`;
             ctx.textAlign = 'left';
-            ctx.fillText(score.player_name, nameLeft, midY);
-            let labelEnd = nameLeft + ctx.measureText(score.player_name).width;
+            const shownName = friendsBoard
+                ? this.fitBoardLabel(ctx, score.player_name, nameMax)
+                : (score.player_name || '');
+            ctx.fillText(shownName, nameX, midY);
+            let labelEnd = nameX + ctx.measureText(shownName).width;
 
-            const shipName = score.ship_id ? getSkin(score.ship_id).name : null;
+            const shipName = (!friendsBoard && score.ship_id) ? getSkin(score.ship_id).name : null;
             if (shipName) {
                 const comma = ', ';
                 ctx.fillText(comma, labelEnd, midY);
@@ -3184,11 +3304,17 @@ export class Game {
                 ctx.fillText(shipName, labelEnd, midY);
             }
 
+            if (friendsBoard && score.isLocal) {
+                ctx.fillStyle = color.ink55;
+                ctx.font = `600 ${youPx}px ${font.ui}`;
+                ctx.fillText('YOU', labelEnd + unit * 0.5, midY);
+            }
+
             // Score — mono figure, optional KM label for distance.
             setMonoType(ctx, numPx, 700);
-            ctx.fillStyle = color.ink;
+            ctx.fillStyle = unscored ? color.ink55 : color.ink;
             ctx.textAlign = 'right';
-            if (this.highScoreTab === 'distance') {
+            if (!unscored && this.highScoreTab === 'distance') {
                 const kmSize = Math.max(9, unit * 0.8);
                 setLabelType(ctx, kmSize);
                 ctx.fillStyle = color.ink55;
@@ -3196,9 +3322,9 @@ export class Game {
                 const kmW = ctx.measureText('KM').width;
                 setMonoType(ctx, numPx, 700);
                 ctx.fillStyle = color.ink;
-                ctx.fillText(score.formattedScore, rightX - kmW - unit * 0.5, midY);
+                ctx.fillText(scoreStr, rightX - kmW - unit * 0.5, midY);
             } else {
-                ctx.fillText(score.formattedScore, rightX, midY);
+                ctx.fillText(scoreStr, rightX, midY);
             }
 
             resetType(ctx);
@@ -3521,6 +3647,11 @@ export class Game {
             );
             this.openWorldProgress = bestResult.progress;
             this.highScoreFlightStyle = this.flightStyle;
+            FriendsScoreService.submitRun(
+                this.flightStyle,
+                this.finalScore,
+                this.obstaclesDestroyed,
+            );
 
             track('game_over', {
                 'score': this.finalScore,
@@ -3565,44 +3696,238 @@ export class Game {
         }
     }
 
-    async loadHighScores() {
+    primeFriendsPhotos(rows) {
+        this.friendsPhotoImages ??= new Map();
+        const keep = new Set();
+        for (const row of rows || []) {
+            const id = row.player_id;
+            if (!id) continue;
+            keep.add(id);
+            const src = row.photo;
+            if (typeof src !== 'string' || !src) continue;
+            const existing = this.friendsPhotoImages.get(id);
+            if (existing && existing.__photoSrc === src) continue;
+            const img = new Image();
+            img.__photoSrc = src;
+            img.src = src;
+            this.friendsPhotoImages.set(id, img);
+        }
+        for (const id of [...this.friendsPhotoImages.keys()]) {
+            if (!keep.has(id)) this.friendsPhotoImages.delete(id);
+        }
+    }
+
+    friendInitials(name) {
+        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return '?';
+        if (parts.length >= 2) {
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+        return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    fitBoardLabel(ctx, text, maxW) {
+        const raw = String(text || '');
+        if (ctx.measureText(raw).width <= maxW) return raw;
+        let clipped = raw;
+        const ellipsis = '…';
+        while (clipped.length > 1 && ctx.measureText(clipped + ellipsis).width > maxW) {
+            clipped = clipped.slice(0, -1);
+        }
+        return clipped ? clipped + ellipsis : '';
+    }
+
+    drawFriendAvatar(ctx, score, cx, cy, r, namePx) {
+        const img = score.player_id ? this.friendsPhotoImages.get(score.player_id) : null;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.closePath();
+        if (img && img.complete && img.naturalWidth > 0) {
+            ctx.save();
+            ctx.clip();
+            ctx.drawImage(img, cx - r, cy - r, r * 2, r * 2);
+            ctx.restore();
+        } else {
+            ctx.fillStyle = color.paperTint;
+            ctx.fill();
+            ctx.fillStyle = color.ink;
+            ctx.font = `600 ${Math.max(10, namePx * 0.52)}px ${font.ui}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(this.friendInitials(score.player_name), cx, cy + 0.5);
+        }
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color.ink;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    applyFriendsRows(result) {
+        this.friendsSignedIn = Boolean(result?.signedIn);
+        this.highScores = (result?.rows || []).map((row) => ({
+            ...row,
+            formattedScore: ScoreService.formatScore(
+                this.highScoreTab === 'distance' ? row.score : row.obstacles_destroyed
+            ),
+        }));
+        this.primeFriendsPhotos(this.highScores);
+    }
+
+    /** Menu / game-over High Scores, or Submit Signal. Style is the flown style. */
+    async openSpaceBoard(opts = {}) {
+        const fromSubmit = Boolean(opts.fromSubmit);
+        const callSign = String(opts.callSign || '').trim();
+        this.highScoreFlightStyle = this.flightStyle;
+        this.highScoreTab = fromSubmit ? 'distance' : (this.highScoreTab || 'distance');
+        this.friendsSignInHint = '';
+        this.highScorePage = 0;
+        this.highScoreFocusIndex = -1;
+        this.highScoreHighlight = fromSubmit
+            ? {
+                name: callSign,
+                score: Math.max(0, Math.floor(Number(opts.score) || 0)),
+                obstacles: Math.max(0, Math.floor(Number(opts.obstacles) || 0)),
+                shipId: opts.shipId || this.shipSkinId || null,
+            }
+            : null;
+        this.appScreen = 'highscores';
+        this.updatePauseButtonVisibility();
+        if (fromSubmit) {
+            this.highScoreSource = 'global';
+            this.pendingFriendsLoad = null;
+        } else {
+            await this.chooseFriendsDefault();
+        }
+        await this.loadHighScores();
+        this.focusBoardRow();
+    }
+
+    async chooseFriendsDefault() {
+        this.pendingFriendsLoad = null;
+        if (!FriendsScoreService.isAvailable()) {
+            this.highScoreSource = 'global';
+            return;
+        }
         try {
-            this.highScores = await ScoreService.getTopScores(
+            const result = await FriendsScoreService.loadFriends(
                 this.highScoreTab,
-                100,
                 this.highScoreFlightStyle,
             );
+            if (friendsListHasAnyone(result)) {
+                this.highScoreSource = 'friends';
+                this.pendingFriendsLoad = result;
+                return;
+            }
         } catch (error) {
-            console.error('Failed to load high scores:', error);
-            this.highScores = [];
+            console.error('Failed to probe friends scores:', error);
         }
-        const totalPages = this.highScores.length === 0
+        this.highScoreSource = 'global';
+    }
+
+    focusBoardRow() {
+        const rows = this.highScores || [];
+        let index = -1;
+        if (this.highScoreSource === 'friends') {
+            index = findLocalFriendIndex(rows);
+        } else if (this.highScoreHighlight) {
+            index = findSubmittedRowIndex(rows, this.highScoreHighlight, this.highScoreTab);
+        }
+        this.highScoreFocusIndex = this.highScoreSource === 'global' ? index : -1;
+        this.highScorePage = pageForRowIndex(index, SPACE_BOARD_PAGE_SIZE);
+        const totalPages = rows.length === 0
             ? 1
-            : Math.min(10, Math.max(1, Math.ceil(this.highScores.length / 10)));
+            : Math.min(10, Math.max(1, Math.ceil(rows.length / SPACE_BOARD_PAGE_SIZE)));
         if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
         if (this.highScorePage < 0) this.highScorePage = 0;
     }
 
-    /** Style / metric / pager hits on the Space Board. @returns {boolean} consumed */
+    async loadHighScores() {
+        if (this.highScoreSource === 'friends' && FriendsScoreService.isAvailable()) {
+            try {
+                const cached = this.pendingFriendsLoad;
+                this.pendingFriendsLoad = null;
+                const result = cached || await FriendsScoreService.loadFriends(
+                    this.highScoreTab,
+                    this.highScoreFlightStyle,
+                );
+                this.applyFriendsRows(result);
+            } catch (error) {
+                console.error('Failed to load friends scores:', error);
+                this.friendsSignedIn = false;
+                this.highScores = [];
+                this.friendsPhotoImages.clear();
+            }
+        } else {
+            this.pendingFriendsLoad = null;
+            if (this.highScoreSource === 'friends' && !FriendsScoreService.isAvailable()) {
+                this.highScoreSource = 'global';
+            }
+            try {
+                this.highScores = await ScoreService.getTopScores(
+                    this.highScoreTab,
+                    100,
+                    this.highScoreFlightStyle,
+                );
+            } catch (error) {
+                console.error('Failed to load high scores:', error);
+                this.highScores = [];
+            }
+        }
+        if (this.highScoreSource !== 'friends') {
+            this.friendsPhotoImages.clear();
+        }
+        const totalPages = this.highScores.length === 0
+            ? 1
+            : Math.min(10, Math.max(1, Math.ceil(this.highScores.length / SPACE_BOARD_PAGE_SIZE)));
+        if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
+        if (this.highScorePage < 0) this.highScorePage = 0;
+    }
+
+    /** Source / metric / pager hits on the Space Board. @returns {boolean} consumed */
     async handleHighScoreBoardClick(x, y) {
-        if (this.isClickInButton(x, y, this.flightStyleToggle)) {
-            this.highScoreFlightStyle = this.highScoreFlightStyle === FLIGHT_STYLE.zigzag
-                ? FLIGHT_STYLE.arc
-                : FLIGHT_STYLE.zigzag;
+        if (this.friendsSignInButton && this.isClickInButton(x, y, this.friendsSignInButton)) {
+            if (this.friendsSignInBusy) return true;
+            this.friendsSignInBusy = true;
+            this.friendsSignInHint = '';
+            try {
+                const result = await FriendsScoreService.authenticate({ force: true });
+                if (result.signedIn) {
+                    this.friendsSignInHint = '';
+                } else if (result.configured === false) {
+                    this.friendsSignInHint = 'Play Games is not linked in this build.';
+                } else {
+                    this.friendsSignInHint =
+                        'Play Games did not sign you in.\nAdd this Google account as a tester and link the debug SHA-1.';
+                }
+                await this.loadHighScores();
+                this.focusBoardRow();
+            } finally {
+                this.friendsSignInBusy = false;
+            }
+            return true;
+        }
+        if (this.friendsSourceToggle && this.isClickInButton(x, y, this.friendsSourceToggle)) {
+            this.highScoreSource = this.highScoreSource === 'friends' ? 'global' : 'friends';
             this.highScorePage = 0;
             await this.loadHighScores();
+            this.focusBoardRow();
             return true;
         }
         if (this.isClickInButton(x, y, this.distanceTab) && this.highScoreTab !== 'distance') {
             this.highScoreTab = 'distance';
             this.highScorePage = 0;
             await this.loadHighScores();
+            this.focusBoardRow();
             return true;
         }
         if (this.isClickInButton(x, y, this.obstaclesTab) && this.highScoreTab !== 'obstacles') {
             this.highScoreTab = 'obstacles';
             this.highScorePage = 0;
             await this.loadHighScores();
+            this.focusBoardRow();
             return true;
         }
         if (this.highScorePrevButton?.enabled && this.isClickInButton(x, y, this.highScorePrevButton)) {
@@ -3755,11 +4080,7 @@ export class Game {
                     this.updatePauseButtonVisibility();
                 } else if (this.isClickInButton(x, y, this.menuButtons.highScores)) {
                     this.highScoresReturnScreen = 'menu';
-                    this.appScreen = 'highscores';
-                    this.highScoreFlightStyle = this.flightStyle;
-                    this.highScorePage = 0;
-                    await this.loadHighScores();
-                    this.updatePauseButtonVisibility();
+                    await this.openSpaceBoard();
                 }
                 return;
             }
@@ -3919,11 +4240,8 @@ export class Game {
                     this.restart();
                 } else if (this.isClickInButton(x, y, this.gameOverButtons.highScores)) {
                     this.highScoresReturnScreen = 'gameover';
-                    this.appScreen = 'highscores';
                     this.gameOverScreen = 'main';
-                    this.highScoreFlightStyle = this.flightStyle;
-                    this.highScorePage = 0;
-                    await this.loadHighScores();
+                    await this.openSpaceBoard();
                 } else if (this.isClickInButton(x, y, this.gameOverButtons.menu)) {
                     this.goToMenu();
                 } else if (!this.scoreSubmitted && 
@@ -4565,11 +4883,15 @@ export class Game {
 
             this.pendingHighScore = null;
             this.scoreSubmitted = true;
-            this.highScoreFlightStyle = this.flightStyle;
             this.highScoresReturnScreen = 'gameover';
-            this.appScreen = 'highscores';
             this.gameOverScreen = 'main';
-            await this.loadHighScores();
+            await this.openSpaceBoard({
+                fromSubmit: true,
+                callSign: name,
+                score: this.finalScore,
+                obstacles: this.obstaclesDestroyed,
+                shipId: this.shipSkinId,
+            });
         } catch (error) {
             console.error('Error saving score:', error);
             if (error instanceof CallSignRejectedError) {

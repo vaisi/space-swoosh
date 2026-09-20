@@ -28,8 +28,9 @@
 //   the heavy vibrate()/HapticTick/startup-thump path that felt too strong.
 // - Theme toggle: syncStatusBarTheme() matches light/dark glyph style.
 // - Night paper: SystemBarsStyle.Dark so light glyphs read on the dark stage.
-// - Created file: hardware back navigation, app lifecycle pausing, screen
-//   wake-lock during a run, status bar colouring and splash dismissal.
+// - PlayGames plugin: silent authenticate on boot, Open Space score submit,
+//   and Friends-collection load. Friends Sign in uses authenticate({ force })
+//   so a tap always runs GamesSignInClient.signIn() instead of a silent no-op.
 //
 // The plugins are imported dynamically inside `isNativePlatform()` branches so
 // the web bundle never pays for native code it cannot use, and so a browser
@@ -315,6 +316,68 @@ export async function hideSplashScreen() {
     }
 }
 
+/** @type {{ authenticate: () => Promise<{ signedIn?: boolean }>, submitScore: (opts: object) => Promise<{ ok?: boolean }>, loadFriends: (opts: object) => Promise<{ signedIn?: boolean, rows?: object[] }> } | null} */
+let playGamesPlugin = null;
+
+function loadPlayGames() {
+    playGamesPlugin ??= registerPlugin('PlayGames');
+    return playGamesPlugin;
+}
+
+function playGamesEnabled() {
+    return isNative() && Capacitor.getPlatform() === 'android';
+}
+
+/** Play Games sign-in. Pass `{ force: true }` from the Friends Sign in button. Never throws. */
+export async function playGamesAuthenticate(opts = {}) {
+    if (!playGamesEnabled()) return { signedIn: false, configured: false, error: 'web', rows: [] };
+    try {
+        const result = await Promise.race([
+            loadPlayGames().authenticate({
+                force: Boolean(opts.force),
+            }),
+            new Promise((resolve) => setTimeout(() => resolve({
+                signedIn: false,
+                configured: true,
+                error: 'timeout',
+            }), opts.force ? 45000 : 12000)),
+        ]);
+        return {
+            signedIn: Boolean(result?.signedIn),
+            configured: result?.configured !== false,
+            error: typeof result?.error === 'string' ? result.error : null,
+            rows: [],
+        };
+    } catch {
+        return { signedIn: false, configured: true, error: 'plugin', rows: [] };
+    }
+}
+
+/** Fire-and-forget Open Space submit. Never throws. */
+export async function playGamesSubmitScore(opts) {
+    if (!playGamesEnabled()) return { ok: false };
+    try {
+        const result = await loadPlayGames().submitScore(opts || {});
+        return { ok: Boolean(result?.ok) };
+    } catch {
+        return { ok: false };
+    }
+}
+
+/** Friends-collection scores for the current style + metric. Never throws. */
+export async function playGamesLoadFriends(opts) {
+    if (!playGamesEnabled()) return { signedIn: false, rows: [] };
+    try {
+        const result = await loadPlayGames().loadFriends(opts || {});
+        return {
+            signedIn: Boolean(result?.signedIn),
+            rows: Array.isArray(result?.rows) ? result.rows : [],
+        };
+    } catch {
+        return { signedIn: false, rows: [] };
+    }
+}
+
 /**
  * Wire the native shell to a running game. Safe to call on the web, where it
  * returns immediately. Splash is dismissed first — `game.start()` has already
@@ -341,6 +404,7 @@ export async function initNative(game) {
         await wireLifecycle(game, App);
         await wireKeyboard(game);
         await syncKeepAwake(game);
+        playGamesAuthenticate();
     } finally {
         await hideSplashScreen();
     }

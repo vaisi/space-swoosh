@@ -1,10 +1,10 @@
 // MainActivity.java
-// Changes: Look up optional ActionBar overlay ids at runtime — AppCompat
+// Changes: Registers PlayGames plus InAppReview, HapticSmash, and RefreshRate.
+// Look up optional ActionBar overlay ids at runtime — AppCompat
 // 1.7 has no R.id.action_bar_overlay_layout (Studio compile error).
 // Caption guard outlives Capacitor SystemBars. Empty activity title,
 // hide captionBar on every inset pass, zero caption insets, GONE
-// DecorCaption / ActionBar views. Registers InAppReview, HapticSmash,
-// and RefreshRate.
+// DecorCaption / ActionBar views.
 package com.orbi.spaceswoosh;
 
 import android.os.Bundle;
@@ -30,6 +30,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(RefreshRatePlugin.class);
         registerPlugin(HapticSmashPlugin.class);
         registerPlugin(InAppReviewPlugin.class);
+        registerPlugin(PlayGamesPlugin.class);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);

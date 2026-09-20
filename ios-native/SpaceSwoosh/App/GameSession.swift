@@ -1,6 +1,7 @@
 // GameSession.swift
-// Changes: Outcome values use grouped digits; lab outcome carries distance / goal.
-// journey_level_end includes day_name; run-end events keep ship_id / distance / flight_style.
+// Changes: Open Space game-over silently submits distance + obstacles to
+// Game Center Friends boards. Outcome values use grouped digits; lab outcome
+// carries distance / goal. journey_level_end includes day_name.
 
 import Foundation
 import Combine
@@ -133,6 +134,11 @@ final class GameSession: ObservableObject {
                 )
                 personalBest = recorded.best
                 isNewBest = recorded.isNew
+                FriendsScoreService.submit(
+                    distance: Int(run.scoreKm),
+                    obstacles: run.obstaclesDestroyed,
+                    style: run.flightStyle
+                )
                 trackOpenSpaceEnd(run)
             } else {
                 outcome = makeOutcome(run: run)

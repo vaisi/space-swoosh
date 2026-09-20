@@ -1,7 +1,8 @@
 // PlayContainerView.swift
-// Changes: Enjoyment review overlay after Journey Day 6 (Day 13 if Later).
-// Level outcome card matches Android — centered block, starred tally
-// with dotted rules, lead action full-width, Level Select + Menu paired.
+// Changes: After Submit Signal, Space Board opens Global on the new
+// call-sign row. Menu/game-over High Scores still default to Friends
+// when Game Center has anyone. Enjoyment review overlay after Journey
+// Day 6 (Day 13 if Later). Level outcome card matches Android.
 
 import SwiftUI
 import SpriteKit
@@ -19,6 +20,7 @@ struct PlayContainerView: View {
     @State private var scene = PlayScene(size: CGSize(width: 390, height: 844))
     @State private var paused = false
     @State private var showHighScores = false
+    @State private var boardOpen = SpaceBoardOpen()
     @State private var showSubmit = false
     @State private var didAutoPrompt = false
     @State private var didOfferReview = false
@@ -125,9 +127,15 @@ struct PlayContainerView: View {
                         rankNumber: session.boardRank,
                         shipId: settings.shipSkinId,
                         style: settings.flightStyle,
-                        onDone: {
+                        onDone: { callSign in
                             session.scoreSubmitted = true
                             showSubmit = false
+                            boardOpen = SpaceBoardOpen(
+                                fromSubmit: true,
+                                callSign: callSign,
+                                score: session.scoreKm,
+                                obstacles: session.destroyed
+                            )
                             showHighScores = true
                         },
                         onCancel: { showSubmit = false }
@@ -135,7 +143,11 @@ struct PlayContainerView: View {
                 }
 
                 if showHighScores {
-                    HighScoresView(onBack: { showHighScores = false })
+                    HighScoresView(
+                        onBack: { showHighScores = false },
+                        open: boardOpen
+                    )
+                    .id("\(boardOpen.fromSubmit)-\(boardOpen.callSign)-\(boardOpen.score)-\(boardOpen.obstacles)")
                 }
 
                 if showReviewPrompt {
@@ -277,6 +289,7 @@ struct PlayContainerView: View {
                         }
                     }
                     ShellChrome.brandButton("High Scores", tag: "#") {
+                        boardOpen = SpaceBoardOpen()
                         showHighScores = true
                     }
                     ShellChrome.brandButton("Menu", tag: "⌂", action: onMenu)
@@ -408,6 +421,7 @@ struct PlayContainerView: View {
         paused = false
         showSubmit = false
         showHighScores = false
+        boardOpen = SpaceBoardOpen()
         didAutoPrompt = false
         didOfferReview = false
         showReviewPrompt = false

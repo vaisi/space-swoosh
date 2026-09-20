@@ -17,7 +17,12 @@
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
      shield is 5s wall-clock. Android Play default is 48 / 1.0.48 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
-     build 14; marketing stays 1.0.1.
+     build 14; marketing stays 1.0.1. SPACE BOARD phones: Global/Friends
+     chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
+     is the flown/saved flight style. Opens on Friends when that list has
+     anyone; Submit Signal stays Global and pages to the call-sign row.
+     Global stays Supabase. Friends rows are store profiles (on-device photo /
+     initials, YOU); Photos App Privacy stays unchecked.
      Play 1.0.44 follow-ups — edge-to-edge, unlock orientation with 2:3
      landscape letterbox, release R8 minify. -->
 
@@ -33,9 +38,12 @@
 > `UNLOCK_ALL_LEVELS = false` (web also `?unlocklevels=1|0`). Free forever (no
 > `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
 > High Scores plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
-> Light Mode / Restore; native Rate ★ is a header chip (same as SPACE BOARD Zigzag). PLAY is Journey then Open Space; Lab is hidden (`SHOW_HAZARD_LAB` / `showHazardLab`, flip to restore the map tile). SPACE BOARD
+> Light Mode / Restore; native Rate ★ is a header chip. PLAY is Journey then Open Space; Lab is hidden (`SHOW_HAZARD_LAB` / `showHazardLab`, flip to restore the map tile). SPACE BOARD
 > uses the same Supabase `high_scores` table as Android (anon key injected at
-> build). Local PBs still back the PLAY card.
+> build) for **Global**. Phones add a **Friends** chip (Game Center on iOS,
+> Play Games on Android). Style is the flown/saved flight style (no Z/S chip).
+> Menu open defaults to Friends when that list has anyone. Submit Signal opens
+> Global on the new call-sign row. Local PBs still back the PLAY card.
 > `shipSkinId` persists (unknown / unset / unowned id stays **Flicker**).
 > One equipped `SkinRenderer` at `startRun` (baked hull or live-draw node +
 > one wake). Focus is **ripple** dotted; Ember is **twin dotted traces**.
@@ -272,9 +280,20 @@ RLS behavior stays the same.
 | Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql`, `…_add_platform_to_scores_and_replies.sql` |
 | Boards | Separate Arc and Zigzag leaderboards. Column default `'zigzag'` keeps all legacy rows on Zigzag. Rank / top-10 / submit filter by the run's `game.flightStyle`. |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
-| Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style |
-| UI | **Space Board** screen: header title + quiet **← Back**; theme-style Zigzag/Arc toggle button on the right (`Zigzag`+`Z` / `Arc`+`S`); **DISTANCE / OBSTACLES** metric tabs below. Opens on the player's current flight style. |
+| Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style. Friends on Android: `FriendsScoreService.loadFriends` via `PlayGamesPlugin` (max 25 Play Games rows). Friends on iOS: `FriendsScoreService.loadFriends` via GameKit (up to 100). |
+| UI | **Space Board** screen: header title + quiet **← Back**. Native phones: **Global** (`#`) / **Friends** (`F`) chip. No Zigzag/Arc chip — `highScoreFlightStyle` / `boardStyle` is the current flown or saved style. Web has Global only. **DISTANCE / OBSTACLES** metric tabs below. Menu / game-over High Scores: silent friends probe, open Friends when signed in and that list has a friend or a scored local row; else Global. Submit Signal stays on Global, pages to the matching call-sign row (`paperTint`). Friends pages to the YOU row. |
 | Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. Modal always stacks distance → asteroids → rank **above** the call-sign field (no auto-focus). Soft keyboard: `@capacitor/keyboard` + `game.softKeyboardHeight` / `visualViewport`; opaque paper wash (Mission Failed is not drawn underneath); card centers in the remaining viewport; compact mode uses a three-column stats row still above the field. DOM input on `#gameContainer`, mapped from canvas to CSS every frame. Native iOS `SubmitScoreView` matches: same order, keyboard height pads the card above the IME, `safeAreaPadding` clears the island. |
+
+### Friends board (Game Center / Play Games)
+
+Phones only. Web never shows the Friends chip. iPhone friends and Android friends do not mix.
+
+| Piece | Role |
+| --- | --- |
+| iOS | `FriendsScoreService.swift` (`FriendBoardRow`: playerId, isLocal, small `GKPlayer` photo) + `SpaceSwoosh.entitlements` (`com.apple.developer.game-center`). Authenticate `GKLocalPlayer` at launch. Four Game Center ids: `com.orbi.spaceswoosh.{zigzag\|arc}.{distance\|obstacles}`. |
+| Android | `PlayGamesPlugin` + `src/services/FriendsScoreService.js`. Play Games v2. APP_ID is Firebase project number `149157024817`. Load includes `playerId`, `isLocal`, ~64px JPEG data-URL via `ImageManager`. Leaderboard ids in `android/app/src/main/res/values/games-ids.xml` stay `unset` until Play Console is filled. Friends collection = `COLLECTION_FRIENDS` (max 25). Sign in button calls `authenticate({ force: true })`. |
+| Submit | Every finished **Open Space** run silently posts distance + obstacles for that flight style. Does not wait for call-sign Submit Signal. Journey / Hazard Lab never post. Failures are silent. |
+| UI | Header chip Global (`#`) / Friends (`F`) only (style is the flown/saved flight style). Friends rows are store profiles: avatar (Game Center / Play Games photo already on that account, decoded on the device only) or initials, a YOU tag on the local player, `paperTint` on that row. Local player is always merged in so you appear with no friends. No ship name. Unsigned-in empty state is a Sign in CTA. Photos are never uploaded; do not tick Photos in App Privacy / Play Data safety. Menu defaults to Friends when the friends list has anyone. |
 
 ### Journey replies (Supabase)
 
@@ -305,7 +324,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
-| `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. |
+| `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. SPACE BOARD: Global/Friends chip on phones, Friends default when that list has anyone, Submit Signal paperTint + page jump. Friends rows: avatar / initials, YOU, paperTint local row. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, hangar roster (`SHIP_SKIN_LIST` omits `hidden`), menu previews. Hidden leftover ids remount to Flicker. |
 | `ships/skinDefs.js` | Ship catalog (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin…Rook). Merlin and Rook set `hidden: true` so hangar / menu / yearly pick omit them. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
@@ -359,6 +378,8 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playSwooshVoice` and `playFuelLowVoice`; `recoverBgmIfInterrupted` restarts HTMLAudio if WebKit pauses it under Web Audio; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
+| `services/FriendsScoreService.js` | Android Play Games Friends board: maps `isLocal` + photo data-URL. Web no-ops (`isAvailable` is Android native only). |
+| `services/SpaceBoardFocus.js` | Friends-default probe, Submit Signal call-sign row match, 10-row page index. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
 | `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear / Play mode-select blurbs. |
@@ -381,7 +402,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
-| `highscores` | Space Board: 10 tall rows/page (max 10 pages), header Zigzag/Arc brand-button toggle (Z/S tags), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
+| `highscores` | Space Board: 10 tall rows/page (max 10 pages), native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
 | `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission. After a successful Day 6 clear (native only), the enjoyment card layers on top; Later snoozes until Day 13. |
 
@@ -1229,8 +1250,8 @@ with a linear gradient along the wake's chord for the length-wise fade.
   desktop. `{space}` / `{left}` / `{right}` render as keycaps (`ui/Keycaps.js`).
   Journey intro copy is unchanged.
   Persisted in localStorage. Open Space online scores and local personal bests
-  key off this value (`flight_style` / `bestByStyle`). Space Board's Zigzag/Arc
-  toggle stays viewable either way.
+  key off this value (`flight_style` / `bestByStyle`). Space Board shows that
+  style (no Z/S toggle); switch style under Options → Controls.
 
 ## 7. Scoring model
 
@@ -1406,8 +1427,8 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` (`showHazardLab` false hides the centered LAB tile). `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). `JourneyProgress.UNLOCK_ALL_LEVELS` is **false** (sequential tiles; saved `unlocked` unchanged). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
-| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip, review prompt). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). `StoreLinks` — Play URL + App Store write-review URL (`APP_STORE_APPLE_ID`). |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase Global + Game Center Friends chip; style is saved flight style; Submit Signal jumps to the call-sign row), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` (`showHazardLab` false hides the centered LAB tile). `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). `JourneyProgress.UNLOCK_ALL_LEVELS` is **false** (sequential tiles; saved `unlocked` unchanged). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
+| `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). `FriendsScoreService` — Game Center auth, silent Open Space submit, friends-only `FriendBoardRow` load (local player + small photos). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip, review prompt). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). `StoreLinks` — Play URL + App Store write-review URL (`APP_STORE_APPLE_ID`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
@@ -1415,7 +1436,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Vortex / Tick / Crease / Ladder / Lag / Helix / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current cached SKShapeNode hairlines (X-slide ≡ Android `lineDashOffset`), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
-| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`). `CURRENT_PROJECT_VERSION` 13. |
+| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, entitlements, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`) + GameKit. `CODE_SIGN_ENTITLEMENTS` = `SpaceSwoosh/SpaceSwoosh.entitlements`. `CURRENT_PROJECT_VERSION` 14. |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s

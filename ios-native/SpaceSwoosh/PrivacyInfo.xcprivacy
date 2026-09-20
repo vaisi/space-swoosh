@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- PrivacyInfo.xcprivacy — Changes: Purchases, User ID (call sign), Device ID
-     (Firebase instance, not IDFA), Gameplay / other UGC. Tracking remains false. -->
+<!-- PrivacyInfo.xcprivacy — Changes: Purchases, User ID (call sign + Game
+     Center player id), Device ID (Firebase instance, not IDFA), Gameplay /
+     other UGC. Tracking remains false. -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>

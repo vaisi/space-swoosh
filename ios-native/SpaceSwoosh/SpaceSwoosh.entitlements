@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SpaceSwoosh.entitlements — Changes: Game Center capability for the
+     native Friends board (GKLocalPlayer + friends-only leaderboards). -->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.developer.game-center</key>
+	<true/>
+</dict>
+</plist>

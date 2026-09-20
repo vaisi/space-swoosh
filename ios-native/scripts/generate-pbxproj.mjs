@@ -1,6 +1,6 @@
 // generate-pbxproj.mjs
-// Changes: CURRENT_PROJECT_VERSION 14 (title-strip fix). MARKETING_VERSION 1.0.1.
-// RevenueCat SPM + Firebase Analytics.
+// Changes: Game Center entitlements + GameKit.framework. CURRENT_PROJECT_VERSION
+// 14 (title-strip fix). MARKETING_VERSION 1.0.1. RevenueCat SPM + Firebase Analytics.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -35,6 +35,9 @@ const fontFiles = walk(appRoot).filter((f) => /\.(ttf|otf)$/i.test(f));
 const infoPlist = path.join(appRoot, 'Info.plist');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');
 const googleServicePlist = path.join(appRoot, 'GoogleService-Info.plist');
+const entitlementsPath = path.join(appRoot, 'SpaceSwoosh.entitlements');
+const gameKitRef = id('sdk:GameKit.framework');
+const gameKitBuild = id('build:GameKit.framework');
 const firebasePackage = id('spm:firebase-ios-sdk');
 const firebaseAnalytics = id('spm:FirebaseAnalyticsCore');
 const firebaseAnalyticsBuild = id('build:FirebaseAnalyticsCore');
@@ -86,6 +89,7 @@ for (const f of fontFiles) {
 ensureFile(infoPlist, 'text.plist.xml');
 ensureFile(privacyPlist, 'text.plist.xml');
 ensureFile(googleServicePlist, 'text.plist.xml');
+ensureFile(entitlementsPath, 'text.plist.entitlements');
 
 // Asset catalog as a single resource folder reference
 const assetsPath = path.join(appRoot, 'Assets.xcassets');
@@ -105,7 +109,7 @@ function groupFor(dirRel) {
 }
 
 groupFor('SpaceSwoosh');
-for (const f of [...swiftFiles, ...voiceFiles, ...fontFiles, infoPlist, privacyPlist, googleServicePlist]) {
+for (const f of [...swiftFiles, ...voiceFiles, ...fontFiles, infoPlist, privacyPlist, googleServicePlist, entitlementsPath]) {
   const rel = path.relative(root, f).replace(/\\/g, '/');
   const dir = path.posix.dirname(rel);
   const parts = dir.split('/');
@@ -148,6 +152,7 @@ const googleService = ensureFile(googleServicePlist);
 pbx += `\t\t${googleService.build} /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ${googleService.ref} /* GoogleService-Info.plist */; };\n`;
 pbx += `\t\t${firebaseAnalyticsBuild} /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = ${firebaseAnalytics} /* FirebaseAnalyticsCore */; };\n`;
 pbx += `\t\t${revenueCatBuild} /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ${revenueCatProduct} /* RevenueCat */; };\n`;
+pbx += `\t\t${gameKitBuild} /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ${gameKitRef} /* GameKit.framework */; };\n`;
 for (const f of voiceFiles) {
   const meta = ensureFile(f);
   pbx += `\t\t${meta.build} /* ${meta.name} in Resources */ = {isa = PBXBuildFile; fileRef = ${meta.ref} /* ${meta.name} */; };\n`;
@@ -167,6 +172,7 @@ for (const meta of fileRefs.values()) {
   pbx += `\t\t${meta.ref} /* ${meta.name} */ = {isa = PBXFileReference; lastKnownFileType = ${fileType}; path = ${meta.name}; sourceTree = "<group>"; };\n`;
 }
 pbx += `\t\t${assets.ref} /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };\n`;
+pbx += `\t\t${gameKitRef} /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };\n`;
 
 pbx += `/* End PBXFileReference section */
 
@@ -177,6 +183,7 @@ pbx += `/* End PBXFileReference section */
 			files = (
 				${firebaseAnalyticsBuild} /* FirebaseAnalyticsCore in Frameworks */,
 				${revenueCatBuild} /* RevenueCat in Frameworks */,
+				${gameKitBuild} /* GameKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +358,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SpaceSwoosh/SpaceSwoosh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = "";
@@ -365,6 +373,8 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
+					"-framework",
+					GameKit,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.orbi.spaceswoosh;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -378,6 +388,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SpaceSwoosh/SpaceSwoosh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = "";
@@ -392,6 +403,8 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
+					"-framework",
+					GameKit,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.orbi.spaceswoosh;
 				PRODUCT_NAME = "$(TARGET_NAME)";

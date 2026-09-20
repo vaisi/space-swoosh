@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- AndroidManifest.xml — Capacitor host. Changes: activity label is blank
-     so a caption bar cannot print "Spac…"; application app_name stays
-     Space Swoosh for the drawer / recents. Drop screenOrientation portrait
-     lock (Play large-screen); 2:3 letterbox is CSS. Strip AD_ID. -->
+<!-- AndroidManifest.xml — Capacitor host. Changes: Play Games APP_ID meta-data.
+     activity label is blank so a caption bar cannot print "Spac…"; application
+     app_name stays Space Swoosh for the drawer / recents. Drop
+     screenOrientation portrait lock (Play large-screen); 2:3 letterbox is CSS.
+     Strip AD_ID. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <application
@@ -46,6 +47,10 @@
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />
+        <!-- Play Games Services APP_ID from games-ids.xml (Firebase project number). -->
+        <meta-data
+            android:name="com.google.android.gms.games.APP_ID"
+            android:value="@string/game_services_project_id" />
     </application>
 
     <!-- Permissions -->

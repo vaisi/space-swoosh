@@ -1,4 +1,6 @@
-<!-- Changes: Android 1.0.48 / iPhone build 14 — no "Space…" title chip
+<!-- Changes: Friends shows the Game Center / Play Games photo already on
+     that store profile, on the device only (Photos App Privacy stays off).
+     Android 1.0.48 / iPhone build 14 — no "Space…" title chip
      (Android host header; iOS has no nav title and Now Playing is cleared).
      iPhone black holes match Android — solid well, soft shaded halo, thin
      pulsing ring (not a donut). iPhone wind dashes travel left or right
@@ -15,7 +17,11 @@
      playfield stays a tall stage (landscape letterboxes). HUD stays out
      of the status bar and home indicator. Smash-star asteroid targets
      climb after day 13 (8 / 10 / 15 / 17 / 20 by chapter). Merlin and
-     Rook withheld from hangar. New players start in Flicker. -->
+     Rook withheld from hangar. New players start in Flicker. Phone apps add
+     a Global/Friends chip on the Space Board (Game Center / Play Games).
+     Space Board uses the flown flight style (no Zigzag/Arc chip). Opens on
+     Friends when that list has anyone; Submit Signal jumps to your Global
+     row. -->
 # Space Swoosh — Player Guide
 
 > How to play. No spoilers, just the essentials.
@@ -26,7 +32,11 @@
 > counted). That is **not** the device Advertising ID and is **not** used for ads
 > or tracking. Open Space scores use a public project key with server-side row
 > limits (read + submit only; no player accounts). Call signs you submit are
-> stored on the online board. If you finish the Journey, the words you send (or
+> stored on the online board. On the iPhone and Android apps, Friends uses
+> Game Center or Play Games aliases (not the typed call sign); those lists
+> do not mix across stores. Friends shows the store profile photo already
+> attached to that Game Center / Play Games account, on the device only.
+> If you finish the Journey, the words you send (or
 > that you left it unsaid) and the ship you flew are stored privately — not on
 > the public board. Journey progress and Open Space personal bests stay on your
 > device. Full policy:
@@ -37,7 +47,8 @@
 > Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
 > Options is a hub (Ship, Controls, Sound, Light/Dark Mode, Rate, Restore). Play offers Journey
 > then Open Space on two tall, centered cards. High Scores
-> is the same online SPACE BOARD as Android (Zigzag/Arc, distance or obstacles).
+> is the same online SPACE BOARD as Android (distance or obstacles for the
+> style you flew, plus a Global/Friends chip: Friends is Game Center on iPhone).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
 > Cycle ships on the home screen (swipe, or ◀ / ▶) or pick one under
 > Options → Ship; your choice is saved. The
@@ -89,8 +100,12 @@
 > deadly — only the blue edge is a gift.
 >
 > Open Space high scores are online per flight style (Zigzag and Arc boards;
-> call sign, ship, + distance; top 100 each). Auto call-sign prompt only for
-> top 10 on that style’s board; Submit Score stays available anytime.
+> call sign, ship, + distance; top 100 each). On the phone apps the Space Board
+> also has a **Global / Friends** title-bar chip: Friends shows Game Center
+> (iPhone) or Play Games (Android) names, not call signs, and iPhone friends
+> never appear on Android (or the other way around). The browser stays Global
+> only. Auto call-sign prompt only for top 10 on that style’s board; Submit
+> Score stays available anytime.
 > Your Open Space personal bests (per style) and Journey progress stay on your device.
 > Journey and Open Space play short session voice cues on your first wall BOOP
 > and on each Style Swoosh (swoosh is voice-only; music keeps playing under it).
@@ -199,11 +214,20 @@ keeps that same layout above the keyboard (the end-screen buttons stay hidden).
 Outside
 the top 10 you can still tap **Submit Score** to send a signal. Scores go to
 that style’s board only. The board shows your call sign and the ship you flew
-(`Name, Ship` and the score).
-**High Scores** on the main menu opens the **Space Board** — tap the Zigzag /
-Arc button in the title bar (same idea as Light/Dark Mode) to switch boards,
-then browse by distance or obstacles smashed (up to 100 runs each, 10 per
-page). Ranks 1–3 show trophy icons. No account required.
+(`Name, Ship` and the score). After you send a signal, High Scores opens on
+**Global** at your new row (tinted like the Friends YOU row) so you do not have
+to page for it.
+
+**High Scores** on the main menu opens the **Space Board** for the flight style
+you last used (Zigzag or Arc — change that under Options → Controls). Browse by
+distance or obstacles smashed (up to 100 runs each, 10 per page). On the iPhone
+and Android apps a title-bar chip switches **Global** (public call signs) and
+**Friends** (people you know on Game Center or Play Games who also play). If you
+are signed in and that friends list has anyone, the board opens on Friends;
+otherwise Global. Friends rows are store profiles — avatar or
+initials, a quiet YOU on your row, and you still appear if nobody else is
+listed. Ranks 1–3 show trophy icons. No Space Swoosh
+account required.
 
 Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
@@ -249,8 +273,8 @@ screen to change ships — or tap the triangle arrows. On a keyboard, press
 
 - **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
-- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar (same kind of button as Zigzag / Arc on High Scores).
-- **High Scores** — open the Space Board (Zigzag/Arc button in the title; DISTANCE / OBSTACLES). Native iOS and Android share the same online board (call sign + ship). Android pages 10 scores at a time (up to 100).
+- **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar.
+- **High Scores** — open the Space Board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. After Submit Signal it stays on Global and jumps to your row. Android pages 10 scores at a time (up to 100).
 
 After a run, **Menu** on the end screen brings you back here.
 

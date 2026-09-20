@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- games-ids.xml — Play Games Services ids.
+     Changes: APP_ID is the Firebase / GCP project number
+     (google-services.json project_number). Sign-in stays dead while this
+     is 0. Replace the four leaderboard_* values with Play Console ids
+     (CgkI…). Apple Game Center uses
+     com.orbi.spaceswoosh.{zigzag|arc}.{distance|obstacles}. -->
+<resources>
+    <string name="game_services_project_id" translatable="false">149157024817</string>
+    <string name="leaderboard_zigzag_distance" translatable="false">unset</string>
+    <string name="leaderboard_zigzag_obstacles" translatable="false">unset</string>
+    <string name="leaderboard_arc_distance" translatable="false">unset</string>
+    <string name="leaderboard_arc_obstacles" translatable="false">unset</string>
+</resources>
