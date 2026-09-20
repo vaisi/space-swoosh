@@ -1,6 +1,7 @@
 // FriendsScoreService.js
-// Changes: authenticate({ force }) for the Friends Sign in button. Rows still
-// carry isLocal + store photo data-URL.
+// Changes: Friends YOU row uses max(Play Games, local Open Space PB) so
+// distance / obstacles are not "—" while the store board catches up.
+// authenticate({ force }) still opens the Play Games sheet.
 
 import { isAndroidNative } from '../core/platform.js'
 import {
@@ -8,6 +9,55 @@ import {
     playGamesLoadFriends,
     playGamesSubmitScore,
 } from '../native/index.js'
+import {
+    loadOpenWorldProgress,
+    personalBestDestroyedFor,
+    personalBestFor,
+} from './OpenWorldProgress.js'
+
+function overlayLocalBest(rows, tab, flightStyle) {
+    const progress = loadOpenWorldProgress()
+    const bestDist = personalBestFor(progress, flightStyle)
+    const bestObs = personalBestDestroyedFor(progress, flightStyle)
+    const bestValue = tab === 'obstacles' ? bestObs : bestDist
+    let list = Array.isArray(rows) ? rows.slice() : []
+    const local = list.find((row) => row.isLocal)
+    const storeValue = local
+        ? Math.floor(Number(tab === 'obstacles' ? local.obstacles_destroyed : local.score) || 0)
+        : 0
+    if (!local && (bestDist > 0 || bestObs > 0)) {
+        const value = tab === 'obstacles' ? bestObs : bestDist
+        list.push({
+            player_name: 'You',
+            player_id: 'local',
+            score: bestDist,
+            obstacles_destroyed: bestObs,
+            ship_id: null,
+            formattedScore: String(value),
+            rank: 0,
+            isLocal: true,
+            photo: null,
+        })
+    }
+    list = list.map((row) => {
+        if (!row.isLocal) return row
+        const storeDist = Math.floor(Number(row.score) || 0)
+        const storeObs = Math.floor(Number(row.obstacles_destroyed) || 0)
+        const score = Math.max(storeDist, bestDist)
+        const obstacles = Math.max(storeObs, bestObs)
+        const value = tab === 'obstacles' ? obstacles : score
+        return {
+            ...row,
+            score,
+            obstacles_destroyed: obstacles,
+            formattedScore: String(value),
+        }
+    })
+    if (bestValue > storeValue) {
+        FriendsScoreService.submitRun(flightStyle, bestDist, bestObs)
+    }
+    return list
+}
 
 export class FriendsScoreService {
     static isAvailable() {
@@ -53,6 +103,9 @@ export class FriendsScoreService {
                 photo: typeof row.photo === 'string' ? row.photo : null,
             }
         })
-        return { signedIn: Boolean(result.signedIn), rows }
+        return {
+            signedIn: Boolean(result.signedIn),
+            rows: result.signedIn ? overlayLocalBest(rows, tab, flightStyle) : rows,
+        }
     }
 }

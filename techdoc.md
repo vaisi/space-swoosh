@@ -29,8 +29,10 @@
      guard so SystemBars cannot restore the host title strip). Native iOS
      build 14; marketing stays 1.0.1. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
-     is the flown/saved flight style. Opens on Friends when that list has
-     anyone; Submit Signal stays Global and pages to the call-sign row.
+     is the flown/saved flight style. Friends YOU row shows the device Open
+     Space personal best when the store board still has no score. Opens on
+     Friends when that list has anyone; Submit Signal stays Global and pages
+     to the call-sign row.
      Global stays Supabase. Friends rows are store profiles (on-device photo /
      initials, YOU); Photos App Privacy stays unchecked.
      Play 1.0.44 follow-ups — edge-to-edge, unlock orientation with 2:3
@@ -294,8 +296,8 @@ RLS behavior stays the same.
 | Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql`, `…_add_platform_to_scores_and_replies.sql` |
 | Boards | Separate Arc and Zigzag leaderboards. Column default `'zigzag'` keeps all legacy rows on Zigzag. Rank / top-10 / submit filter by the run's `game.flightStyle`. |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
-| Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style. Friends on Android: `FriendsScoreService.loadFriends` via `PlayGamesPlugin` (max 25 Play Games rows). Friends on iOS: `FriendsScoreService.loadFriends` via GameKit (up to 100). |
-| UI | **Space Board** screen: header title + quiet **← Back**. Native phones: **Global** (`#`) / **Friends** (`F`) chip. No Zigzag/Arc chip — `highScoreFlightStyle` / `boardStyle` is the current flown or saved style. Web has Global only. **DISTANCE / OBSTACLES** metric tabs below. Menu / game-over High Scores: silent friends probe, open Friends when signed in and that list has a friend or a scored local row; else Global. Submit Signal stays on Global, pages to the matching call-sign row (`paperTint`). Friends pages to the YOU row. |
+| Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style. Friends on Android: `FriendsScoreService.loadFriends` via `PlayGamesPlugin` (friends collection + `loadCurrentPlayerLeaderboardScore`, then overlay local Open Space PB). Friends on iOS: `FriendsScoreService.loadFriends` via GameKit (friends-only + local player entry + overlay local PB). |
+| UI | **Space Board** screen: header title + quiet **← Back**. Native phones: **Global** (`#`) / **Friends** (`F`) chip. No Zigzag/Arc chip — `highScoreFlightStyle` / `boardStyle` is the current flown or saved style. Web has Global only. **DISTANCE / OBSTACLES** metric tabs below. Menu / game-over High Scores: silent friends probe, open Friends when signed in and that list has a friend or a scored local row; else Global. Friends YOU shows `max(store, OpenWorldProgress)` so a just-finished Open Space run is not "—". Submit Signal stays on Global, pages to the matching call-sign row (`paperTint`). Friends pages to the YOU row. |
 | Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. No auto-focus. Idle: stacked distance → asteroids → rank above the call-sign field. Soft keyboard overlays (`Keyboard.resize: none`, Android `adjustNothing`); `@capacitor/keyboard` writes `game.softKeyboardHeight`. `getVisibleCanvasBounds` subtracts only real IME overlap (never a second keyboard-sized cut). `html.ss-ime-open` zeros body `padding-bottom` so `--safe-area-inset-bottom` cannot shrink `#gameContainer`. Opaque paper wash covers the full canvas. Keyboard-open sheet fills the remaining viewport: header + recap line + field + Submit docked above the IME. DOM input on `#gameContainer`, mapped from canvas to CSS every frame. Paint lives in `ui/screens/SubmitSignalModal.js`. Playtest `?signal=1` (sample stats) and `?kb=N` (fake IME height). Native iOS `SubmitScoreView` matches: compact header (no `ShellChrome.header`), same recap/field/Submit rhythm, keyboard height pads the sheet above the IME, `safeAreaPadding` clears the island. |
 
 ### Friends board (Game Center / Play Games)
@@ -304,8 +306,8 @@ Phones only. Web never shows the Friends chip. iPhone friends and Android friend
 
 | Piece | Role |
 | --- | --- |
-| iOS | `FriendsScoreService.swift` (`FriendBoardRow`: playerId, isLocal, small `GKPlayer` photo) + `SpaceSwoosh.entitlements` (`com.apple.developer.game-center`). Authenticate `GKLocalPlayer` at launch. Four Game Center ids: `com.orbi.spaceswoosh.{zigzag\|arc}.{distance\|obstacles}`. |
-| Android | `PlayGamesPlugin` + `src/services/FriendsScoreService.js`. Play Games v2. APP_ID is Firebase project number `149157024817`. Load includes `playerId`, `isLocal`, ~64px JPEG data-URL via `ImageManager`. Leaderboard ids in `android/app/src/main/res/values/games-ids.xml` are the Play Console `CgkI…` boards (Zigzag/Arc × Distance/Obstacles). Friends collection = `COLLECTION_FRIENDS` (max 25). Sign in button calls `authenticate({ force: true })`. |
+| iOS | `FriendsScoreService.swift` (`FriendBoardRow`: playerId, isLocal, small `GKPlayer` photo) + `SpaceSwoosh.entitlements` (`com.apple.developer.game-center`). Authenticate `GKLocalPlayer` at launch. Four Game Center ids: `com.orbi.spaceswoosh.{zigzag\|arc}.{distance\|obstacles}`. Load is friends-only plus a dedicated local-player entry fetch; YOU is `max(Game Center, OpenWorldProgress)` so a just-finished run is not "—". |
+| Android | `PlayGamesPlugin` + `src/services/FriendsScoreService.js`. Play Games v2. APP_ID is Firebase project number `149157024817`. Load includes `playerId`, `isLocal`, ~64px JPEG data-URL via `ImageManager`. Leaderboard ids in `android/app/src/main/res/values/games-ids.xml` are the Play Console `CgkI…` boards (Zigzag/Arc × Distance/Obstacles). Friends collection = `COLLECTION_FRIENDS` (max 25) plus the current player's own public all-time score (`loadCurrentPlayerLeaderboardScore`) because the friends collection often omits you. JS then overlays `OpenWorldProgress` (max of store vs device PB) on the YOU row and resubmits if the store is behind. `submitScore` reads Capacitor numbers as doubles. Sign in button calls `authenticate({ force: true })`. |
 | Submit | Every finished **Open Space** run silently posts distance + obstacles for that flight style. Does not wait for call-sign Submit Signal. Journey / Hazard Lab never post. Failures are silent. |
 | UI | Header chip Global (`#`) / Friends (`F`) only (style is the flown/saved flight style). Friends rows are store profiles: avatar (Game Center / Play Games photo already on that account, decoded on the device only) or initials, a YOU tag on the local player, `paperTint` on that row. Local player is always merged in so you appear with no friends. No ship name. Unsigned-in empty state is a Sign in CTA. Photos are never uploaded; do not tick Photos in App Privacy / Play Data safety. Menu defaults to Friends when the friends list has anyone. |
 
@@ -339,7 +341,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
-| `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. SPACE BOARD: Global/Friends chip on phones, Friends default when that list has anyone, Submit Signal paperTint + page jump. Friends rows: avatar / initials, YOU, paperTint local row. |
+| `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. SPACE BOARD: Global/Friends chip on phones, Friends default when that list has anyone, Submit Signal paperTint + page jump. Friends rows: avatar / initials, YOU, paperTint local row; YOU metric is `max(Play Games, OpenWorldProgress)`. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, hangar roster (`SHIP_SKIN_LIST` omits `hidden`), menu previews. Hidden leftover ids remount to Flicker. |
 | `ships/skinDefs.js` | Ship catalog (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin…Rook). Merlin and Rook set `hidden: true` so hangar / menu / yearly pick omit them. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
@@ -354,7 +356,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress v2: unlocked level, stars, best points, `loreSeen`, `arcUnlockSeen`, `epilogueReplyDone` / `epilogueOrdinal`. Completing old Day 40 migrates `unlocked` to 41. **`UNLOCK_ALL_LEVELS`** is **false** (sequential tiles). Web `?unlocklevels=1\|0` still overrides without rewriting saved `unlocked`. Web epilogue skip: **`?level=42&nearend=1`**. |
-| `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance per flight style (`bestByStyle`; v1 `bestScore` migrates to zigzag). |
+| `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance **and** asteroids destroyed per flight style (`bestByStyle` + `bestDestroyedByStyle`; v3. v2 `bestByStyle` / v1 `bestScore` migrate). Friends YOU overlays these when Game Center / Play Games still have 0. |
 | `config/LogbookEntries.js` | Static Logbook catalog: obstacles, boosts (incl. wormhole gate), lore + level voice lines, From the Void stub. |
 | `config/HazardLabConfig.js` | Sandbox descriptor for Phase + Sweep Gate (no Journey progress). |
 | `modes/HazardLabProfile.js` | Finite lab run profile (`PLAY_MODE.hazardLab`). |
@@ -417,7 +419,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `optionsShip` | Ship picker (2-column grid of the roster); every tile draws `skin.blurb` (locked premium keeps the catalog line; price / LOCKED stays in the corner); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
-| `highscores` | Space Board: 10 tall rows/page (max 10 pages), native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
+| `highscores` | Space Board: 10 tall rows/page (max 10 pages), native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); YOU shows the device Open Space PB when the store score is still 0; Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
 | `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission. After a successful Day 6 clear (native only), the enjoyment card layers on top; Later snoozes until Day 13. |
 
@@ -1287,10 +1289,12 @@ There are **several independent metrics** on the `Game` instance:
 | `points` | Style points | `+perAsteroid` destroy, `+perSwoosh` near-miss (sparkles do **not** add points) | Analytics / persistence `bestPoints`; not the survival HUD |
 
 Open Space also keeps device-local **personal bests per flight style**
-(`services/OpenWorldProgress.js`, key `openWorldProgress`, v2 `bestByStyle`)
-updated in `gameOver()` whenever a non-Journey run ends. Exit Run does not write
-it. The Play → Open Space card footer shows nothing until a style has a best;
-one style → `Personal best: X KM`; both → `Zigzag: A KM · Arc: B KM` (zeros omitted).
+(`services/OpenWorldProgress.js`, key `openWorldProgress`, v3 `bestByStyle` +
+`bestDestroyedByStyle`) updated in `gameOver()` whenever a non-Journey run ends.
+Exit Run does not write it. The Play → Open Space card footer shows nothing until
+a style has a best; one style → `Personal best: X KM`; both → `Zigzag: A KM · Arc: B KM`
+(zeros omitted). Friends Space Board uses the same PBs on the YOU row when the
+store friends board has not indexed the run yet.
 
 `points` / `sparklesCollected` are **local only** — not on the Supabase
 leaderboard; both are included in the `game_over` GA event (`fail_reason`:

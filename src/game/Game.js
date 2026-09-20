@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Friends Space Board YOU row shows the device Open Space personal best
+//   (KM / asteroids) when Play Games still has no score, so distance is not "—".
 // - Hangar tiles always draw skin.blurb (locked premium no longer replaces
 //   it with "Tap to unlock."; price / LOCKED stays in the corner).
 // - Submit Signal: IME overlays (no WebView resize). Remaining viewport is
@@ -3653,6 +3655,7 @@ export class Game {
                 this.openWorldProgress,
                 this.finalScore,
                 this.flightStyle,
+                this.obstaclesDestroyed,
             );
             this.openWorldProgress = bestResult.progress;
             this.highScoreFlightStyle = this.flightStyle;

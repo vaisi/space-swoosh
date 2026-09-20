@@ -1,5 +1,6 @@
 // SettingsStore.swift
-// Changes: First launch with no ssTheme is Dark Mode (matches JS / Android).
+// Changes: OpenWorldProgress v3 keeps bestDestroyedByStyle with bestByStyle
+// so Friends can show asteroids smashed. First launch with no ssTheme is Dark Mode.
 // Stored "light" still wins. Hidden roster ships (Merlin, Rook) cannot be equipped; leftover
 // shipSkinId remounts to Flicker via SkinCatalog.resolve.
 // Unowned / missing shipSkinId falls back to Flicker (JS DEFAULT_SHIP_SKIN).

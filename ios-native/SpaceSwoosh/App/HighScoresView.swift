@@ -1,7 +1,7 @@
 // HighScoresView.swift
-// Changes: No Zigzag/Arc chip — board style is the saved/flown style.
-// Global/Friends remains. Opens on Friends when Game Center has anyone;
-// Submit Signal stays on Global, pages to the call-sign row, paperTint.
+// Changes: Friends YOU row now shows the device Open Space personal best
+// when Game Center still has no score (see FriendsScoreService). No
+// Zigzag/Arc chip — board style is the saved/flown style.
 
 import SwiftUI
 

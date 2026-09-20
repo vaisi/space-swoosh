@@ -1,7 +1,8 @@
 // PlayGamesPlugin.java
-// Changes: Explicit Sign in (force) always calls GamesSignInClient.signIn()
-// so a tap can open the Play Games sheet. Returns configured + error.
-// Friends load still includes playerId, isLocal, and a small JPEG photo.
+// Changes: Friends load also fetches the current player's own score (public
+// all-time board). The friends collection often omits you, which used to
+// draw YOU as "—". submitScore reads JS numbers as doubles, not getInt.
+// Sign in (force) still always calls GamesSignInClient.signIn().
 package com.orbi.spaceswoosh;
 
 import android.app.Activity;
@@ -120,8 +121,8 @@ public class PlayGamesPlugin extends Plugin {
             return;
         }
         String style = call.getString("style", "zigzag");
-        long distance = Math.max(0, call.getInt("distance", 0));
-        long obstacles = Math.max(0, call.getInt("obstacles", 0));
+        long distance = numberArg(call, "distance");
+        long obstacles = numberArg(call, "obstacles");
         String distId = leaderboardId("distance", style);
         String obsId = leaderboardId("obstacles", style);
         if (!isUsableId(distId) && !isUsableId(obsId)) {
@@ -208,7 +209,7 @@ public class PlayGamesPlugin extends Plugin {
                                             }
                                         }
                                         mergeLocal(drafts, local, localId);
-                                        finishRows(call, activity, drafts, localId);
+                                        loadOwnThenFinish(call, activity, boardId, drafts, localId);
                                     });
                             });
                     });
@@ -216,6 +217,52 @@ public class PlayGamesPlugin extends Plugin {
                 resolveFriends(call, false, new JSArray());
             }
         });
+    }
+
+    private void loadOwnThenFinish(
+        PluginCall call,
+        Activity activity,
+        String boardId,
+        List<Draft> drafts,
+        String localId
+    ) {
+        try {
+            PlayGames.getLeaderboardsClient(activity)
+                .loadCurrentPlayerLeaderboardScore(
+                    boardId,
+                    LeaderboardVariant.TIME_SPAN_ALL_TIME,
+                    LeaderboardVariant.COLLECTION_PUBLIC
+                )
+                .addOnCompleteListener(ownTask -> {
+                    LeaderboardScore own = null;
+                    if (ownTask.isSuccessful() && ownTask.getResult() != null) {
+                        try {
+                            Object payload = ownTask.getResult().get();
+                            if (payload instanceof LeaderboardScore) {
+                                own = (LeaderboardScore) payload;
+                            }
+                        } catch (Exception ignored) {
+                            // Leave own null — JS still overlays the local PB.
+                        }
+                    }
+                    applyOwnScore(drafts, own);
+                    finishRows(call, activity, drafts, localId);
+                });
+        } catch (Exception ignored) {
+            finishRows(call, activity, drafts, localId);
+        }
+    }
+
+    private static void applyOwnScore(List<Draft> drafts, LeaderboardScore own) {
+        if (own == null) return;
+        long value = own.getRawScore();
+        if (value <= 0) return;
+        for (Draft draft : drafts) {
+            if (draft.isLocal) {
+                if (value > draft.score) draft.score = value;
+                return;
+            }
+        }
     }
 
     private void finishRows(PluginCall call, Activity activity, List<Draft> drafts, String localId) {
@@ -398,6 +445,31 @@ public class PlayGamesPlugin extends Plugin {
 
     private static String safeId(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    /** Capacitor stores JS numbers as Double; getInt() can miss them and submit 0. */
+    private static long numberArg(PluginCall call, String name) {
+        try {
+            Double d = call.getDouble(name);
+            if (d != null && !d.isNaN()) return Math.max(0L, d.longValue());
+        } catch (Exception ignored) {
+            // try int / string
+        }
+        try {
+            Integer i = call.getInt(name);
+            if (i != null) return Math.max(0L, i.longValue());
+        } catch (Exception ignored) {
+            // try string
+        }
+        try {
+            String raw = call.getString(name);
+            if (raw != null && !raw.isEmpty()) {
+                return Math.max(0L, (long) Double.parseDouble(raw.trim()));
+            }
+        } catch (Exception ignored) {
+            return 0L;
+        }
+        return 0L;
     }
 
     private static int friendsCollection() {

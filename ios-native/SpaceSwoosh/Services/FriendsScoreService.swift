@@ -1,6 +1,8 @@
 // FriendsScoreService.swift
-// Changes: FriendBoardRow profile load — always include the local Game Center
-// player, small photos, isLocal. Auth + silent Open Space submit unchanged.
+// Changes: Friends YOU row uses max(Game Center, local Open Space PB) so
+// distance / obstacles are not "—" while Game Center indexes the run.
+// Also loads the local player's own leaderboard entry (friends-only lists
+// often omit you). Auth + silent Open Space submit unchanged.
 
 import Foundation
 import GameKit
@@ -74,13 +76,7 @@ enum FriendsScoreService {
         do {
             let boards = try await GKLeaderboard.loadLeaderboards(IDs: [id])
             guard let board = boards.first else {
-                let row = await profileRow(
-                    player: localPlayer,
-                    value: 0,
-                    rank: 0,
-                    isLocal: true
-                )
-                return FriendsLoadResult(signedIn: true, rows: [row])
+                return await signedInLocal(tab: tab, style: style, player: localPlayer, value: 0, rank: 0)
             }
             let loaded = try await board.loadEntries(
                 for: .friendsOnly,
@@ -94,40 +90,91 @@ enum FriendsScoreService {
                !entries.contains(where: { $0.player.gamePlayerID == localEntry.player.gamePlayerID }) {
                 entries.append(localEntry)
             }
+            let own = await localPlayerEntry(board: board, localPlayer: localPlayer)
+            if let own,
+               !entries.contains(where: { $0.player.gamePlayerID == own.player.gamePlayerID }) {
+                entries.append(own)
+            }
             for entry in entries {
                 let playerId = entry.player.gamePlayerID
                 if !playerId.isEmpty { seen.insert(playerId) }
+                let isLocal = playerId == localId && !localId.isEmpty
+                var value = Int(entry.score)
+                var rank = entry.rank
+                if isLocal, let own {
+                    value = max(value, Int(own.score))
+                    if rank <= 0 { rank = own.rank }
+                }
                 rows.append(await profileRow(
                     player: entry.player,
-                    value: Int(entry.score),
-                    rank: entry.rank,
-                    isLocal: playerId == localId && !localId.isEmpty
+                    value: value,
+                    rank: rank,
+                    isLocal: isLocal
                 ))
             }
             if !localId.isEmpty, !seen.contains(localId) {
                 rows.append(await profileRow(
                     player: localPlayer,
-                    value: 0,
-                    rank: 0,
+                    value: own.map { Int($0.score) } ?? 0,
+                    rank: own?.rank ?? 0,
                     isLocal: true
                 ))
             } else if rows.isEmpty {
                 rows.append(await profileRow(
                     player: localPlayer,
-                    value: 0,
-                    rank: 0,
+                    value: own.map { Int($0.score) } ?? 0,
+                    rank: own?.rank ?? 0,
                     isLocal: true
                 ))
             }
+            applyLocalBest(&rows, tab: tab, style: style)
             return FriendsLoadResult(signedIn: true, rows: rows)
         } catch {
-            let row = await profileRow(
-                player: localPlayer,
-                value: 0,
-                rank: 0,
-                isLocal: true
-            )
-            return FriendsLoadResult(signedIn: true, rows: [row])
+            return await signedInLocal(tab: tab, style: style, player: localPlayer, value: 0, rank: 0)
+        }
+    }
+
+    private static func signedInLocal(
+        tab: ScoreService.Tab,
+        style: FlightStyle,
+        player: GKLocalPlayer,
+        value: Int,
+        rank: Int
+    ) async -> FriendsLoadResult {
+        var rows = [
+            await profileRow(player: player, value: value, rank: rank, isLocal: true)
+        ]
+        applyLocalBest(&rows, tab: tab, style: style)
+        return FriendsLoadResult(signedIn: true, rows: rows)
+    }
+
+    private static func localPlayerEntry(
+        board: GKLeaderboard,
+        localPlayer: GKLocalPlayer
+    ) async -> GKLeaderboard.Entry? {
+        do {
+            let loaded = try await board.loadEntries(for: [localPlayer], timeScope: .allTime)
+            if let local = loaded.0 { return local }
+            let localId = localPlayer.gamePlayerID
+            return loaded.1.first { $0.player.gamePlayerID == localId && !localId.isEmpty }
+        } catch {
+            return nil
+        }
+    }
+
+    private static func applyLocalBest(
+        _ rows: inout [FriendBoardRow],
+        tab: ScoreService.Tab,
+        style: FlightStyle
+    ) {
+        let bestDist = OpenWorldProgress.best(for: style)
+        let bestObs = OpenWorldProgress.bestDestroyed(for: style)
+        let best = tab == .obstacles ? bestObs : bestDist
+        guard let index = rows.firstIndex(where: \.isLocal) else { return }
+        let store = rows[index].value
+        if best > store {
+            rows[index].value = best
+            submit(distance: bestDist, obstacles: bestObs, style: style)
         }
     }
 

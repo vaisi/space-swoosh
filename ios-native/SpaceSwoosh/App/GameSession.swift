@@ -1,7 +1,7 @@
 // GameSession.swift
-// Changes: Open Space game-over silently submits distance + obstacles to
-// Game Center Friends boards. Outcome values use grouped digits; lab outcome
-// carries distance / goal. journey_level_end includes day_name.
+// Changes: Open Space game-over records local distance + obstacles, then
+// silently submits both to Game Center. Friends Space Board overlays that
+// local best if Game Center has not indexed the run yet.
 
 import Foundation
 import Combine

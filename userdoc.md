@@ -1,4 +1,6 @@
-<!-- Changes: TestFlight Friends signing now turns on Game Center on the
+<!-- Changes: Friends Space Board YOU row shows the Open Space distance
+     (and obstacles) you flew on this device even when Game Center / Play
+     Games has not indexed the run yet. TestFlight Friends signing now turns on Game Center on the
      Apple App ID (needed for the iPhone Friends board). From day 14 the
      sparkles star asks fewer diamonds (~1 per 1,500 KM). Smash stars from
      day 24 need 14 / 18 / 22 / 27 rocks.
@@ -241,7 +243,10 @@ and Android apps a title-bar chip switches **Global** (public call signs) and
 are signed in and that friends list has anyone, the board opens on Friends;
 otherwise Global. Friends rows are store profiles — avatar or
 initials, a quiet YOU on your row, and you still appear if nobody else is
-listed. Ranks 1–3 show trophy icons. No Space Swoosh
+listed. Your own distance and asteroids smashed are the best Open Space run on
+this phone for the flight style you are browsing; they show even if the store
+board is still catching up (rank may stay as — until it does). Ranks 1–3 show
+trophy icons. No Space Swoosh
 account required.
 
 Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
@@ -291,7 +296,7 @@ tile.
 - **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar.
-- **High Scores** — open the Space Board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. After Submit Signal it stays on Global and jumps to your row. Android pages 10 scores at a time (up to 100).
+- **High Scores** — open the Space Board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. Your YOU row shows the distance you actually flew (best Open Space KM on this device) even before the store board updates. After Submit Signal it stays on Global and jumps to your row. Android pages 10 scores at a time (up to 100).
 
 After a run, **Menu** on the end screen brings you back here.
 
