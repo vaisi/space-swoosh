@@ -1,6 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Submit Signal IME: WebView does not resize (`Keyboard.resize`
+<!-- Changes: Hangar tiles always draw `skin.blurb` (locked premium no longer
+     replaces it with “Tap to unlock.”). Submit Signal IME: WebView does not resize (`Keyboard.resize`
      none, Android `adjustNothing`). Remaining viewport is one paper sheet
      (header, recap line, call-sign field, Submit above the keyboard).
      `?signal=1` / `?kb=N` playtest. Native iOS `SubmitScoreView` matches.
@@ -404,7 +405,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
 | `options` | Options hub: Ship / Controls / Sound / Theme / Restore Purchases. Native Rate ★ is `drawScreenHeader` trailingButton (same chip as SPACE BOARD Zigzag / Arc). |
-| `optionsShip` | Ship picker (2-column grid of the roster); persists `shipSkinId` |
+| `optionsShip` | Ship picker (2-column grid of the roster); every tile draws `skin.blurb` (locked premium keeps the catalog line; price / LOCKED stays in the corner); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
 | `highscores` | Space Board: 10 tall rows/page (max 10 pages), native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |

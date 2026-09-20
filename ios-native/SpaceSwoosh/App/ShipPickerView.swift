@@ -1,5 +1,6 @@
 // ShipPickerView.swift
-// Changes: Locked tiles show price / LOCKED and tap-to-buy; owned tiles still equip.
+// Changes: Locked tiles keep the catalog blurb plus price / LOCKED and
+// tap-to-buy; owned tiles still equip.
 
 import SwiftUI
 import UIKit
@@ -56,7 +57,7 @@ struct ShipPickerView: View {
                             .font(BrandType.label(12))
                             .tracking(BrandType.labelTracking(12))
                             .foregroundStyle(owned ? BrandColors.ink : BrandColors.ink55)
-                        Text(owned ? skin.blurb : "Tap to unlock.")
+                        Text(skin.blurb)
                             .font(BrandType.body(12))
                             .foregroundStyle(BrandColors.ink55)
                             .multilineTextAlignment(.center)

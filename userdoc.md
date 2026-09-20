@@ -1,4 +1,6 @@
-<!-- Changes: Submit Signal stays readable above the phone keyboard —
+<!-- Changes: Options → Ship cards show each vessel’s description even
+     while locked (price still sits on the tile). Submit Signal stays
+     readable above the phone keyboard —
      one recap line and the call-sign field, Submit just above the keys.
      Friends shows the Game Center / Play Games photo already on
      that store profile, on the device only (Photos App Privacy stays off).
@@ -273,7 +275,9 @@ Under the title, your ship is shown with its name and a quiet hangar index
 (for example **5 / 42**). On the phone apps, swipe left or right on the home
 screen to change ships — or tap the triangle arrows. On a keyboard, press
 **Left** / **Right**. Owned ships equip and save. Locked ships show a price
-(tap the ship to unlock on the apps). Options → Ship has the same roster in a grid.
+(tap the ship to unlock on the apps). Options → Ship has the same roster in a
+grid; each card keeps its description even while locked, with the price on the
+tile.
 
 - **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.

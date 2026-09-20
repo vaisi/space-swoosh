@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Hangar tiles always draw skin.blurb (locked premium no longer replaces
+//   it with "Tap to unlock."; price / LOCKED stays in the corner).
 // - Submit Signal: IME overlays (no WebView resize). Remaining viewport is
 //   one paper sheet — header, recap line, call-sign field, Submit above the
 //   keyboard. getVisibleCanvasBounds only subtracts real IME overlap.
@@ -2421,8 +2423,8 @@ export class Game {
 
     // One selectable ship card: preview, name, blurb. Selected cards take the
     // Signal-Blue border plus a corner mark. Locked (premium, unowned) cards
-    // keep a full preview so the player can see what they're buying, with a
-    // price / LOCKED tag instead of the selected mark.
+    // keep a full preview and the catalog blurb so the player can see what
+    // they're buying, with a price / LOCKED tag instead of the selected mark.
     drawShipTile(skin, x, y, w, h, selected, time, { locked = false } = {}) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
@@ -2481,10 +2483,7 @@ export class Game {
         const blurbPx = Math.max(9.5, unit * 0.95);
         ctx.font = `500 ${blurbPx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
-        const blurb = locked && isSkinPremium(skin.id)
-            ? 'Tap to unlock.'
-            : skin.blurb;
-        wrapLines(ctx, blurb, innerW, 2).forEach((line, i) => {
+        wrapLines(ctx, skin.blurb, innerW, 2).forEach((line, i) => {
             ctx.fillText(line, cx, nameY + namePx * 0.7 + unit * 1.2 + i * blurbPx * 1.35);
         });
         ctx.restore();
