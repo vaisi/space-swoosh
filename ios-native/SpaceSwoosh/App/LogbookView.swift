@@ -1,6 +1,7 @@
 // LogbookView.swift
 // Changes: known Journey Day cards replay NAV via a top-right play/stop
-// (VoicePlayer.playLevel). The Call and locked days stay silent. Leaving the
+// (VoicePlayer.playLevel). Title/body keep a trailing gutter so copy does not
+// run under the icon. The Call and locked days stay silent. Leaving the
 // screen stops the clip. SPACE LOG header + Grotesk/Mono chrome matching
 // Android logbook. Obstacles/Boosts cards use a 1/3 playfield specimen well
 // (LogbookGlyph). List only observed/known cards. Journey still lists named
@@ -144,7 +145,7 @@ struct LogbookView: View {
         let level = journeyLevel(entry.id)
         let canPlay = state == .known && level != nil
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top, spacing: 10) {
+            HStack(alignment: .top, spacing: 16) {
                 Text(entry.name.uppercased())
                     .font(BrandType.label(12))
                     .tracking(BrandType.labelTracking(12))
@@ -157,10 +158,12 @@ struct LogbookView: View {
             if state == .known {
                 Text(entry.definition)
                     .font(BrandType.body(14))
+                    .padding(.trailing, canPlay ? 48 : 0)
             } else if state != .locked {
                 Text(pendingLine(for: entry.id))
                     .font(BrandType.body(14))
                     .foregroundStyle(BrandColors.ink55)
+                    .padding(.trailing, canPlay ? 48 : 0)
             }
         }
         .foregroundStyle(BrandColors.ink)

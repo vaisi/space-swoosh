@@ -3,6 +3,7 @@
 // Changes:
 // - Journey tab: known Day N cards get a top-right play/stop that replays
 //   level-N.mp3 via SoundManager. Locked days and The Call stay silent.
+//   Title and body reserve a right gutter so copy never runs under the icon.
 //   Dedicated hit-boxes (buttons.plays); whole-card tap does not play.
 // - Picture well is a playfield specimen (LogbookGlyphs): finish gate spans the
 //   well, relative sizes match in-game (sparkle smaller than a rock, etc.).
@@ -210,8 +211,8 @@ export function renderLogbook(game) {
         } else if (journeyTab) {
             const playLevel = state === 'known' ? levelFromEntryId(entry.id) : null;
             const playSize = Math.max(unit * 2.8, 28);
-            const playGap = unit * 0.8;
-            const titleW = playLevel != null
+            const playGap = unit * 1.6;
+            const copyW = playLevel != null
                 ? Math.max(unit * 4, textInnerW - playSize - playGap)
                 : textInnerW;
 
@@ -231,7 +232,7 @@ export function renderLogbook(game) {
 
             setLabelType(ctx, titlePx, 700);
             ctx.fillStyle = color.ink;
-            fitPx(ctx, entry.name.toUpperCase(), titleW, titlePx, unit * 1.15,
+            fitPx(ctx, entry.name.toUpperCase(), copyW, titlePx, unit * 1.15,
                 (px) => setLabelType(ctx, px, 700));
             ctx.fillText(entry.name.toUpperCase(), textLeft, y + textPad);
             resetType(ctx);
@@ -241,7 +242,7 @@ export function renderLogbook(game) {
             ctx.fillStyle = color.ink80;
             const body = state === 'known' ? entry.definition : pendingLine(entry.id);
             const maxLines = Math.max(3, Math.floor((y + rowH - bodyY - textPad) / (bodyPx * 1.4)));
-            wrapLines(ctx, body, textInnerW, maxLines).forEach((line, i) => {
+            wrapLines(ctx, body, copyW, maxLines).forEach((line, i) => {
                 ctx.fillText(line, textLeft, bodyY + i * bodyPx * 1.4);
             });
         } else {
