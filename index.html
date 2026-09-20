@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: Native shell skips favicon /
-     apple-touch-icon links (Android WebView can paint a broken icon +
-     truncated "Space Swoosh" as a title strip). Hide <audio>/<video> so
-     HTMLAudio BGM cannot show an in-page transport. First paint defaults
-     to night paper. Mobile web is a store download prompt. Desktop web
-     shows store QR rails. Android 15 edge-to-edge uses Capacitor
-     --safe-area-inset-* with env() fallback. Native portrait fills the
-     inset stage; landscape letterboxes 2:3. -->
+<!-- index.html — page shell. Changes: html.ss-ime-open zeros body
+     padding-bottom so an IME-inflated safe-area inset cannot shrink
+     #gameContainer (Submit Signal layouts from keyboard height). Native
+     shell skips favicon / apple-touch-icon links (Android WebView can
+     paint a broken icon + truncated "Space Swoosh" as a title strip).
+     Hide <audio>/<video> so HTMLAudio BGM cannot show an in-page
+     transport. First paint defaults to night paper. Mobile web is a
+     store download prompt. Desktop web shows store QR rails. Android 15
+     edge-to-edge uses Capacitor --safe-area-inset-* with env() fallback.
+     Native portrait fills the inset stage; landscape letterboxes 2:3. -->
 <html lang="en">
 <head>
     <!-- Analytics is injected from src/services/Analytics.js, and only on the
@@ -135,6 +137,11 @@
                 var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
                 var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))
                 var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+        }
+        /* IME overlays the stage. Keyboard height is applied in canvas
+           layout — do not let --safe-area-inset-bottom grow with Gboard. */
+        html.ss-ime-open[data-shell="native"] body {
+            padding-bottom: 0;
         }
         /* Native portrait (and phone portrait web): fill the inset stage. */
         html[data-shell="native"] #gameContainer {

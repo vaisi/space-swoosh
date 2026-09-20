@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- AndroidManifest.xml — Capacitor host. Changes: Play Games APP_ID meta-data.
-     activity label is blank so a caption bar cannot print "Spac…"; application
-     app_name stays Space Swoosh for the drawer / recents. Drop
+<!-- AndroidManifest.xml — Capacitor host. Changes: windowSoftInputMode is
+     adjustNothing so Gboard overlays the WebView; Submit Signal layouts from
+     Cap Keyboard height instead of shrinking the canvas (adjustResize + IME
+     height was double-counting and crushing the card). Play Games APP_ID
+     meta-data. Activity label is blank so a caption bar cannot print "Spac…";
+     application app_name stays Space Swoosh for the drawer / recents. Drop
      screenOrientation portrait lock (Play large-screen); 2:3 letterbox is CSS.
      Strip AD_ID. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -16,9 +19,9 @@
         android:theme="@style/AppTheme">
         <!-- Portrait fill / landscape 2:3 letterbox is CSS. configChanges
              keeps the WebView alive across rotation so a run does not restart. -->
-        <!-- adjustResize: shrink the WebView above the soft keyboard so the
-             Submit Signal call-sign field stays inside the modal (adjustPan
-             was panning the page and desyncing the DOM input from the canvas). -->
+        <!-- adjustNothing: IME overlays. Submit Signal reads keyboard height
+             and paints in the remaining canvas (resize/pan crushed or desynced
+             the DOM call-sign field). -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
@@ -27,7 +30,7 @@
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
             android:resizeableActivity="true"
-            android:windowSoftInputMode="adjustResize"
+            android:windowSoftInputMode="adjustNothing"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

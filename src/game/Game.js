@@ -2,6 +2,10 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Submit Signal: IME overlays (no WebView resize). Remaining viewport is
+//   one paper sheet — header, recap line, call-sign field, Submit above the
+//   keyboard. getVisibleCanvasBounds only subtracts real IME overlap.
+//   Playtest ?signal=1 / ?kb=N. Paint lives in ui/screens/SubmitSignalModal.js.
 // - Removed leftover homescreen BUILD stamp notes; menu never draws a
 //   version / BUILD badge (iOS never had one).
 // - Depth field: after drawPaper, DepthField paints wrapping twinkle dust
@@ -215,7 +219,6 @@ import {
     friendsListHasAnyone,
     pageForRowIndex,
 } from '../services/SpaceBoardFocus.js';
-import { CALL_SIGN_MAX_LEN } from '../services/NameFilter.js';
 import { track, setUserProperty, syncProfileProperties } from '../services/Analytics.js';
 import {
     getSkinPriceLabel,
@@ -232,6 +235,10 @@ import {
     spendLife,
 } from '../services/Lives.js';
 import { drawLivesChip } from '../ui/LivesChip.js';
+import {
+    applySubmitSignalPlaytest,
+    paintSubmitSignal,
+} from '../ui/screens/SubmitSignalModal.js';
 import { syncHighRefresh, syncKeepAwake, syncStatusBarTheme, requestNativeReview, openStoreListing } from '../native/index.js';
 import { dottedLine } from '../utils/DrawUtils.js';
 import { DepthField } from '../utils/DepthField.js';
@@ -439,7 +446,9 @@ export class Game {
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
         // Set by native/index.js Keyboard listeners (CSS px). 0 on web.
+        // Playtest ?kb=N also writes this (and playtestKeyboardHeight).
         this.softKeyboardHeight = 0;
+        this.playtestKeyboardHeight = 0;
         this.highScoreTab = 'distance'; // metric tab: distance | obstacles
         this.highScoreFlightStyle = this.flightStyle; // arc | zigzag board (locked to flown style)
         this.highScorePage = 0; // 0-based page index (10 scores per page)
@@ -497,9 +506,9 @@ export class Game {
         this.initializeGame();
         
         window.addEventListener('resize', () => this.setupCanvas());
-        // Soft keyboard: adjustResize changes container size (rebuild canvas);
-        // adjustPan only changes visualViewport inset — the Submit Signal modal
-        // reads that every frame, so skip setupCanvas unless CSS size moved.
+        // Soft keyboard overlays (adjustNothing / Keyboard resize none).
+        // visualViewport may still jitter — only rebuild if the container
+        // CSS size actually moved. Submit Signal reads IME height every frame.
         if (window.visualViewport) {
             const onViewportChange = () => {
                 const container = this.canvas?.parentElement;
@@ -636,6 +645,7 @@ export class Game {
 
     start() {
         this.showMenu();
+        applySubmitSignalPlaytest(this);
         this.gameLoop();
     }
 
@@ -4530,10 +4540,10 @@ export class Game {
         this.nameInput = null;
     }
 
-    // True only when a real IME inset is present (Cap Keyboard height or a
-    // meaningful visualViewport shrink). Focus alone does not count — that was
-    // crushing the Submit Signal stats under the button after dismiss.
+    // True only when a real IME inset is present (Cap Keyboard height, playtest
+    // ?kb=, or a meaningful visualViewport shrink). Focus alone does not count.
     isSoftKeyboardOpen() {
+        if ((this.playtestKeyboardHeight || 0) > 0) return true;
         if ((this.softKeyboardHeight || 0) > 0) return true;
         if (!window.visualViewport || this.height <= 0) return false;
         const canvasRect = this.canvas.getBoundingClientRect();
@@ -4549,12 +4559,17 @@ export class Game {
     }
 
     // Canvas-space rectangle still clear of the soft keyboard.
-    // Prefer Cap Keyboard height (reliable on Android edge-to-edge); fall back
-    // to visualViewport. No focus-only fallback — idle modal uses full stage.
+    // Prefer Cap Keyboard height. If the canvas already ends at or above the
+    // IME top, inset is 0 — never cut a second keyboard-sized slice.
     getVisibleCanvasBounds() {
         let top = 0;
         let height = this.height;
         if (this.height <= 0) return { top, height };
+
+        const playtestKb = this.playtestKeyboardHeight || 0;
+        if (playtestKb > 0) {
+            return { top: 0, height: Math.max(240, this.height - playtestKb) };
+        }
 
         const canvasRect = this.canvas.getBoundingClientRect();
         const scaleY = canvasRect.height / this.height;
@@ -4562,12 +4577,15 @@ export class Game {
 
         const kbCss = this.softKeyboardHeight || 0;
         if (kbCss > 0) {
-            const overlapCss = Math.max(
-                0,
-                (canvasRect.top + canvasRect.height) - (window.innerHeight - kbCss)
-            );
-            const inset = Math.min(this.height * 0.62, overlapCss / scaleY);
-            return { top: 0, height: Math.max(200, this.height - inset) };
+            const keyboardTopCss = window.innerHeight - kbCss;
+            const canvasBottomCss = canvasRect.top + canvasRect.height;
+            const overlapCss = Math.max(0, canvasBottomCss - keyboardTopCss);
+            // Canvas already sits above the IME (or overlap is jitter).
+            if (overlapCss < 8) {
+                return { top: 0, height };
+            }
+            const inset = overlapCss / scaleY;
+            return { top: 0, height: Math.max(240, this.height - inset) };
         }
 
         const vv = window.visualViewport;
@@ -4579,7 +4597,6 @@ export class Game {
             );
             if (visibleBottom > visibleTop + 1) {
                 const slice = visibleBottom - visibleTop;
-                // Ignore tiny viewport jitter; only trust a real keyboard-sized cut.
                 if (slice < this.height * 0.92) {
                     return { top: visibleTop, height: slice };
                 }
@@ -4626,235 +4643,7 @@ export class Game {
     }
 
     renderNameInputModal() {
-        const ctx = this.ctx;
-
-        // Solid paper — Mission Failed must not show through when the IME
-        // shrinks the WebView and restacks the end-screen buttons.
-        ctx.fillStyle = color.paper;
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        // Same order always: header → stats → call sign → Submit.
-        // Tight remaining height: compact padding + a three-column stats row.
-        const view = this.getVisibleCanvasBounds();
-        const modalWidth = Math.min(360, this.width * 0.88);
-        const compact = view.height < 420;
-        const pad = compact ? 16 : 28;
-        const idealHeight = compact ? 340 : 460;
-        const modalHeight = Math.min(idealHeight, Math.max(200, view.height - 16));
-        const modalX = (this.width - modalWidth) / 2;
-        const modalY = view.top + Math.max(8, (view.height - modalHeight) / 2);
-        const contentLeft = modalX + pad;
-        const contentRight = modalX + modalWidth - pad;
-        const contentWidth = contentRight - contentLeft;
-
-        drawFramedTile(ctx, modalX, modalY, modalWidth, modalHeight, { surface: color.paperTint });
-
-        // Close (×)
-        const closeSize = 26;
-        this.closeButton = {
-            x: modalX + modalWidth - closeSize - 12,
-            y: modalY + 12,
-            width: closeSize,
-            height: closeSize,
-        };
-        ctx.save();
-        ctx.strokeStyle = color.ink;
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        const cb = this.closeButton;
-        ctx.beginPath();
-        ctx.moveTo(cb.x + 6, cb.y + 6);
-        ctx.lineTo(cb.x + cb.width - 6, cb.y + cb.height - 6);
-        ctx.moveTo(cb.x + cb.width - 6, cb.y + 6);
-        ctx.lineTo(cb.x + 6, cb.y + cb.height - 6);
-        ctx.stroke();
-        ctx.restore();
-
-        // Caption
-        ctx.save();
-        setLabelType(ctx, 12);
-        ctx.fillStyle = color.ink;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText('SUBMIT SIGNAL', contentLeft, modalY + pad + 8);
-        resetType(ctx);
-        ctx.restore();
-
-        let currentY = modalY + pad * 2;
-        dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
-        currentY += compact ? pad * 0.75 : pad;
-
-        const inputWidth = contentWidth;
-        const inputHeight = compact ? 40 : 44;
-        const buttonHeight = compact ? 44 : 50;
-        const container = this.canvas.parentElement;
-
-        // Create the DOM field without focusing — keyboard opens only when tapped.
-        if (!this.nameInput) {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.maxLength = CALL_SIGN_MAX_LEN;
-            input.placeholder = 'ENTER CALL SIGN';
-            input.autocomplete = 'off';
-            input.spellcheck = false;
-            input.enterKeyHint = 'done';
-            // 16px minimum avoids Android WebView zoom-on-focus.
-            input.style.cssText = `
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 0;
-                height: 0;
-                box-sizing: border-box;
-                font-size: 16px;
-                border: none;
-                border-bottom: 2px solid var(--ss-ink, #1A1A1A);
-                border-radius: 0;
-                outline: none;
-                padding: 0 4px;
-                background: transparent;
-                color: var(--ss-ink, #1A1A1A);
-                font-family: var(--ss-font-ui, 'Space Grotesk', 'Segoe UI', system-ui, sans-serif);
-                font-weight: 500;
-                letter-spacing: 0.04em;
-                z-index: 5;
-            `;
-
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && input.value.trim()) {
-                    this.submitHighScore(input.value.trim());
-                }
-            });
-
-            this.nameInput = input;
-            (container || document.body).appendChild(input);
-        }
-
-        const placeNameInput = (inputX, inputY) => {
-            const input = this.nameInput;
-            const parent = container || document.body;
-            const canvasRect = this.canvas.getBoundingClientRect();
-            const parentRect = parent.getBoundingClientRect();
-            const sx = canvasRect.width / Math.max(1, this.width);
-            const sy = canvasRect.height / Math.max(1, this.height);
-            input.style.left = `${(canvasRect.left - parentRect.left) + inputX * sx}px`;
-            input.style.top = `${(canvasRect.top - parentRect.top) + inputY * sy}px`;
-            input.style.width = `${inputWidth * sx}px`;
-            input.style.height = `${inputHeight * sy}px`;
-        };
-
-        const drawCallSignAndSubmit = () => {
-            const inputX = contentLeft;
-            const inputY = currentY;
-            placeNameInput(inputX, inputY);
-
-            currentY = inputY + inputHeight + pad * 0.7;
-            this.submitButton = this.drawBrandButton(
-                contentLeft, currentY, inputWidth, buttonHeight, 'Submit', {
-                    primary: true,
-                    tag: '\u2191',
-                }
-            );
-            this.submitButton.enabled = !!(this.nameInput.value && this.nameInput.value.trim().length > 0);
-            currentY += buttonHeight;
-
-            if (this.submitError) {
-                currentY += 14;
-                ctx.save();
-                setLabelType(ctx, 10);
-                ctx.fillStyle = color.signal;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'alphabetic';
-                ctx.fillText(this.submitError.toUpperCase(), contentLeft, currentY);
-                resetType(ctx);
-                ctx.restore();
-                currentY += 8;
-            }
-            currentY += pad * 0.55;
-        };
-
-        const valuePx = compact ? 18 : 28;
-        const stackGap = pad * 1.35;
-        const drawStatStacked = (value, unitLabel, caption) => {
-            ctx.save();
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
-            setMonoType(ctx, valuePx);
-            ctx.fillStyle = color.ink;
-            ctx.fillText(value, contentLeft, currentY);
-            const cursor = contentLeft + ctx.measureText(value).width;
-            if (unitLabel) {
-                setLabelType(ctx, 11);
-                ctx.fillStyle = color.ink55;
-                ctx.fillText(unitLabel, cursor + 8, currentY);
-            }
-            currentY += 18;
-            setLabelType(ctx, 10);
-            ctx.fillStyle = color.ink55;
-            ctx.fillText(caption, contentLeft, currentY);
-            resetType(ctx);
-            ctx.restore();
-            currentY += stackGap;
-        };
-
-        const drawStatsRow = () => {
-            const colW = contentWidth / 3;
-            const stats = [
-                {
-                    value: ScoreService.formatScore(this.finalScore),
-                    unit: 'KM',
-                    caption: 'DISTANCE',
-                },
-                {
-                    value: ScoreService.formatScore(this.obstaclesDestroyed),
-                    unit: null,
-                    caption: 'ASTEROIDS',
-                },
-                {
-                    value: `#${this.pendingHighScore.rank}`,
-                    unit: null,
-                    caption: 'RANK',
-                },
-            ];
-            const valueY = currentY;
-            const captionY = currentY + 16;
-            stats.forEach((stat, i) => {
-                const cx = contentLeft + colW * i + colW / 2;
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'alphabetic';
-                setMonoType(ctx, valuePx);
-                ctx.fillStyle = color.ink;
-                let label = stat.value;
-                if (stat.unit) label = `${stat.value} ${stat.unit}`;
-                ctx.fillText(label, cx, valueY);
-                setLabelType(ctx, 9);
-                ctx.fillStyle = color.ink55;
-                ctx.fillText(stat.caption, cx, captionY);
-                resetType(ctx);
-                ctx.restore();
-            });
-            currentY = captionY + pad * 0.7;
-        };
-
-        const drawStatsStacked = () => {
-            drawStatStacked(ScoreService.formatScore(this.finalScore), 'KM', 'DISTANCE');
-            drawStatStacked(
-                ScoreService.formatScore(this.obstaclesDestroyed),
-                null,
-                'ASTEROIDS DESTROYED'
-            );
-            drawStatStacked(`#${this.pendingHighScore.rank}`, null, 'YOUR RANK');
-        };
-
-        if (compact) {
-            drawStatsRow();
-        } else {
-            drawStatsStacked();
-        }
-        dottedLine(ctx, contentLeft, contentRight, currentY, 1.4, 7, color.ink30);
-        currentY += compact ? pad * 0.65 : pad * 0.7;
-        drawCallSignAndSubmit();
+        paintSubmitSignal(this);
     }
 
     async submitHighScore(name) {

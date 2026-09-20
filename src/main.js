@@ -11,6 +11,8 @@
 // - Font preload is time-capped in ensureBrandFonts(); splash hide does not
 //   wait on webfonts.
 // - markDocumentShell() so desktop web can show store rails; native hides them.
+// - Playtest `?signal=1` opens Submit Signal with sample stats; `?kb=N`
+//   fakes IME height so the keyboard sheet can be checked in a browser.
 // - Playtest `?level=42&nearend=1` starts that Journey day near the finish;
 //   no intro captions; level-42.mp3 plays after the fade with the written ending.
 // - Preload the brand webfonts (Space Grotesk / Space Mono) before the first

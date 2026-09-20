@@ -1,4 +1,6 @@
-<!-- Changes: Friends shows the Game Center / Play Games photo already on
+<!-- Changes: Submit Signal stays readable above the phone keyboard —
+     one recap line and the call-sign field, Submit just above the keys.
+     Friends shows the Game Center / Play Games photo already on
      that store profile, on the device only (Photos App Privacy stays off).
      Android 1.0.48 / iPhone build 14 — no "Space…" title chip
      (Android host header; iOS has no nav title and Now Playing is cleared).
@@ -209,8 +211,10 @@ view, the camera slowly eases it back to the usual height over several seconds.
 **This is the mode with the leaderboard** — if your run lands in the
 top 10 for the flight style you were using (Zigzag or Arc), after Mission Failed
 settles a Submit Signal card lists your distance, asteroids destroyed, and rank —
-tap the call-sign field, type a short name, and send it up. On phones the card
-keeps that same layout above the keyboard (the end-screen buttons stay hidden).
+tap the call-sign field, type a short name, and send it up. On phones the sheet
+fills the space above the keyboard — your score stays as a quiet recap, the
+call-sign field stays clear, and Submit sits just above the keys (the end-screen
+buttons stay hidden).
 Outside
 the top 10 you can still tap **Submit Score** to send a signal. Scores go to
 that style’s board only. The board shows your call sign and the ship you flew

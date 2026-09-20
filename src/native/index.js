@@ -22,7 +22,9 @@
 //   (~64% amplitude); web vibrate 8ms vs BOOP 12ms. Never Haptics.vibrate().
 // - Keyboard plugin: wireKeyboard() tracks soft-keyboard height on the game
 //   (game.softKeyboardHeight) so Submit Signal can sit above the IME. Config
-//   uses resizeOnFullScreen so Android edge-to-edge actually resizes the WebView.
+//   is resize: "none" (IME overlays). html.ss-ime-open drops body
+//   padding-bottom so an inflated --safe-area-inset-bottom cannot shrink
+//   #gameContainer a second time.
 // - hapticWallBoop(): Cap ImpactStyle.Light (soft tick). Phone haptics must be
 //   on — earlier "no feel" was OS intensity at 0, not a dead plugin. Dropped
 //   the heavy vibrate()/HapticTick/startup-thump path that felt too strong.
@@ -275,8 +277,21 @@ export async function syncStatusBarTheme() {
 }
 
 /**
+ * While the IME is up, drop body padding-bottom. Capacitor SystemBars can
+ * stuff keyboard height into --safe-area-inset-bottom; that would shrink
+ * #gameContainer after we already inset the Submit Signal sheet.
+ *
+ * @param {boolean} open
+ */
+export function syncImeSafeArea(open) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.toggle('ss-ime-open', !!open);
+}
+
+/**
  * Track IME height on the game so canvas modals (Submit Signal) can stay above
- * the soft keyboard. No-ops if the plugin is missing.
+ * the soft keyboard. No-ops if the plugin is missing. Does not resize the
+ * WebView — layout reads game.softKeyboardHeight.
  *
  * @param {import('../game/Game.js').Game} game
  */
@@ -284,20 +299,27 @@ async function wireKeyboard(game) {
     try {
         const { Keyboard } = await import('@capacitor/keyboard');
         game.softKeyboardHeight = 0;
+        syncImeSafeArea(false);
+        const applyHeight = (height) => {
+            const next = height || 0;
+            game.softKeyboardHeight = next;
+            syncImeSafeArea(next > 0);
+        };
         await Keyboard.addListener('keyboardWillShow', (info) => {
-            game.softKeyboardHeight = info?.keyboardHeight || 0;
+            applyHeight(info?.keyboardHeight);
         });
         await Keyboard.addListener('keyboardDidShow', (info) => {
-            game.softKeyboardHeight = info?.keyboardHeight || 0;
+            applyHeight(info?.keyboardHeight);
         });
         await Keyboard.addListener('keyboardWillHide', () => {
-            game.softKeyboardHeight = 0;
+            applyHeight(0);
         });
         await Keyboard.addListener('keyboardDidHide', () => {
-            game.softKeyboardHeight = 0;
+            applyHeight(0);
         });
     } catch {
         game.softKeyboardHeight = 0;
+        syncImeSafeArea(false);
     }
 }
 
