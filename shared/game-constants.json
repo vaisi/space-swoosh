@@ -272,6 +272,9 @@
     "stormQuietFrac": 0.18,
     "stormChainFrac": 0.08,
     "stormGapCap": 0.28,
+    "deepFromKm": 20000,
+    "deepStormQuietFrac": 0.21,
+    "deepStormChainFrac": 0.1,
     "bands": [
       {
         "fromKm": 0,
@@ -367,12 +370,12 @@
       },
       {
         "fromKm": 20000,
-        "minGapFrac": 0.1,
+        "minGapFrac": 0.115,
         "gapSpread": 1.2,
-        "simpleChance": 0.22,
-        "density": 2.15,
-        "rowOne": 0.1,
-        "rowTwo": 0.58
+        "simpleChance": 0.28,
+        "density": 1.9,
+        "rowOne": 0.16,
+        "rowTwo": 0.66
       }
     ]
   },
@@ -713,7 +716,7 @@
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": null,
-        "sparklesTarget": 12,
+        "sparklesTarget": 8,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -736,7 +739,7 @@
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": "driftCurrent",
-        "sparklesTarget": 14,
+        "sparklesTarget": 9,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -759,7 +762,7 @@
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": null,
-        "sparklesTarget": 14,
+        "sparklesTarget": 9,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -783,7 +786,7 @@
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": "pulsating",
-        "sparklesTarget": 15,
+        "sparklesTarget": 9,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -807,7 +810,7 @@
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": null,
-        "sparklesTarget": 15,
+        "sparklesTarget": 10,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -831,7 +834,7 @@
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": null,
-        "sparklesTarget": 16,
+        "sparklesTarget": 10,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -856,7 +859,7 @@
         "comboTheme": "driftCurrent",
         "encounterCount": 1,
         "introduces": "phase",
-        "sparklesTarget": 17,
+        "sparklesTarget": 11,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -881,7 +884,7 @@
         "comboTheme": "phase",
         "encounterCount": 1,
         "introduces": null,
-        "sparklesTarget": 18,
+        "sparklesTarget": 11,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -907,7 +910,7 @@
         "comboTheme": "driftCurrent",
         "encounterCount": 1,
         "introduces": "wormhole",
-        "sparklesTarget": 18,
+        "sparklesTarget": 12,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -933,7 +936,7 @@
         "comboTheme": "phase",
         "encounterCount": 1,
         "introduces": null,
-        "sparklesTarget": 19,
+        "sparklesTarget": 12,
         "smashTarget": 8,
         "starSlots": 3
       },
@@ -959,8 +962,8 @@
         "comboTheme": "wormhole",
         "encounterCount": 1,
         "introduces": null,
-        "sparklesTarget": 19,
-        "smashTarget": 10,
+        "sparklesTarget": 12,
+        "smashTarget": 14,
         "starSlots": 3
       },
       {
@@ -986,8 +989,8 @@
         "comboTheme": "driftCurrent",
         "encounterCount": 2,
         "introduces": "repulsor",
-        "sparklesTarget": 21,
-        "smashTarget": 10,
+        "sparklesTarget": 13,
+        "smashTarget": 14,
         "starSlots": 3
       },
       {
@@ -1013,8 +1016,8 @@
         "comboTheme": "phase",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 21,
-        "smashTarget": 10,
+        "sparklesTarget": 14,
+        "smashTarget": 14,
         "starSlots": 3
       },
       {
@@ -1041,8 +1044,8 @@
         "comboTheme": "driftCurrent",
         "encounterCount": 2,
         "introduces": "blackhole",
-        "sparklesTarget": 22,
-        "smashTarget": 10,
+        "sparklesTarget": 14,
+        "smashTarget": 14,
         "starSlots": 3
       },
       {
@@ -1069,8 +1072,8 @@
         "comboTheme": "phase",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 22,
-        "smashTarget": 10,
+        "sparklesTarget": 14,
+        "smashTarget": 14,
         "starSlots": 3
       },
       {
@@ -1097,8 +1100,8 @@
         "comboTheme": "wormhole",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 23,
-        "smashTarget": 10,
+        "sparklesTarget": 15,
+        "smashTarget": 14,
         "starSlots": 3
       },
       {
@@ -1125,8 +1128,8 @@
         "comboTheme": "repulsor",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 24,
-        "smashTarget": 10,
+        "sparklesTarget": 16,
+        "smashTarget": 14,
         "starSlots": 3
       },
       {
@@ -1154,8 +1157,8 @@
         "comboTheme": "driftCurrent",
         "encounterCount": 2,
         "introduces": "sweepGate",
-        "sparklesTarget": 25,
-        "smashTarget": 15,
+        "sparklesTarget": 16,
+        "smashTarget": 18,
         "starSlots": 3
       },
       {
@@ -1183,8 +1186,8 @@
         "comboTheme": "phase",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 25,
-        "smashTarget": 15,
+        "sparklesTarget": 16,
+        "smashTarget": 18,
         "starSlots": 3
       },
       {
@@ -1212,8 +1215,8 @@
         "comboTheme": "wormhole",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 26,
-        "smashTarget": 15,
+        "sparklesTarget": 17,
+        "smashTarget": 18,
         "starSlots": 3
       },
       {
@@ -1241,8 +1244,8 @@
         "comboTheme": "pulsating",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 26,
-        "smashTarget": 15,
+        "sparklesTarget": 17,
+        "smashTarget": 18,
         "starSlots": 3
       },
       {
@@ -1270,8 +1273,8 @@
         "comboTheme": "phase",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 28,
-        "smashTarget": 15,
+        "sparklesTarget": 18,
+        "smashTarget": 18,
         "starSlots": 3
       },
       {
@@ -1299,8 +1302,8 @@
         "comboTheme": "wormhole",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 28,
-        "smashTarget": 15,
+        "sparklesTarget": 18,
+        "smashTarget": 18,
         "starSlots": 3
       },
       {
@@ -1328,8 +1331,8 @@
         "comboTheme": "repulsor",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 29,
-        "smashTarget": 17,
+        "sparklesTarget": 19,
+        "smashTarget": 22,
         "starSlots": 3
       },
       {
@@ -1357,8 +1360,8 @@
         "comboTheme": "blackhole",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 29,
-        "smashTarget": 17,
+        "sparklesTarget": 19,
+        "smashTarget": 22,
         "starSlots": 3
       },
       {
@@ -1386,8 +1389,8 @@
         "comboTheme": "sweepGate",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 30,
-        "smashTarget": 17,
+        "sparklesTarget": 19,
+        "smashTarget": 22,
         "starSlots": 3
       },
       {
@@ -1415,8 +1418,8 @@
         "comboTheme": "complex",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 31,
-        "smashTarget": 17,
+        "sparklesTarget": 20,
+        "smashTarget": 22,
         "starSlots": 3
       },
       {
@@ -1444,8 +1447,8 @@
         "comboTheme": "complex",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 32,
-        "smashTarget": 20,
+        "sparklesTarget": 21,
+        "smashTarget": 27,
         "starSlots": 3
       },
       {
@@ -1473,8 +1476,8 @@
         "comboTheme": "driftCurrent",
         "encounterCount": 2,
         "introduces": null,
-        "sparklesTarget": 33,
-        "smashTarget": 20,
+        "sparklesTarget": 22,
+        "smashTarget": 27,
         "starSlots": 3
       }
     ],

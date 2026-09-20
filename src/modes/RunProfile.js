@@ -9,6 +9,7 @@
 //   the same constant Journey uses, so cruise matches on iOS / Android / web.
 // - Open Space weather + belt density live on OpenWorldProfile (tighter vertical
 //   pack than Journey's 0.14 gaps — Open Space rows are thinner).
+// - Default `isDeepJourney` is false; JourneyProfile sets it from L24.
 // - Journey L6+ pairing / L20+ comboTheme / encounters live on JourneyProfile.
 // - OPEN_WORLD_UNLOCKS messages are null — types still unlock by KM, but
 //   Open Space no longer flashes hazard-name banners.
@@ -190,6 +191,10 @@ export class RunProfile {
     }
 
     get isLateJourney() {
+        return false;
+    }
+
+    get isDeepJourney() {
         return false;
     }
 

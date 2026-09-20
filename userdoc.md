@@ -1,4 +1,8 @@
-<!-- Changes: Options → Ship cards show each vessel’s description even
+<!-- Changes: From day 14 the sparkles star asks fewer diamonds (~1 per
+     1,500 KM). Smash stars from day 24 need 14 / 18 / 22 / 27 rocks.
+     Days 24+ and Open Space past 20,000 KM leave a little more room
+     between the nastiest rows.
+     Options → Ship cards show each vessel’s description even
      while locked (price still sits on the tile). Submit Signal stays
      readable above the phone keyboard —
      one recap line and the call-sign field, Submit just above the keys.
@@ -181,8 +185,11 @@ Cruise is a little snappier than it used to be, without turning
 into a speed contest — **Journey and Open Space fly at the same cruise** on
 phone, tablet, and browser. The sparkles star opens when fuel diamonds
 do (level 4); the smash star opens with the shield (level 5). Smash targets stay
-small through day 13, then climb by chapter: 8 asteroids on days 14–23, 10 on
-24–30, 15 on 31–36, 17 on 37–40, and 20 on the last two days.
+small through day 13, then climb by chapter: 8 asteroids on days 14–23, 14 on
+24–30, 18 on 31–36, 22 on 37–40, and 27 on the last two days. From day 14 the
+sparkles star is about one diamond per 1,500 KM (earlier days stay on the
+tighter 1-per-1,000 KM teach curve). Days 24+ and Open Space past 20,000 KM
+leave a little more air between the nastiest rows.
 
 Flying Journey is also how you **unlock Space Log entries** — observe and interact
 with hazards and boosts to fill your field manual. The opening Signal brief is
@@ -574,9 +581,10 @@ or a tall desktop window — screen size does not empty the tank sooner.
   the shield).
 
 Journey's second star asks you to **collect N sparkles** on that level (count,
-not style points). The target is intentionally one under a full clear so a
-diamond that spawns past the finish line does not block the star. Pause and end
-screens show your sparkle total.
+not style points). From day 14 the target is about one diamond per 1,500 KM
+(minus one so a sparkle past the finish line does not block the star). Earlier
+days still use the tighter 1-per-1,000 KM curve. Pause and end screens show
+your sparkle total.
 
 ## Style points
 

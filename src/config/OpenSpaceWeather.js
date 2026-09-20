@@ -2,7 +2,9 @@
 // KM bands for Open Space pairing (weather), belt density, and storm marks.
 // Storms play EncounterCatalog recipes; the belt between them is planPairedRow.
 // Changes:
-// - Tighter vertical belt (0.22→0.10) and more 2/3-slot rows so 20k+ is not
+// - 20k hold eases ~12%: minGapFrac 0.115, density 1.90, simpleChance 0.28,
+//   row mix 0.16 / 0.66. Storm quiet past 20k is 0.21 / chain 0.10.
+// - Tighter vertical belt (0.22→0.115) and more 2/3-slot rows so 20k+ is not
 //   half-empty sky; simpleChance is meant to be consumed by planPairedRow.
 // - Storm quiet is a short breath (0.18); dual patches chain (0.08), not two
 //   half-screen holes. Recipe gaps clamp to 0.28 in Open Space.
@@ -25,9 +27,17 @@ export const OPEN_SPACE_STORM_QUIET_FRAC = 0.18;
 export const OPEN_SPACE_STORM_CHAIN_FRAC = 0.08;
 /** Catalog gap beats (e.g. portal 0.85) would punch holes; cap them here. */
 export const OPEN_SPACE_STORM_GAP_CAP = 0.28;
+/** Deep Open Space hold — Day 42 belt + slightly longer storm breath. */
+export const OPEN_SPACE_DEEP_FROM_KM = 20000;
+export const OPEN_SPACE_DEEP_STORM_QUIET_FRAC = 0.21;
+export const OPEN_SPACE_DEEP_STORM_CHAIN_FRAC = 0.10;
 
-export function stormQuietFrac(chained) {
-    return chained ? OPEN_SPACE_STORM_CHAIN_FRAC : OPEN_SPACE_STORM_QUIET_FRAC;
+export function stormQuietFrac(chained, km = 0) {
+    const deep = (Number(km) || 0) >= OPEN_SPACE_DEEP_FROM_KM;
+    if (chained) {
+        return deep ? OPEN_SPACE_DEEP_STORM_CHAIN_FRAC : OPEN_SPACE_STORM_CHAIN_FRAC;
+    }
+    return deep ? OPEN_SPACE_DEEP_STORM_QUIET_FRAC : OPEN_SPACE_STORM_QUIET_FRAC;
 }
 
 function lerp(a, b, t) {
@@ -89,12 +99,12 @@ export const OPEN_SPACE_BELT = [
     },
     {
         fromKm: 20000,
-        minGapFrac: 0.10,
+        minGapFrac: 0.115,
         gapSpread: 1.20,
-        simpleChance: 0.22,
-        density: 2.15,
-        rowOne: 0.10,
-        rowTwo: 0.58,
+        simpleChance: 0.28,
+        density: 1.90,
+        rowOne: 0.16,
+        rowTwo: 0.66,
     },
 ];
 

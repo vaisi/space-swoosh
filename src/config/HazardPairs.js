@@ -1,6 +1,8 @@
 // HazardPairs.js
 // Compatible mixed-row rules for Journey 6+ and Open Space weather.
 // Changes:
+// - DEEP_FROM_LEVEL 24: Journey days 24+ ease gaps / density / row mix
+//   (~12%) without changing the L20 late belt.
 // - PAIRED_FROM_LEVEL 6: one spike on 6–24; comboTheme still only from 20.
 // - comboTheme: a third advanced type (not focus, not pairTheme) gets ~20% of
 //   late mixed rows so the belt between spikes uses a different pairing.
@@ -14,6 +16,8 @@
 // - Created file: pairing rules, pair-theme hints, lane fractions, row planner.
 
 export const LATE_FROM_LEVEL = 20;
+/** Deep Static onward — slightly easier belt than the L20 late hold. */
+export const DEEP_FROM_LEVEL = 24;
 /** Mixed rows + one spike start here; 1–5 stay the teach band. */
 export const PAIRED_FROM_LEVEL = 6;
 

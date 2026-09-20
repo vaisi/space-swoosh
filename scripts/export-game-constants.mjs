@@ -1,5 +1,6 @@
 // export-game-constants.mjs
-// Changes: defaultShipId is Flicker (matches JS DEFAULT_SHIP_SKIN).
+// Changes: emit Open Space 20k deep storm quiet / chain / fromKm.
+// defaultShipId is Flicker (matches JS DEFAULT_SHIP_SKIN).
 // emit ENDING_EPILOGUE (42-level written ending) instead of ENDING_BEATS.
 // Skip captions export as epilogueSkip beats (one phrase per line).
 // Arc unlock card copy: epilogueArcUnlockLines / epilogueArcUnlockLabel.
@@ -56,6 +57,9 @@ import {
   OPEN_SPACE_STORM_DENSE_REPEAT_KM,
   OPEN_SPACE_STORM_REPEAT_COUNT,
   OPEN_SPACE_STORM_REPEAT_KM,
+  OPEN_SPACE_DEEP_FROM_KM,
+  OPEN_SPACE_DEEP_STORM_CHAIN_FRAC,
+  OPEN_SPACE_DEEP_STORM_QUIET_FRAC,
   OPEN_SPACE_STORM_CHAIN_FRAC,
   OPEN_SPACE_STORM_GAP_CAP,
   OPEN_SPACE_STORM_QUIET_FRAC,
@@ -235,6 +239,9 @@ const out = {
     stormQuietFrac: OPEN_SPACE_STORM_QUIET_FRAC,
     stormChainFrac: OPEN_SPACE_STORM_CHAIN_FRAC,
     stormGapCap: OPEN_SPACE_STORM_GAP_CAP,
+    deepFromKm: OPEN_SPACE_DEEP_FROM_KM,
+    deepStormQuietFrac: OPEN_SPACE_DEEP_STORM_QUIET_FRAC,
+    deepStormChainFrac: OPEN_SPACE_DEEP_STORM_CHAIN_FRAC,
     bands: OPEN_SPACE_WEATHER,
     fullSky: OPEN_SPACE_FULL_SKY,
     belt: OPEN_SPACE_BELT,
@@ -466,6 +473,9 @@ ${encounterLines}
     static let openSpaceStormQuietFrac: CGFloat = ${OPEN_SPACE_STORM_QUIET_FRAC}
     static let openSpaceStormChainFrac: CGFloat = ${OPEN_SPACE_STORM_CHAIN_FRAC}
     static let openSpaceStormGapCap: CGFloat = ${OPEN_SPACE_STORM_GAP_CAP}
+    static let openSpaceDeepFromKm: CGFloat = ${OPEN_SPACE_DEEP_FROM_KM}
+    static let openSpaceDeepStormQuietFrac: CGFloat = ${OPEN_SPACE_DEEP_STORM_QUIET_FRAC}
+    static let openSpaceDeepStormChainFrac: CGFloat = ${OPEN_SPACE_DEEP_STORM_CHAIN_FRAC}
 
     static let openSpaceWeather: [OpenSpaceWeatherBand] = [
 ${weatherBandLines}

@@ -2,6 +2,8 @@
 // Schedules authored catalog recipes: 1–2 Journey spikes (progress of the
 // goal) or Open Space storms (absolute KM). Speed is untouched.
 // Changes:
+// - Journey L24+ post-spike quiet is 0.56 (12% more air than the 0.5 hold).
+// - Open Space past 20k: storm quiet 0.21 / chain 0.10.
 // - Open Space storms: short quiet (0.18) after a patch; dual recipes at the
 //   same KM chain (0.08) instead of two half-screen holes. Recipe gaps cap at 0.28.
 // - Open Space: KM-anchored storms at unlock marks, then every 1500 KM after 5k;
@@ -19,6 +21,7 @@ import {
     weatherAt,
     OPEN_SPACE_STORM_GAP_CAP,
 } from '../config/OpenSpaceWeather.js';
+import { DEEP_FROM_LEVEL } from '../config/HazardPairs.js';
 import { OPEN_WORLD_UNLOCKS, PLAY_MODE } from '../modes/RunProfile.js';
 
 function jitterFor(level, index) {
@@ -197,7 +200,10 @@ export class EncounterDirector {
     }
 
     endQuietFrac(atKm) {
-        if (!this.kmMode) return 0.5;
-        return stormQuietFrac(this.hasChainedStorm(atKm));
+        if (!this.kmMode) {
+            const level = this.game.profile?.level ?? 0;
+            return level >= DEEP_FROM_LEVEL ? 0.56 : 0.5;
+        }
+        return stormQuietFrac(this.hasChainedStorm(atKm), atKm);
     }
 }

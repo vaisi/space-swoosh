@@ -5,8 +5,10 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - Sparkles star from L14: ~1 per 1,500 KM minus 1 (L14 → 8, L24 → 12,
+//   L42 → 22). L4–13 stay on the 1-per-1,000 KM curve (floor 2; −1 ease).
 // - Smash star (asteroids destroyed): L5–13 keep the teach curve (1 / 2 / 3);
-//   L14–23 → 8, L24–30 → 10, L31–36 → 15, L37–40 → 17, L41–42 → 20.
+//   L14–23 → 8, L24–30 → 14, L31–36 → 18, L37–40 → 22, L41–42 → 27.
 //   HUD uses dots when target ≤ 6 and `n / target` from day 14.
 // - L6+: `pairTheme` + `encounterCount` 1; L20+ also `comboTheme`; plateau
 //   focus skips side-barrier identity so days like 23 are not empty-mid walls.
@@ -89,10 +91,12 @@ const GOAL_KM_STEP = 500;
 const GOAL_KM_MILESTONE_BONUS = 1000;
 const GOAL_KM_MILESTONE_LEVELS = new Set([10, 15, 20, 25, 30, 35, 40, 42]);
 
-// Sparkles needed for the second star, per 1000 KM (levels with sparkles).
-// Targets are 1 below the raw curve so a sparkle stranded past the finish gate
-// does not make the star feel unreachable.
+// Sparkles needed for the second star. L5–13: 1 per 1000 KM. L14+: 1 per
+// 1500 KM. Targets are 1 below the raw curve so a sparkle stranded past the
+// finish gate does not make the star feel unreachable.
 const SPARKLES_TARGET_PER_1000KM = 1;
+const SPARKLES_DEEP_FROM_LEVEL = 14;
+const SPARKLES_TARGET_KM_DEEP = 1500;
 /** First level that can spawn sparkles (fuel + sparkles star). */
 export const POINTS_FROM_LEVEL = 4;
 /** First level that can spawn shields (and earn the smash star). */
@@ -105,10 +109,10 @@ const SMASH_LEVELS_PER_STEP = 7;
 export const SMASH_DOTS_MAX = 6;
 /** Late-journey smash-star floors (chapter-aligned). First matching `from` wins. */
 const SMASH_TARGET_BANDS = [
-    { from: 41, target: 20 },
-    { from: 37, target: 17 },
-    { from: 31, target: 15 },
-    { from: 24, target: 10 },
+    { from: 41, target: 27 },
+    { from: 37, target: 22 },
+    { from: 31, target: 18 },
+    { from: 24, target: 14 },
     { from: 14, target: 8 },
 ];
 
@@ -127,9 +131,12 @@ export function starsAvailableFor(level) {
 function sparklesTargetFor(levelNumber, goalKm) {
     if (levelNumber < POINTS_FROM_LEVEL) return 0;
     if (levelNumber === POINTS_FROM_LEVEL) return SPARKLES_STAR_FLOOR;
+    const perKm = levelNumber >= SPARKLES_DEEP_FROM_LEVEL
+        ? SPARKLES_TARGET_KM_DEEP
+        : 1000;
     return Math.max(
         SPARKLES_STAR_FLOOR,
-        Math.round((goalKm / 1000) * SPARKLES_TARGET_PER_1000KM) - 1
+        Math.round((goalKm / perKm) * SPARKLES_TARGET_PER_1000KM) - 1
     );
 }
 

@@ -304,7 +304,7 @@ enum GeneratedJourneyData {
             comboTheme: nil,
             encounterCount: 1,
             introduces: nil,
-            sparklesTarget: 12,
+            sparklesTarget: 8,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -320,7 +320,7 @@ enum GeneratedJourneyData {
             comboTheme: nil,
             encounterCount: 1,
             introduces: "driftCurrent",
-            sparklesTarget: 14,
+            sparklesTarget: 9,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -336,7 +336,7 @@ enum GeneratedJourneyData {
             comboTheme: nil,
             encounterCount: 1,
             introduces: nil,
-            sparklesTarget: 14,
+            sparklesTarget: 9,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -352,7 +352,7 @@ enum GeneratedJourneyData {
             comboTheme: nil,
             encounterCount: 1,
             introduces: "pulsating",
-            sparklesTarget: 15,
+            sparklesTarget: 9,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -368,7 +368,7 @@ enum GeneratedJourneyData {
             comboTheme: nil,
             encounterCount: 1,
             introduces: nil,
-            sparklesTarget: 15,
+            sparklesTarget: 10,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -384,7 +384,7 @@ enum GeneratedJourneyData {
             comboTheme: nil,
             encounterCount: 1,
             introduces: nil,
-            sparklesTarget: 16,
+            sparklesTarget: 10,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -400,7 +400,7 @@ enum GeneratedJourneyData {
             comboTheme: "driftCurrent",
             encounterCount: 1,
             introduces: "phase",
-            sparklesTarget: 17,
+            sparklesTarget: 11,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -416,7 +416,7 @@ enum GeneratedJourneyData {
             comboTheme: "phase",
             encounterCount: 1,
             introduces: nil,
-            sparklesTarget: 18,
+            sparklesTarget: 11,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -432,7 +432,7 @@ enum GeneratedJourneyData {
             comboTheme: "driftCurrent",
             encounterCount: 1,
             introduces: "wormhole",
-            sparklesTarget: 18,
+            sparklesTarget: 12,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -448,7 +448,7 @@ enum GeneratedJourneyData {
             comboTheme: "phase",
             encounterCount: 1,
             introduces: nil,
-            sparklesTarget: 19,
+            sparklesTarget: 12,
             smashTarget: 8,
             starSlots: 3
         ),
@@ -464,8 +464,8 @@ enum GeneratedJourneyData {
             comboTheme: "wormhole",
             encounterCount: 1,
             introduces: nil,
-            sparklesTarget: 19,
-            smashTarget: 10,
+            sparklesTarget: 12,
+            smashTarget: 14,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -480,8 +480,8 @@ enum GeneratedJourneyData {
             comboTheme: "driftCurrent",
             encounterCount: 2,
             introduces: "repulsor",
-            sparklesTarget: 21,
-            smashTarget: 10,
+            sparklesTarget: 13,
+            smashTarget: 14,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -496,8 +496,8 @@ enum GeneratedJourneyData {
             comboTheme: "phase",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 21,
-            smashTarget: 10,
+            sparklesTarget: 14,
+            smashTarget: 14,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -512,8 +512,8 @@ enum GeneratedJourneyData {
             comboTheme: "driftCurrent",
             encounterCount: 2,
             introduces: "blackhole",
-            sparklesTarget: 22,
-            smashTarget: 10,
+            sparklesTarget: 14,
+            smashTarget: 14,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -528,8 +528,8 @@ enum GeneratedJourneyData {
             comboTheme: "phase",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 22,
-            smashTarget: 10,
+            sparklesTarget: 14,
+            smashTarget: 14,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -544,8 +544,8 @@ enum GeneratedJourneyData {
             comboTheme: "wormhole",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 23,
-            smashTarget: 10,
+            sparklesTarget: 15,
+            smashTarget: 14,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -560,8 +560,8 @@ enum GeneratedJourneyData {
             comboTheme: "repulsor",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 24,
-            smashTarget: 10,
+            sparklesTarget: 16,
+            smashTarget: 14,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -576,8 +576,8 @@ enum GeneratedJourneyData {
             comboTheme: "driftCurrent",
             encounterCount: 2,
             introduces: "sweepGate",
-            sparklesTarget: 25,
-            smashTarget: 15,
+            sparklesTarget: 16,
+            smashTarget: 18,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -592,8 +592,8 @@ enum GeneratedJourneyData {
             comboTheme: "phase",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 25,
-            smashTarget: 15,
+            sparklesTarget: 16,
+            smashTarget: 18,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -608,8 +608,8 @@ enum GeneratedJourneyData {
             comboTheme: "wormhole",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 26,
-            smashTarget: 15,
+            sparklesTarget: 17,
+            smashTarget: 18,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -624,8 +624,8 @@ enum GeneratedJourneyData {
             comboTheme: "pulsating",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 26,
-            smashTarget: 15,
+            sparklesTarget: 17,
+            smashTarget: 18,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -640,8 +640,8 @@ enum GeneratedJourneyData {
             comboTheme: "phase",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 28,
-            smashTarget: 15,
+            sparklesTarget: 18,
+            smashTarget: 18,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -656,8 +656,8 @@ enum GeneratedJourneyData {
             comboTheme: "wormhole",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 28,
-            smashTarget: 15,
+            sparklesTarget: 18,
+            smashTarget: 18,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -672,8 +672,8 @@ enum GeneratedJourneyData {
             comboTheme: "repulsor",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 29,
-            smashTarget: 17,
+            sparklesTarget: 19,
+            smashTarget: 22,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -688,8 +688,8 @@ enum GeneratedJourneyData {
             comboTheme: "blackhole",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 29,
-            smashTarget: 17,
+            sparklesTarget: 19,
+            smashTarget: 22,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -704,8 +704,8 @@ enum GeneratedJourneyData {
             comboTheme: "sweepGate",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 30,
-            smashTarget: 17,
+            sparklesTarget: 19,
+            smashTarget: 22,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -720,8 +720,8 @@ enum GeneratedJourneyData {
             comboTheme: "complex",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 31,
-            smashTarget: 17,
+            sparklesTarget: 20,
+            smashTarget: 22,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -736,8 +736,8 @@ enum GeneratedJourneyData {
             comboTheme: "complex",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 32,
-            smashTarget: 20,
+            sparklesTarget: 21,
+            smashTarget: 27,
             starSlots: 3
         ),
         JourneyLevelSpec(
@@ -752,8 +752,8 @@ enum GeneratedJourneyData {
             comboTheme: "driftCurrent",
             encounterCount: 2,
             introduces: nil,
-            sparklesTarget: 33,
-            smashTarget: 20,
+            sparklesTarget: 22,
+            smashTarget: 27,
             starSlots: 3
         )
     ]
@@ -1791,6 +1791,9 @@ enum GeneratedJourneyData {
     static let openSpaceStormQuietFrac: CGFloat = 0.18
     static let openSpaceStormChainFrac: CGFloat = 0.08
     static let openSpaceStormGapCap: CGFloat = 0.28
+    static let openSpaceDeepFromKm: CGFloat = 20000
+    static let openSpaceDeepStormQuietFrac: CGFloat = 0.21
+    static let openSpaceDeepStormChainFrac: CGFloat = 0.1
 
     static let openSpaceWeather: [OpenSpaceWeatherBand] = [
         OpenSpaceWeatherBand(
@@ -1889,12 +1892,12 @@ enum GeneratedJourneyData {
         ),
         OpenSpaceBeltBand(
             fromKm: 20000,
-            minGapFrac: 0.1,
+            minGapFrac: 0.115,
             gapSpread: 1.2,
-            simpleChance: 0.22,
-            density: 2.15,
-            rowOne: 0.1,
-            rowTwo: 0.58
+            simpleChance: 0.28,
+            density: 1.9,
+            rowOne: 0.16,
+            rowTwo: 0.66
         )
     ]
 }

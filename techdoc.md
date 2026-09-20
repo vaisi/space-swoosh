@@ -1,6 +1,9 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Hangar tiles always draw `skin.blurb` (locked premium no longer
+<!-- Changes: Journey sparkles L14+ are ~1 per 1,500 KM minus 1; smash
+     bands L24+ are 14 / 18 / 22 / 27. L24+ deep belt and Open Space 20k
+     hold ease ~12% (gaps, density, row mix, storm quiet).
+     Hangar tiles always draw `skin.blurb` (locked premium no longer
      replaces it with “Tap to unlock.”). Submit Signal IME: WebView does not resize (`Keyboard.resize`
      none, Android `adjustNothing`). Remaining viewport is one paper sheet
      (header, recap line, call-sign field, Submit above the keyboard).
@@ -618,7 +621,9 @@ cooldown, 2-well cap) and each day fires **one** catalog spike near ~42% of
 the goal. `comboTheme` stays off until 20. **From level 20**, speed stays
 the shared 1.1× cruise. Instead the late belt tightens: `simpleChance` 0.40→0.26, min gap
 0.18→0.14 of screen height, `maxOnScreen` 14, `focusChance` 0.32, row mix
-about 35/45/20 for 1/2/3 slots.
+about 35/45/20 for 1/2/3 slots. **From level 24**, the deep belt eases ~12%
+without changing cruise: min gap 0.20→0.16, `density()` ×0.88, `simpleChance`
+0.46→0.32, row mix 45/40/15, `maxOnScreen` 12, post-spike quiet 0.56.
 2-slot rows pick a mixed pair on opposite lanes; **corridor** types (side
 barriers, drift) always get a mid-lane fill (simple cluster or a point
 hazard). Heavy types (black hole, repulsor, portal, sweep, bloom, walls)
@@ -641,12 +646,13 @@ constants:export` copies that catalog and the Open Space weather table into
 cap so they are not skipped. Hazard Lab and levels 1–5 keep the earlier mix.
 Open Space uses weather pairing after 2000 KM, a live belt that tightens toward
 a packed late-Journey *feel* by ~5k / 12.5k / 20k — **tighter vertical gaps
-than Journey's 0.14** (Open Space rows are thinner, so 0.14 still looked empty),
+than Journey's late 0.14** (Open Space rows are thinner, so 0.14 still looked empty),
 more 2/3-slot rows, and `simpleChance` actually placing rock clusters on the
-paired belt. Cruise is **1.1×**, not a speed ramp. KM-anchored catalog
+paired belt. The 20k hold eases ~12% (`minGapFrac` 0.115, density 1.90,
+`simpleChance` 0.28, row mix 0.16/0.66). Cruise is **1.1×**, not a speed ramp. KM-anchored catalog
 storms (unlock marks, then every 1500 KM after the full roster;
 dual-family patches after 12.5k) use a short quiet (0.18 screen, 0.08 between
-chained recipes) instead of half-screen holes. Hitting `maxOnScreen` delays the next row
+chained recipes; 0.21 / 0.10 past 20k) instead of half-screen holes. Hitting `maxOnScreen` delays the next row
 instead of punching a hole.
 Teach band goals are fixed: **L1 1250 / L2 2000 / L3 3000 / L4 4000 /
 L5 7500**. From L6 onward each level adds **+500 KM**; levels **10 / 15 / 20 /
@@ -665,10 +671,10 @@ Star **slots** scale with the teach band: **L1–3 → 1**, **L4 → 2**, **L5+ 
 (distance / sparkles / smash). Outcome and map show `earned / slots` (e.g. `1/1`,
 `2/2`, `3/3`). Storage still holds three booleans per level; unused slots stay
 false. Sparkles star opens at L4 (floor **2** sparkles, then ~1 per 1,000 km
-minus 1 — eased so a sparkle past the finish gate does not block the star).
-Smash star opens at L5 (1 smash, then 2 on L6–12, 3 on L13). From Fragments
-onward the target is chapter-banded: **L14–23 → 8**, **L24–30 → 10**,
-**L31–36 → 15**, **L37–40 → 17**, **L41–42 → 20**. HUD draws smash dots while
+minus 1 through L13; **L14+ is ~1 per 1,500 km minus 1** so late days stay
+collectable). Smash star opens at L5 (1 smash, then 2 on L6–12, 3 on L13). From Fragments
+onward the target is chapter-banded: **L14–23 → 8**, **L24–30 → 14**,
+**L31–36 → 18**, **L37–40 → 22**, **L41–42 → 27**. HUD draws smash dots while
 `smashTarget ≤ 6` (`SMASH_DOTS_MAX`) and `destroyed / target` from day 14.
 Mode select / map tallies use `TOTAL_STARS` (sum of `starSlots`).
 
@@ -714,11 +720,12 @@ rows follow a KM pair/combo/focus band (full-sky rotation after 7000).
 never uses `wormhole` as pair/focus. The belt still unlocks them at 5000 KM
 (named portal storm + ~8% gift hops); Journey intro `focusType: wormhole` is
 unchanged. **Belt density** lerps 0→5k (Day 20 pack) →12.5k (Day 33) →20k hold
-(`minGapFrac` 0.22→0.13→0.11→0.10, more 2/3-slot rows, live `simpleChance`).
+(`minGapFrac` 0.22→0.13→0.11→0.115, more 2/3-slot rows, live `simpleChance`;
+20k hold density 1.90).
 `gapRange` is re-read each spawn row. **Storms** play catalog recipes at each
 unlock KM (if playable), then every 1500 KM after 7000;
 after 12.5k each storm is two different families with a **short** quiet (0.18 /
-0.08 chain). Cruise is 1.1×.
+0.08 chain; 0.21 / 0.10 past 20k). Cruise is 1.1×.
 
 ### Hazard Lab
 

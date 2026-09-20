@@ -1,6 +1,7 @@
 // RunProfile.swift
-// Changes: Journey cruise is GameConfig.cruiseSpeedMultiplier (1.1), same as
-// Open Space — difficulty no longer lerps travel speed. Journey/Lab
+// Changes: Journey L24+ deep belt (~12% easier gaps/density/row mix) mirrors
+// JS JourneyProfile. Journey cruise is GameConfig.cruiseSpeedMultiplier (1.1),
+// same as Open Space — difficulty no longer lerps travel speed. Journey/Lab
 // clusterCount adds Int(roll * dens) like Android spawnSimpleAsteroids.
 
 import Foundation
@@ -105,7 +106,12 @@ struct RunProfile {
         let neverSparkles = spec.level < JourneyConfig.pointsFromLevel
         let neverShields = spec.level < JourneyConfig.shieldsFromLevel
         let late = spec.level >= 20
+        let deep = spec.level >= 24
         let tLate = (spec.difficulty - 0.72) / 0.28
+        let lateSimple = lerp(0.40, 0.26, tLate)
+        let deepSimple = lerp(0.46, 0.32, tLate)
+        let lateGap = lerp(0.18, 0.14, tLate)
+        let deepGap = lerp(0.20, 0.16, tLate)
         return RunProfile(
             mode: .journey,
             level: spec.level,
@@ -119,7 +125,7 @@ struct RunProfile {
             comboTheme: spec.comboTheme,
             encounterCount: spec.encounterCount,
             focusChance: late ? 0.32 : 0.5,
-            simpleChance: late ? lerp(0.40, 0.26, tLate) : lerp(0.70, 0.42, spec.difficulty),
+            simpleChance: deep ? deepSimple : late ? lateSimple : lerp(0.70, 0.42, spec.difficulty),
             allowAdjacentSetPieces: false,
             obstaclesFromKm: neverObstacles ? neverKm : 0,
             collectiblesFromKm: neverSparkles ? neverKm : 0,
@@ -127,10 +133,10 @@ struct RunProfile {
             wallBoostsFromKm: GameConfig.Profile.wallBoostsFromScore,
             density0: 1.15,
             density1: 2.05,
-            minGapFrac: late ? lerp(0.18, 0.14, tLate) : lerp(0.30, 0.16, spec.difficulty),
+            minGapFrac: deep ? deepGap : late ? lateGap : lerp(0.30, 0.16, spec.difficulty),
             gapSpread: 1.35,
             speedMultiplier: GameConfig.cruiseSpeedMultiplier,
-            maxOnScreen: late ? 14 : lerpInt(5, 10, spec.difficulty),
+            maxOnScreen: deep ? 12 : late ? 14 : lerpInt(5, 10, spec.difficulty),
             baseCluster0: 1,
             baseCluster1: 4,
             maxCluster: lerpInt(3, 5, spec.difficulty),
@@ -204,7 +210,8 @@ struct RunProfile {
         if usesOpenSpaceDensity {
             return OpenSpaceBelt.at(scoreKm).density
         }
-        return Self.lerp(density0, density1, difficulty)
+        let value = Self.lerp(density0, density1, difficulty)
+        return isDeepJourney ? value * 0.88 : value
     }
 
     func gapRange(height: CGFloat, scoreKm: CGFloat = 0) -> (min: CGFloat, max: CGFloat) {
@@ -237,6 +244,7 @@ struct RunProfile {
     }
 
     var isLateJourney: Bool { mode == .journey && level >= 20 }
+    var isDeepJourney: Bool { mode == .journey && level >= 24 }
 
     func usesPairedBelt(scoreKm: CGFloat) -> Bool {
         if mode == .journey { return level >= 6 }
@@ -267,6 +275,12 @@ struct RunProfile {
             let r = CombatSimulator.rand01(&rng)
             if r < belt.rowOne { return 1 }
             if r < belt.rowTwo { return min(2, maxSpawns) }
+            return min(3, maxSpawns)
+        }
+        if isDeepJourney {
+            let r = CombatSimulator.rand01(&rng)
+            if r < 0.45 { return 1 }
+            if r < 0.85 { return min(2, maxSpawns) }
             return min(3, maxSpawns)
         }
         if isLateJourney {

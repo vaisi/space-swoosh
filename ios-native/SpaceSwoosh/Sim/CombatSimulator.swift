@@ -1,5 +1,7 @@
 // CombatSimulator.swift
-// Changes: Black-hole phase ticks at 3.0 rad/s (Android +0.05/frame at 60 fps).
+// Changes: Open Space 20k+ storm quiet 0.21 / chain 0.10; Journey L24+
+// post-spike quiet 0.56. Black-hole phase ticks at 3.0 rad/s (Android
+// +0.05/frame at 60 fps).
 // Sparkle magnet latches, then ease-in + closing acceleration
 // (readable suck-in; still finishes if you fly past).
 // Wall-boost rush grants Flicker.speedBoostSeconds (5.0 wall-clock).
@@ -1451,7 +1453,7 @@ enum LateJourneyBelt {
                 frac = min(frac, GeneratedJourneyData.openSpaceStormGapCap)
             }
             if last, run.encounterUsesKm {
-                frac = min(frac, quietFrac(chained: chained))
+                frac = min(frac, quietFrac(chained: chained, scoreKm: run.scoreKm))
             }
             run.quietUntilY = atY + world.height * frac
             if last { run.encounterLiveIndex = -1 }
@@ -1459,7 +1461,9 @@ enum LateJourneyBelt {
         }
         spawnPlan(beat.slots, world: &world, run: &run, atY: atY, dens: run.profile.density(scoreKm: run.scoreKm))
         if last {
-            let frac = run.encounterUsesKm ? quietFrac(chained: chained) : 0.5
+            let frac = run.encounterUsesKm
+                ? quietFrac(chained: chained, scoreKm: run.scoreKm)
+                : journeyEndQuiet(run)
             run.quietUntilY = atY + world.height * frac
             run.encounterLiveIndex = -1
         }
@@ -1475,10 +1479,20 @@ enum LateJourneyBelt {
         return false
     }
 
-    private static func quietFrac(chained: Bool) -> CGFloat {
-        chained
-            ? GeneratedJourneyData.openSpaceStormChainFrac
+    private static func quietFrac(chained: Bool, scoreKm: CGFloat) -> CGFloat {
+        let deep = scoreKm >= GeneratedJourneyData.openSpaceDeepFromKm
+        if chained {
+            return deep
+                ? GeneratedJourneyData.openSpaceDeepStormChainFrac
+                : GeneratedJourneyData.openSpaceStormChainFrac
+        }
+        return deep
+            ? GeneratedJourneyData.openSpaceDeepStormQuietFrac
             : GeneratedJourneyData.openSpaceStormQuietFrac
+    }
+
+    private static func journeyEndQuiet(_ run: RunState) -> CGFloat {
+        run.profile.isDeepJourney ? 0.56 : 0.5
     }
 
     static func remember(_ types: [String], run: inout RunState) {

@@ -4,6 +4,8 @@
 // keeps the stair-with-plateaus curve honest: hold `d` and nothing gets harder,
 // however many levels pass.
 // Changes:
+// - L24+ deep belt (~12% easier than L20 late): wider gaps, 0.88× density,
+//   more simple rows, 45/40/15 slot mix, maxOnScreen 12.
 // - speedMultiplier is GameConfig.cruiseSpeedMultiplier (1.1) — same cruise as
 //   Open Space on iOS / Android / web. Difficulty still lerps density/gaps,
 //   not travel speed.
@@ -11,7 +13,7 @@
 // - L20+ late belt: lower simpleChance, denser row mix, wider maxOnScreen,
 //   slightly tighter gaps — cruise stays the shared 1.1× (not a speed ramp).
 // - Exposes pairTheme / comboTheme / encounterCount / usesPairedBelt (L6+) /
-//   isLateJourney / rollRowSpawnCount.
+//   isLateJourney / isDeepJourney / rollRowSpawnCount.
 // - introBeats exposes LEVEL_INTRO_BEATS (sentence-at-a-time; voice on 1–41;
 //   Day 42 beats play in the written epilogue);
 //   introMessage stays the full LEVEL_MESSAGES line.
@@ -30,7 +32,11 @@ import {
     POINTS_FROM_LEVEL,
     SHIELDS_FROM_LEVEL,
 } from '../config/JourneyConfig.js';
-import { LATE_FROM_LEVEL, PAIRED_FROM_LEVEL } from '../config/HazardPairs.js';
+import {
+    DEEP_FROM_LEVEL,
+    LATE_FROM_LEVEL,
+    PAIRED_FROM_LEVEL,
+} from '../config/HazardPairs.js';
 import { levelIntroBeats, levelMessage } from '../config/JourneyNarrative.js';
 import { PLAY_MODE, RunProfile } from './RunProfile.js';
 
@@ -73,6 +79,10 @@ export class JourneyProfile extends RunProfile {
 
     get isLateJourney() {
         return this.level >= LATE_FROM_LEVEL;
+    }
+
+    get isDeepJourney() {
+        return this.level >= DEEP_FROM_LEVEL;
     }
 
     get usesPairedBelt() {
@@ -161,11 +171,13 @@ export class JourneyProfile extends RunProfile {
     }
 
     get maxOnScreen() {
+        if (this.isDeepJourney) return 12;
         if (this.isLateJourney) return 14;
         return lerpInt(TUNING.maxOnScreen[0], TUNING.maxOnScreen[1], this.d);
     }
 
     get simpleChance() {
+        if (this.isDeepJourney) return lerp(0.46, 0.32, lateT(this.d));
         if (this.isLateJourney) return lerp(0.40, 0.26, lateT(this.d));
         return lerp(TUNING.simpleChance[0], TUNING.simpleChance[1], this.d);
     }
@@ -184,6 +196,10 @@ export class JourneyProfile extends RunProfile {
     }
 
     gapRange(canvasHeight) {
+        if (this.isDeepJourney) {
+            const min = canvasHeight * lerp(0.20, 0.16, lateT(this.d));
+            return { min, max: min * TUNING.gapSpread };
+        }
         if (this.isLateJourney) {
             const min = canvasHeight * lerp(0.18, 0.14, lateT(this.d));
             return { min, max: min * TUNING.gapSpread };
@@ -193,7 +209,8 @@ export class JourneyProfile extends RunProfile {
     }
 
     density() {
-        return lerp(TUNING.density[0], TUNING.density[1], this.d);
+        const value = lerp(TUNING.density[0], TUNING.density[1], this.d);
+        return this.isDeepJourney ? value * 0.88 : value;
     }
 
     baseClusterCount() {
@@ -214,6 +231,12 @@ export class JourneyProfile extends RunProfile {
     rollRowSpawnCount() {
         const maxSpawns = Math.max(1, this.maxRowSpawns());
         if (maxSpawns <= 1) return 1;
+        if (this.isDeepJourney) {
+            const r = Math.random();
+            if (r < 0.45) return 1;
+            if (r < 0.85) return Math.min(2, maxSpawns);
+            return Math.min(3, maxSpawns);
+        }
         if (this.isLateJourney) {
             const r = Math.random();
             if (r < 0.35) return 1;
