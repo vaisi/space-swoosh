@@ -3,6 +3,9 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // wormhole portal hops, and empty-tank engine sputter.
 // Changes:
+// - currentVoiceLevel / getCurrentVoiceLevel: Space Log play/stop knows which
+//   Journey day owns the shared voice slot (set in playLevelVoice, cleared on
+//   stop / ended / error). Cue voices leave it null.
 // - HTMLAudio is locked down (no controls, no remote playback, blank
 //   Media Session title) so Android cannot draw an in-page transport
 //   with the page title ("Space…") and a missing artwork slot.
@@ -182,6 +185,8 @@ export class SoundManager {
         /** @type {HTMLAudioElement | null} */
         this.levelVoice = null;
         this.levelVoicePlaying = false;
+        /** Journey day (1–42) that currently owns the voice slot, else null. */
+        this.currentVoiceLevel = null;
         /** True when game pause froze a clip mid-play (resume continues it). */
         this.levelVoicePaused = false;
         this.bgmDucked = false;
@@ -394,6 +399,13 @@ export class SoundManager {
         return !!this.levelVoicePlaying;
     }
 
+    /** Journey day speaking now, or null if the slot is idle / a cue clip. */
+    getCurrentVoiceLevel() {
+        if (!this.levelVoicePlaying) return null;
+        const n = Math.floor(Number(this.currentVoiceLevel) || 0);
+        return n >= VOICE_LEVEL_MIN && n <= VOICE_LEVEL_MAX ? n : null;
+    }
+
     /**
      * Play a navigator MP3 under /sounds/voice/. Replaces any current clip
      * without firing its onEnded. Ducks BGM unless opts.duckBgm is false.
@@ -451,6 +463,7 @@ export class SoundManager {
             return;
         }
         this.playCueVoice(`level-${n}.mp3`, opts);
+        this.currentVoiceLevel = this.levelVoicePlaying ? n : null;
     }
 
     playEpilogueOpenVoice(opts = {}) {
@@ -499,6 +512,7 @@ export class SoundManager {
             const finish = () => {
                 if (this.levelVoice !== voice) return;
                 this.levelVoicePlaying = false;
+                this.currentVoiceLevel = null;
                 this.restoreBgmAfterVoice();
                 this.levelVoice = null;
                 this.notifyLevelVoiceEnded();
@@ -593,6 +607,7 @@ export class SoundManager {
             if (this.cueVoiceSource !== src) return;
             this.cueVoiceSource = null;
             this.levelVoicePlaying = false;
+            this.currentVoiceLevel = null;
             this.restoreBgmAfterVoice();
             this.notifyLevelVoiceEnded();
         };
@@ -636,6 +651,7 @@ export class SoundManager {
         this.levelVoice = null;
         this.levelVoicePlaying = false;
         this.levelVoicePaused = false;
+        this.currentVoiceLevel = null;
         this.onLevelVoiceEnded = null;
         this.restoreBgmAfterVoice();
         this.stopCueSource();

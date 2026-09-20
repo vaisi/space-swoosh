@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Leaving Space Log stops Journey-day voice replay (same as on-screen Back).
 // - Enjoyment review overlay on game-over treats back as Later.
 // - Written L42 epilogue consumes back (skip / dismiss cards) instead of
 //   dumping to the Journey map.
@@ -120,6 +121,9 @@ export function goBack(game) {
 
     const parent = PARENT_SCREEN[game.appScreen];
     if (parent) {
+        if (game.appScreen === 'logbook') {
+            game.soundManager?.stopLevelVoice?.({ notify: true });
+        }
         if (parent === 'modeSelect') {
             game.goToModeSelect();
             return true;

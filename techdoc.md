@@ -352,7 +352,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/LogbookProgress.js` | `localStorage` logbook: `locked` / `observed` / `known` per entry. |
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
-| `ui/screens/LogbookScreen.js` | Space Log: Obstacles/Boosts list only observed/known cards; Journey rows text-only. Picture wells are playfield specimens (`LogbookGlyphs.js`). |
+| `ui/screens/LogbookScreen.js` | Space Log: Obstacles/Boosts list only observed/known cards; Journey rows text-only. Known Day N cards replay `playLevelVoice(N)` from a top-right play/stop (`buttons.plays`); The Call / locked days have no control. Leave (Back / hardware back) calls `stopLevelVoice`. Picture wells are playfield specimens (`LogbookGlyphs.js`). |
 | `ui/screens/LogbookGlyphs.js` | In-game silhouettes at corridor scale (finish gate spans the well; sparkle/wormhole/asteroid keep relative size). |
 | `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
@@ -382,7 +382,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text beside the hull on the open side, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
-| `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playSwooshVoice` and `playFuelLowVoice`; `recoverBgmIfInterrupted` restarts HTMLAudio if WebKit pauses it under Web Audio; `stopLevelVoice` / `stopCueVoice`). Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
+| `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playSwooshVoice` and `playFuelLowVoice`; `recoverBgmIfInterrupted` restarts HTMLAudio if WebKit pauses it under Web Audio; `stopLevelVoice` / `stopCueVoice`). `currentVoiceLevel` / `getCurrentVoiceLevel()` tell Space Log which Day owns the slot. Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
 | `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
 | `services/FriendsScoreService.js` | Android Play Games Friends board: maps `isLocal` + photo data-URL. Web no-ops (`isAvailable` is Android native only). |
 | `services/SpaceBoardFocus.js` | Friends-default probe, Submit Signal call-sign row match, 10-row page index. |
@@ -772,13 +772,15 @@ run starts. Open Space never updates the logbook. Menu item is always available.
 
 | Piece | Role |
 | --- | --- |
-| `config/LogbookEntries.js` | Catalog + copy. Categories: Obstacles, Boosts, Journey (`signalCall` + Day N voice lines; id still `levels`), From the Void (stub). |
+| `config/LogbookEntries.js` | Catalog + copy. Categories: Obstacles, Boosts, Journey (`signalCall` + Day N voice lines; id still `levels`), From the Void (stub). `levelFromEntryId('level_N')` for voice replay. |
 | `services/LogbookProgress.js` | Key `logbookProgress`: `{ version, entries: { [id]: 'observed' \| 'known' } }`. |
 | `managers/LogbookManager.js` | `observe` / `interact` / `revealInstant`; same-frame toast debounce via `flushToast()`. |
 | `managers/LogbookToastManager.js` | Top-center chip, independent of MilestoneManager. |
 | `SoundManager.playLogbook()` | Soft Enterprise-style bridge chirp (two quiet filtered sines) on update. |
 
 **State machine:** `locked` → `observed` (picture + name; Spock pending line) → `known` (field-manual definition + remark). Instant entries (`signalCall`, `spaceBoop`, `styleSwoosh`, `deflectorSmash`) jump straight to `known`. Obstacles/Boosts tabs hide `locked` rows so the list is only what you have logged.
+
+**Voice replay (Journey tab):** known `level_N` rows expose a play/stop that calls `SoundManager.playLevelVoice(N)` (iOS `VoicePlayer.playLevel`). Same-day tap stops; another day replaces the shared slot. Back / `goBack` / iOS `onDisappear` call `stopLevelVoice`. `signalCall` has no clip. Voice-off / master mute keep the button; playback is a no-op.
 
 **Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash → instant. Lore Continue → instant `signalCall`.
 

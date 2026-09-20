@@ -312,7 +312,7 @@ Categories:
 | --- | --- |
 | Obstacles | Asteroids, barriers, square blooms, sweeps, repulsors, drift currents, black holes, Space BOOP, … |
 | Boosts | Shield, wormhole gate, wall boost, fuel sparkles, style swoosh, finish gate, … |
-| Journey | Day 1 onward navigator transmissions (plus The Call). After the last relay you may write one thing into the dark — once. |
+| Journey | Day 1 onward navigator transmissions (plus The Call). After the last relay you may write one thing into the dark — once. Days you have already started show a play control so you can hear NAV say that line again. Locked days and The Call stay silent. |
 | From the Void | Reserved for future transmissions — empty for now |
 
 Entries are tall cards: a miniature of how the thing looks in flight on the left
@@ -320,8 +320,13 @@ Entries are tall cards: a miniature of how the thing looks in flight on the left
 a rock), name and notes on the right. Scroll the list. Obstacles and Boosts only
 list things you have
 already seen or touched — there are no empty Unknown contact placeholders.
-Journey days still appear as a chapter list. Round, triangular, and square
-simple asteroids each get their own entry.
+Journey days still appear as a chapter list. On a day you have already flown
+(or started), tap the play square in the top-right of the card to hear NAV
+again — the same line as the start of that day. Tap it once more to stop, or
+leave Space Log and it stops on its own. Days you have not reached yet stay
+title-only, with no play button. The Call is text only. Voice must be on in
+Options, and the master Sound toggle must not be muted. Round, triangular, and
+square simple asteroids each get their own entry.
 
 ## The Journey map
 

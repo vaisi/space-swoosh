@@ -1,6 +1,7 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - levelFromEntryId parses `level_N` for Space Log voice replay (The Call → null).
 // - Wormhole Gate lives under Boosts (hop + shield gift), not Obstacles.
 // - Shortened obstacle and boost definitions so Space Log cards fit ~3 lines.
 // - Removed Space Travel Boost from the catalog (flyout gameplay is unchanged).
@@ -340,4 +341,12 @@ export function entriesForCategory(categoryId) {
 
 export function levelEntryId(level) {
     return `level_${level}`;
+}
+
+/** `level_12` → 12; The Call and other ids → null. */
+export function levelFromEntryId(id) {
+    const match = /^level_(\d+)$/.exec(String(id || ''));
+    if (!match) return null;
+    const n = Number(match[1]);
+    return Number.isInteger(n) && n >= 1 ? n : null;
 }

@@ -1,8 +1,10 @@
 // VoicePlayer.swift
-// Changes: LEVEL N intros play on the SFX engine voice node (same bus as
-// first-boop) so synth wall-boop can mix under them. First-boop will not start
-// while another clip is speaking and does not consume its once-flag if blocked.
-// playSwoosh does not duck BGM. Epilogue open/skip still use AVAudioPlayer.
+// Changes: speakingLevel tracks which Journey day owns the voice slot so Space
+// Log play/stop stays honest if another cue steals it. LEVEL N intros play on
+// the SFX engine voice node (same bus as first-boop) so synth wall-boop can mix
+// under them. First-boop will not start while another clip is speaking and does
+// not consume its once-flag if blocked. playSwoosh does not duck BGM. Epilogue
+// open/skip still use AVAudioPlayer.
 
 import AVFoundation
 import Foundation
@@ -17,6 +19,8 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
     private var engineCue = false
     private var cueDucks = false
     private(set) var playedFirstBoop = false
+    /// Journey day (1–42) that currently owns the voice slot.
+    private(set) var speakingLevel: Int?
 
     var isSpeaking: Bool {
         player?.isPlaying == true || SfxPlayer.shared.voicePlaying
@@ -24,15 +28,20 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
 
     func playLevel(_ level: Int, onEnded: (() -> Void)? = nil) {
         guard enabled, !SettingsStore.shared.muted else {
+            speakingLevel = nil
             onEnded?()
             return
         }
         playEngineCue { done in
             SfxPlayer.shared.playLevelVoice(level) {
                 done()
+                if self.speakingLevel == level {
+                    self.speakingLevel = nil
+                }
                 onEnded?()
             }
         }
+        speakingLevel = SfxPlayer.shared.voicePlaying ? level : nil
     }
 
     func playEpilogueOpen(onEnded: (() -> Void)? = nil) {
@@ -71,6 +80,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         engineCue = false
         cueDucks = false
         frozen = false
+        speakingLevel = nil
         MusicPlayer.shared.unduck()
         let done = ended
         ended = nil
@@ -85,6 +95,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         engineCue = false
         cueDucks = false
         frozen = false
+        speakingLevel = nil
         MusicPlayer.shared.unduck()
     }
 
@@ -172,6 +183,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
         engineCue = false
         cueDucks = false
         frozen = false
+        speakingLevel = nil
         MusicPlayer.shared.unduck()
     }
 

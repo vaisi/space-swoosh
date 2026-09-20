@@ -1,8 +1,9 @@
 // LogbookView.swift
-// Changes: SPACE LOG header + Grotesk/Mono chrome matching Android logbook.
-// Obstacles/Boosts cards use a 1/3 playfield specimen well (LogbookGlyph) so
-// finish gates span the picture and relative sizes match in-game. List only
-// observed/known cards (no locked placeholders). Journey still lists named
+// Changes: known Journey Day cards replay NAV via a top-right play/stop
+// (VoicePlayer.playLevel). The Call and locked days stay silent. Leaving the
+// screen stops the clip. SPACE LOG header + Grotesk/Mono chrome matching
+// Android logbook. Obstacles/Boosts cards use a 1/3 playfield specimen well
+// (LogbookGlyph). List only observed/known cards. Journey still lists named
 // days. Tabs are filled ink rects like Android LogbookScreen.
 
 import SwiftUI
@@ -12,6 +13,7 @@ struct LogbookView: View {
 
     @ObservedObject private var store = LogbookStore.shared
     @State private var category = "obstacles"
+    @State private var playingLevel: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -60,6 +62,10 @@ struct LogbookView: View {
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
+        .onDisappear {
+            VoicePlayer.shared.stop()
+            playingLevel = nil
+        }
     }
 
     /// Journey keeps named day rows; Obstacles/Boosts hide locked placeholders.
@@ -135,11 +141,19 @@ struct LogbookView: View {
 
     @ViewBuilder
     private func journeyCopy(_ entry: LogbookEntrySpec, state: LogbookState) -> some View {
+        let level = journeyLevel(entry.id)
+        let canPlay = state == .known && level != nil
         VStack(alignment: .leading, spacing: 6) {
-            Text(entry.name.uppercased())
-                .font(BrandType.label(12))
-                .tracking(BrandType.labelTracking(12))
-                .foregroundStyle(state == .locked ? BrandColors.ink.opacity(0.30) : BrandColors.ink)
+            HStack(alignment: .top, spacing: 10) {
+                Text(entry.name.uppercased())
+                    .font(BrandType.label(12))
+                    .tracking(BrandType.labelTracking(12))
+                    .foregroundStyle(state == .locked ? BrandColors.ink.opacity(0.30) : BrandColors.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let level, canPlay {
+                    journeyPlayButton(level: level)
+                }
+            }
             if state == .known {
                 Text(entry.definition)
                     .font(BrandType.body(14))
@@ -152,10 +166,66 @@ struct LogbookView: View {
         .foregroundStyle(BrandColors.ink)
     }
 
+    private func journeyLevel(_ id: String) -> Int? {
+        guard id.hasPrefix("level_") else { return nil }
+        return Int(id.dropFirst("level_".count))
+    }
+
+    private func journeyPlayButton(level: Int) -> some View {
+        let playing = playingLevel == level || VoicePlayer.shared.speakingLevel == level
+        Button {
+            toggleJourneyVoice(level)
+        } label: {
+            ZStack {
+                Rectangle()
+                    .fill(BrandColors.paper)
+                Rectangle()
+                    .stroke(playing ? BrandColors.signal : BrandColors.ink, lineWidth: 1.5)
+                if playing {
+                    Rectangle()
+                        .fill(BrandColors.signal)
+                        .frame(width: 9, height: 9)
+                } else {
+                    JourneyPlayTriangle()
+                        .fill(BrandColors.ink)
+                        .frame(width: 10, height: 12)
+                }
+            }
+            .frame(width: 32, height: 32)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(playing ? "Stop Day \(level)" : "Play Day \(level)")
+    }
+
+    private func toggleJourneyVoice(_ level: Int) {
+        if playingLevel == level || VoicePlayer.shared.speakingLevel == level {
+            VoicePlayer.shared.stop()
+            playingLevel = nil
+            return
+        }
+        playingLevel = level
+        VoicePlayer.shared.playLevel(level) {
+            if playingLevel == level {
+                playingLevel = nil
+            }
+        }
+    }
+
     private func pendingLine(for id: String) -> String {
         let lines = GeneratedJourneyData.observedPending
         guard !lines.isEmpty else { return "Observed." }
         let idx = abs(id.hashValue) % lines.count
         return lines[idx]
+    }
+}
+
+private struct JourneyPlayTriangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+        path.closeSubpath()
+        return path
     }
 }

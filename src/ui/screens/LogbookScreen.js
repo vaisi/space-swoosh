@@ -1,6 +1,9 @@
 // LogbookScreen.js
 // Journey discovery journal: scrollable tall cards — icon left (1/3), text right (2/3).
 // Changes:
+// - Journey tab: known Day N cards get a top-right play/stop that replays
+//   level-N.mp3 via SoundManager. Locked days and The Call stay silent.
+//   Dedicated hit-boxes (buttons.plays); whole-card tap does not play.
 // - Picture well is a playfield specimen (LogbookGlyphs): finish gate spans the
 //   well, relative sizes match in-game (sparkle smaller than a rock, etc.).
 // - Obstacles / Boosts list only observed or known entries (no UNKNOWN CONTACT
@@ -26,6 +29,7 @@ import {
     EMPTY_CATEGORY_COPY,
     OBSERVED_PENDING_LINES,
     entriesForCategory,
+    levelFromEntryId,
 } from '../../config/LogbookEntries.js';
 import {
     getEntryState,
@@ -46,7 +50,7 @@ export function renderLogbook(game) {
 
     const header = game.drawScreenHeader('SPACE LOG', { back: true });
 
-    const buttons = { back: header.backRect, tabs: [], entries: [] };
+    const buttons = { back: header.backRect, tabs: [], entries: [], plays: [] };
     const category = game.logbookCategory || 'obstacles';
 
     // Category tabs
@@ -204,9 +208,30 @@ export function renderLogbook(game) {
             ctx.fillText(lockedLabel, textLeft, y + rowH / 2 - titlePx * 0.55);
             resetType(ctx);
         } else if (journeyTab) {
+            const playLevel = state === 'known' ? levelFromEntryId(entry.id) : null;
+            const playSize = Math.max(unit * 2.8, 28);
+            const playGap = unit * 0.8;
+            const titleW = playLevel != null
+                ? Math.max(unit * 4, textInnerW - playSize - playGap)
+                : textInnerW;
+
+            if (playLevel != null) {
+                const playX = L.left + L.width - textPad - playSize;
+                const playY = y + textPad;
+                const speaking = game.soundManager?.getCurrentVoiceLevel?.() === playLevel;
+                drawLogbookPlayControl(ctx, playX, playY, playSize, speaking);
+                buttons.plays.push({
+                    x: playX,
+                    y: screenY + textPad,
+                    width: playSize,
+                    height: playSize,
+                    level: playLevel,
+                });
+            }
+
             setLabelType(ctx, titlePx, 700);
             ctx.fillStyle = color.ink;
-            fitPx(ctx, entry.name.toUpperCase(), textInnerW, titlePx, unit * 1.15,
+            fitPx(ctx, entry.name.toUpperCase(), titleW, titlePx, unit * 1.15,
                 (px) => setLabelType(ctx, px, 700));
             ctx.fillText(entry.name.toUpperCase(), textLeft, y + textPad);
             resetType(ctx);
@@ -275,7 +300,15 @@ export function handleLogbookClick(game, x, y) {
     const buttons = game.logbookButtons;
     if (!buttons) return false;
 
+    for (const play of buttons.plays || []) {
+        if (game.isClickInButton(x, y, play)) {
+            toggleLogbookVoice(game, play.level);
+            return true;
+        }
+    }
+
     if (buttons.back && game.isClickInButton(x, y, buttons.back)) {
+        stopLogbookVoice(game);
         game.showMenu();
         return true;
     }
@@ -289,6 +322,57 @@ export function handleLogbookClick(game, x, y) {
     }
 
     return false;
+}
+
+export function stopLogbookVoice(game) {
+    game?.soundManager?.stopLevelVoice?.({ notify: true });
+}
+
+function toggleLogbookVoice(game, level) {
+    const sound = game?.soundManager;
+    if (!sound?.playLevelVoice) return;
+    const run = () => {
+        if (sound.getCurrentVoiceLevel?.() === level && sound.isLevelVoicePlaying?.()) {
+            sound.stopLevelVoice({ notify: true });
+            return;
+        }
+        sound.playLevelVoice(level);
+    };
+    if (sound.initialized) {
+        run();
+        return;
+    }
+    void sound.initialize().then(() => {
+        game.soundInitialized = true;
+        run();
+    });
+}
+
+function drawLogbookPlayControl(ctx, x, y, size, playing) {
+    ctx.save();
+    ctx.fillStyle = color.paper;
+    ctx.strokeStyle = playing ? color.signal : color.ink;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(x, y, size, size);
+    ctx.fill();
+    ctx.stroke();
+
+    if (playing) {
+        const stop = size * 0.28;
+        ctx.fillStyle = color.signal;
+        ctx.fillRect(x + (size - stop) / 2, y + (size - stop) / 2, stop, stop);
+    } else {
+        const inset = size * 0.30;
+        ctx.fillStyle = color.ink;
+        ctx.beginPath();
+        ctx.moveTo(x + inset, y + inset);
+        ctx.lineTo(x + inset, y + size - inset);
+        ctx.lineTo(x + size - inset * 0.72, y + size / 2);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.restore();
 }
 
 export function clampLogbookScroll(game, value) {
