@@ -175,6 +175,9 @@ export class SoundManager {
         // browser interrupt (paused element, flag still true) can be recovered.
         this.bgmWanted = false;
         this.audioCtx = null;
+        this.outputBus = null;
+        this.captureDestination = null;
+        this.mediaSources = new WeakMap();
         this.boopNoiseBuffer = null; // reused by playBoop (no per-hit GC)
         this.swooshNoiseBuffer = null; // reused by playSwoosh (no per-hit GC)
         this.cueVoiceSource = null;
@@ -284,7 +287,7 @@ export class SoundManager {
             src.buffer = buffer;
             gain.gain.value = volume;
             src.connect(gain);
-            gain.connect(ctx.destination);
+            gain.connect(this.outputNode(ctx));
             src.start(0);
             this.recoverBgmIfInterrupted();
         } catch (error) {
@@ -504,6 +507,7 @@ export class SoundManager {
             const voice = createLockedAudio(url);
             voice.volume = VOICE_VOLUME;
             voice.muted = !this.canPlayVoice();
+            this.routeMediaElementForCapture(voice);
             this.levelVoice = voice;
             this.levelVoicePlaying = true;
             this.voiceDucksBgm = duckBgm;
@@ -596,7 +600,7 @@ export class SoundManager {
         src.buffer = buffer;
         gain.gain.value = VOICE_VOLUME;
         src.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(this.outputNode(ctx));
 
         this.cueVoiceSource = src;
         this.levelVoicePlaying = true;
@@ -743,6 +747,9 @@ export class SoundManager {
             const Ctx = window.AudioContext || window.webkitAudioContext;
             if (!Ctx) return null;
             this.audioCtx = new Ctx();
+            this.outputBus = this.audioCtx.createGain();
+            this.outputBus.gain.value = 1;
+            this.outputBus.connect(this.audioCtx.destination);
         }
         if (this.audioCtx.state === 'suspended') {
             this.audioCtx.resume()
@@ -769,6 +776,56 @@ export class SoundManager {
             this.swooshNoiseBuffer = buffer;
         }
         return this.audioCtx;
+    }
+
+    outputNode(ctx = this.ensureAudioContext()) {
+        if (!ctx) return null;
+        if (!this.outputBus) {
+            this.outputBus = ctx.createGain();
+            this.outputBus.gain.value = 1;
+            this.outputBus.connect(ctx.destination);
+        }
+        return this.outputBus;
+    }
+
+    routeMediaElementForCapture(element) {
+        if (!this.captureDestination || !element) return;
+        const ctx = this.ensureAudioContext();
+        if (!ctx || this.mediaSources.has(element)) return;
+        try {
+            const source = ctx.createMediaElementSource(element);
+            source.connect(this.outputNode(ctx));
+            this.mediaSources.set(element, source);
+        } catch (error) {
+            console.warn('Unable to route media element into capture mix:', error);
+        }
+    }
+
+    async beginCaptureMix() {
+        const ctx = this.ensureAudioContext();
+        if (!ctx || typeof ctx.createMediaStreamDestination !== 'function') {
+            throw new Error('Web Audio recording is unavailable');
+        }
+        await ctx.resume();
+        if (!this.captureDestination) {
+            this.captureDestination = ctx.createMediaStreamDestination();
+            this.outputNode(ctx).connect(this.captureDestination);
+            for (const sound of Object.values(this.sounds)) {
+                this.routeMediaElementForCapture(sound);
+            }
+            this.routeMediaElementForCapture(this.levelVoice);
+        }
+        return this.captureDestination.stream;
+    }
+
+    endCaptureMix() {
+        if (!this.captureDestination || !this.outputBus) return;
+        try {
+            this.outputBus.disconnect(this.captureDestination);
+        } catch {
+            /* already disconnected */
+        }
+        this.captureDestination = null;
     }
 
     /**
@@ -925,7 +982,7 @@ export class SoundManager {
                 gain.gain.exponentialRampToValueAtTime(0.14, t0 + 0.012);
                 gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
                 osc.connect(gain);
-                gain.connect(ctx.destination);
+                gain.connect(this.outputNode(ctx));
                 osc.start(t0);
                 osc.stop(t0 + 0.16);
             });
@@ -979,12 +1036,12 @@ export class SoundManager {
             noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
 
             osc.connect(oscGain);
-            oscGain.connect(ctx.destination);
+            oscGain.connect(this.outputNode(ctx));
             tick.connect(tickGain);
-            tickGain.connect(ctx.destination);
+            tickGain.connect(this.outputNode(ctx));
             noise.connect(filter);
             filter.connect(noiseGain);
-            noiseGain.connect(ctx.destination);
+            noiseGain.connect(this.outputNode(ctx));
 
             osc.start(now);
             osc.stop(now + duration);
@@ -1036,12 +1093,12 @@ export class SoundManager {
             if (this.swooshNoiseBuffer) {
                 src.connect(filter);
                 filter.connect(gain);
-                gain.connect(ctx.destination);
+                gain.connect(this.outputNode(ctx));
                 src.start(now);
                 src.stop(now + duration);
             }
             osc.connect(oscGain);
-            oscGain.connect(ctx.destination);
+            oscGain.connect(this.outputNode(ctx));
 
             osc.start(now);
             osc.stop(now + 0.15);
@@ -1086,7 +1143,7 @@ export class SoundManager {
         oscGain.gain.exponentialRampToValueAtTime(0.26 * amp, tStart + 0.012);
         oscGain.gain.exponentialRampToValueAtTime(0.0001, tStart + 0.42);
         osc.connect(oscGain);
-        oscGain.connect(ctx.destination);
+        oscGain.connect(this.outputNode(ctx));
         osc.start(tStart);
         osc.stop(tStart + duration);
 
@@ -1105,7 +1162,7 @@ export class SoundManager {
             tGain.gain.exponentialRampToValueAtTime(tick.peak * amp, t0 + 0.008);
             tGain.gain.exponentialRampToValueAtTime(0.0001, t0 + tick.dur);
             tOsc.connect(tGain);
-            tGain.connect(ctx.destination);
+            tGain.connect(this.outputNode(ctx));
             tOsc.start(t0);
             tOsc.stop(t0 + tick.dur + 0.01);
         }
@@ -1124,7 +1181,7 @@ export class SoundManager {
         noiseGain.gain.exponentialRampToValueAtTime(0.0001, tStart + 0.14);
         noise.connect(filter);
         filter.connect(noiseGain);
-        noiseGain.connect(ctx.destination);
+        noiseGain.connect(this.outputNode(ctx));
         noise.start(tStart);
         noise.stop(tStart + 0.14);
     }
@@ -1190,7 +1247,7 @@ export class SoundManager {
             // Dry + wet bus. Wet path = delay with feedback for space echo.
             const master = ctx.createGain();
             master.gain.value = 1;
-            master.connect(ctx.destination);
+            master.connect(this.outputNode(ctx));
 
             const dry = ctx.createGain();
             dry.gain.value = 0.7;
@@ -1362,7 +1419,7 @@ export class SoundManager {
 
                 osc.connect(filter);
                 filter.connect(gain);
-                gain.connect(ctx.destination);
+                gain.connect(this.outputNode(ctx));
                 osc.start(t0);
                 osc.stop(t0 + length + 0.02);
             });

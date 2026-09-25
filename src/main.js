@@ -37,6 +37,7 @@ import { initAnalytics, track } from './services/Analytics.js';
 import { PLAY_STORE_URL, appStoreUrl } from './services/StoreLinks.js';
 import { initEntitlements } from './services/Entitlements.js';
 import { playtestLevelFromQuery } from './services/JourneyProgress.js';
+import { CaptureManager } from './capture/CaptureManager.js';
 
 const SPLASH_FAILSAFE_MS = 3000;
 
@@ -73,6 +74,7 @@ window.addEventListener('load', async () => {
 
     const game = new Game(GameConfig);
     game.start();
+    game.captureManager = new CaptureManager(game);
     const playtestLevel = playtestLevelFromQuery();
     if (playtestLevel != null) game.tryBeginJourneyLevel(playtestLevel);
 
