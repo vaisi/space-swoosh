@@ -19,6 +19,7 @@ import { drawRichLine, measureRichWidth } from './Keycaps.js';
  * @returns {SteerCueKind | null}
  */
 export function activeSteerCue(game) {
+    if (game?.captureMode) return null;
     if (!game?.profile?.runsTutorial) return null;
     if (!game.isPlaying() || game.isPaused || game.isGameOver) return null;
     if (game.levelIntro?.active) return null;

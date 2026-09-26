@@ -58,6 +58,7 @@ export class CaptureManager {
         this.lastResult = null;
 
         if (!this.options.enabled) return;
+        this.game.captureMode = true;
         this.installOperatorApi();
         this.installKeyboardControls();
         if (this.options.auto) this.startStateMonitor();
