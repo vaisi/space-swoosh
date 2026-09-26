@@ -3,7 +3,8 @@
 // Changes:
 // - shouldBlockBrowserPlay() / preferredStoreTarget(): mobile web cannot run
 //   the canvas; html[data-web-gate=store|desktop|play] drives the download
-//   prompt and desktop QR rails. Vite `?webplay=1` bypasses the gate in DEV.
+//   prompt and desktop QR rails. Vite `?webplay=1` bypasses the gate in DEV;
+//   the explicit `?capture=1` production route is reserved for native recording.
 // - clientPlatform(): 'ios' | 'android' | 'web' for analytics + Supabase rows.
 // - isDesktopWeb() / isNativeApp() / markDocumentShell(): Open World teach copy
 //   and the desktop store rails branch on desktop web vs native/touch.
@@ -54,10 +55,10 @@ export function preferredStoreTarget() {
 
 /** Vite-only escape hatch so device-mode can still boot the canvas. */
 export function allowBrowserPlayBypass() {
-    if (!import.meta.env.DEV) return false;
     if (typeof window === 'undefined') return false;
     try {
-        return new URLSearchParams(window.location.search).has('webplay');
+        const params = new URLSearchParams(window.location.search);
+        return params.has('capture') || (import.meta.env.DEV && params.has('webplay'));
     } catch {
         return false;
     }
