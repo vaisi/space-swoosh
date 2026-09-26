@@ -858,6 +858,9 @@ export class Game {
                 return;
             }
 
+            // Capture-only autonomous input is inert unless ?capturePilot=1.
+            this.captureManager?.pilot?.update();
+
             // Ship first so the catch-up camera reacts to this frame's lead.
             this.spacecraft.update();
             const prevCameraY = this.camera.y;
@@ -4735,4 +4738,4 @@ export class Game {
 
         document.body.appendChild(modal);
     }
-} 
+}

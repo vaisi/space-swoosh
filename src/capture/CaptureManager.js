@@ -1,5 +1,7 @@
 // Capture-only tooling is loaded behind ?capture=1. Normal players never
-// create a MediaRecorder, capture canvas, or recording audio graph.
+// create a MediaRecorder, capture canvas, recording audio graph, or pilot.
+
+import { CapturePilot } from './CapturePilot.js';
 
 const DEFAULT_FPS = 60;
 const DEFAULT_VIDEO_BITS_PER_SECOND = 4_000_000;
@@ -11,6 +13,7 @@ function captureOptions() {
     return {
         enabled: params.get('capture') === '1',
         auto: params.get('captureAuto') === '1',
+        pilot: params.get('capturePilot') === '1',
     };
 }
 
@@ -54,6 +57,7 @@ export class CaptureManager {
 
         if (!this.options.enabled) return;
         this.game.captureMode = true;
+        this.pilot = this.options.pilot ? new CapturePilot(game) : null;
         this.installOperatorApi();
         this.installKeyboardControls();
         if (this.options.auto) this.startStateMonitor();
@@ -72,9 +76,12 @@ export class CaptureManager {
             active: this.active,
             stopping: this.stopping,
             auto: this.options.auto,
+            pilot: this.pilot?.status() ?? { enabled: false },
             startedAt: this.startedAt || null,
             elapsedMs: this.startedAt ? Math.round(performance.now() - this.startedAt) : 0,
             appScreen: this.game.appScreen,
+            score: Math.floor(this.game.score ?? 0),
+            finalScore: this.game.finalScore ?? null,
             hasLastResult: !!this.lastResult,
         };
     }
