@@ -1,11 +1,7 @@
 // Capture-only tooling is loaded behind ?capture=1. Normal players never
 // create a MediaRecorder, capture canvas, or recording audio graph.
 
-const CAPTURE_WIDTH = 720;
-const CAPTURE_HEIGHT = 1280;
-const GAME_HEIGHT = 1080;
-const GAME_TOP = CAPTURE_HEIGHT - GAME_HEIGHT;
-const DEFAULT_FPS = 30;
+const DEFAULT_FPS = 60;
 const DEFAULT_VIDEO_BITS_PER_SECOND = 4_000_000;
 const DEFAULT_AUDIO_BITS_PER_SECOND = 128_000;
 const END_HOLD_MS = 2400;
@@ -51,7 +47,6 @@ export class CaptureManager {
         this.stopping = false;
         this.chunks = [];
         this.startedAt = 0;
-        this.renderFrame = null;
         this.monitorTimer = null;
         this.endTimer = null;
         this.lastScreen = game.appScreen;
@@ -123,41 +118,6 @@ export class CaptureManager {
         }, 100);
     }
 
-    createCompositor(fps) {
-        const canvas = document.createElement('canvas');
-        canvas.width = CAPTURE_WIDTH;
-        canvas.height = CAPTURE_HEIGHT;
-        const ctx = canvas.getContext('2d', { alpha: false });
-        if (!ctx) throw new Error('Unable to create capture canvas');
-
-        const frameInterval = 1000 / fps;
-        let lastPaintAt = -frameInterval;
-        const paint = (now = performance.now()) => {
-            if (now - lastPaintAt >= frameInterval) {
-                const dark = document.documentElement.dataset.theme !== 'light';
-                ctx.fillStyle = dark ? '#12100E' : '#EAE4D2';
-                ctx.fillRect(0, 0, CAPTURE_WIDTH, CAPTURE_HEIGHT);
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                ctx.drawImage(
-                    this.game.canvas,
-                    0,
-                    0,
-                    this.game.canvas.width,
-                    this.game.canvas.height,
-                    0,
-                    GAME_TOP,
-                    CAPTURE_WIDTH,
-                    GAME_HEIGHT,
-                );
-                lastPaintAt = now;
-            }
-            this.renderFrame = requestAnimationFrame(paint);
-        };
-        paint();
-        return canvas;
-    }
-
     async start(opts = {}) {
         if (!this.options.enabled) throw new Error('Capture mode requires ?capture=1');
         if (!this.supported()) throw new Error('This browser does not support native capture');
@@ -178,8 +138,7 @@ export class CaptureManager {
         this.game.soundInitialized = true;
         const audioStream = await this.game.soundManager.beginCaptureMix();
         const fps = Number.isFinite(opts.fps) ? opts.fps : DEFAULT_FPS;
-        const compositor = this.createCompositor(fps);
-        const videoStream = compositor.captureStream(fps);
+        const videoStream = this.game.canvas.captureStream(fps);
         const stream = new MediaStream([
             ...videoStream.getVideoTracks(),
             ...audioStream.getAudioTracks(),
@@ -191,7 +150,6 @@ export class CaptureManager {
         };
         if (mimeType) recorderOptions.mimeType = mimeType;
 
-        this.compositor = compositor;
         this.videoStream = videoStream;
         this.stream = stream;
         this.chunks = [];
@@ -219,8 +177,6 @@ export class CaptureManager {
         recorder.stop();
         await stopped;
 
-        cancelAnimationFrame(this.renderFrame);
-        this.renderFrame = null;
         this.videoStream?.getTracks().forEach((track) => track.stop());
         this.stream?.getTracks().forEach((track) => track.stop());
         this.game.soundManager.endCaptureMix();
@@ -237,7 +193,6 @@ export class CaptureManager {
         this.startedAt = 0;
         this.chunks = [];
         this.recorder = null;
-        this.compositor = null;
         this.videoStream = null;
         this.stream = null;
         delete document.documentElement.dataset.capturing;
