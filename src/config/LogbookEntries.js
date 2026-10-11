@@ -1,6 +1,8 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Removed class-name maps. Release minify renames those classes, so obstacle
+//   pages key off each obstacle's `logbookId` string instead.
 // - levelFromEntryId parses `level_N` for Space Log voice replay (The Call → null).
 // - Wormhole Gate lives under Boosts (hop + shield gift), not Obstacles.
 // - Shortened obstacle and boost definitions so Space Log cards fit ~3 lines.
@@ -53,28 +55,6 @@ export const EMPTY_CATEGORY_COPY = {
     boosts: 'No boosts recorded. Opportunity is still theoretical.',
     levels: 'No flight reports filed. Begin a Journey.',
     void: 'No transmissions. Sensors remain optimistic.',
-};
-
-/** Map ObstacleManager class names → catalog ids (SimpleAsteroid uses shapeType). */
-export const OBSTACLE_CLASS_TO_ID = {
-    SideBarrier: 'sideBarrier',
-    ComplexAsteroid: 'complex',
-    MovingAsteroid: 'moving',
-    ShootingAsteroid: 'shooting',
-    PulsatingAsteroid: 'pulsating',
-    PhaseAsteroid: 'phase',
-    SweepGate: 'sweepGate',
-    RepulsorObstacle: 'repulsor',
-    DriftCurrent: 'driftCurrent',
-    WormholeGate: 'wormhole',
-    BlackHoleObstacle: 'blackhole',
-};
-
-/** SimpleAsteroid.shapeType → catalog id */
-export const SIMPLE_SHAPE_TO_ID = {
-    circle: 'asteroidCircle',
-    triangle: 'asteroidTriangle',
-    square: 'asteroidSquare',
 };
 
 /** @type {LogbookEntryDef[]} */

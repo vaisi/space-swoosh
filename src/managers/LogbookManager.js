@@ -1,13 +1,11 @@
 // LogbookManager.js
 // Journey-only façade: maps gameplay events → logbook progress + toast.
 // Changes:
+// - Obstacle entries read `obstacle.logbookId`. constructor.name is renamed
+//   by the production minify, which left the Obstacles tab blank on Android.
 // - Space Travel Boost no longer writes a logbook entry.
 
-import {
-    OBSTACLE_CLASS_TO_ID,
-    SIMPLE_SHAPE_TO_ID,
-    levelEntryId,
-} from '../config/LogbookEntries.js';
+import { levelEntryId } from '../config/LogbookEntries.js';
 import {
     loadLogbookProgress,
     observeEntry,
@@ -74,12 +72,8 @@ export class LogbookManager {
     }
 
     obstacleId(obstacle) {
-        if (!obstacle) return null;
-        const name = obstacle.constructor?.name;
-        if (name === 'SimpleAsteroid') {
-            return SIMPLE_SHAPE_TO_ID[obstacle.shapeType] ?? 'asteroidCircle';
-        }
-        return OBSTACLE_CLASS_TO_ID[name] ?? null;
+        const id = obstacle?.logbookId;
+        return typeof id === 'string' && id ? id : null;
     }
 
     /** Observe every on-screen obstacle once per update. */

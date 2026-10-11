@@ -1,6 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS dark mode paints the same DepthField as Android
+<!-- Changes: Space Log obstacle pages use each obstacle's logbookId string.
+     Release minify renames class names, so Android was not recording obstacles.
+     Native iOS dark mode paints the same DepthField as Android
      (shell, Journey map, play parallax, quieter L42 hold). Light Mode stays flat.
      Native iOS marketing version 1.0.2 — ASC closed approved
      1.0.1 (Codemagic 90062 / 90186). Codemagic Game Center profile helper
@@ -801,7 +803,7 @@ run starts. Open Space never updates the logbook. Menu item is always available.
 
 **Voice replay (Journey tab):** known `level_N` rows expose a play/stop that calls `SoundManager.playLevelVoice(N)` (iOS `VoicePlayer.playLevel`). Same-day tap stops; another day replaces the shared slot. Back / `goBack` / iOS `onDisappear` call `stopLevelVoice`. `signalCall` has no clip. Voice-off / master mute keep the button; playback is a no-op.
 
-**Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash → instant. Lore Continue → instant `signalCall`.
+**Hooks (Journey only):** on-screen obstacles/power-ups (plus + wall boost)/sparkles/finish gate → observe; smash/fatal hit/black-hole pull/wormhole teleport/collect/clear → interact; wall BOOP / style swoosh / first deflector smash → instant. Lore Continue → instant `signalCall`. Obstacle pages use each instance's `logbookId` string (`asteroidCircle`, `sideBarrier`, …). Do not key the catalog off `constructor.name`: Vite's production minify renames those classes, and the Android bundle was writing nothing for obstacles while boosts and Journey (fixed string ids) still saved.
 
 **Future:** From the Void will hold beta-tester messages picked up around 11 km in endless Journey — category shell only for now. Levels 6–40 spawn beats still follow the difficulty stair; story lines are already wired for intros.
 

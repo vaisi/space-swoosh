@@ -1,6 +1,8 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - Each catalogued obstacle sets `logbookId` (a string). Release builds rename
+//   class names, so Space Log can no longer key off constructor.name.
 // - Journey 6+ / Open Space weather: corridor mid-fill and mixed pairs via
 //   usesPairedBelt; EncounterDirector spikes (Journey) and KM storms (Open Space).
 // - Open Space belt: tighter live gaps; delay (do not skip) when at maxOnScreen.
@@ -173,6 +175,11 @@ class SimpleAsteroid extends BaseObstacle {
         super(game, x, y, size);
         // Randomly choose a shape type
         this.shapeType = ['circle', 'triangle', 'square'][Math.floor(Math.random() * 3)];
+        this.logbookId = this.shapeType === 'triangle'
+            ? 'asteroidTriangle'
+            : this.shapeType === 'square'
+                ? 'asteroidSquare'
+                : 'asteroidCircle';
     }
 
     render(ctx) {
@@ -366,6 +373,7 @@ class AsteroidBelt extends BaseObstacle {
 class ComplexAsteroid extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size * 0.8); // Reduce base size by 20%
+        this.logbookId = 'complex';
         this.satellites = [];
         
         // Create 2-4 orbiting satellites
@@ -513,6 +521,7 @@ class ComplexAsteroid extends BaseObstacle {
 class PulsatingAsteroid extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size);
+        this.logbookId = 'pulsating';
         this.baseSize = size;
         this.growthRate = 0.5; // Size increase per second
         this.maxSize = size * 2;
@@ -563,6 +572,7 @@ class PulsatingAsteroid extends BaseObstacle {
 class PhaseAsteroid extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size);
+        this.logbookId = 'phase';
         this.rotationSpeed *= 0.22;
         this.bloomT = 0;
         // Longer cycle so the open corridor stays flyable for a beat.
@@ -769,6 +779,7 @@ class PhaseAsteroid extends BaseObstacle {
 class SweepGate extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size);
+        this.logbookId = 'sweepGate';
         // Half-length each side of the pivot → full whip span.
         this.halfLength = size * 2.8;
         // Slimmer blade — was ~0.08×size and read a bit chunky on device.
@@ -842,6 +853,7 @@ class SweepGate extends BaseObstacle {
 class RepulsorObstacle extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size);
+        this.logbookId = 'repulsor';
         // Slightly firmer shove so the field reads before you kiss the core.
         this.pushStrength = 1.55;
         this.pushRadius = size * 10;
@@ -923,6 +935,7 @@ class RepulsorObstacle extends BaseObstacle {
 class DriftCurrent extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size);
+        this.logbookId = 'driftCurrent';
         this.width = game.width;
         this.height = game.baseUnit * (4.2 + Math.random() * 1.4);
         this.direction = Math.random() < 0.5 ? -1 : 1;
@@ -998,6 +1011,7 @@ class DriftCurrent extends BaseObstacle {
 class MovingAsteroid extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size * 0.8); // Reduce pentagon size by 20%
+        this.logbookId = 'moving';
         this.speed = game.baseUnit * 2;
         this.direction = Math.random() < 0.5 ? -1 : 1;
         this.originalX = x;
@@ -1105,6 +1119,7 @@ function pointToLineDistance(px, py, x1, y1, x2, y2) {
 class ShootingAsteroid extends BaseObstacle {
     constructor(game, x, y, size) {
         super(game, x, y, size);
+        this.logbookId = 'shooting';
         this.projectiles = [];
         this.shootInterval = 2000; // Shoot every 2 seconds
         this.lastShootTime = performance.now();
@@ -1333,6 +1348,7 @@ class CometObstacle extends BaseObstacle {
 class BlackHoleObstacle extends BaseObstacle {
     constructor(game, x, y, size, isAdvanced) {
         super(game, x, y, size);
+        this.logbookId = 'blackhole';
         this.isAdvanced = isAdvanced;
         this.pullStrength = 1.1; // Increased by 10% (was 1.0)
         this.pulsePhase = 0;
@@ -1420,6 +1436,7 @@ class BlackHoleObstacle extends BaseObstacle {
 class WormholeGate extends BaseObstacle {
     constructor(game, x, y, size, isExit = false) {
         super(game, x, y, size);
+        this.logbookId = 'wormhole';
         this.isExit = isExit;
         this.pulsePhase = 0;
         this.pulseSpeed = 0.02;
@@ -1538,6 +1555,7 @@ class SideBarrier extends BaseObstacle {
         const width = game.baseUnit * 2;
         const x = isLeft ? width/2 : game.width - width/2;
         super(game, x, y, width);
+        this.logbookId = 'sideBarrier';
         this.isLeft = isLeft;
         this.height = height;
         this.width = width;
