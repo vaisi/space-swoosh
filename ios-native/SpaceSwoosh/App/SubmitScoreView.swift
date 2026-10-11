@@ -1,8 +1,7 @@
 // SubmitScoreView.swift
-// Changes: keyboard-open sheet matches Android — compact header (no
-// ShellChrome.header), one recap line, call-sign field, Submit docked
-// above the IME. Idle keeps stacked stats. Paper wash stays full screen.
-// ScrollView is overflow insurance for SE + large keyboards.
+// Changes: full-screen sheet uses the dark-mode depth field. Keyboard-open
+// sheet matches Android — compact header, one recap line, call-sign field,
+// Submit docked above the IME. Idle keeps stacked stats.
 
 import SwiftUI
 import Combine
@@ -29,7 +28,7 @@ struct SubmitScoreView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                BrandColors.paper.ignoresSafeArea()
+                NightPaperGround()
                 VStack(spacing: 0) {
                     if compact {
                         keyboardSheet(minHeight: max(280, geo.size.height - keyboardHeight - 16))

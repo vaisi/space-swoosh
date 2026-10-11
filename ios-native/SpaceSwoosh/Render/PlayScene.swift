@@ -1,8 +1,8 @@
 // PlayScene.swift
-// Changes: Shield ring sprites add Android Canvas half-stroke so the visible
-// outer edge matches radius×1.6 / ×1.7 (hitbox stays 1.5×). Present interpolates
-// play cameraY; baseUnit matches Android mobile. L42 skips intro voice; smash
-// haptic. L42 written epilogue keeps MusicPlayer running.
+// Changes: dark mode paints DepthField behind the hull (Android night paper).
+// Pause holds the sim but keeps the field drifting. Shield ring sprites add
+// Android Canvas half-stroke so the visible outer edge matches radius×1.6 /
+// ×1.7 (hitbox stays 1.5×). Present interpolates play cameraY.
 
 import SpriteKit
 import QuartzCore
@@ -28,6 +28,9 @@ final class PlayScene: SKScene {
     private var leftGate: SKSpriteNode?
     private var rightGate: SKSpriteNode?
     private var streakField: StreakField?
+    private var depthField: DepthFieldNode?
+    private var depthCamera: CGFloat = 0
+    private var runHeld = false
     private var launch: PlayLaunch = .openSpace
     private var lastPresentX: CGFloat?
     private var lastPresentY: CGFloat?
@@ -59,8 +62,15 @@ final class PlayScene: SKScene {
         CinemaSimulator.beginLevelRun(world: &world, run: &run)
         previousWorld = world
         currentWorld = world
+        runHeld = false
+        depthCamera = 0
         let bake = BakePipeline.current()
         backgroundColor = BrandColors.UI.paper
+
+        let depth = DepthFieldNode()
+        depth.zPosition = -1
+        addChild(depth)
+        depthField = depth
 
         let renderer = SkinRenderer(skin: SkinCatalog.def(world.skinId), bake: bake)
         addChild(renderer.node)
@@ -144,19 +154,31 @@ final class PlayScene: SKScene {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first, !run.isOver, !run.inputLocked else { return }
+        guard let touch = touches.first, !run.isOver, !run.inputLocked, !runHeld else { return }
         let loc = touch.location(in: self)
         input.handleTap(at: loc, sceneWidth: size.width, style: run.flightStyle)
         input.handleDragBegin(at: loc)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first, !run.isOver, !run.inputLocked else { return }
+        guard let touch = touches.first, !run.isOver, !run.inputLocked, !runHeld else { return }
         input.handleDrag(at: touch.location(in: self), style: run.flightStyle)
+    }
+
+    /// Pause overlay: freeze the sim, keep night-paper stars drifting.
+    func setRunHeld(_ held: Bool) {
+        if runHeld, !held {
+            lastFrameTime = nil
+        }
+        runHeld = held
     }
 
     override func update(_ currentTime: TimeInterval) {
         guard running else { return }
+        if runHeld {
+            paintDepth(cameraY: nil)
+            return
+        }
         pacingMonitor?.recordFrame(at: currentTime)
 
         let frameDelta: CGFloat
@@ -297,7 +319,25 @@ final class PlayScene: SKScene {
         }
     }
 
+    private func paintDepth(cameraY: CGFloat?) {
+        if let cameraY {
+            depthCamera = abs(cameraY)
+        }
+        backgroundColor = BrandColors.UI.paper
+        let show = SettingsStore.shared.isDark
+        depthField?.isHidden = !show
+        guard show else { return }
+        depthField?.present(
+            width: size.width,
+            height: size.height,
+            camera: depthCamera,
+            now: CACurrentMediaTime(),
+            quiet: false
+        )
+    }
+
     private func present(ship: ShipState, world: WorldState, cameraY: CGFloat, frameDelta: CGFloat) {
+        paintDepth(cameraY: cameraY)
         let screenY = CinematicFlight.screenY(worldY: ship.y, cameraY: cameraY, sceneHeight: size.height)
         let radius = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         let nowMs = CGFloat(CACurrentMediaTime() * 1000)

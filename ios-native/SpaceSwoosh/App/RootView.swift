@@ -1,6 +1,7 @@
 // RootView.swift
-// Changes: home screen swipe (above the action buttons) cycles the hangar via
-// ShipPreview's browse binding — same left=next / right=previous as Android.
+// Changes: dark mode lays Android's drifting depth field under every shell
+// screen (menu, Journey map, log). Light Mode stays flat paper. Home screen
+// swipe (above the action buttons) cycles the hangar via ShipPreview.
 
 import SwiftUI
 
@@ -32,7 +33,7 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
-            BrandColors.paper.ignoresSafeArea()
+            NightPaperGround()
 
             switch screen {
             case .menu:

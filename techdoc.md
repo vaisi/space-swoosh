@@ -1,6 +1,8 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Native iOS marketing version 1.0.2 — ASC closed approved
+<!-- Changes: Native iOS dark mode paints the same DepthField as Android
+     (shell, Journey map, play parallax, quieter L42 hold). Light Mode stays flat.
+     Native iOS marketing version 1.0.2 — ASC closed approved
      1.0.1 (Codemagic 90062 / 90186). Codemagic Game Center profile helper
      is a shell script, not inline Python in codemagic.yaml.
      Journey sparkles L14+ are ~1 per 1,500 KM minus 1; smash
@@ -1207,14 +1209,17 @@ with a linear gradient along the wake's chord for the length-wise fade.
   overlays p50/p95/p99 + histogram (not average fps). `?nodraw=1` = full sim, paper
   clear only (no depth field). `?drawonly=1` = freeze updates, keep drawing. `?kill=…` bisects
   renderer families (`stars` skips `DepthField`). `?fullvfx=1` turns off draw LOD for A/B.
-- **Depth field** (`utils/DepthField.js`): `Game.render()` paints `drawPaper` then
-  `DepthField` before world/UI. Three wrap layers (two on cheap/iOS LOD) of 1–2px
-  rects; bone ink + rare signal glints and a few 4-point flares. Light Mode skips
-  the field (flat cream). Idle drift always; camera
-  `totalDistance` parallax only while `playing` / `gameover`. The L42 epilogue
-  overpaints `#050505` then draws a quieter forced-night field. No extra
-  `update()` — motion is `performance.now()` so the menu 30 Hz idle governor still
-  twinkles.
+- **Depth field** (`utils/DepthField.js`, native `Render/DepthField.swift`):
+  `Game.render()` paints `drawPaper` then `DepthField` before world/UI. Three wrap
+  layers (two on cheap/web-iOS LOD) of 1–2px rects; bone ink + rare signal glints
+  and a few 4-point flares. Light Mode skips the field (flat cream). Idle drift
+  always; camera `totalDistance` parallax only while `playing` / `gameover`. The
+  L42 epilogue overpaints `#050505` then draws a quieter forced-night field. No
+  extra `update()` — motion is `performance.now()` so the menu 30 Hz idle governor
+  still twinkles. Native iOS uses the full three layers (same seed as Android),
+  under every dark shell screen and inside `PlayScene` (`abs(cameraY)` parallax).
+  Pause holds the sim and keeps the field moving. The written epilogue uses the
+  quieter forced-night paint on `#050505`.
 - Opaque 2D context (`{ alpha: false }`) on native **and** iOS web (paper is
   always painted first). Active-play UI hits skip `getBoundingClientRect` (InputHandler
   owns steering). Trail/wake paths mutate or reuse scratch arrays.
@@ -1461,7 +1466,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Audio/` | `GameAudioSession` `.playback`; decoded turn / crash / shield / **level-N** / first-boop / swoosh-voice on the engine pool; synth fallbacks; baked boop/collect/portal/swoosh; BGM + epilogue still `AVAudioPlayer`. First-boop defers while LEVEL N is speaking. `HapticsService`: Light impact on wall BOOP; same Light generator at intensity 0.55 on shield smash. |
 | `SpaceSwoosh/Core/` | `GameConfig`, `SkinCatalog` (41 `SKIN_DEFS` + `UNLOCK_ALL_SKINS` + JS circle packs), fixed-step clock, pacing HUD |
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
-| `SpaceSwoosh/Render/` | `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Vortex / Tick / Crease / Ladder / Lag / Helix / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current cached SKShapeNode hairlines (X-slide ≡ Android `lineDashOffset`), popups, blast, `PlayScene` |
+| `SpaceSwoosh/Render/` | `DepthField` night-paper sparkles (Android full layers; shell via `NightPaperGround`, play via pooled `DepthFieldNode`). `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Vortex / Tick / Crease / Ladder / Lag / Helix / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current cached SKShapeNode hairlines (X-slide ≡ Android `lineDashOffset`), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
 | `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, entitlements, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`) + GameKit. `CODE_SIGN_ENTITLEMENTS` = `SpaceSwoosh/SpaceSwoosh.entitlements`. `CURRENT_PROJECT_VERSION` 14. |
 

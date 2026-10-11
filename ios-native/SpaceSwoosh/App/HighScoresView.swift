@@ -1,7 +1,7 @@
 // HighScoresView.swift
-// Changes: Friends YOU row now shows the device Open Space personal best
-// when Game Center still has no score (see FriendsScoreService). No
-// Zigzag/Arc chip — board style is the saved/flown style.
+// Changes: dark mode draws the depth field on this sheet (it covers the
+// shell, including when opened over a run). Friends YOU row shows the
+// device Open Space personal best when Game Center still has no score.
 
 import SwiftUI
 
@@ -107,7 +107,7 @@ struct HighScoresView: View {
         .padding(.top, 20)
         .safeAreaPadding(.top)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(BrandColors.paper.ignoresSafeArea())
+        .background { NightPaperGround() }
         .task {
             await openBoard()
         }

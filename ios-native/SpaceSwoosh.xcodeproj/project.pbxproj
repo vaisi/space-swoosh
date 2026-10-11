@@ -56,6 +56,7 @@
 		4FE69ED5713DE12B691424A0 /* LiveHullPaint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B8D430D136115325582D7AB /* LiveHullPaint.swift */; };
 		A54FABDAB8590F267AB57AAA /* ParticleWakeField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1A28A938DFEA8932A3FFDD /* ParticleWakeField.swift */; };
 		CF973DDF21359D870F91BC09 /* PlayScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628FF1116246728150EFF6C1 /* PlayScene.swift */; };
+		96CBAE7BA71D9D2BCDDA34F0 /* DepthField.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C3240A65F6DFAA291FCF8A /* DepthField.swift */; };
 		A197844A9AF883F56B77E7D9 /* PooledSpriteField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */; };
 		D77FEF9E8E583C3779B852DC /* PopupField.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78C3E515B75F5AFACA0EA5F /* PopupField.swift */; };
 		C9F250C2F610CFB2C8BAB077 /* PreviewWakePaint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79154F051600D3126EA7B3B2 /* PreviewWakePaint.swift */; };
@@ -209,6 +210,7 @@
 		0B8D430D136115325582D7AB /* LiveHullPaint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveHullPaint.swift; sourceTree = "<group>"; };
 		4C1A28A938DFEA8932A3FFDD /* ParticleWakeField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticleWakeField.swift; sourceTree = "<group>"; };
 		628FF1116246728150EFF6C1 /* PlayScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayScene.swift; sourceTree = "<group>"; };
+		B3C3240A65F6DFAA291FCF8A /* DepthField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthField.swift; sourceTree = "<group>"; };
 		6D9C2266E5757995489D1B37 /* PooledSpriteField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PooledSpriteField.swift; sourceTree = "<group>"; };
 		C78C3E515B75F5AFACA0EA5F /* PopupField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupField.swift; sourceTree = "<group>"; };
 		79154F051600D3126EA7B3B2 /* PreviewWakePaint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewWakePaint.swift; sourceTree = "<group>"; };
@@ -451,6 +453,7 @@
 				C79E1E492D2D66EEDAA3D0C5,
 				326BAA025A09833C954AB507,
 				4BC6A7CB1F9AB22DDD03BA3C,
+				B3C3240A65F6DFAA291FCF8A,
 				D11C8938F3E181C834518A1E,
 				A72236B59DF3D6E4C9BD6DAC,
 				5B5C5C5EB5E34A7E9CC87E59,
@@ -770,6 +773,7 @@
 				2A9DBDAF543C0FF583B54C7F /* ClassicMarkWakes.swift in Sources */,
 				92720FF7303BB172088EC616 /* ClassicRibbonWakes.swift in Sources */,
 				1951A766F47C28770063B167 /* DotTrailField.swift in Sources */,
+				96CBAE7BA71D9D2BCDDA34F0 /* DepthField.swift in Sources */,
 				3644335780904EE6C2565370 /* EmberHullTexture.swift in Sources */,
 				67F3A2A2369239049433ED8C /* FilamentWake.swift in Sources */,
 				94049FACB6E460C54D82E02D /* FlickerHullTexture.swift in Sources */,

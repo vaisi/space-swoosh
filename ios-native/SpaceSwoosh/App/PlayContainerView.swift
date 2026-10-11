@@ -1,8 +1,8 @@
 // PlayContainerView.swift
-// Changes: After Submit Signal, Space Board opens Global on the new
-// call-sign row. Menu/game-over High Scores still default to Friends
-// when Game Center has anyone. Enjoyment review overlay after Journey
-// Day 6 (Day 13 if Later). Level outcome card matches Android.
+// Changes: pause holds the sim without freezing the night-paper stars.
+// L42 hold is #050505 plus a quieter depth field. After Submit Signal,
+// Space Board opens Global on the new call-sign row. Enjoyment review
+// overlay after Journey Day 6 (Day 13 if Later).
 
 import SwiftUI
 import SpriteKit
@@ -54,7 +54,7 @@ struct PlayContainerView: View {
                     if session.hudDistance > 0.02 || session.hudPause > 0.02 {
                         MockupCHUD(session: session) {
                             paused = true
-                            scene.isPaused = true
+                            scene.setRunHeld(true)
                         }
                     }
 
@@ -169,7 +169,7 @@ struct PlayContainerView: View {
                 scene.startRun(currentLaunch)
             }
             .onChange(of: paused) { _, isPaused in
-                scene.isPaused = isPaused
+                scene.setRunHeld(isPaused)
                 if isPaused {
                     MusicPlayer.shared.pause()
                     VoicePlayer.shared.pause()
@@ -221,7 +221,7 @@ struct PlayContainerView: View {
                 VStack(spacing: 12) {
                     ShellChrome.brandButton("Resume", tag: "▶", primary: true) {
                         paused = false
-                        scene.isPaused = false
+                        scene.setRunHeld(false)
                     }
                     ShellChrome.brandButton("Sound", tag: settings.muted ? "OFF" : "ON") {
                         settings.toggleMute()
@@ -425,6 +425,7 @@ struct PlayContainerView: View {
         didAutoPrompt = false
         didOfferReview = false
         showReviewPrompt = false
+        scene.setRunHeld(false)
         scene.isPaused = false
         scene.startRun(launch)
     }
@@ -602,7 +603,7 @@ struct JourneyEpilogueView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            NightPaperGround(quiet: true, forceNight: true, holdBlack: true)
             VStack(spacing: 20) {
                 if phase != "prompt" {
                     Spacer()

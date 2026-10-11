@@ -1,4 +1,6 @@
-<!-- Changes: iPhone TestFlight marketing is 1.0.2 (Apple closed 1.0.1).
+<!-- Changes: iPhone Dark Mode shows the same drifting stars as Android
+     behind menus, the Journey map, and the run. Light Mode stays flat.
+     iPhone TestFlight marketing is 1.0.2 (Apple closed 1.0.1).
      Friends Space Board YOU row shows the Open Space distance
      (and obstacles) you flew on this device even when Game Center / Play
      Games has not indexed the run yet. TestFlight Friends signing now turns on Game Center on the
@@ -56,7 +58,8 @@
 > https://spaceswoosh.app/privacy.html
 >
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
-> app. TestFlight menus use the same paper/ink framed chrome as Android (Space
+> app. Dark Mode shows the same tiny drifting stars as Android behind the menus,
+> the Journey map, and the run. Light Mode stays flat cream. TestFlight menus use the same paper/ink framed chrome as Android (Space
 > Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
 > Options is a hub (Ship, Controls, Sound, Light/Dark Mode, Rate, Restore). Play offers Journey
 > then Open Space on two tall, centered cards. High Scores
