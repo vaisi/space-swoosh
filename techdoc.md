@@ -1,6 +1,7 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Launch lines on disk are nav_XX_ship_N.mp3 in
+<!-- Changes: Home menu hint: Headphones recommended for best experience.
+     Launch lines on disk are nav_XX_ship_N.mp3 in
      public/sounds/voice/ and ios-native/SpaceSwoosh/Voice/
      (iOS Resources phase). Cue times are still estimates.
      Hangar is the last step before Open Space or a Journey day.
@@ -48,7 +49,7 @@
      links. Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 50 / 1.0.50 (caption
+     shield is 5s wall-clock. Android Play default is 51 / 1.0.51 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
      build 14; marketing stays 1.0.2. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
@@ -184,7 +185,7 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **50** / versionName **1.0.50** (must be higher than any)
+> versionCode **51** / versionName **1.0.51** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
 > `CFBundleVersion` **14** (marketing **1.0.2**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
@@ -255,7 +256,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 50 / `versionName` 1.0.50. Override
+old assets. Play default is `versionCode` 51 / `versionName` 1.0.51. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
@@ -441,7 +442,7 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, tagline, and Play / Space Log / Options / High Scores. No idle ship and no NEW ENTRY stamp. |
+| `menu` | Title, tagline, and Play / Space Log / Options / High Scores. Headphones hint is shared: web, Android, and Capacitor iOS use DOM `#hpHint` (56px below the safe-area padding, above the canvas). Native iOS uses `MenuHeadphonesHint` (56pt below the safe area). Signal-blue mark + `HEADPHONES RECOMMENDED` in ink 55. Fades in 400ms after 400ms, fades out 300ms when leaving the menu. Does not move the title or buttons. |
 | `modeSelect` | Play → Journey (first; Logbook unlocks) or Open Space. Cards are `cardH = min(unit×17, (area−gap)/2)` and vertically centered between header and footnote (iOS `RootView.modeSelect` matches the layout; iOS still uses the all-caps RECOMMENDED chip). Web Journey hint is sentence-case `Recommended` under the title via `setHintType` (Space Grotesk 300, 0.06em). Open Space keeps the ENDLESS corner label. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |

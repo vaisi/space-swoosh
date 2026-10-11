@@ -2,6 +2,10 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Home menu: DOM hint above the title (icon + HEADPHONES RECOMMENDED).
+//   Shared by web, Android, and Capacitor iOS. Signal blue, no layout
+//   shift. Fades in on the menu, out when leaving it. Native SwiftUI
+//   draws the same mark in RootView.
 // - Home menu is title, tagline, and the four buttons. No idle ship and no
 //   NEW ENTRY stamp. Hangar is the last step before a run. Crash retry still
 //   starts the run directly.
@@ -1105,7 +1109,20 @@ export class Game {
         this.logbook?.flushToast?.();
     }
 
+    // DOM overlay on #gameContainer. Class toggle only — the menu canvas
+    // layout does not move. Shown whenever the menu is up.
+    syncMenuHeadphonesHint() {
+        const el = this.menuHeadphonesHint
+            || (this.menuHeadphonesHint = document.getElementById('hpHint'));
+        if (!el) return;
+        const on = this.appScreen === 'menu';
+        if (this.menuHeadphonesOn === on) return;
+        this.menuHeadphonesOn = on;
+        el.classList.toggle('is-on', on);
+    }
+
     render() {
+        this.syncMenuHeadphonesHint();
         this.ensureHiDpiTransform();
         drawPaper(this.ctx, this.width, this.height);
         this.paintDepthField();

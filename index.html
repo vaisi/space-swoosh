@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: html.ss-ime-open zeros body
+<!-- index.html — page shell. Changes: #hpHint sits 56px below the
+     playfield top (body already carries the safe-area inset). Signal
+     blue via --ss-signal. html.ss-ime-open zeros body
      padding-bottom so an IME-inflated safe-area inset cannot shrink
      #gameContainer (Submit Signal layouts from keyboard height). Native
      shell skips favicon / apple-touch-icon links (Android WebView can
@@ -103,8 +105,87 @@
             width: 100%;
             height: 100%;
             display: block;
+            position: relative;
+            z-index: 0;
             touch-action: none;
             background: var(--ss-paper, #1C1A16);
+        }
+
+        /* Headphones hint — web, Android WebView, and Capacitor iOS.
+           The native shell already pads the body by the safe-area inset,
+           so 56px is below that inset. Desktop web has no inset.
+           Layers are HTML <svg> elements: Android WebView and WKWebView
+           drop CSS transforms on inner <path> nodes. */
+        #hpHint {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            background: none;
+            pointer-events: none;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 300ms ease;
+        }
+        #hpHint.is-on {
+            opacity: 1;
+            transition: opacity 400ms ease 400ms;
+        }
+        .hp-mark {
+            position: relative;
+            width: 30px;
+            height: 22px;
+            flex: none;
+            color: var(--ss-signal);
+        }
+        .hp-mark svg {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: block;
+            width: 30px;
+            height: 22px;
+            overflow: visible;
+            color: var(--ss-signal);
+        }
+        .hp-label {
+            font-family: var(--ss-font-ui);
+            font-weight: 500;
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            line-height: 1;
+            color: var(--ss-ink-55);
+            white-space: nowrap;
+            animation: hp-text 2.6s ease-in-out infinite;
+        }
+        .hp-cups { animation: hp-breathe 2.6s ease-in-out infinite; }
+        .hp-wave {
+            opacity: 0;
+            animation: hp-wave 2.6s ease-out infinite;
+        }
+        .hp-wave2 { animation-delay: .35s; }
+        @keyframes hp-breathe {
+            0%, 100% { opacity: .55 }
+            45% { opacity: 1 }
+        }
+        @keyframes hp-text {
+            0%, 100% { opacity: .7 }
+            45% { opacity: 1 }
+        }
+        @keyframes hp-wave {
+            0% { opacity: 0; transform: translateX(-2px) }
+            35% { opacity: 1 }
+            100% { opacity: 0; transform: translateX(3px) }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .hp-cups, .hp-label, .hp-wave { animation: none; opacity: 1; }
+            #hpHint, #hpHint.is-on { transition: none; }
         }
 
         /* Game audio is HTMLAudio without controls. Some Android WebViews
@@ -381,6 +462,22 @@
     </aside>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
+        <div id="hpHint" role="img" aria-label="Headphones recommended for the best experience.">
+            <span class="hp-mark" aria-hidden="true">
+                <svg class="hp-cups" width="30" height="22" viewBox="0 0 30 22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 14v-3a8 8 0 0 1 16 0v3"/>
+                    <path d="M3 14a1.8 1.8 0 0 1 1.8-1.8h1.4v7H4.8A1.8 1.8 0 0 1 3 17.4z" fill="currentColor" fill-opacity="0.18"/>
+                    <path d="M19 14a1.8 1.8 0 0 0-1.8-1.8h-1.4v7h1.4a1.8 1.8 0 0 0 1.8-1.8z" fill="currentColor" fill-opacity="0.18"/>
+                </svg>
+                <svg class="hp-wave" width="30" height="22" viewBox="0 0 30 22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22.5 12.5a3 3 0 0 1 0 5"/>
+                </svg>
+                <svg class="hp-wave hp-wave2" width="30" height="22" viewBox="0 0 30 22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M25.5 10.5a6 6 0 0 1 0 9"/>
+                </svg>
+            </span>
+            <span class="hp-label" aria-hidden="true">HEADPHONES RECOMMENDED</span>
+        </div>
     </div>
     <aside class="store-rail store-rail--right">
         <a class="store-qr"

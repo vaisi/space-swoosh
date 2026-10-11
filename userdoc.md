@@ -1,4 +1,5 @@
-<!-- Changes: Open Space launch lines are named nav_XX_ship_N.mp3.
+<!-- Changes: Home menu has a quiet headphones line above the title.
+     Open Space launch lines are named nav_XX_ship_N.mp3.
      Play opens the Hangar before Open Space or a Journey day.
      The home screen shows your equipped ship and no longer swipes between hulls.
      A NEW ENTRY mark means an owned hull you have not looked at yet.
@@ -21,7 +22,7 @@
      one recap line and the call-sign field, Submit just above the keys.
      Friends shows the Game Center / Play Games photo already on
      that store profile, on the device only (Photos App Privacy stays off).
-     Android 1.0.50 / iPhone build 14 — no "Space…" title chip
+     Android 1.0.51 / iPhone build 14 — no "Space…" title chip
      (Android host header; iOS has no nav title and Now Playing is cleared).
      iPhone black holes match Android — solid well, soft shaded halo, thin
      pulsing ring (not a donut). iPhone wind dashes travel left or right
@@ -298,7 +299,7 @@ When the game loads you land on the main menu. The tagline under the title
 changes each visit — dry science-officer commentary. Crash and level-clear
 screens do the same with their own lines.
 
-The home screen is the title, the tagline, and four buttons. Choosing a hull happens in the Hangar.
+The home screen is the title, the tagline, and four buttons. At the top, a small blue headphone mark and the words HEADPHONES RECOMMENDED sit on the starfield. Choosing a hull happens in the Hangar.
 
 **Hangar.** After Play, choose Open Space or a Journey day. The screen titles itself from that mode, over "The Hangar", and the corner counts how many hulls you own out of the 39 on file. The ship sits in a short stage and flies the same way it does in a run: it turns, and the wake follows. A line separates that stage from the writing. Tap the hull to flip its turn. The hint under the ship says tap to test and swipe to browse, with arrows on either side. Swipe, tap an arrow, or drag the ruler to move through the fleet. The ruler is a row of ticks: the hull you are on is the tall blue mark, a new hull you own shows a dot, and the two unlisted hulls sit after a small gap. Under the line is the hull number and how it was filed, then the name and the archive sentence, with space before the ruler. **Launch** is the wide cream bar: the word on the left, the ship name on the right. It starts the run with the ship in the center. A locked hull is drawn in its real colors, and the bar shows its price or Locked. Two unlisted hulls at the end of the ruler are shown in their real colors, flying like the others, and cannot be equipped. Launch on either keeps the ship you already own. Crash retry skips the Hangar. The next Journey day goes through it. Options → Ship stays the purchase grid; each card keeps its description even while locked, with the price on the tile.
 
@@ -561,7 +562,7 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
-ink may show in the notch / home-indicator strips). Android **1.0.50** and iPhone (build **14**) do not show an
+ink may show in the notch / home-indicator strips). Android **1.0.51** and iPhone (build **14**) do not show an
 app-name chip or leftover icon above the stars — the run starts at the top of
 the stage. Turn the phone on its side
 and the stage stays a tall rectangle with charcoal on the left and right — the
