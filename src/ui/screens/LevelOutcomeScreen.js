@@ -3,8 +3,8 @@
 // against each, and where to go next. Replaces the Open Space game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
-// - Retry / next level go through tryBeginJourneyLevel (lives gate / Pro
-//   paywall only when LIVES_ENABLED).
+// - Next day opens the Hangar. Retry starts the same day directly and
+//   marks a crash retry for the launch line.
 // - Star 2 value is sparklesCollected / sparklesTarget (fuel diamonds).
 // - Hazard Lab outcomes: no star band; titles LAB CLEAR / LAB FAILED; actions
 //   are Replay / Level Select / Menu (retry calls beginHazardLab).
@@ -356,13 +356,18 @@ export function handleLevelOutcomeClick(game, x, y) {
     if (game.gameOverAlpha < 0.6) return true;
 
     if (game.isClickInButton(x, y, buttons.next)) {
-        game.tryBeginJourneyLevel(outcome.descriptor.level + 1);
+        game.openHangar({
+            mode: 'journey',
+            level: outcome.descriptor.level + 1,
+            returnScreen: 'journeyMap',
+        });
         return true;
     }
     if (game.isClickInButton(x, y, buttons.retry)) {
         if (isLabOutcome(outcome)) {
             game.beginHazardLab();
         } else {
+            game.launchIsRetry = true;
             game.tryBeginJourneyLevel(outcome.descriptor.level);
         }
         return true;

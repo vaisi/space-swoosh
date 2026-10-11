@@ -4,21 +4,22 @@
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
 // - Lives chip in the header (hidden while LIVES_ENABLED is false).
-// - Open Space start goes through tryBeginOpenWorld (lives gate / Pro paywall
-//   only when LIVES_ENABLED).
+// - Open Space opens the Hangar, then the existing lives gate.
 // - Open Space footer uses per-style personal bests: one style keeps
 //   "Personal best: X KM"; both show "Zigzag: A KM · Arc: B KM"; empty styles
 //   are omitted (never Arc: 0 KM).
 // - Journey card routes through enterJourneyFromModeSelect (one-time lore
 //   screen before the map when loreSeen is false).
 // - No longer draws the gray inset screen frame (removed app-wide).
+// - Journey's best-path hint is a quiet sentence-case caption under the title
+//   ("Recommended", setHintType). Open Space keeps the ENDLESS corner label.
 // - Card blurbs come from CopyBank (modeJourney / modeOpenWorld), picked once
-//   on enter via game.goToModeSelect(). Journey stays first + RECOMMENDED.
+//   on enter via game.goToModeSelect(). Journey stays first.
 // - Created file. Kept out of Game.js, which is already long; it draws through
 //   the same ScreenKit grid and brand button as every other screen.
 
 import { color, font } from '../../brand/tokens.js';
-import { drawFramedTile, setLabelType, resetType } from '../../utils/BrandDraw.js';
+import { drawFramedTile, setLabelType, setHintType, resetType } from '../../utils/BrandDraw.js';
 import { screenLayout, fitPx, wrapLines } from '../ScreenKit.js';
 import { TOTAL_STARS } from '../../config/JourneyConfig.js';
 import { nextPlayableLevel, totalStars } from '../../services/JourneyProgress.js';
@@ -73,7 +74,7 @@ export function renderModeSelect(game) {
         x: cardX, y: top, w: cardW, h: cardH,
         title: 'Journey',
         blurb: game.modeJourneyBlurb || 'Deep space. Level by level.',
-        tag: 'RECOMMENDED',
+        hint: 'Recommended',
         signal: true,
         footer: `LEVEL ${level}  ·  ${stars} / ${TOTAL_STARS} STARS`,
     });
@@ -98,9 +99,10 @@ export function renderModeSelect(game) {
     return buttons;
 }
 
-// One mode card: title, one-line explanation, a mono micro-tag, and an optional
+// One mode card: title, one-line explanation, an optional corner label
+// (ENDLESS) or a quiet hint under the title (Recommended), and an optional
 // footer stat. Same framed-tile treatment as the ship picker.
-function drawModeCard(game, { x, y, w, h, title, blurb, tag, signal = false, footer = null }) {
+function drawModeCard(game, { x, y, w, h, title, blurb, tag = null, hint = null, signal = false, footer = null }) {
     const ctx = game.ctx;
     const unit = game.baseUnit;
     const pad = unit * 1.8;
@@ -115,26 +117,40 @@ function drawModeCard(game, { x, y, w, h, title, blurb, tag, signal = false, foo
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
-    const tagPx = Math.max(9, unit * 0.9);
-    setLabelType(ctx, tagPx);
-    ctx.fillStyle = signal ? color.signal : color.ink55;
-    ctx.textAlign = 'right';
-    ctx.fillText(tag, x + w - pad, y + pad);
-    resetType(ctx);
+    if (tag) {
+        const tagPx = Math.max(9, unit * 0.9);
+        setLabelType(ctx, tagPx);
+        ctx.fillStyle = signal ? color.signal : color.ink55;
+        ctx.textAlign = 'right';
+        ctx.fillText(tag, x + w - pad, y + pad);
+        resetType(ctx);
+    }
 
     const titlePx = Math.min(unit * 2.4, h * 0.22);
+    const titleMax = tag ? innerW * 0.68 : innerW;
     ctx.textAlign = 'left';
     ctx.fillStyle = color.ink;
-    fitPx(ctx, title.toUpperCase(), innerW * 0.68, titlePx, unit * 1.4,
+    fitPx(ctx, title.toUpperCase(), titleMax, titlePx, unit * 1.4,
         (px) => setLabelType(ctx, px, 700));
-    ctx.fillText(title.toUpperCase(), x + pad, y + pad + titlePx * 0.2);
+    const titleY = y + pad + titlePx * 0.2;
+    ctx.fillText(title.toUpperCase(), x + pad, titleY);
     resetType(ctx);
+
+    let blurbY = titleY + titlePx * 1.15;
+    if (hint) {
+        const hintPx = Math.max(12, unit * 1.15);
+        setHintType(ctx, hintPx);
+        ctx.fillStyle = color.signal;
+        ctx.fillText(hint, x + pad, blurbY);
+        resetType(ctx);
+        blurbY += hintPx * 1.55;
+    }
 
     const blurbPx = Math.max(10, unit * 1.05);
     ctx.font = `500 ${blurbPx}px ${font.ui}`;
     ctx.fillStyle = color.ink55;
     wrapLines(ctx, blurb, innerW, 4).forEach((line, i) => {
-        ctx.fillText(line, x + pad, y + pad + titlePx * 1.5 + i * blurbPx * 1.4);
+        ctx.fillText(line, x + pad, blurbY + i * blurbPx * 1.4);
     });
 
     if (footer) {
@@ -158,7 +174,7 @@ export function handleModeSelectClick(game, x, y) {
         return true;
     }
     if (game.isClickInButton(x, y, buttons.openWorld)) {
-        game.tryBeginOpenWorld();
+        game.openHangar({ mode: 'openWorld', returnScreen: 'modeSelect' });
         return true;
     }
     if (game.isClickInButton(x, y, buttons.journey)) {

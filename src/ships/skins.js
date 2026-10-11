@@ -1,6 +1,8 @@
 // skins.js
 // Public API for ship skins: lookup, persistence, roster and menu previews.
 // Changes:
+// - Hull + wake preview lives in skinPreview.js (drawSkinSpecimen). Menu
+//   preview still uses the short wake via drawSkinPreview.
 // - `skinRosterMark(id)` is the home hangar pager (`5 / 42`); hidden skins omitted.
 // - SHIP_SKIN_LIST omits `hidden` skins (Merlin, Rook). resolve/load/save treat
 //   a hidden id as unknown so a leftover shipSkinId falls back to Flicker.
@@ -21,7 +23,7 @@
 //   a stale localStorage id can't equip a locked ship after a reinstall.
 
 import { SKIN_DEFS } from './skinDefs.js';
-import { MAX_BANK } from './hulls.js';
+import { drawSkinSpecimen } from './skinPreview.js';
 import { isSkinOwned } from '../services/Entitlements.js';
 
 export const DEFAULT_SHIP_SKIN = 'flicker';
@@ -90,65 +92,10 @@ export function saveShipSkinId(id) {
     return resolved;
 }
 
-// A short arc curving in from the lower left, sampled the way a live trail is
-// (oldest first, each point carrying the direction of travel at that moment).
-// Newest sample sits on the skin's tail attach so thin hulls don't leak wake
-// from mid-body.
-function previewWake(cx, cy, radius, { longWake = false, attachX = cx, attachY = cy } = {}) {
-    const count = longWake ? 22 : 12;
-    const span = radius * (longWake ? 5.4 : 3.4);
-    const amp = radius * (longWake ? 0.9 : 0.75);
-    const bend = 1.6;
-    const t0 = 1 / count;
-    const trail = [];
-
-    for (let i = count; i >= 1; i--) {
-        const t = i / count;
-        // Travel runs from high t to low t, so the tangent is the negated
-        // derivative of the curve.
-        const vx = Math.cos(t * bend) * bend * amp;
-        const vy = -span;
-
-        trail.push({
-            x: attachX - (Math.sin(t * bend) - Math.sin(t0 * bend)) * amp,
-            y: attachY + (t - t0) * span,
-            opacity: Math.max(0.08, 1 - t * (longWake ? 0.72 : 0.85)),
-            angle: Math.atan2(vx, -vy),
-            seed: (i * 0.618) % 1,
-        });
-    }
-
-    return trail;
-}
+export { drawSkinSpecimen } from './skinPreview.js';
 
 /** Draw a skin at a screen-space point (menu / options preview). */
 export function drawSkinPreview(ctx, skinId, cx, cy, radius, time = performance.now()) {
-    const skin = getSkin(skinId);
-    const bank = Math.min(MAX_BANK, Math.atan2(1.6 * 0.75, 4.2));
     // Menu card stays short so the wake never covers the title / HOLD cue.
-    // In-game length is trailMaxPoints / trailFade on the skin.
-    const fakeShip = {
-        x: cx,
-        y: cy,
-        radius,
-        bank,
-        tangent: bank,
-        speed: radius * 0.12,
-        _wallTrailMode: skin.wallTrailMode ?? 'spring',
-        tailPoint: () => {
-            const offset = radius * (skin.trailTailOffset ?? 0.6);
-            return {
-                x: cx - Math.sin(bank) * offset,
-                y: cy + Math.cos(bank) * offset,
-            };
-        },
-        game: { config: { spacecraft: { trailDotSize: 0.2 } } },
-    };
-
-    const attach = fakeShip.tailPoint();
-    skin.drawTrail(ctx, fakeShip, previewWake(cx, cy, radius, {
-        attachX: attach.x,
-        attachY: attach.y,
-    }), (y) => y);
-    skin.drawHull(ctx, fakeShip, cy, time);
+    drawSkinSpecimen(ctx, getSkin(skinId), cx, cy, radius, time, { longWake: false });
 }

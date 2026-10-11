@@ -1,9 +1,27 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Space Log obstacle pages use each obstacle's logbookId string.
+<!-- Changes: Launch lines on disk are nav_XX_ship_N.mp3 in
+     public/sounds/voice/ and ios-native/SpaceSwoosh/Voice/
+     (iOS Resources phase). Cue times are still estimates.
+     Hangar is the last step before Open Space or a Journey day.
+     Crash retry and Hazard Lab skip it. Menu shows the equipped hull idling
+     and a NEW ENTRY stamp. NAV launch lines play from navCues.json on the
+     shared voice slot (Open Space; Journey story audio wins). Cue times in
+     that file are still estimates until the voice batch is aligned.
+     Web Play Journey hint is sentence-case Recommended under the
+     title (setHintType). Open Space keeps ENDLESS. iOS chip unchanged.
+     Space Log obstacle pages use each obstacle's logbookId string.
      Release minify renames class names, so Android was not recording obstacles.
      Native iOS dark mode paints the same DepthField as Android
      (shell, Journey map, play parallax, quieter L42 hold). Light Mode stays flat.
+     Player-facing lines collected in copy_bank.md.
+     Ship reference renders (hull + long wake) export to
+     assets/reference/ships/ (`npm run assets:ships`). Merlin and Rook
+     are included and marked hidden. Space Log obstacle specimens export to
+     assets/reference/space-log/obstacles/ (`npm run assets:logbook`).
+     Boost specimens export to assets/reference/space-log/boosts/
+     as boost_<id>.png (`npm run assets:boosts`).
+     Reference art only; the game still draws wells from LogbookGlyphs.js.
      Native iOS marketing version 1.0.2 — ASC closed approved
      1.0.1 (Codemagic 90062 / 90186). Codemagic Game Center profile helper
      is a shell script, not inline Python in codemagic.yaml.
@@ -259,9 +277,10 @@ simulator (no Mac or device). The browser session is a **video stream**: a
 locked 60 Hz DEBUG HUD can still feel laggy, and `AVAudioEngine` often has
 **no audio** in the tab. Judge BOOP/trail pixels there. TestFlight uses
 `.playback` so the Silent switch no longer mutes gameplay SFX (the old
-`.ambient` session is why friends heard nothing on device). `Voice/` is
-empty in git — BGM / NAV voice need those MP3s; synth boop / turn / collect
-/ crash / shield / portal / swoosh do not. See [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md) §6b. Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
+`.ambient` session is why friends heard nothing on device). Launch lines are
+`nav_XX_ship_N.mp3` in `public/sounds/voice/` and `ios-native/SpaceSwoosh/Voice/`.
+Cue times are still estimates. Synth boop / turn / collect
+/ crash / shield / portal / swoosh do not need those clips. See [`docs/CODEMAGIC.md`](docs/CODEMAGIC.md) §6b. Store listing copy: [`docs/STORE_LISTING.md`](docs/STORE_LISTING.md). IAP product ids: [`docs/IAP.md`](docs/IAP.md).
 
 ### Supabase API keys (correct usage)
 
@@ -338,7 +357,12 @@ game build env. Journey progress and Open Space personal best stay in
 | --- | --- |
 | `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. Mobile **web** returns after `web_store_gate` and never constructs `Game`. |
 | `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, `SystemBars.setStyle` (edge-to-edge; no StatusBar color/overlay APIs); wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight` (WebView does not resize; `html.ss-ime-open` drops body padding-bottom). `requestNativeReview()` / `openStoreListing()` wrap `InAppReview` (Play Core). |
-| `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. Review overlay treats back as Later. |
+| `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. Hangar returns to the screen that opened it. Review overlay treats back as Later. |
+| `game/LaunchVoice.js` | Open Space NAV launch line on the shared voice slot. Arms when steering unlocks (`LevelIntroSequence.finish`). Audio at T0 + 0.6s. Subtitles type display cues, hold 1.2s, fade 0.3s. Journey story rounds skip the line and do not spend the session-first flag. |
+| `config/HangarLore.js` | Lore-order roster from `navCues.json`. Seen set `hangarSeenShipIds` (seeded once in `hangarSeenSeeded`). |
+| `config/navCues.json` | Archive copy and 123 launch lines. Display text and Line IDs are verbatim. `cues_are_estimates` is still true. |
+| `ships/hangarFlight.js` | Hangar preview. The ship is a `Spacecraft` and each frame calls `Spacecraft.update()` (the run's zigzag or arc step, heading, and `updateTrail`). The lane is inset so the hull and wake stay inside the stage. The camera only seats the hull. |
+| `ui/screens/HangarScreen.js` | Hangar paint, swipe, ruler, Launch. |
 | `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. Mobile web gate: `web_store_gate` (`store_target` ios\|android\|both). |
 | `services/ReviewPrompt.js` | Enjoyment card eligibility (`ssReviewPrompt`): pending → Day 6; Later snoozes to Day 13 then `done`. Native only. |
 | `services/StoreLinks.js` | Play listing `com.orbi.spaceswoosh`; App Store id `6801885446` (`VITE_APP_STORE_APPLE_ID` override). `appStoreUrl()` is locale-neutral. Feeds Rate, the mobile web gate, and desktop QR generation (`npm run assets:qr`). |
@@ -348,8 +372,9 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. SPACE BOARD: Global/Friends chip on phones, Friends default when that list has anyone, Submit Signal paperTint + page jump. Friends rows: avatar / initials, YOU, paperTint local row; YOU metric is `max(Play Games, OpenWorldProgress)`. |
+| `ships/skinPreview.js` | Hangar specimen: banked hull + curved wake (`drawSkinSpecimen`, short or long arc). `npm run assets:ships` writes night-paper PNGs (hull and wake) to `assets/reference/ships/` plus `catalog.json` and `sheet.png`. The game does not load those files. |
 | `ships/skins.js` | Ship skin registry: lookup, persistence, hangar roster (`SHIP_SKIN_LIST` omits `hidden`), menu previews. Hidden leftover ids remount to Flicker. |
-| `ships/skinDefs.js` | Ship catalog (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin…Rook). Merlin and Rook set `hidden: true` so hangar / menu / yearly pick omit them. |
+| `ships/skinDefs.js` | Ship catalog (Focus…Saber…Fletch…Nyan…Cinder…Lantern…Bloom…Lyra…Boreal…Luna…Wish…Darner…Chime…Merlin…Rook). Merlin and Rook set `hidden: true` so the purchase grid and yearly pick omit them. The Hangar still shows them as unlisted. |
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
@@ -370,7 +395,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/LogbookManager.js` | Journey-only façade: observe / interact / instant + toast debounce. |
 | `managers/LogbookToastManager.js` | Top-center "SPACE LOG UPDATED" chip (~2s). |
 | `ui/screens/LogbookScreen.js` | Space Log: Obstacles/Boosts list only observed/known cards; Journey rows text-only. Known Day N cards replay `playLevelVoice(N)` from a top-right play/stop (`buttons.plays`); The Call / locked days have no control. Leave (Back / hardware back) calls `stopLevelVoice`. Picture wells are playfield specimens (`LogbookGlyphs.js`). |
-| `ui/screens/LogbookGlyphs.js` | In-game silhouettes at corridor scale (finish gate spans the well; sparkle/wormhole/asteroid keep relative size). |
+| `ui/screens/LogbookGlyphs.js` | In-game silhouettes at corridor scale (finish gate spans the well; sparkle/wormhole/asteroid keep relative size). `npm run assets:logbook` writes night-paper PNGs of the Obstacles tab to `assets/reference/space-log/obstacles/`. `npm run assets:boosts` writes Boosts as `boost_<id>.png` to `assets/reference/space-log/boosts/`. Each folder has `catalog.json` and `sheet.png`. The game does not load those files. |
 | `ui/screens/ModeSelectScreen.js` | Play → Open Space / Journey (Journey may open lore first); lives chip when `LIVES_ENABLED`. |
 | `ui/screens/LoreScreen.js` | One-time pre-Journey Signal Story brief → Continue → map + Logbook unlock. |
 | `ui/screens/JourneyMapScreen.js` | Scrollable level select: **5 columns**, `tileH = tileW × 1.15`; chapter bands of level tiles; lives chip when `LIVES_ENABLED`. Hazard Lab tile gated by `SHOW_HAZARD_LAB` (false). |
@@ -405,7 +430,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `services/SpaceBoardFocus.js` | Friends-default probe, Submit Signal call-sign row match, 10-row page index. |
 | `config/supabase.js` | Supabase client config. |
 | `brand/tokens.js` / `tokens.css` | Brand design tokens (color, type, motif). Single source of truth. |
-| `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear / Play mode-select blurbs. |
+| `brand/CopyBank.js` | Spock-voice flavor pools + `pickCopy()` for menu / crash / clear / Play mode-select blurbs. Player-facing lines are listed in `copy_bank.md`. |
 | `ui/ScreenKit.js` | Screen layout grid + rhythm, dotted rules/ruled labels, text fitting & wrapping. |
 | `utils/BrandDraw.js` | Canvas brand primitives: paper, framed tiles/buttons, reticle, **sparkle**, type presets. |
 | `utils/DepthField.js` | Time-based wrapping star field on night paper only (idle drift + in-run camera parallax). |
@@ -416,8 +441,8 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, ship preview with ▶/◀ / swipe browse of full roster (`menuShipBrowseId`); quiet `n / total` hangar index (`skinRosterMark` / iOS `SkinCatalog.rosterMark`); locked shows price + tap-to-buy; Play / Space Log / Options / High Scores. |
-| `modeSelect` | Play → Journey (recommended, first; Logbook unlocks) or Open Space. Cards are `cardH = min(unit×17, (area−gap)/2)` and vertically centered between header and footnote (iOS `RootView.modeSelect` matches). Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
+| `menu` | Title, tagline, and Play / Space Log / Options / High Scores. No idle ship and no NEW ENTRY stamp. |
+| `modeSelect` | Play → Journey (first; Logbook unlocks) or Open Space. Cards are `cardH = min(unit×17, (area−gap)/2)` and vertically centered between header and footnote (iOS `RootView.modeSelect` matches the layout; iOS still uses the all-caps RECOMMENDED chip). Web Journey hint is sentence-case `Recommended` under the title via `setHintType` (Space Grotesk 300, 0.06em). Open Space keeps the ENDLESS corner label. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
 | `logbook` | Discovery journal (categories + entries); Back → menu |
@@ -426,6 +451,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
 | `highscores` | Space Board: 10 tall rows/page (max 10 pages), native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); YOU shows the device Open Space PB when the store score is still 0; Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
+| `hangar` | Last step before Open Space or a Journey day. Lore order from `navCues.json` (Saber is Hull 004). Layout is the 390×844 mock, scaled to fit: header 22+44, stage 372 (hint inside it), hairline, copy block 214, ruler 48, Launch 58 inset 16. The stage runs `Spacecraft.update()` — the same zigzag or arc step as a run — in a lane inset from the stage edges, and the camera only seats the hull, so the skin trail stays inside the stage. Ruler: owned ticks 2×16, locked hollow 4×11, unlisted hollow 4×7, current 3×30 signal, new hull a 5px dot, 12px gap before Merlin and Rook. Locked hulls stay in color; the bar shows the price or Locked and they cannot be equipped. Merlin and Rook are `Hull ??? / Unlisted`, drawn in color with their real wake, and do not equip. Launch on either keeps the last owned ship. Launch uses the centered owned hull, or the last equipped hull if the center is unlisted. The Hangar is not on the 30 Hz idle governor. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
 | `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission. After a successful Day 6 clear (native only), the enjoyment card layers on top; Later snoozes until Day 13. |
 
@@ -435,7 +461,9 @@ sub-screen returns to the hub; Back from the hub returns to the main menu.
 - `beginRun(mode, level)` is the single entry into a run: it builds
   `this.profile` **first** (the world is constructed from it), then
   `resetRunState()`, then `appScreen = 'playing'`.
-- `restart()` re-runs the current mode — in Journey that's the *same* level.
+- `restart()` re-runs the current mode — in Journey that's the *same* level. It sets `launchIsRetry` and does not open the Hangar.
+- `openHangar({ mode, level, returnScreen })` is the step before `tryBeginOpenWorld` / `tryBeginJourneyLevel`. Hazard Lab still calls `beginHazardLab()` directly. Journey outcome Next uses `openHangar`; Retry sets `launchIsRetry` and calls `tryBeginJourneyLevel`.
+- Launch voice (`LaunchVoice.js`, iOS `LaunchVoice.swift`) arms when steering unlocks. T0 is that handoff. Audio starts at T0 + 0.6s (`nav_XX_ship_N.mp3` in `public/sounds/voice/` and `ios-native/SpaceSwoosh/Voice/`, on the single voice slot). Subtitles type each display cue across its `[start, end]`, hold `est_seconds + 1.2s`, then fade over 0.3s. Fade-in is 0.15s. Those cue times are estimates (`cues_are_estimates: true`) until forced alignment. A Journey story round (intro beats, or day 42) skips the line and does not consume the session-first flag. First eligible round and a ship change always pick a line; a crash retry picks about 1 in 4. The pick is random among the three lines except the last Line ID for that ship. Hidden ships use line 1 on first launch, then rotate. Tags in `elevenlabs_input` are never drawn.
 - `leaveRun(screen)` clears end-run state; `goToMenu()` and `goToJourneyMap()`
   are thin wrappers. Journey's pause → Exit Run returns to the map, not the menu.
 - Name is collected on score submit (no boot-time `prompt`).
@@ -467,7 +495,7 @@ Android Noto Color Emoji renders that as an orange filled tile.
 - **Master mute** (`soundMuted`, pause Sound): silences everything.
 - **Music** (`soundMusicEnabled`): looping BGM (`background.mp3`).
 - **Sound FX** (`soundSfxEnabled`): crashes, shield, turn/move, boop/swoosh SFX, collect, portal, logbook chirp, empty-tank engine sputter (three descending repeats; HTMLAudio + Web Audio synths).
-- **Voice** (`soundVoiceEnabled`): `level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `fuel-low-1.mp3`–`fuel-low-3.mp3`. Voice-off still fires `onEnded` so Journey intro captions continue; first-boop on-screen beats still show. Low-fuel NAV is once per dip below `fuel.voiceLowThreshold` (0.20) in Journey / Open Space; does not cut a clip already speaking.
+- **Voice** (`soundVoiceEnabled`): `level-N.mp3`, `first-boop.mp3`, `swoosh-voice.mp3`, `fuel-low-1.mp3`–`fuel-low-3.mp3`, and Hangar launch lines `nav_XX_ship_N.mp3` via `playCueVoice` (`public/sounds/voice/`, same names in `ios-native/SpaceSwoosh/Voice/`). Voice-off still fires `onEnded` so Journey intro captions continue; first-boop on-screen beats still show. Launch-line subtitles still run from `est_seconds` when Voice is off or the MP3 is missing. Low-fuel NAV is once per dip below `fuel.voiceLowThreshold` (0.20) in Journey / Open Space; does not cut a clip already speaking.
 
 `applyMute()` sets `.muted` per HTMLAudio channel; Web Audio one-shots early-return via `canPlaySfx()`. Channel keys default ON (`'0'` = off). Turn/move fire throwaway `AudioBufferSourceNode`s from buffers decoded once in `initialize()`.
 
@@ -621,6 +649,7 @@ buffer, after `AudioContext.resume`; BGM stays running). Skip uses the same hold
 beats** (one per phrase). Prompt placeholder
 is **Write it here.** Session cues:
 `first-boop.mp3`, `swoosh-voice.mp3` (sources under `assets/voice/`).
+Launch lines are `nav_XX_ship_N.mp3` in `public/sounds/voice/` and `ios-native/SpaceSwoosh/Voice/`.
 
 Everything else is derived from `d` by `lerp`, in `JourneyProfile`: `density`
 1.15→2.05, `maxOnScreen` 5→10, row gap 0.30→0.16 of screen height
@@ -1137,8 +1166,7 @@ fuselage tail (`trailTailOffset` 0.95). Optional skin fields
 `trailMaxPoints` / `trailFade` stretch wakes (Nyan / Saber: 160 pts, fade
 `1/360`; Quill / Fletch / Shard / Seal / Hatch / Trace / Fold / Spine / Mote / Pulse /
 Echo / Dusk / Orbit / Ink / Cinder / Lantern / Bloom / Lyra / Sprout / Plume / Koi / Spore / Boreal / Luna / Wish / Darner / Puff / Argus / Chime / Merlin / Rook: 200 pts, fade `1/420` so the tip leaves the viewport).
-Menu preview samples originate at `trailTailOffset` (Android `previewWake` /
-iOS `PreviewWakePaint`) so the short hangar wake never covers the title.
+Menu preview and the Hangar stage call the run's own step (`Spacecraft.update` on JS, `ShipSimulator.step` on iOS) and paint that trail with `drawTrail` / `SkinRenderer`. The camera only holds the hull in the stage. Picker stills still use the short arc (`previewWake`, 12 pts, span 3.4r; iOS `PreviewWakePaint`) so a card never covers its title.
 iOS draw LOD still multiplies max points by 0.6.
 
 Shaped hulls mostly share `makeHullRenderer(pathFn, profile)` in `skinDefs.js`;
@@ -1413,7 +1441,7 @@ four-point **sparkle** (`drawSparkle`) — deliberately distinct from the filled
 signal RGBs as 1–2px rects; hero flares are a tiny bone four-point, never the
 collectible-scale `drawSparkle`.
 
-### Spock copy (`brand/CopyBank.js`)
+### Spock copy (`brand/CopyBank.js`, listed in `copy_bank.md`)
 
 Flavor subtitles (menu tagline, Open Space crash/victory, Journey fail / partial
 clear / flawless / finale) live in named pools and are picked **once when the
@@ -1461,7 +1489,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 
 | Path | Role |
 | --- | --- |
-| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase Global + Game Center Friends chip; style is saved flight style; Submit Signal jumps to the call-sign row), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` (`showHazardLab` false hides the centered LAB tile). `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Journey day cards replay NAV (`journeyPlayButton` is `@ViewBuilder`). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). `JourneyProgress.UNLOCK_ALL_LEVELS` is **false** (sequential tiles; saved `unlocked` unchanged). Home ◀/▶ browses the full roster; locked hulls show price and tap-to-buy. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
+| `SpaceSwoosh/App/` | Android menu map: home 4 buttons, nested Options/Controls/Sound/Rate/Restore, `HighScoresView` SPACE BOARD (Supabase Global + Game Center Friends chip; style is saved flight style; Submit Signal jumps to the call-sign row), Journey-first PLAY cards (`cardH` unit×17, vertically centered), `JourneyMapView` **5-column** tiles at `tileH = tileW × 1.15` (`showHazardLab` false hides the centered LAB tile). `LogbookView` + `LogbookGlyph` playfield-scale wells (wormhole under Boosts). Journey day cards replay NAV (`journeyPlayButton` is `@ViewBuilder`). Open Space Submit Score + top-10 auto-prompt. Pause + CopyBank game-over + `SpriteView`. Enjoyment card (`ReviewPromptCard`) after Journey Day 6 (`ReviewPromptStore`; Later → Day 13). `JourneyProgress.UNLOCK_ALL_LEVELS` is **false** (sequential tiles; saved `unlocked` unchanged). Home shows the equipped hull idling (`HangarLiveShip`); ship changes happen in `HangarView` (Open Space and Journey days; Hazard Lab and crash retry stay direct). `navCues.json` is a bundle resource. `SettingsStore` resolves flight style + equipped skin into **locals** before assigning stored properties (Swift forbids reading `self` until every stored property is set). |
 | `SpaceSwoosh/Services/` | `ScoreService` + `NameFilter` — same `public.high_scores` PostgREST contract as Android (`platform=ios` on insert). `FriendsScoreService` — Game Center auth, silent Open Space submit, friends-only `FriendBoardRow` load (local player + small photos). Credentials from Info.plist `SUPABASE_URL` / `SUPABASE_ANON_KEY`. `AnalyticsService` — Firebase Analytics (`FirebaseAnalyticsCore`, `GoogleService-Info.plist`) with Android event parity (`platform=ios`, `purchase` revenue, epilogue send/skip, review prompt). `PurchasesService` + `EntitlementsStore` — RevenueCat ship IAP + Restore (`REVENUECAT_IOS_KEY` from `VITE_REVENUECAT_IOS_KEY`). `StoreLinks` — Play URL + App Store write-review URL (`APP_STORE_APPLE_ID`). |
 | `SpaceSwoosh/Brand/` | `BrandType` (Space Grotesk / Mono) + `CopyBank` (menu / crash / fuelOut pools) |
 | `SpaceSwoosh/Fonts/` | OFL Space Grotesk 500/700 + Space Mono 400/700 TTF (`UIAppFonts`); `BrandType` PostScript names |

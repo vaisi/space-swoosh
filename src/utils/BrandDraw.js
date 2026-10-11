@@ -4,6 +4,9 @@
 // (src/brand/tokens.js) to the <canvas> game surface.
 //
 // Changes:
+// - setHintType(): Space Grotesk 300, sentence case, 0.06em tracking. The
+//   quiet "headphones recommended" caption (Journey on Play). Weight 300 is
+//   preloaded with the other brand faces.
 // - ensureBrandFonts() races loads against 1.5s and never awaits
 //   document.fonts.ready (Android WebView can hang forever on a missing
 //   @font-face). Missing files fall back to the system stack instead of
@@ -24,7 +27,7 @@
 //     * drawFramedTile()    — the bordered card/panel treatment
 //     * drawReticle()       — the crosshair focus glyph (the ship / monogram)
 //     * drawSparkle()       — the four-point points-collectible glyph
-//     * setLabelType/setMonoType/setDisplayType — brand type presets for canvas
+//     * setLabelType/setMonoType/setDisplayType/setHintType — brand type presets for canvas
 // - drawSparkle() takes an optional `stroke`, drawing the sparkle hollow. Used
 //   for stars not yet earned, where a faint fill read as a gap in the layout.
 // - Added drawSparkle(): a solid four-point sparkle (points at N/E/S/W) used for
@@ -44,6 +47,7 @@ const FONT_LOAD_MS = 1500;
 export async function ensureBrandFonts() {
     if (!document.fonts || !document.fonts.load) return;
     const faces = [
+        `300 24px 'Space Grotesk'`,
         `500 24px 'Space Grotesk'`,
         `700 24px 'Space Grotesk'`,
         `400 24px 'Space Mono'`,
@@ -72,6 +76,13 @@ export function setDisplayType(ctx, px, weight = 700) {
 export function setLabelType(ctx, px, weight = 500) {
     ctx.font = `${weight} ${px}px ${font.ui}`;
     ctx.letterSpacing = `${0.18 * px}px`;
+}
+
+// Quiet aside: sentence case, light weight, a little air. Not the ALL-CAPS
+// label shout — the "headphones recommended" hint.
+export function setHintType(ctx, px, weight = 300) {
+    ctx.font = `${weight} ${px}px ${font.ui}`;
+    ctx.letterSpacing = `${0.06 * px}px`;
 }
 
 export function setMonoType(ctx, px, weight = 700) {

@@ -8,8 +8,8 @@
 // - Header no longer draws a TEST chip when UNLOCK_ALL_LEVELS / ?unlocklevels=1
 //   is on; tiles still unlock for playtest. Saved journeyProgress.unlocked is
 //   unchanged.
-// - Lives chip in the header (hidden while LIVES_ENABLED is false); level
-//   starts use tryBeginJourneyLevel (lives gate only when the flag is on).
+// - A Journey day opens the Hangar. Hazard Lab still starts directly.
+//   Lives chip in the header (hidden while LIVES_ENABLED is false).
 // - Dropped chapter blurb lines under headings (clutter + story spoilers);
 //   keep name + level range only.
 // - Hazard Lab tile (when SHOW_HAZARD_LAB) pins above Troposphere; sandbox
@@ -319,7 +319,7 @@ export function handleJourneyMapClick(game, x, y) {
         if (tile.hazardLab) {
             game.beginHazardLab();
         } else {
-            game.tryBeginJourneyLevel(tile.level);
+            game.openHangar({ mode: 'journey', level: tile.level, returnScreen: 'journeyMap' });
         }
         return true;
     }

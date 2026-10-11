@@ -1,5 +1,7 @@
 // TrailRingBuffer.swift
-// Changes: Slice D — opacity fade 1/180 per tick, trailSpacing gate, seed for spring.
+// Changes: offsetX shifts a present-only copy so the hangar lane can sit
+// inset from the stage edge. dropBehind removes samples flown past.
+// Slice D — opacity fade 1/180 per tick, trailSpacing gate, seed for spring.
 
 import Foundation
 import CoreGraphics
@@ -44,6 +46,24 @@ struct TrailRingBuffer {
         let seed = CGFloat((index * 37) % 100) / 100
         points[index] = TrailPoint(x: x, y: y, tangent: tangent, opacity: 1, seed: seed)
         count += 1
+    }
+
+    /// Oldest samples sit furthest behind a ship that only flies forward.
+    mutating func dropBehind(shipY: CGFloat, maxBehind: CGFloat) {
+        while count > 0 {
+            let oldest = self[0]
+            if shipY - oldest.y <= maxBehind { break }
+            head = (head + 1) % capacity
+            count -= 1
+        }
+    }
+
+    mutating func offsetX(_ dx: CGFloat) {
+        guard dx != 0, count > 0 else { return }
+        for i in 0..<count {
+            let index = (head + i) % capacity
+            points[index].x += dx
+        }
     }
 
     mutating func fade(by amount: CGFloat) {

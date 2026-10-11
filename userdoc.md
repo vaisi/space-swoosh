@@ -1,4 +1,10 @@
-<!-- Changes: iPhone Dark Mode shows the same drifting stars as Android
+<!-- Changes: Open Space launch lines are named nav_XX_ship_N.mp3.
+     Play opens the Hangar before Open Space or a Journey day.
+     The home screen shows your equipped ship and no longer swipes between hulls.
+     A NEW ENTRY mark means an owned hull you have not looked at yet.
+     Open Space may speak a short launch line. Journey story days do not.
+     Play lists Journey with a quiet Recommended hint under the title.
+     iPhone Dark Mode shows the same drifting stars as Android
      behind menus, the Journey map, and the run. Light Mode stays flat.
      iPhone TestFlight marketing is 1.0.2 (Apple closed 1.0.1).
      Friends Space Board YOU row shows the Open Space distance
@@ -66,8 +72,9 @@
 > is the same online SPACE BOARD as Android (distance or obstacles for the
 > style you flew, plus a Global/Friends chip: Friends is Game Center on iPhone).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
-> Cycle ships on the home screen (swipe, or ◀ / ▶) or pick one under
-> Options → Ship; your choice is saved. The
+> Your equipped ship idles on the home screen. Choosing a hull happens in the
+> Hangar after you tap Play, then Open Space or a Journey day. Options → Ship
+> is still the purchase grid; your choice is saved. The
 > whimsical ships (Lantern through Chime) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s Spine bar, and
 > **Nyan**’s gray crescent with pink spots match Android in play (hangar cards
@@ -153,8 +160,8 @@ There are two ways to play, and you pick one every time you hit Play.
 
 ## Two ways to play
 
-Play lists **Journey first** — it's the recommended path. Each visit, the short
-line under Journey and Open Space is a fresh Spock-voice blurb (same idea, new
+Play lists **Journey first**. A quiet **Recommended** sits under that title — it's the best place to start. Each visit, the short
+line under that hint (and under Open Space) is a fresh Spock-voice blurb (same idea, new
 wording). Journey's card shows your current level and star total; Open Space's
 card shows your **personal best** distance on this device once you've finished
 at least one run. Zigzag and Arc bests are tracked separately — if you've only
@@ -256,7 +263,9 @@ account required.
 Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
 out. Then the navigator’s line (Journey) sits on screen sentence by sentence
-with voice and fades; a moment later distance and pause ease in. Once sparkles
+with voice and fades. Open Space can add a short launch line for the ship you
+picked (`nav_XX_ship_N.mp3`), typed on screen as it is spoken. A Journey day that already has story
+audio skips that launch line. A moment later distance and pause ease in. Once sparkles
 can appear, a sparkle icon + blue fuel bar shows in the compact HUD; the smash
 row appears when you smash your first asteroid. The ship intro itself can't be skipped.
 
@@ -289,15 +298,11 @@ When the game loads you land on the main menu. The tagline under the title
 changes each visit — dry science-officer commentary. Crash and level-clear
 screens do the same with their own lines.
 
-Under the title, your ship is shown with its name and a quiet hangar index
-(for example **5 / 42**). On the phone apps, swipe left or right on the home
-screen to change ships — or tap the triangle arrows. On a keyboard, press
-**Left** / **Right**. Owned ships equip and save. Locked ships show a price
-(tap the ship to unlock on the apps). Options → Ship has the same roster in a
-grid; each card keeps its description even while locked, with the price on the
-tile.
+The home screen is the title, the tagline, and four buttons. Choosing a hull happens in the Hangar.
 
-- **Play** — Journey (recommended) then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
+**Hangar.** After Play, choose Open Space or a Journey day. The screen titles itself from that mode, over "The Hangar", and the corner counts how many hulls you own out of the 39 on file. The ship sits in a short stage and flies the same way it does in a run: it turns, and the wake follows. A line separates that stage from the writing. Tap the hull to flip its turn. The hint under the ship says tap to test and swipe to browse, with arrows on either side. Swipe, tap an arrow, or drag the ruler to move through the fleet. The ruler is a row of ticks: the hull you are on is the tall blue mark, a new hull you own shows a dot, and the two unlisted hulls sit after a small gap. Under the line is the hull number and how it was filed, then the name and the archive sentence, with space before the ruler. **Launch** is the wide cream bar: the word on the left, the ship name on the right. It starts the run with the ship in the center. A locked hull is drawn in its real colors, and the bar shows its price or Locked. Two unlisted hulls at the end of the ruler are shown in their real colors, flying like the others, and cannot be equipped. Launch on either keeps the ship you already own. Crash retry skips the Hangar. The next Journey day goes through it. Options → Ship stays the purchase grid; each card keeps its description even while locked, with the price on the tile.
+
+- **Play** — Journey, with a quiet Recommended hint under the title, then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar.
 - **High Scores** — open the Space Board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. Your YOU row shows the distance you actually flew (best Open Space KM on this device) even before the store board updates. After Submit Signal it stays on Global and jumps to your row. Android pages 10 scores at a time (up to 100).
@@ -401,7 +406,7 @@ Under **Options → Sound** you can isolate each channel:
 | --- | --- |
 | **Music** | Background music loop. |
 | **Sound FX** | Crashes, boops, shields, points, turns, portals, empty-tank sputter, and other game sounds. |
-| **Voice** | Navigator lines (Journey intros), session cues (first BOOP, Style Swoosh), and a low-fuel warning. On-screen captions still appear when Voice is off. |
+| **Voice** | Navigator lines (Journey intros), Open Space launch lines (`nav_XX_ship_N.mp3`), session cues (first BOOP, Style Swoosh), and a low-fuel warning. On-screen captions still appear when Voice is off. |
 
 Pause → **Sound** mutes everything at once without changing these three toggles.
 

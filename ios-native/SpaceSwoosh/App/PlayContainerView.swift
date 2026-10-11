@@ -1,5 +1,7 @@
 // PlayContainerView.swift
-// Changes: pause holds the sim without freezing the night-paper stars.
+// Changes: Next Level returns through the Hangar. Replay and Retry stay
+// direct and mark a crash retry for the launch line. NAV subtitles sit
+// above the HUD. Pause holds the sim without freezing the night-paper stars.
 // L42 hold is #050505 plus a quieter depth field. After Submit Signal,
 // Space Board opens Global on the new call-sign row. Enjoyment review
 // overlay after Journey Day 6 (Day 13 if Later).
@@ -12,9 +14,11 @@ struct PlayContainerView: View {
     var launch: PlayLaunch
     var onMenu: () -> Void
     var onMap: () -> Void
+    var onNextDay: (PlayLaunch) -> Void
     var onUnlockArc: () -> Void
 
     @ObservedObject private var settings = SettingsStore.shared
+    @ObservedObject private var launchVoice = LaunchVoice.shared
     @StateObject private var pacing = FramePacingMonitor()
     @StateObject private var session = GameSession()
     @State private var scene = PlayScene(size: CGSize(width: 390, height: 844))
@@ -32,11 +36,13 @@ struct PlayContainerView: View {
         launch: PlayLaunch,
         onMenu: @escaping () -> Void,
         onMap: @escaping () -> Void,
+        onNextDay: @escaping (PlayLaunch) -> Void,
         onUnlockArc: @escaping () -> Void
     ) {
         self.launch = launch
         self.onMenu = onMenu
         self.onMap = onMap
+        self.onNextDay = onNextDay
         self.onUnlockArc = onUnlockArc
         _currentLaunch = State(initialValue: launch)
     }
@@ -49,6 +55,18 @@ struct PlayContainerView: View {
                 SpriteView(scene: scene, options: [.ignoresSiblingOrder])
                     .frame(width: geo.size.width, height: geo.size.height)
                     .ignoresSafeArea()
+
+                if !launchVoice.subtitle.isEmpty {
+                    Text(launchVoice.subtitle)
+                        .font(BrandType.body(16))
+                        .foregroundStyle(BrandColors.ink)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 28)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .padding(.bottom, 108)
+                        .opacity(launchVoice.opacity)
+                        .allowsHitTesting(false)
+                }
 
                 VStack {
                     if session.hudDistance > 0.02 || session.hudPause > 0.02 {
@@ -393,7 +411,7 @@ struct PlayContainerView: View {
         VStack(spacing: 12) {
             if let nextLevel {
                 ShellChrome.brandButton("Next Level", tag: "▶", primary: true) {
-                    replay(.journey(nextLevel))
+                    onNextDay(.journey(nextLevel))
                 }
                 HStack(spacing: 12) {
                     ShellChrome.brandButton("Replay", labelSize: 14) {
@@ -417,6 +435,7 @@ struct PlayContainerView: View {
     }
 
     private func replay(_ launch: PlayLaunch) {
+        LaunchVoice.shared.markRetry()
         currentLaunch = launch
         paused = false
         showSubmit = false

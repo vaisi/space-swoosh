@@ -1,7 +1,9 @@
 // RootView.swift
-// Changes: dark mode lays Android's drifting depth field under every shell
-// screen (menu, Journey map, log). Light Mode stays flat paper. Home screen
-// swipe (above the action buttons) cycles the hangar via ShipPreview.
+// Changes: home menu is title, tagline, and the four buttons. No idle ship.
+// Dark mode lays Android's drifting depth field under every shell
+// screen (menu, Journey map, log). Light Mode stays flat paper. Home shows
+// the equipped hull idling. Open Space and Journey days open the Hangar;
+// crash retry and Hazard Lab stay direct.
 
 import SwiftUI
 
@@ -12,6 +14,7 @@ enum ShellScreen {
     case optionsControls
     case optionsSound
     case shipPicker
+    case hangar
     case highScores
     case lore
     case journeyMap
@@ -27,7 +30,6 @@ struct RootView: View {
     @State private var launch: PlayLaunch = .openSpace
     @State private var logbookReturn: ShellScreen = .menu
     @State private var menuFlavor = CopyBank.pick(.menu)
-    @State private var menuBrowseId: SkinId = SettingsStore.shared.shipSkinId
     @State private var journeyBlurb = CopyBank.pick(.modeJourney)
     @State private var openBlurb = CopyBank.pick(.modeOpenWorld)
 
@@ -48,6 +50,21 @@ struct RootView: View {
                 optionsSound
             case .shipPicker:
                 ShipPickerView(onBack: { screen = .options })
+            case .hangar:
+                HangarView(
+                    launch: launch,
+                    onBack: {
+                        if case .journey = launch {
+                            screen = .journeyMap
+                        } else {
+                            screen = .modeSelect
+                        }
+                    },
+                    onLaunch: { next in
+                        launch = next
+                        screen = .play
+                    }
+                )
             case .highScores:
                 HighScoresView(onBack: { screen = .menu })
             case .lore:
@@ -64,7 +81,11 @@ struct RootView: View {
                     },
                     onPlay: { next in
                         launch = next
-                        screen = .play
+                        if case .hazardLab = next {
+                            screen = .play
+                        } else {
+                            screen = .hangar
+                        }
                     }
                 )
             case .logbook:
@@ -77,6 +98,10 @@ struct RootView: View {
                         menuFlavor = CopyBank.pick(.menu)
                     },
                     onMap: { screen = .journeyMap },
+                    onNextDay: { next in
+                        launch = next
+                        screen = .hangar
+                    },
                     onUnlockArc: {
                         journey.markArcUnlockSeen()
                         settings.setFlightStyle(.arc)
@@ -86,6 +111,7 @@ struct RootView: View {
                 .transition(.opacity)
             }
         }
+        .onAppear { HangarCatalog.ensureSeenSeed() }
         .animation(.easeInOut(duration: 0.2), value: screen)
         .animation(.easeInOut(duration: 0.2), value: settings.isDark)
     }
@@ -103,12 +129,9 @@ struct RootView: View {
                     .foregroundStyle(BrandColors.ink55)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 36)
-                ShipPreview(browseId: $menuBrowseId)
-                    .padding(.top, 8)
                 Spacer()
             }
             .contentShape(Rectangle())
-            .simultaneousGesture(menuShipSwipe)
             VStack(spacing: 12) {
                 ShellChrome.brandButton("Play", tag: "▶", primary: true) {
                     journeyBlurb = CopyBank.pick(.modeJourney)
@@ -125,16 +148,6 @@ struct RootView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 28)
         }
-    }
-
-    private var menuShipSwipe: some Gesture {
-        DragGesture(minimumDistance: 28)
-            .onEnded { value in
-                let dx = value.translation.width
-                let dy = value.translation.height
-                guard abs(dx) >= 40, abs(dx) > abs(dy) * 1.15 else { return }
-                MenuHangar.cycle(browseId: &menuBrowseId, delta: dx < 0 ? 1 : -1)
-            }
     }
 
     private var modeSelect: some View {
@@ -165,7 +178,7 @@ struct RootView: View {
                             height: cardH
                         ) {
                             launch = .openSpace
-                            screen = .play
+                            screen = .hangar
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

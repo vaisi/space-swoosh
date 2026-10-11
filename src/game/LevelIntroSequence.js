@@ -1,7 +1,8 @@
 // LevelIntroSequence.js
 // Short run-start cinematic for Journey and Open World.
 // Changes:
-// - Handoff starts IntroNarration (sentence beats + level 1–41 voice). Day 42
+// - Handoff arms the NAV launch line unless Journey story audio owns the
+//   round. IntroNarration still starts sentence beats + level 1–41 voice. Day 42
 //   skips intro text/voice — those play after the gate with the written ending.
 // - Title hold stretched (~1.1s) so Signal Story two-sentence lines can be read.
 // - Title fade-out shortened to 900ms (was 3s). Game unpauses the belt as soon
@@ -17,6 +18,7 @@ import { clamp01, lerp } from '../utils/math.js';
 import { REF_FPS } from './cinematicFlight.js';
 import { TOTAL_LEVELS } from '../config/JourneyConfig.js';
 import { IntroNarration } from './IntroNarration.js';
+import { armLaunchVoice } from './LaunchVoice.js';
 
 // Wall-clock timings — keep these the single source of "how the intro feels".
 const ARRIVE_MS = 720;   // slow roll into the cruise seat + world fade
@@ -197,7 +199,10 @@ export class LevelIntroSequence {
         game.pendingIntroBeats = null;
         game.pendingIntroMessage = null;
 
-        if (beats?.length && !game.isJourneyFinale?.()) {
+        const narrating = Boolean(beats?.length) && !game.isJourneyFinale?.();
+        armLaunchVoice(game, { story: narrating || Boolean(game.isJourneyFinale?.()) });
+
+        if (narrating) {
             game.hudRevealPhase = 'title';
             game.hudRevealStart = null;
             game.hudRevealWaitStart = null;

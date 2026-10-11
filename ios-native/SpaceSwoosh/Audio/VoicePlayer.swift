@@ -1,5 +1,6 @@
 // VoicePlayer.swift
-// Changes: speakingLevel tracks which Journey day owns the voice slot so Space
+// Changes: playCueFile plays a bundled launch-line MP3 on the same voice slot.
+// speakingLevel tracks which Journey day owns the voice slot so Space
 // Log play/stop stays honest if another cue steals it. LEVEL N intros play on
 // the SFX engine voice node (same bus as first-boop) so synth wall-boop can mix
 // under them. First-boop will not start while another clip is speaking and does
@@ -42,6 +43,11 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate {
             }
         }
         speakingLevel = SfxPlayer.shared.voicePlaying ? level : nil
+    }
+
+    /// Launch-line clip in the app bundle (`nav_01_focus_1`, no extension).
+    func playCueFile(_ name: String) {
+        playNamed(name, onEnded: nil)
     }
 
     func playEpilogueOpen(onEnded: (() -> Void)? = nil) {

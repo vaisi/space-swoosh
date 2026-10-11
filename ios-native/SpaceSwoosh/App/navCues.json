@@ -1,0 +1,2944 @@
+{
+  "version": 1,
+  "model": "eleven_v4",
+  "timing": {
+    "audio_start_after_round_start_s": 0.6,
+    "subtitle_fade_in_s": 0.15,
+    "hold_after_audio_s": 1.2,
+    "subtitle_fade_out_s": 0.3,
+    "cues_are_estimates": true
+  },
+  "ships": [
+    {
+      "num": "01",
+      "name": "Focus",
+      "hidden": false,
+      "filed_as": "Standard",
+      "archive_note": "The hull everyone is issued and almost nobody keeps. It goes where it is pointed, which the Index considers its finest quality.",
+      "lines": [
+        {
+          "id": "NAV_01_FOCUS_1",
+          "file": "nav_01_focus_1.mp3",
+          "display": "Focus again. Honest choice. I like honest.",
+          "elevenlabs_input": "[warm, approving] Focus again. [short pause] Honest choice. I like honest.",
+          "est_seconds": 3.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.94,
+              "text": "Focus again."
+            },
+            {
+              "start": 1.29,
+              "end": 2.23,
+              "text": "Honest choice."
+            },
+            {
+              "start": 2.53,
+              "end": 3.59,
+              "text": "I like honest."
+            }
+          ]
+        },
+        {
+          "id": "NAV_01_FOCUS_2",
+          "file": "nav_01_focus_2.mp3",
+          "display": "Back to basics. Just you, me, and the dark.",
+          "elevenlabs_input": "[soft exhale] Back to basics. [low, intimate] Just you, me, and the dark.",
+          "est_seconds": 4.4,
+          "cues": [
+            {
+              "start": 0.7,
+              "end": 1.8,
+              "text": "Back to basics."
+            },
+            {
+              "start": 2.1,
+              "end": 4.29,
+              "text": "Just you, me, and the dark."
+            }
+          ]
+        },
+        {
+          "id": "NAV_01_FOCUS_3",
+          "file": "nav_01_focus_3.mp3",
+          "display": "The one they hand everyone. You made it yours, though.",
+          "elevenlabs_input": "[fond] The one they hand everyone. [pause] You made it yours, though.",
+          "est_seconds": 4.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 2.04,
+              "text": "The one they hand everyone."
+            },
+            {
+              "start": 2.59,
+              "end": 4.55,
+              "text": "You made it yours, though."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "02",
+      "name": "Flicker",
+      "hidden": false,
+      "filed_as": "Unsteady",
+      "archive_note": "Leaves a wedge of itself behind on every turn, as if it cannot commit to being in one place. The Index filed it twice by accident.",
+      "lines": [
+        {
+          "id": "NAV_02_FLICKER_1",
+          "file": "nav_02_flicker_1.mp3",
+          "display": "Flicker. Stay put long enough for me to find you.",
+          "elevenlabs_input": "[teasing] Flicker. Stay put long enough for me to find you.",
+          "est_seconds": 4.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.62,
+              "text": "Flicker."
+            },
+            {
+              "start": 0.92,
+              "end": 3.98,
+              "text": "Stay put long enough for me to find you."
+            }
+          ]
+        },
+        {
+          "id": "NAV_02_FLICKER_2",
+          "file": "nav_02_flicker_2.mp3",
+          "display": "There you are. And there. And there.",
+          "elevenlabs_input": "[amused, tracking something] There you are. [beat] And there. [beat] And there.",
+          "est_seconds": 3.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 1.15,
+              "text": "There you are."
+            },
+            {
+              "start": 1.45,
+              "end": 2.19,
+              "text": "And there."
+            },
+            {
+              "start": 2.49,
+              "end": 3.22,
+              "text": "And there."
+            }
+          ]
+        },
+        {
+          "id": "NAV_02_FLICKER_3",
+          "file": "nav_02_flicker_3.mp3",
+          "display": "Flicker. Ghosting me already?",
+          "elevenlabs_input": "[playfully offended] Flicker. Ghosting me already?",
+          "est_seconds": 2.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.62,
+              "text": "Flicker."
+            },
+            {
+              "start": 0.92,
+              "end": 2.29,
+              "text": "Ghosting me already?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "03",
+      "name": "Ember",
+      "hidden": false,
+      "filed_as": "Paired",
+      "archive_note": "Twin exhaust lines that never touch and never drift apart. The engineers called it a design choice. Nobody believed them.",
+      "lines": [
+        {
+          "id": "NAV_03_EMBER_1",
+          "file": "nav_03_ember_1.mp3",
+          "display": "Ember. Two lines, one direction. Very disciplined.",
+          "elevenlabs_input": "[measured, approving] Ember. Two lines, one direction. Very disciplined.",
+          "est_seconds": 4.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Ember."
+            },
+            {
+              "start": 0.82,
+              "end": 2.62,
+              "text": "Two lines, one direction."
+            },
+            {
+              "start": 2.92,
+              "end": 4.02,
+              "text": "Very disciplined."
+            }
+          ]
+        },
+        {
+          "id": "NAV_03_EMBER_2",
+          "file": "nav_03_ember_2.mp3",
+          "display": "Ember's warm tonight. Or maybe that's me.",
+          "elevenlabs_input": "[warm, a little flirtatious] Ember's warm tonight. [soft chuckle] Or maybe that's me.",
+          "est_seconds": 3.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 1.46,
+              "text": "Ember's warm tonight."
+            },
+            {
+              "start": 1.96,
+              "end": 3.33,
+              "text": "Or maybe that's me."
+            }
+          ]
+        },
+        {
+          "id": "NAV_03_EMBER_3",
+          "file": "nav_03_ember_3.mp3",
+          "display": "Ember. Keep those lines parallel.",
+          "elevenlabs_input": "[gentle instruction] Ember. Keep those lines parallel.",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Ember."
+            },
+            {
+              "start": 0.82,
+              "end": 2.6,
+              "text": "Keep those lines parallel."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "04",
+      "name": "Saber",
+      "hidden": false,
+      "filed_as": "Narrow",
+      "archive_note": "Looks thin enough to slip through anything. It cannot, same as everyone. It leaves a violet cut in the dark that heals in under a second.",
+      "lines": [
+        {
+          "id": "NAV_04_SABER_1",
+          "file": "nav_04_saber_1.mp3",
+          "display": "Saber. Sharp choice. Try not to cut yourself.",
+          "elevenlabs_input": "[dry, amused] Saber. Sharp choice. [beat] Try not to cut yourself.",
+          "est_seconds": 3.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Saber."
+            },
+            {
+              "start": 0.82,
+              "end": 1.71,
+              "text": "Sharp choice."
+            },
+            {
+              "start": 2.01,
+              "end": 3.8,
+              "text": "Try not to cut yourself."
+            }
+          ]
+        },
+        {
+          "id": "NAV_04_SABER_2",
+          "file": "nav_04_saber_2.mp3",
+          "display": "Oh, the Saber. Thin margins tonight, then.",
+          "elevenlabs_input": "[pleasantly surprised] Oh, the Saber. [lower, thoughtful] Thin margins tonight, then.",
+          "est_seconds": 3.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 1.22,
+              "text": "Oh, the Saber."
+            },
+            {
+              "start": 1.52,
+              "end": 3.42,
+              "text": "Thin margins tonight, then."
+            }
+          ]
+        },
+        {
+          "id": "NAV_04_SABER_3",
+          "file": "nav_04_saber_3.mp3",
+          "display": "Saber. Slice through. Don't scrape.",
+          "elevenlabs_input": "[focused, quiet] Saber. Slice through. Don't scrape.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Saber."
+            },
+            {
+              "start": 0.82,
+              "end": 1.76,
+              "text": "Slice through."
+            },
+            {
+              "start": 2.06,
+              "end": 2.9,
+              "text": "Don't scrape."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "05",
+      "name": "Wisp",
+      "hidden": false,
+      "filed_as": "Incomplete",
+      "archive_note": "Sheds small pieces of itself as it flies and appears not to mind. Inspections found nothing missing.",
+      "lines": [
+        {
+          "id": "NAV_05_WISP_1",
+          "file": "nav_05_wisp_1.mp3",
+          "display": "Wisp. You're leaving bits of yourself everywhere again.",
+          "elevenlabs_input": "[affectionate scolding] Wisp. You're leaving bits of yourself everywhere again.",
+          "est_seconds": 4.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Wisp."
+            },
+            {
+              "start": 0.77,
+              "end": 4.02,
+              "text": "You're leaving bits of yourself everywhere again."
+            }
+          ]
+        },
+        {
+          "id": "NAV_05_WISP_2",
+          "file": "nav_05_wisp_2.mp3",
+          "display": "Wisp. Quiet one. I can barely hear it hum.",
+          "elevenlabs_input": "[hushed, listening] Wisp. Quiet one. I can barely hear it hum.",
+          "est_seconds": 3.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Wisp."
+            },
+            {
+              "start": 0.77,
+              "end": 1.5,
+              "text": "Quiet one."
+            },
+            {
+              "start": 1.8,
+              "end": 3.75,
+              "text": "I can barely hear it hum."
+            }
+          ]
+        },
+        {
+          "id": "NAV_05_WISP_3",
+          "file": "nav_05_wisp_3.mp3",
+          "display": "Haven't flown the Wisp in a while. Still smokes like that?",
+          "elevenlabs_input": "[nostalgic, curious] Haven't flown the Wisp in a while. Still smokes like that?",
+          "est_seconds": 4.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 2.57,
+              "text": "Haven't flown the Wisp in a while."
+            },
+            {
+              "start": 2.87,
+              "end": 4.5,
+              "text": "Still smokes like that?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "06",
+      "name": "Pulse",
+      "hidden": false,
+      "filed_as": "Regular",
+      "archive_note": "Its trail beats in even blue intervals, like something keeping time for nobody in particular.",
+      "lines": [
+        {
+          "id": "NAV_06_PULSE_1",
+          "file": "nav_06_pulse_1.mp3",
+          "display": "Pulse. Steady heartbeat. Let's keep it that way.",
+          "elevenlabs_input": "[calm, steady] Pulse. Steady heartbeat. Let's keep it that way.",
+          "est_seconds": 4.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Pulse."
+            },
+            {
+              "start": 0.82,
+              "end": 1.92,
+              "text": "Steady heartbeat."
+            },
+            {
+              "start": 2.22,
+              "end": 3.9,
+              "text": "Let's keep it that way."
+            }
+          ]
+        },
+        {
+          "id": "NAV_06_PULSE_2",
+          "file": "nav_06_pulse_2.mp3",
+          "display": "I can hear the Pulse from here. Nice rhythm.",
+          "elevenlabs_input": "[softly pleased] I can hear the Pulse from here. Nice rhythm.",
+          "est_seconds": 3.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 2.47,
+              "text": "I can hear the Pulse from here."
+            },
+            {
+              "start": 2.77,
+              "end": 3.61,
+              "text": "Nice rhythm."
+            }
+          ]
+        },
+        {
+          "id": "NAV_06_PULSE_3",
+          "file": "nav_06_pulse_3.mp3",
+          "display": "Pulse. Count the beats if you get nervous. I do.",
+          "elevenlabs_input": "[gentle, confiding] Pulse. Count the beats if you get nervous. [pause] I do.",
+          "est_seconds": 4.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Pulse."
+            },
+            {
+              "start": 0.82,
+              "end": 3.4,
+              "text": "Count the beats if you get nervous."
+            },
+            {
+              "start": 3.95,
+              "end": 4.42,
+              "text": "I do."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "07",
+      "name": "Quill",
+      "hidden": false,
+      "filed_as": "Literate",
+      "archive_note": "Writes a fading blue line wherever it goes. The Index tried to read it once. It said nothing, very neatly.",
+      "lines": [
+        {
+          "id": "NAV_07_QUILL_1",
+          "file": "nav_07_quill_1.mp3",
+          "display": "Quill. Let's write something worth reading.",
+          "elevenlabs_input": "[warm, encouraging] Quill. Let's write something worth reading.",
+          "est_seconds": 3.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Quill."
+            },
+            {
+              "start": 0.82,
+              "end": 3.18,
+              "text": "Let's write something worth reading."
+            }
+          ]
+        },
+        {
+          "id": "NAV_07_QUILL_2",
+          "file": "nav_07_quill_2.mp3",
+          "display": "Quill again. Your handwriting's improving.",
+          "elevenlabs_input": "[teasing, fond] Quill again. Your handwriting's improving.",
+          "est_seconds": 3.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.94,
+              "text": "Quill again."
+            },
+            {
+              "start": 1.24,
+              "end": 3.02,
+              "text": "Your handwriting's improving."
+            }
+          ]
+        },
+        {
+          "id": "NAV_07_QUILL_3",
+          "file": "nav_07_quill_3.mp3",
+          "display": "Quill. Blue ink, black page. Go.",
+          "elevenlabs_input": "[quiet, poetic] Quill. Blue ink, black page. [beat] Go.",
+          "est_seconds": 3.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Quill."
+            },
+            {
+              "start": 0.82,
+              "end": 2.41,
+              "text": "Blue ink, black page."
+            },
+            {
+              "start": 2.71,
+              "end": 2.98,
+              "text": "Go."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "08",
+      "name": "Fletch",
+      "hidden": false,
+      "filed_as": "Warm",
+      "archive_note": "Burns hot at the tip and cools to teal at the tail. Built for one clean flight in one straight line, which it has never once been given.",
+      "lines": [
+        {
+          "id": "NAV_08_FLETCH_1",
+          "file": "nav_08_fletch_1.mp3",
+          "display": "Fletch. Fly true. Or at least fly.",
+          "elevenlabs_input": "[earnest, then wry] Fletch. Fly true. [beat] Or at least fly.",
+          "est_seconds": 3.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Fletch."
+            },
+            {
+              "start": 0.87,
+              "end": 1.56,
+              "text": "Fly true."
+            },
+            {
+              "start": 1.86,
+              "end": 3.12,
+              "text": "Or at least fly."
+            }
+          ]
+        },
+        {
+          "id": "NAV_08_FLETCH_2",
+          "file": "nav_08_fletch_2.mp3",
+          "display": "Ooh, Fletch. Feeling hot tonight?",
+          "elevenlabs_input": "[playful] Ooh, Fletch. Feeling hot tonight?",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 1.01,
+              "text": "Ooh, Fletch."
+            },
+            {
+              "start": 1.31,
+              "end": 2.67,
+              "text": "Feeling hot tonight?"
+            }
+          ]
+        },
+        {
+          "id": "NAV_08_FLETCH_3",
+          "file": "nav_08_fletch_3.mp3",
+          "display": "Fletch. Straight lines are overrated anyway.",
+          "elevenlabs_input": "[dry, amused] Fletch. Straight lines are overrated anyway.",
+          "est_seconds": 3.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Fletch."
+            },
+            {
+              "start": 0.87,
+              "end": 3.28,
+              "text": "Straight lines are overrated anyway."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "09",
+      "name": "Nyan",
+      "hidden": false,
+      "filed_as": "Excessive",
+      "archive_note": "Trails seven colors where one would do. The Index requested an explanation. The hull did not provide one.",
+      "lines": [
+        {
+          "id": "NAV_09_NYAN_1",
+          "file": "nav_09_nyan_1.mp3",
+          "display": "Nyan. Subtle as ever.",
+          "elevenlabs_input": "[deadpan] Nyan. Subtle as ever.",
+          "est_seconds": 2.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Nyan."
+            },
+            {
+              "start": 0.77,
+              "end": 1.87,
+              "text": "Subtle as ever."
+            }
+          ]
+        },
+        {
+          "id": "NAV_09_NYAN_2",
+          "file": "nav_09_nyan_2.mp3",
+          "display": "Oh no. Oh yes. The Nyan.",
+          "elevenlabs_input": "[mock dread] Oh no. [pause, delighted] Oh yes. The Nyan.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.63,
+              "text": "Oh no."
+            },
+            {
+              "start": 1.18,
+              "end": 1.76,
+              "text": "Oh yes."
+            },
+            {
+              "start": 2.06,
+              "end": 2.74,
+              "text": "The Nyan."
+            }
+          ]
+        },
+        {
+          "id": "NAV_09_NYAN_3",
+          "file": "nav_09_nyan_3.mp3",
+          "display": "Nyan. Everyone's going to see you coming. Good.",
+          "elevenlabs_input": "[amused, approving] Nyan. Everyone's going to see you coming. [beat] Good.",
+          "est_seconds": 4.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Nyan."
+            },
+            {
+              "start": 0.77,
+              "end": 3.18,
+              "text": "Everyone's going to see you coming."
+            },
+            {
+              "start": 3.48,
+              "end": 3.85,
+              "text": "Good."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "10",
+      "name": "Shard",
+      "hidden": false,
+      "filed_as": "Fractured",
+      "archive_note": "Its wake comes out jagged, like a crack running through glass. It flies perfectly well. It just remembers being broken.",
+      "lines": [
+        {
+          "id": "NAV_10_SHARD_1",
+          "file": "nav_10_shard_1.mp3",
+          "display": "Shard. Careful. Edges everywhere.",
+          "elevenlabs_input": "[careful, low] Shard. Careful. Edges everywhere.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Shard."
+            },
+            {
+              "start": 0.82,
+              "end": 1.34,
+              "text": "Careful."
+            },
+            {
+              "start": 1.64,
+              "end": 2.74,
+              "text": "Edges everywhere."
+            }
+          ]
+        },
+        {
+          "id": "NAV_10_SHARD_2",
+          "file": "nav_10_shard_2.mp3",
+          "display": "Shard. Leaving cracks in the dark again.",
+          "elevenlabs_input": "[quiet, observant] Shard. Leaving cracks in the dark again.",
+          "est_seconds": 3.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Shard."
+            },
+            {
+              "start": 0.82,
+              "end": 3.18,
+              "text": "Leaving cracks in the dark again."
+            }
+          ]
+        },
+        {
+          "id": "NAV_10_SHARD_3",
+          "file": "nav_10_shard_3.mp3",
+          "display": "Haven't heard the Shard crackle in ages.",
+          "elevenlabs_input": "[nostalgic, warm] Haven't heard the Shard crackle in ages.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 2.88,
+              "text": "Haven't heard the Shard crackle in ages."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "11",
+      "name": "Halo",
+      "hidden": false,
+      "filed_as": "Accompanied",
+      "archive_note": "Two small moons circle it at all times. Nobody installed them. They will not leave.",
+      "lines": [
+        {
+          "id": "NAV_11_HALO_1",
+          "file": "nav_11_halo_1.mp3",
+          "display": "Halo. Say hi to the little ones for me.",
+          "elevenlabs_input": "[sweet, playful] Halo. Say hi to the little ones for me.",
+          "est_seconds": 3.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Halo."
+            },
+            {
+              "start": 0.77,
+              "end": 3.35,
+              "text": "Say hi to the little ones for me."
+            }
+          ]
+        },
+        {
+          "id": "NAV_11_HALO_2",
+          "file": "nav_11_halo_2.mp3",
+          "display": "Halo. Three of you out there. I'll keep count.",
+          "elevenlabs_input": "[amused, counting] Halo. Three of you out there. I'll keep count.",
+          "est_seconds": 4.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Halo."
+            },
+            {
+              "start": 0.77,
+              "end": 2.5,
+              "text": "Three of you out there."
+            },
+            {
+              "start": 2.8,
+              "end": 3.91,
+              "text": "I'll keep count."
+            }
+          ]
+        },
+        {
+          "id": "NAV_11_HALO_3",
+          "file": "nav_11_halo_3.mp3",
+          "display": "The Halo. Angelic, if not exactly careful.",
+          "elevenlabs_input": "[dry, gentle teasing] The Halo. Angelic, if not exactly careful.",
+          "est_seconds": 3.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.78,
+              "text": "The Halo."
+            },
+            {
+              "start": 1.08,
+              "end": 3.36,
+              "text": "Angelic, if not exactly careful."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "12",
+      "name": "Needle",
+      "hidden": false,
+      "filed_as": "Minimal",
+      "archive_note": "One point, one line, nothing else. The Index wrote one line about it, which felt right.",
+      "lines": [
+        {
+          "id": "NAV_12_NEEDLE_1",
+          "file": "nav_12_needle_1.mp3",
+          "display": "Needle. Thread it.",
+          "elevenlabs_input": "[soft, precise] Needle. Thread it.",
+          "est_seconds": 1.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Needle."
+            },
+            {
+              "start": 0.87,
+              "end": 1.61,
+              "text": "Thread it."
+            }
+          ]
+        },
+        {
+          "id": "NAV_12_NEEDLE_2",
+          "file": "nav_12_needle_2.mp3",
+          "display": "Needle. Easy to lose you out there. Don't let me.",
+          "elevenlabs_input": "[tender, slightly worried] Needle. Easy to lose you out there. [pause] Don't let me.",
+          "est_seconds": 4.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Needle."
+            },
+            {
+              "start": 0.87,
+              "end": 2.92,
+              "text": "Easy to lose you out there."
+            },
+            {
+              "start": 3.47,
+              "end": 4.42,
+              "text": "Don't let me."
+            }
+          ]
+        },
+        {
+          "id": "NAV_12_NEEDLE_3",
+          "file": "nav_12_needle_3.mp3",
+          "display": "Needle. Less hull, more nerve.",
+          "elevenlabs_input": "[quietly impressed] Needle. Less hull, more nerve.",
+          "est_seconds": 2.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Needle."
+            },
+            {
+              "start": 0.87,
+              "end": 2.52,
+              "text": "Less hull, more nerve."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "13",
+      "name": "Echo",
+      "hidden": false,
+      "filed_as": "Repeating",
+      "archive_note": "Every turn is drawn twice, a moment apart. The second line is never quite sure about the first.",
+      "lines": [
+        {
+          "id": "NAV_13_ECHO_1",
+          "file": "nav_13_echo_1.mp3",
+          "display": "Echo. Echo.",
+          "elevenlabs_input": "[playful] Echo. [pause, quieter, like an echo] Echo.",
+          "est_seconds": 1.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Echo."
+            },
+            {
+              "start": 1.02,
+              "end": 1.39,
+              "text": "Echo."
+            }
+          ]
+        },
+        {
+          "id": "NAV_13_ECHO_2",
+          "file": "nav_13_echo_2.mp3",
+          "display": "Echo. Everything you do, it says twice.",
+          "elevenlabs_input": "[amused] Echo. Everything you do, it says twice.",
+          "est_seconds": 3.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Echo."
+            },
+            {
+              "start": 0.77,
+              "end": 3.2,
+              "text": "Everything you do, it says twice."
+            }
+          ]
+        },
+        {
+          "id": "NAV_13_ECHO_3",
+          "file": "nav_13_echo_3.mp3",
+          "display": "Echo. I'll only say this once, then.",
+          "elevenlabs_input": "[dry, wry] Echo. I'll only say this once, then.",
+          "est_seconds": 3.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Echo."
+            },
+            {
+              "start": 0.77,
+              "end": 2.99,
+              "text": "I'll only say this once, then."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "14",
+      "name": "Dusk",
+      "hidden": false,
+      "filed_as": "Late",
+      "archive_note": "Sheds violet sparks that fall like the end of a day nobody scheduled. Best flown when no one is watching.",
+      "lines": [
+        {
+          "id": "NAV_14_DUSK_1",
+          "file": "nav_14_dusk_1.mp3",
+          "display": "Dusk. My favorite hour.",
+          "elevenlabs_input": "[soft, dreamy] Dusk. My favorite hour.",
+          "est_seconds": 2.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Dusk."
+            },
+            {
+              "start": 0.77,
+              "end": 1.98,
+              "text": "My favorite hour."
+            }
+          ]
+        },
+        {
+          "id": "NAV_14_DUSK_2",
+          "file": "nav_14_dusk_2.mp3",
+          "display": "Dusk. Purple sparks, quiet sky. Very romantic of you.",
+          "elevenlabs_input": "[warm, teasing] Dusk. Purple sparks, quiet sky. [soft chuckle] Very romantic of you.",
+          "est_seconds": 4.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Dusk."
+            },
+            {
+              "start": 0.77,
+              "end": 2.57,
+              "text": "Purple sparks, quiet sky."
+            },
+            {
+              "start": 3.07,
+              "end": 4.59,
+              "text": "Very romantic of you."
+            }
+          ]
+        },
+        {
+          "id": "NAV_14_DUSK_3",
+          "file": "nav_14_dusk_3.mp3",
+          "display": "Dusk. Feels late, doesn't it.",
+          "elevenlabs_input": "[quiet, wistful] Dusk. Feels late, doesn't it.",
+          "est_seconds": 2.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Dusk."
+            },
+            {
+              "start": 0.77,
+              "end": 2.41,
+              "text": "Feels late, doesn't it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "15",
+      "name": "Seal",
+      "hidden": false,
+      "filed_as": "Closed",
+      "archive_note": "A leaf-shaped hull that stitches a dotted line behind it, as if sewing the dark back up after passing through. Polite, for a ship.",
+      "lines": [
+        {
+          "id": "NAV_15_SEAL_1",
+          "file": "nav_15_seal_1.mp3",
+          "display": "Seal. Stitch it up behind you.",
+          "elevenlabs_input": "[gentle] Seal. Stitch it up behind you.",
+          "est_seconds": 2.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Seal."
+            },
+            {
+              "start": 0.77,
+              "end": 2.56,
+              "text": "Stitch it up behind you."
+            }
+          ]
+        },
+        {
+          "id": "NAV_15_SEAL_2",
+          "file": "nav_15_seal_2.mp3",
+          "display": "Seal. Tidy. I approve.",
+          "elevenlabs_input": "[approving, crisp] Seal. Tidy. I approve.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Seal."
+            },
+            {
+              "start": 0.77,
+              "end": 1.14,
+              "text": "Tidy."
+            },
+            {
+              "start": 1.44,
+              "end": 2.17,
+              "text": "I approve."
+            }
+          ]
+        },
+        {
+          "id": "NAV_15_SEAL_3",
+          "file": "nav_15_seal_3.mp3",
+          "display": "Seal. Close every door you open.",
+          "elevenlabs_input": "[softly wise] Seal. Close every door you open.",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Seal."
+            },
+            {
+              "start": 0.77,
+              "end": 2.66,
+              "text": "Close every door you open."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "16",
+      "name": "Hatch",
+      "hidden": false,
+      "filed_as": "Shaded",
+      "archive_note": "Square, stubborn, and shaded in like a draftsman's homework. Turns as if it has been asked a personal question.",
+      "lines": [
+        {
+          "id": "NAV_16_HATCH_1",
+          "file": "nav_16_hatch_1.mp3",
+          "display": "Hatch. The square one. Respect.",
+          "elevenlabs_input": "[mock-serious] Hatch. The square one. [beat] Respect.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Hatch."
+            },
+            {
+              "start": 0.82,
+              "end": 1.92,
+              "text": "The square one."
+            },
+            {
+              "start": 2.22,
+              "end": 2.75,
+              "text": "Respect."
+            }
+          ]
+        },
+        {
+          "id": "NAV_16_HATCH_2",
+          "file": "nav_16_hatch_2.mp3",
+          "display": "Hatch. Corners first, grace later.",
+          "elevenlabs_input": "[dry] Hatch. Corners first, grace later.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Hatch."
+            },
+            {
+              "start": 0.82,
+              "end": 2.72,
+              "text": "Corners first, grace later."
+            }
+          ]
+        },
+        {
+          "id": "NAV_16_HATCH_3",
+          "file": "nav_16_hatch_3.mp3",
+          "display": "Haven't taken the Hatch out in ages. Still blocky?",
+          "elevenlabs_input": "[nostalgic, teasing] Haven't taken the Hatch out in ages. Still blocky?",
+          "est_seconds": 4.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 2.68,
+              "text": "Haven't taken the Hatch out in ages."
+            },
+            {
+              "start": 2.98,
+              "end": 3.87,
+              "text": "Still blocky?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "17",
+      "name": "Trace",
+      "hidden": false,
+      "filed_as": "Faint",
+      "archive_note": "A square that leaves almost nothing behind. The Index confirmed that it flew. It could not confirm much else.",
+      "lines": [
+        {
+          "id": "NAV_17_TRACE_1",
+          "file": "nav_17_trace_1.mp3",
+          "display": "Trace. Leave no trace. Ha.",
+          "elevenlabs_input": "[deadpan] Trace. Leave no trace. [small laugh] Ha.",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Trace."
+            },
+            {
+              "start": 0.82,
+              "end": 1.92,
+              "text": "Leave no trace."
+            },
+            {
+              "start": 2.42,
+              "end": 2.69,
+              "text": "Ha."
+            }
+          ]
+        },
+        {
+          "id": "NAV_17_TRACE_2",
+          "file": "nav_17_trace_2.mp3",
+          "display": "Trace. Barely a line. I'll squint.",
+          "elevenlabs_input": "[squinting, amused] Trace. Barely a line. I'll squint.",
+          "est_seconds": 3.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Trace."
+            },
+            {
+              "start": 0.82,
+              "end": 1.87,
+              "text": "Barely a line."
+            },
+            {
+              "start": 2.17,
+              "end": 2.96,
+              "text": "I'll squint."
+            }
+          ]
+        },
+        {
+          "id": "NAV_17_TRACE_3",
+          "file": "nav_17_trace_3.mp3",
+          "display": "Trace. Light hands tonight.",
+          "elevenlabs_input": "[soft, delicate] Trace. Light hands tonight.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Trace."
+            },
+            {
+              "start": 0.82,
+              "end": 2.18,
+              "text": "Light hands tonight."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "18",
+      "name": "Ring",
+      "hidden": false,
+      "filed_as": "Layered",
+      "archive_note": "Leaves a tunnel of rings, each a little smaller than the last. From behind, it always looks like it is arriving.",
+      "lines": [
+        {
+          "id": "NAV_18_RING_1",
+          "file": "nav_18_ring_1.mp3",
+          "display": "Ring. Tunnel vision. The good kind.",
+          "elevenlabs_input": "[warm, amused] Ring. Tunnel vision. The good kind.",
+          "est_seconds": 3.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Ring."
+            },
+            {
+              "start": 0.77,
+              "end": 1.71,
+              "text": "Tunnel vision."
+            },
+            {
+              "start": 2.01,
+              "end": 3.06,
+              "text": "The good kind."
+            }
+          ]
+        },
+        {
+          "id": "NAV_18_RING_2",
+          "file": "nav_18_ring_2.mp3",
+          "display": "Ring. Leave me a tunnel to follow you home.",
+          "elevenlabs_input": "[tender] Ring. Leave me a tunnel to follow you home.",
+          "est_seconds": 3.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Ring."
+            },
+            {
+              "start": 0.77,
+              "end": 3.56,
+              "text": "Leave me a tunnel to follow you home."
+            }
+          ]
+        },
+        {
+          "id": "NAV_18_RING_3",
+          "file": "nav_18_ring_3.mp3",
+          "display": "Ring. Hello, loops.",
+          "elevenlabs_input": "[cheerful, light] Ring. Hello, loops.",
+          "est_seconds": 1.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Ring."
+            },
+            {
+              "start": 0.77,
+              "end": 1.73,
+              "text": "Hello, loops."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "19",
+      "name": "Fold",
+      "hidden": false,
+      "filed_as": "Creased",
+      "archive_note": "Folded from a single sheet, if the Index is to be believed. Its trail crinkles like paper that has been opened too many times.",
+      "lines": [
+        {
+          "id": "NAV_19_FOLD_1",
+          "file": "nav_19_fold_1.mp3",
+          "display": "Fold. Crisp edges tonight.",
+          "elevenlabs_input": "[crisp] Fold. Crisp edges tonight.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Fold."
+            },
+            {
+              "start": 0.77,
+              "end": 2.13,
+              "text": "Crisp edges tonight."
+            }
+          ]
+        },
+        {
+          "id": "NAV_19_FOLD_2",
+          "file": "nav_19_fold_2.mp3",
+          "display": "Fold. Don't crumple.",
+          "elevenlabs_input": "[gentle warning] Fold. Don't crumple.",
+          "est_seconds": 1.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Fold."
+            },
+            {
+              "start": 0.77,
+              "end": 1.66,
+              "text": "Don't crumple."
+            }
+          ]
+        },
+        {
+          "id": "NAV_19_FOLD_3",
+          "file": "nav_19_fold_3.mp3",
+          "display": "Fold. Paper wings, steel nerves.",
+          "elevenlabs_input": "[admiring] Fold. Paper wings, steel nerves.",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Fold."
+            },
+            {
+              "start": 0.77,
+              "end": 2.62,
+              "text": "Paper wings, steel nerves."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "20",
+      "name": "Mote",
+      "hidden": false,
+      "filed_as": "Negligible",
+      "archive_note": "Trailed by a cloud of dust it insists is part of the design. Mostly harmless, the record adds, for reasons it does not give.",
+      "lines": [
+        {
+          "id": "NAV_20_MOTE_1",
+          "file": "nav_20_mote_1.mp3",
+          "display": "Mote. Little speck. Big sky.",
+          "elevenlabs_input": "[soft wonder] Mote. Little speck. Big sky.",
+          "est_seconds": 2.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Mote."
+            },
+            {
+              "start": 0.77,
+              "end": 1.66,
+              "text": "Little speck."
+            },
+            {
+              "start": 1.96,
+              "end": 2.59,
+              "text": "Big sky."
+            }
+          ]
+        },
+        {
+          "id": "NAV_20_MOTE_2",
+          "file": "nav_20_mote_2.mp3",
+          "display": "Mote. You're dusty. I won't tell.",
+          "elevenlabs_input": "[conspiratorial, whispering] Mote. You're dusty. I won't tell.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Mote."
+            },
+            {
+              "start": 0.77,
+              "end": 1.61,
+              "text": "You're dusty."
+            },
+            {
+              "start": 1.91,
+              "end": 2.86,
+              "text": "I won't tell."
+            }
+          ]
+        },
+        {
+          "id": "NAV_20_MOTE_3",
+          "file": "nav_20_mote_3.mp3",
+          "display": "Mote. Small things make it through. Sometimes only them.",
+          "elevenlabs_input": "[quiet, meaningful] Mote. Small things make it through. [pause] Sometimes only them.",
+          "est_seconds": 4.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Mote."
+            },
+            {
+              "start": 0.77,
+              "end": 2.82,
+              "text": "Small things make it through."
+            },
+            {
+              "start": 3.37,
+              "end": 4.73,
+              "text": "Sometimes only them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "21",
+      "name": "Spine",
+      "hidden": false,
+      "filed_as": "Structural",
+      "archive_note": "Grows a ribcage of light as it flies. Something about it suggests it once belonged to something much larger.",
+      "lines": [
+        {
+          "id": "NAV_21_SPINE_1",
+          "file": "nav_21_spine_1.mp3",
+          "display": "Spine. Show some.",
+          "elevenlabs_input": "[dry, encouraging] Spine. Show some.",
+          "est_seconds": 1.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Spine."
+            },
+            {
+              "start": 0.82,
+              "end": 1.56,
+              "text": "Show some."
+            }
+          ]
+        },
+        {
+          "id": "NAV_21_SPINE_2",
+          "file": "nav_21_spine_2.mp3",
+          "display": "Spine. Bones made of light. Lovely, and a bit grim.",
+          "elevenlabs_input": "[soft, a little haunted] Spine. Bones made of light. [beat] Lovely, and a bit grim.",
+          "est_seconds": 4.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Spine."
+            },
+            {
+              "start": 0.82,
+              "end": 2.29,
+              "text": "Bones made of light."
+            },
+            {
+              "start": 2.59,
+              "end": 4.4,
+              "text": "Lovely, and a bit grim."
+            }
+          ]
+        },
+        {
+          "id": "NAV_21_SPINE_3",
+          "file": "nav_21_spine_3.mp3",
+          "display": "Spine. Stand up straight. Fly crooked.",
+          "elevenlabs_input": "[playful instruction] Spine. Stand up straight. [beat] Fly crooked.",
+          "est_seconds": 3.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Spine."
+            },
+            {
+              "start": 0.82,
+              "end": 2.08,
+              "text": "Stand up straight."
+            },
+            {
+              "start": 2.38,
+              "end": 3.22,
+              "text": "Fly crooked."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "22",
+      "name": "Orbit",
+      "hidden": false,
+      "filed_as": "Recursive",
+      "archive_note": "Coils around its own path as if it lost something there. Flight logs show it never goes back.",
+      "lines": [
+        {
+          "id": "NAV_22_ORBIT_1",
+          "file": "nav_22_orbit_1.mp3",
+          "display": "Orbit. Spiral, but forward.",
+          "elevenlabs_input": "[light, rhythmic] Orbit. Spiral, but forward.",
+          "est_seconds": 2.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Orbit."
+            },
+            {
+              "start": 0.82,
+              "end": 2.25,
+              "text": "Spiral, but forward."
+            }
+          ]
+        },
+        {
+          "id": "NAV_22_ORBIT_2",
+          "file": "nav_22_orbit_2.mp3",
+          "display": "Orbit. Round and round, and onward.",
+          "elevenlabs_input": "[sing-song, soft] Orbit. Round and round, and onward.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Orbit."
+            },
+            {
+              "start": 0.82,
+              "end": 2.88,
+              "text": "Round and round, and onward."
+            }
+          ]
+        },
+        {
+          "id": "NAV_22_ORBIT_3",
+          "file": "nav_22_orbit_3.mp3",
+          "display": "Orbit. Don't get dizzy on me.",
+          "elevenlabs_input": "[affectionate] Orbit. Don't get dizzy on me.",
+          "est_seconds": 2.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Orbit."
+            },
+            {
+              "start": 0.82,
+              "end": 2.45,
+              "text": "Don't get dizzy on me."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "23",
+      "name": "Ink",
+      "hidden": false,
+      "filed_as": "Expressive",
+      "archive_note": "Every turn is a brushstroke, heavy at the start and dry at the end. The Index listed it under hulls, crossed that out, and wrote \"calligraphy\".",
+      "lines": [
+        {
+          "id": "NAV_23_INK_1",
+          "file": "nav_23_ink_1.mp3",
+          "display": "Ink. Make it a good stroke.",
+          "elevenlabs_input": "[calm, artistic] Ink. Make it a good stroke.",
+          "est_seconds": 2.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.42,
+              "text": "Ink."
+            },
+            {
+              "start": 0.72,
+              "end": 2.4,
+              "text": "Make it a good stroke."
+            }
+          ]
+        },
+        {
+          "id": "NAV_23_INK_2",
+          "file": "nav_23_ink_2.mp3",
+          "display": "Ink. The dark's your page.",
+          "elevenlabs_input": "[low, intimate] Ink. The dark's your page.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.42,
+              "text": "Ink."
+            },
+            {
+              "start": 0.72,
+              "end": 2.19,
+              "text": "The dark's your page."
+            }
+          ]
+        },
+        {
+          "id": "NAV_23_INK_3",
+          "file": "nav_23_ink_3.mp3",
+          "display": "Ink. Press firm on the turns.",
+          "elevenlabs_input": "[gentle instruction] Ink. Press firm on the turns.",
+          "est_seconds": 2.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.42,
+              "text": "Ink."
+            },
+            {
+              "start": 0.72,
+              "end": 2.5,
+              "text": "Press firm on the turns."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "24",
+      "name": "Flux",
+      "hidden": false,
+      "filed_as": "Undecided",
+      "archive_note": "Its thin blue line wavers between solid and dotted, as if it has not made up its mind about existing. It has. Mostly.",
+      "lines": [
+        {
+          "id": "NAV_24_FLUX_1",
+          "file": "nav_24_flux_1.mp3",
+          "display": "Flux. Make up your mind out there.",
+          "elevenlabs_input": "[teasing, patient] Flux. Make up your mind out there.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Flux."
+            },
+            {
+              "start": 0.77,
+              "end": 2.87,
+              "text": "Make up your mind out there."
+            }
+          ]
+        },
+        {
+          "id": "NAV_24_FLUX_2",
+          "file": "nav_24_flux_2.mp3",
+          "display": "Flux. Flickering again. Stay with me.",
+          "elevenlabs_input": "[softly concerned] Flux. Flickering again. Stay with me.",
+          "est_seconds": 3.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Flux."
+            },
+            {
+              "start": 0.77,
+              "end": 1.87,
+              "text": "Flickering again."
+            },
+            {
+              "start": 2.17,
+              "end": 3.17,
+              "text": "Stay with me."
+            }
+          ]
+        },
+        {
+          "id": "NAV_24_FLUX_3",
+          "file": "nav_24_flux_3.mp3",
+          "display": "Flux. Changeable. Like weather. Like me.",
+          "elevenlabs_input": "[wry, self-aware] Flux. Changeable. Like weather. [beat] Like me.",
+          "est_seconds": 3.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Flux."
+            },
+            {
+              "start": 0.77,
+              "end": 1.45,
+              "text": "Changeable."
+            },
+            {
+              "start": 1.75,
+              "end": 2.64,
+              "text": "Like weather."
+            },
+            {
+              "start": 2.94,
+              "end": 3.57,
+              "text": "Like me."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "25",
+      "name": "Cinder",
+      "hidden": false,
+      "filed_as": "Smoldering",
+      "archive_note": "Burns low and brown, dropping embers it never seems to miss. Older than its records. Possibly older than the records of its records.",
+      "lines": [
+        {
+          "id": "NAV_25_CINDER_1",
+          "file": "nav_25_cinder_1.mp3",
+          "display": "Cinder. Slow burn tonight.",
+          "elevenlabs_input": "[low, unhurried] Cinder. Slow burn tonight.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Cinder."
+            },
+            {
+              "start": 0.87,
+              "end": 2.13,
+              "text": "Slow burn tonight."
+            }
+          ]
+        },
+        {
+          "id": "NAV_25_CINDER_2",
+          "file": "nav_25_cinder_2.mp3",
+          "display": "Cinder. Smells like old engines, I'm told.",
+          "elevenlabs_input": "[amused, wistful] Cinder. Smells like old engines, [beat] I'm told.",
+          "est_seconds": 3.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Cinder."
+            },
+            {
+              "start": 0.87,
+              "end": 3.6,
+              "text": "Smells like old engines, I'm told."
+            }
+          ]
+        },
+        {
+          "id": "NAV_25_CINDER_3",
+          "file": "nav_25_cinder_3.mp3",
+          "display": "Cinder. Haven't seen those embers in ages.",
+          "elevenlabs_input": "[nostalgic, warm] Cinder. Haven't seen those embers in ages.",
+          "est_seconds": 3.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Cinder."
+            },
+            {
+              "start": 0.87,
+              "end": 3.24,
+              "text": "Haven't seen those embers in ages."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "26",
+      "name": "Lantern",
+      "hidden": false,
+      "filed_as": "Luminous",
+      "archive_note": "Drifts like something from a deep ocean, trailing lit tendrils. It is not looking for anything. It lights the way anyway.",
+      "lines": [
+        {
+          "id": "NAV_26_LANTERN_1",
+          "file": "nav_26_lantern_1.mp3",
+          "display": "Lantern. Light the way.",
+          "elevenlabs_input": "[soft, reverent] Lantern. Light the way.",
+          "est_seconds": 2.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.62,
+              "text": "Lantern."
+            },
+            {
+              "start": 0.92,
+              "end": 1.98,
+              "text": "Light the way."
+            }
+          ]
+        },
+        {
+          "id": "NAV_26_LANTERN_2",
+          "file": "nav_26_lantern_2.mp3",
+          "display": "Lantern. Bring the glow.",
+          "elevenlabs_input": "[warm] Lantern. Bring the glow.",
+          "est_seconds": 2.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.62,
+              "text": "Lantern."
+            },
+            {
+              "start": 0.92,
+              "end": 2.03,
+              "text": "Bring the glow."
+            }
+          ]
+        },
+        {
+          "id": "NAV_26_LANTERN_3",
+          "file": "nav_26_lantern_3.mp3",
+          "display": "Lantern. Like something that lives where light doesn't.",
+          "elevenlabs_input": "[hushed, awed] Lantern. Like something that lives where light doesn't.",
+          "est_seconds": 4.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.62,
+              "text": "Lantern."
+            },
+            {
+              "start": 0.92,
+              "end": 4.02,
+              "text": "Like something that lives where light doesn't."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "27",
+      "name": "Bloom",
+      "hidden": false,
+      "filed_as": "Ornamental",
+      "archive_note": "Opens at launch and stays open. Pink rings follow it as if it is still flowering. The Index found this unnecessary and kept it anyway.",
+      "lines": [
+        {
+          "id": "NAV_27_BLOOM_1",
+          "file": "nav_27_bloom_1.mp3",
+          "display": "Bloom. Somebody dressed up.",
+          "elevenlabs_input": "[playful, impressed] Bloom. Somebody dressed up.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Bloom."
+            },
+            {
+              "start": 0.82,
+              "end": 2.18,
+              "text": "Somebody dressed up."
+            }
+          ]
+        },
+        {
+          "id": "NAV_27_BLOOM_2",
+          "file": "nav_27_bloom_2.mp3",
+          "display": "Bloom. Go grow somewhere.",
+          "elevenlabs_input": "[sweet, teasing] Bloom. Go grow somewhere.",
+          "est_seconds": 2.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Bloom."
+            },
+            {
+              "start": 0.82,
+              "end": 2.08,
+              "text": "Go grow somewhere."
+            }
+          ]
+        },
+        {
+          "id": "NAV_27_BLOOM_3",
+          "file": "nav_27_bloom_3.mp3",
+          "display": "Bloom. Flowers in space. Why not.",
+          "elevenlabs_input": "[amused, shrugging] Bloom. Flowers in space. [beat] Why not.",
+          "est_seconds": 3.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Bloom."
+            },
+            {
+              "start": 0.82,
+              "end": 2.03,
+              "text": "Flowers in space."
+            },
+            {
+              "start": 2.33,
+              "end": 2.96,
+              "text": "Why not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "28",
+      "name": "Lyra",
+      "hidden": false,
+      "filed_as": "Bright",
+      "archive_note": "A four-point star dragging a ribbon of every cool color the archive has a word for. Named after something that used to sing.",
+      "lines": [
+        {
+          "id": "NAV_28_LYRA_1",
+          "file": "nav_28_lyra_1.mp3",
+          "display": "Lyra. Sing for me.",
+          "elevenlabs_input": "[soft, longing] Lyra. Sing for me.",
+          "est_seconds": 1.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Lyra."
+            },
+            {
+              "start": 0.77,
+              "end": 1.72,
+              "text": "Sing for me."
+            }
+          ]
+        },
+        {
+          "id": "NAV_28_LYRA_2",
+          "file": "nav_28_lyra_2.mp3",
+          "display": "Lyra. Brightest thing out here. Almost.",
+          "elevenlabs_input": "[warm, playful] Lyra. Brightest thing out here. [pause] Almost.",
+          "est_seconds": 3.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Lyra."
+            },
+            {
+              "start": 0.77,
+              "end": 2.5,
+              "text": "Brightest thing out here."
+            },
+            {
+              "start": 3.05,
+              "end": 3.52,
+              "text": "Almost."
+            }
+          ]
+        },
+        {
+          "id": "NAV_28_LYRA_3",
+          "file": "nav_28_lyra_3.mp3",
+          "display": "Lyra. Leave me a ribbon.",
+          "elevenlabs_input": "[tender] Lyra. Leave me a ribbon.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Lyra."
+            },
+            {
+              "start": 0.77,
+              "end": 2.14,
+              "text": "Leave me a ribbon."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "29",
+      "name": "Sprout",
+      "hidden": false,
+      "filed_as": "Growing",
+      "archive_note": "Sheds green flecks like seeds scattered on rock. Nothing has grown from them yet. The hull remains optimistic.",
+      "lines": [
+        {
+          "id": "NAV_29_SPROUT_1",
+          "file": "nav_29_sprout_1.mp3",
+          "display": "Sprout. Little optimist.",
+          "elevenlabs_input": "[fond] Sprout. Little optimist.",
+          "est_seconds": 2.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Sprout."
+            },
+            {
+              "start": 0.87,
+              "end": 1.92,
+              "text": "Little optimist."
+            }
+          ]
+        },
+        {
+          "id": "NAV_29_SPROUT_2",
+          "file": "nav_29_sprout_2.mp3",
+          "display": "Sprout. Plant something out there.",
+          "elevenlabs_input": "[gentle, encouraging] Sprout. Plant something out there.",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Sprout."
+            },
+            {
+              "start": 0.87,
+              "end": 2.66,
+              "text": "Plant something out there."
+            }
+          ]
+        },
+        {
+          "id": "NAV_29_SPROUT_3",
+          "file": "nav_29_sprout_3.mp3",
+          "display": "Sprout. Nothing grows here. It doesn't know that.",
+          "elevenlabs_input": "[soft, bittersweet] Sprout. Nothing grows here. [pause] It doesn't know that.",
+          "est_seconds": 4.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Sprout."
+            },
+            {
+              "start": 0.87,
+              "end": 2.18,
+              "text": "Nothing grows here."
+            },
+            {
+              "start": 2.73,
+              "end": 4.21,
+              "text": "It doesn't know that."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "30",
+      "name": "Plume",
+      "hidden": false,
+      "filed_as": "Combustible",
+      "archive_note": "A furnace with a nose cone. Ships flying near it report feeling warm, and slightly judged.",
+      "lines": [
+        {
+          "id": "NAV_30_PLUME_1",
+          "file": "nav_30_plume_1.mp3",
+          "display": "Plume. Burn bright.",
+          "elevenlabs_input": "[bright, energetic] Plume. Burn bright.",
+          "est_seconds": 1.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Plume."
+            },
+            {
+              "start": 0.82,
+              "end": 1.66,
+              "text": "Burn bright."
+            }
+          ]
+        },
+        {
+          "id": "NAV_30_PLUME_2",
+          "file": "nav_30_plume_2.mp3",
+          "display": "Plume. You're on fire. Literally.",
+          "elevenlabs_input": "[amused] Plume. You're on fire. [beat] Literally.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Plume."
+            },
+            {
+              "start": 0.82,
+              "end": 1.87,
+              "text": "You're on fire."
+            },
+            {
+              "start": 2.17,
+              "end": 2.8,
+              "text": "Literally."
+            }
+          ]
+        },
+        {
+          "id": "NAV_30_PLUME_3",
+          "file": "nav_30_plume_3.mp3",
+          "display": "Plume. Turn up the heat.",
+          "elevenlabs_input": "[playful, warm] Plume. Turn up the heat.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Plume."
+            },
+            {
+              "start": 0.82,
+              "end": 2.14,
+              "text": "Turn up the heat."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "31",
+      "name": "Koi",
+      "hidden": false,
+      "filed_as": "Lucky",
+      "archive_note": "Swims more than it flies, trailing red speckles like scales. Said to bring luck, a claim the Index has filed under \"pending\".",
+      "lines": [
+        {
+          "id": "NAV_31_KOI_1",
+          "file": "nav_31_koi_1.mp3",
+          "display": "Koi. Swim upstream.",
+          "elevenlabs_input": "[gentle] Koi. Swim upstream.",
+          "est_seconds": 1.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.42,
+              "text": "Koi."
+            },
+            {
+              "start": 0.72,
+              "end": 1.66,
+              "text": "Swim upstream."
+            }
+          ]
+        },
+        {
+          "id": "NAV_31_KOI_2",
+          "file": "nav_31_koi_2.mp3",
+          "display": "Koi. Lucky fish. We'll take it.",
+          "elevenlabs_input": "[light, hopeful] Koi. Lucky fish. We'll take it.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.42,
+              "text": "Koi."
+            },
+            {
+              "start": 0.72,
+              "end": 1.5,
+              "text": "Lucky fish."
+            },
+            {
+              "start": 1.8,
+              "end": 2.8,
+              "text": "We'll take it."
+            }
+          ]
+        },
+        {
+          "id": "NAV_31_KOI_3",
+          "file": "nav_31_koi_3.mp3",
+          "display": "Koi. Haven't seen it swim in ages.",
+          "elevenlabs_input": "[nostalgic, delighted] Koi. Haven't seen it swim in ages.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.42,
+              "text": "Koi."
+            },
+            {
+              "start": 0.72,
+              "end": 2.82,
+              "text": "Haven't seen it swim in ages."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "32",
+      "name": "Spore",
+      "hidden": false,
+      "filed_as": "Spreading",
+      "archive_note": "A small cap that drops colored threads wherever it passes. The archive stores its file at a careful distance from the others.",
+      "lines": [
+        {
+          "id": "NAV_32_SPORE_1",
+          "file": "nav_32_spore_1.mp3",
+          "display": "Spore. Try not to spread.",
+          "elevenlabs_input": "[mock-cautious] Spore. Try not to spread.",
+          "est_seconds": 2.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Spore."
+            },
+            {
+              "start": 0.82,
+              "end": 2.19,
+              "text": "Try not to spread."
+            }
+          ]
+        },
+        {
+          "id": "NAV_32_SPORE_2",
+          "file": "nav_32_spore_2.mp3",
+          "display": "Spore. A mushroom in space. Fine. Fine.",
+          "elevenlabs_input": "[resigned, amused] Spore. A mushroom in space. [sigh] Fine. [beat] Fine.",
+          "est_seconds": 4.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Spore."
+            },
+            {
+              "start": 0.82,
+              "end": 2.29,
+              "text": "A mushroom in space."
+            },
+            {
+              "start": 2.89,
+              "end": 3.26,
+              "text": "Fine."
+            },
+            {
+              "start": 3.56,
+              "end": 3.93,
+              "text": "Fine."
+            }
+          ]
+        },
+        {
+          "id": "NAV_32_SPORE_3",
+          "file": "nav_32_spore_3.mp3",
+          "display": "Spore. Leave some color behind.",
+          "elevenlabs_input": "[warm] Spore. Leave some color behind.",
+          "est_seconds": 2.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Spore."
+            },
+            {
+              "start": 0.82,
+              "end": 2.5,
+              "text": "Leave some color behind."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "33",
+      "name": "Boreal",
+      "hidden": false,
+      "filed_as": "Polar",
+      "archive_note": "Pulls a ribbon of northern light behind a crescent hull. It was modeled on a sky the Index has never seen, from a record it does not discuss.",
+      "lines": [
+        {
+          "id": "NAV_33_BOREAL_1",
+          "file": "nav_33_boreal_1.mp3",
+          "display": "Boreal. Bring the northern lights.",
+          "elevenlabs_input": "[soft wonder] Boreal. Bring the northern lights.",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Boreal."
+            },
+            {
+              "start": 0.87,
+              "end": 2.66,
+              "text": "Bring the northern lights."
+            }
+          ]
+        },
+        {
+          "id": "NAV_33_BOREAL_2",
+          "file": "nav_33_boreal_2.mp3",
+          "display": "Boreal. Cold colors, warm hands.",
+          "elevenlabs_input": "[low, intimate] Boreal. Cold colors, warm hands.",
+          "est_seconds": 2.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Boreal."
+            },
+            {
+              "start": 0.87,
+              "end": 2.62,
+              "text": "Cold colors, warm hands."
+            }
+          ]
+        },
+        {
+          "id": "NAV_33_BOREAL_3",
+          "file": "nav_33_boreal_3.mp3",
+          "display": "Boreal. Someone used to look up at a sky like that.",
+          "elevenlabs_input": "[quiet, faraway] Boreal. [pause] Someone used to look up at a sky like that.",
+          "est_seconds": 4.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Boreal."
+            },
+            {
+              "start": 1.12,
+              "end": 4.44,
+              "text": "Someone used to look up at a sky like that."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "34",
+      "name": "Luna",
+      "hidden": false,
+      "filed_as": "Reflective",
+      "archive_note": "Shines only with light borrowed from somewhere else. The Index considers this efficient. Poets, where they existed, considered it something more.",
+      "lines": [
+        {
+          "id": "NAV_34_LUNA_1",
+          "file": "nav_34_luna_1.mp3",
+          "display": "Luna. Borrowed light is still light.",
+          "elevenlabs_input": "[tender, reassuring] Luna. Borrowed light is still light.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Luna."
+            },
+            {
+              "start": 0.77,
+              "end": 2.87,
+              "text": "Borrowed light is still light."
+            }
+          ]
+        },
+        {
+          "id": "NAV_34_LUNA_2",
+          "file": "nav_34_luna_2.mp3",
+          "display": "Luna. Moonlight shift tonight.",
+          "elevenlabs_input": "[sleepy, warm] Luna. Moonlight shift tonight.",
+          "est_seconds": 2.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Luna."
+            },
+            {
+              "start": 0.77,
+              "end": 2.34,
+              "text": "Moonlight shift tonight."
+            }
+          ]
+        },
+        {
+          "id": "NAV_34_LUNA_3",
+          "file": "nav_34_luna_3.mp3",
+          "display": "Luna. Haven't flown under the moon in ages.",
+          "elevenlabs_input": "[nostalgic] Luna. Haven't flown under the moon in ages.",
+          "est_seconds": 3.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Luna."
+            },
+            {
+              "start": 0.77,
+              "end": 3.4,
+              "text": "Haven't flown under the moon in ages."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "35",
+      "name": "Wish",
+      "hidden": false,
+      "filed_as": "Improbable",
+      "archive_note": "Leaves small gold crosses behind, as if marking every place something was hoped for. The Index does not process wishes. It filed this one regardless.",
+      "lines": [
+        {
+          "id": "NAV_35_WISH_1",
+          "file": "nav_35_wish_1.mp3",
+          "display": "Wish. Make one.",
+          "elevenlabs_input": "[soft, encouraging] Wish. Make one.",
+          "est_seconds": 1.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Wish."
+            },
+            {
+              "start": 0.77,
+              "end": 1.45,
+              "text": "Make one."
+            }
+          ]
+        },
+        {
+          "id": "NAV_35_WISH_2",
+          "file": "nav_35_wish_2.mp3",
+          "display": "Wish. Gold dust and good luck.",
+          "elevenlabs_input": "[light, sparkling] Wish. Gold dust and good luck.",
+          "est_seconds": 2.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Wish."
+            },
+            {
+              "start": 0.77,
+              "end": 2.56,
+              "text": "Gold dust and good luck."
+            }
+          ]
+        },
+        {
+          "id": "NAV_35_WISH_3",
+          "file": "nav_35_wish_3.mp3",
+          "display": "Wish. I made one already. Not telling.",
+          "elevenlabs_input": "[secretive, playful] Wish. I made one already. [whispering] Not telling.",
+          "est_seconds": 3.5,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Wish."
+            },
+            {
+              "start": 0.77,
+              "end": 2.19,
+              "text": "I made one already."
+            },
+            {
+              "start": 2.49,
+              "end": 3.33,
+              "text": "Not telling."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "36",
+      "name": "Darner",
+      "hidden": false,
+      "filed_as": "Darting",
+      "archive_note": "Dragonfly wings and two thin trails. It looks faster than it is. Nobody has had the heart to tell it.",
+      "lines": [
+        {
+          "id": "NAV_36_DARNER_1",
+          "file": "nav_36_darner_1.mp3",
+          "display": "Darner. Wings out.",
+          "elevenlabs_input": "[crisp, playful] Darner. Wings out.",
+          "est_seconds": 1.8,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Darner."
+            },
+            {
+              "start": 0.87,
+              "end": 1.61,
+              "text": "Wings out."
+            }
+          ]
+        },
+        {
+          "id": "NAV_36_DARNER_2",
+          "file": "nav_36_darner_2.mp3",
+          "display": "Darner. Little dragonfly, big dark.",
+          "elevenlabs_input": "[soft, fond] Darner. Little dragonfly, big dark.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Darner."
+            },
+            {
+              "start": 0.87,
+              "end": 2.78,
+              "text": "Little dragonfly, big dark."
+            }
+          ]
+        },
+        {
+          "id": "NAV_36_DARNER_3",
+          "file": "nav_36_darner_3.mp3",
+          "display": "Darner. Dart around. Gently.",
+          "elevenlabs_input": "[gentle] Darner. Dart around. [beat] Gently.",
+          "est_seconds": 2.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Darner."
+            },
+            {
+              "start": 0.87,
+              "end": 1.71,
+              "text": "Dart around."
+            },
+            {
+              "start": 2.01,
+              "end": 2.48,
+              "text": "Gently."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "37",
+      "name": "Puff",
+      "hidden": false,
+      "filed_as": "Dispersing",
+      "archive_note": "A seed head on a long breath. Every turn sends a few more seeds into the dark. It has never run out, and nobody knows how many it has.",
+      "lines": [
+        {
+          "id": "NAV_37_PUFF_1",
+          "file": "nav_37_puff_1.mp3",
+          "display": "Puff. Make a wish. Wait, wrong ship.",
+          "elevenlabs_input": "[playful] Puff. Make a wish. [soft chuckle, catching herself] Wait, wrong ship.",
+          "est_seconds": 3.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Puff."
+            },
+            {
+              "start": 0.77,
+              "end": 1.72,
+              "text": "Make a wish."
+            },
+            {
+              "start": 2.22,
+              "end": 3.49,
+              "text": "Wait, wrong ship."
+            }
+          ]
+        },
+        {
+          "id": "NAV_37_PUFF_2",
+          "file": "nav_37_puff_2.mp3",
+          "display": "Puff. Easy now. Don't blow away.",
+          "elevenlabs_input": "[gentle, careful] Puff. Easy now. Don't blow away.",
+          "est_seconds": 3.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Puff."
+            },
+            {
+              "start": 0.77,
+              "end": 1.45,
+              "text": "Easy now."
+            },
+            {
+              "start": 1.75,
+              "end": 2.86,
+              "text": "Don't blow away."
+            }
+          ]
+        },
+        {
+          "id": "NAV_37_PUFF_3",
+          "file": "nav_37_puff_3.mp3",
+          "display": "Puff. Seeds everywhere. Very generous.",
+          "elevenlabs_input": "[amused] Puff. Seeds everywhere. Very generous.",
+          "est_seconds": 3.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Puff."
+            },
+            {
+              "start": 0.77,
+              "end": 1.87,
+              "text": "Seeds everywhere."
+            },
+            {
+              "start": 2.17,
+              "end": 3.11,
+              "text": "Very generous."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "38",
+      "name": "Argus",
+      "hidden": false,
+      "filed_as": "Watchful",
+      "archive_note": "Its teal trail is patterned like a hundred eyes. Named after something that never slept. Neither, it seems, does the hull.",
+      "lines": [
+        {
+          "id": "NAV_38_ARGUS_1",
+          "file": "nav_38_argus_1.mp3",
+          "display": "Argus. Eyes open.",
+          "elevenlabs_input": "[alert, quiet] Argus. Eyes open.",
+          "est_seconds": 1.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Argus."
+            },
+            {
+              "start": 0.82,
+              "end": 1.56,
+              "text": "Eyes open."
+            }
+          ]
+        },
+        {
+          "id": "NAV_38_ARGUS_2",
+          "file": "nav_38_argus_2.mp3",
+          "display": "Argus. It's watching. I'm watching. Fly well.",
+          "elevenlabs_input": "[low, focused] Argus. It's watching. I'm watching. [beat] Fly well.",
+          "est_seconds": 4.0,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Argus."
+            },
+            {
+              "start": 0.82,
+              "end": 1.71,
+              "text": "It's watching."
+            },
+            {
+              "start": 2.01,
+              "end": 2.85,
+              "text": "I'm watching."
+            },
+            {
+              "start": 3.15,
+              "end": 3.84,
+              "text": "Fly well."
+            }
+          ]
+        },
+        {
+          "id": "NAV_38_ARGUS_3",
+          "file": "nav_38_argus_3.mp3",
+          "display": "Argus. Nothing gets past you tonight.",
+          "elevenlabs_input": "[confident, warm] Argus. Nothing gets past you tonight.",
+          "est_seconds": 3.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Argus."
+            },
+            {
+              "start": 0.82,
+              "end": 2.92,
+              "text": "Nothing gets past you tonight."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "39",
+      "name": "Chime",
+      "hidden": false,
+      "filed_as": "Resonant",
+      "archive_note": "Rings faintly on every turn, leaving gold circles in the dark like sound you can see. The Index requested silence. The Chime declined.",
+      "lines": [
+        {
+          "id": "NAV_39_CHIME_1",
+          "file": "nav_39_chime_1.mp3",
+          "display": "Chime. Ring true.",
+          "elevenlabs_input": "[bright, clear] Chime. Ring true.",
+          "est_seconds": 1.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Chime."
+            },
+            {
+              "start": 0.82,
+              "end": 1.56,
+              "text": "Ring true."
+            }
+          ]
+        },
+        {
+          "id": "NAV_39_CHIME_2",
+          "file": "nav_39_chime_2.mp3",
+          "display": "Chime. I can hear you from here. Lovely.",
+          "elevenlabs_input": "[delighted, soft] Chime. I can hear you from here. [beat] Lovely.",
+          "est_seconds": 3.7,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Chime."
+            },
+            {
+              "start": 0.82,
+              "end": 2.77,
+              "text": "I can hear you from here."
+            },
+            {
+              "start": 3.07,
+              "end": 3.54,
+              "text": "Lovely."
+            }
+          ]
+        },
+        {
+          "id": "NAV_39_CHIME_3",
+          "file": "nav_39_chime_3.mp3",
+          "display": "Chime. Make some noise.",
+          "elevenlabs_input": "[playful] Chime. Make some noise.",
+          "est_seconds": 2.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.52,
+              "text": "Chime."
+            },
+            {
+              "start": 0.82,
+              "end": 1.98,
+              "text": "Make some noise."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "???",
+      "name": "Merlin",
+      "hidden": true,
+      "filed_as": "[Unlisted]",
+      "archive_note": "No record of manufacture. No record of issue. Its archive entry has been edited many times, never by the Index. The gold sparks it leaves fall the wrong way.",
+      "lines": [
+        {
+          "id": "NAV_H1_MERLIN_1",
+          "file": "nav_h1_merlin_1.mp3",
+          "display": "Merlin. Where did you find that?",
+          "elevenlabs_input": "[genuinely surprised, curious] Merlin. [pause] Where did you find that?",
+          "est_seconds": 3.1,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Merlin."
+            },
+            {
+              "start": 1.12,
+              "end": 2.91,
+              "text": "Where did you find that?"
+            }
+          ]
+        },
+        {
+          "id": "NAV_H1_MERLIN_2",
+          "file": "nav_h1_merlin_2.mp3",
+          "display": "Merlin. I don't have a file on this one. I always have a file.",
+          "elevenlabs_input": "[puzzled, slightly unsettled] Merlin. I don't have a file on this one. [beat] I always have a file.",
+          "est_seconds": 5.4,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Merlin."
+            },
+            {
+              "start": 0.87,
+              "end": 3.35,
+              "text": "I don't have a file on this one."
+            },
+            {
+              "start": 3.65,
+              "end": 5.28,
+              "text": "I always have a file."
+            }
+          ]
+        },
+        {
+          "id": "NAV_H1_MERLIN_3",
+          "file": "nav_h1_merlin_3.mp3",
+          "display": "Merlin. Don't tell anyone I let you fly it.",
+          "elevenlabs_input": "[conspiratorial, whispering] Merlin. Don't tell anyone I let you fly it.",
+          "est_seconds": 3.6,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.57,
+              "text": "Merlin."
+            },
+            {
+              "start": 0.87,
+              "end": 3.5,
+              "text": "Don't tell anyone I let you fly it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "num": "???",
+      "name": "Rook",
+      "hidden": true,
+      "filed_as": "[Unlisted]",
+      "archive_note": "Cross-shaped and quiet, trailing two grey lines that never quite match. The Index lists it as missing. It is not missing. It is here.",
+      "lines": [
+        {
+          "id": "NAV_H2_ROOK_1",
+          "file": "nav_h2_rook_1.mp3",
+          "display": "Rook. That's not supposed to exist.",
+          "elevenlabs_input": "[startled, quiet] Rook. [pause] That's not supposed to exist.",
+          "est_seconds": 3.2,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Rook."
+            },
+            {
+              "start": 1.02,
+              "end": 3.01,
+              "text": "That's not supposed to exist."
+            }
+          ]
+        },
+        {
+          "id": "NAV_H2_ROOK_2",
+          "file": "nav_h2_rook_2.mp3",
+          "display": "Rook. Moves funny. I like it.",
+          "elevenlabs_input": "[intrigued, amused] Rook. Moves funny. [beat] I like it.",
+          "est_seconds": 2.9,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Rook."
+            },
+            {
+              "start": 0.77,
+              "end": 1.61,
+              "text": "Moves funny."
+            },
+            {
+              "start": 1.91,
+              "end": 2.75,
+              "text": "I like it."
+            }
+          ]
+        },
+        {
+          "id": "NAV_H2_ROOK_3",
+          "file": "nav_h2_rook_3.mp3",
+          "display": "Rook. Officially, I didn't see this.",
+          "elevenlabs_input": "[mock-official, then soft] Rook. Officially, [beat] I didn't see this.",
+          "est_seconds": 3.3,
+          "cues": [
+            {
+              "start": 0.1,
+              "end": 0.47,
+              "text": "Rook."
+            },
+            {
+              "start": 0.77,
+              "end": 3.18,
+              "text": "Officially, I didn't see this."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

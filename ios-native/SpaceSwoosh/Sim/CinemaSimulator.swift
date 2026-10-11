@@ -1,5 +1,6 @@
 // CinemaSimulator.swift
-// Changes: Intro hands off at 0.20 from bottom; play camera seed; clear flyout keeps play framing.
+// Changes: when steering unlocks, arm the NAV launch line unless this round
+// already has Journey story audio. Intro hands off at 0.20 from bottom.
 // After fly-in, steering unlocks for NAV title / wait (Android title
 // phase). L42 fade hands off to the written epilogue overlay (no ENDING_BEATS).
 // Day 42 skips intro captions; those play in the epilogue after the dark hold.
@@ -182,8 +183,13 @@ enum CinemaSimulator {
         run.seatY = CinematicFlight.introHandoffSeat
         run.streakAlpha = 0
         run.inputLocked = false
-        if run.profile.introBeats.isEmpty
-            || (run.profile.mode == .journey && run.profile.level >= JourneyConfig.totalLevels) {
+        let finale = run.profile.mode == .journey && run.profile.level >= JourneyConfig.totalLevels
+        let narrating = !run.profile.introBeats.isEmpty && !finale
+        LaunchVoice.shared.arm(
+            skinId: SettingsStore.shared.shipSkinId,
+            story: narrating || finale
+        )
+        if run.profile.introBeats.isEmpty || finale {
             run.cinema = .introWait
         } else {
             run.cinema = .introTitle

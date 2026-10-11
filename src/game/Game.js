@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Home menu is title, tagline, and the four buttons. No idle ship and no
+//   NEW ENTRY stamp. Hangar is the last step before a run. Crash retry still
+//   starts the run directly.
 // - Friends Space Board YOU row shows the device Open Space personal best
 //   (KM / asteroids) when Play Games still has no score, so distance is not "—".
 // - Hangar tiles always draw skin.blurb (locked premium no longer replaces
@@ -70,8 +73,8 @@
 //   before the map; Continue unlocks Logbook `signalCall`.
 // - Submit Signal + Android keyboard: Cap Keyboard plugin tracks IME height;
 //   card keeps stats-above-field order and centers in the remaining viewport.
-// - Main menu: cycle hangar roster (menuShipBrowseId; hidden skins omitted);
-//   owned equips, locked shows price + tap-to-buy; Play uses last owned shipSkinId.
+// - Main menu no longer cycles hulls. The equipped ship idles; Play opens
+//   the Hangar, which is where you look at and launch a hull.
 //   Mobile swipe left/right on the menu cycles ships; quiet `n / total` index
 //   sits above the hull (Space Mono — current ink80, total ink55).
 // - Options hub: Ship / Controls / Sound / Theme + Restore. Native Rate ★
@@ -333,6 +336,17 @@ import {
     handleAnnualShipPickClick,
     clampAnnualPickScroll,
 } from '../ui/screens/AnnualShipPickScreen.js';
+import {
+    handleHangarClick,
+    hangarPointerDown,
+    hangarPointerMove,
+    hangarPointerUp,
+    renderHangar,
+    resetHangar,
+    stepHangar,
+} from '../ui/screens/HangarScreen.js';
+import { ensureHangarSeenSeed } from '../config/HangarLore.js';
+import { armLaunchVoice, paintLaunchSubtitle, tickLaunchVoice } from './LaunchVoice.js';
 import { LevelClearSequence } from './LevelClearSequence.js';
 import { LevelIntroSequence } from './LevelIntroSequence.js';
 import { JourneyEpilogueSequence } from './JourneyEpilogueSequence.js';
@@ -379,7 +393,7 @@ export class Game {
         this.gameOverAlpha = 0;
         this.explosionParticles = [];
         this.gameOverScreen = 'main'; // nested: 'main' or 'highscores' while appScreen is gameover
-        // menu | modeSelect | journeyMap | logbook | options | optionsShip |
+        // menu | modeSelect | hangar | journeyMap | logbook | options | optionsShip |
         // optionsControls | optionsSound | highscores | playing | gameover |
         // proPaywall | annualShipPick
         this.appScreen = 'menu';
@@ -389,8 +403,14 @@ export class Game {
         this.endFlavor = null; // Open World game-over subtitle
         this.highScoresReturnScreen = 'menu';
         this.shipSkinId = loadShipSkinId();
+        ensureHangarSeenSeed();
         /** Main-menu preview (may be locked); Play always uses shipSkinId. */
         this.menuShipBrowseId = this.shipSkinId;
+        this.hangarLaunch = null;
+        this.hangarIndex = 0;
+        this.launchSessionPlayed = false;
+        this.launchIsRetry = false;
+        this.lastLaunchSkinId = null;
         /** Finger origin for a horizontal hangar swipe on `menu`. */
         this.menuSwipe = null;
         this.flightStyle = loadFlightStyle();
@@ -709,7 +729,9 @@ export class Game {
             // Any input lifts the cap instantly (the event fires before rAF),
             // so taps and scroll-drags always see full refresh.
             if (!this.perfFlags?.noGovernor
-                && this.appScreen !== 'playing' && this.appScreen !== 'gameover') {
+                && this.appScreen !== 'playing'
+                && this.appScreen !== 'gameover'
+                && this.appScreen !== 'hangar') {
                 const idleMs = currentTime - (this.lastInteractionAt ?? 0);
                 const sinceDraw = currentTime - (this.lastGovernedDraw ?? 0);
                 if (idleMs > 450 && sinceDraw < 30) {
@@ -1096,6 +1118,10 @@ export class Game {
             this.modeSelectButtons = renderModeSelect(this);
             return;
         }
+        if (this.appScreen === 'hangar') {
+            this.hangarButtons = renderHangar(this);
+            return;
+        }
         if (this.appScreen === 'proPaywall') {
             this.proPaywallButtons = renderProPaywall(this);
             return;
@@ -1222,6 +1248,7 @@ export class Game {
             return;
         }
 
+        tickLaunchVoice(this);
         if (this.levelIntro?.active) {
             this.ctx.save();
             this.ctx.globalAlpha = this.levelIntro.worldAlpha;
@@ -1230,6 +1257,7 @@ export class Game {
         } else {
             this.renderWorld();
         }
+        paintLaunchSubtitle(this);
 
         if (this.isPaused) {
             this.renderPauseOverlay();
@@ -1974,18 +2002,9 @@ export class Game {
 
         const titlePx = L.isMobile ? Math.min(unit * 3.6, 42) : unit * 3.4;
         const taglinePx = L.isMobile ? Math.min(unit * 1.45, 16) : unit * 1.3;
-        const previewR = unit * 1.5;
-        const previewH = previewR * 5.6; // hull + fading wake
-        const namePx = Math.max(10, unit * 0.95);
-        const pricePx = Math.max(10, unit * 1.0);
-        const indexPx = Math.max(10, unit * 0.95);
-        const indexH = indexPx * 1.55;
 
-        // Section stack: identity, ship, actions — centred as one block.
         const identityH = titlePx * 1.1 + L.row + taglinePx * 1.3;
-        // Hangar index above the hull; name + reserved price line below.
-        const shipH = indexH + previewH + L.row + namePx * 1.4 + pricePx * 1.2;
-        const totalH = identityH + L.section + shipH + L.section * 1.2 + buttonsH;
+        const totalH = identityH + L.section * 1.4 + buttonsH;
         let y = Math.max(L.top + unit, (this.height - totalH) / 2);
 
         ctx.save();
@@ -2002,76 +2021,9 @@ export class Game {
         ctx.fillText(this.menuFlavor || pickCopy('menu'), L.centerX, y + taglinePx * 0.6);
         ctx.restore();
 
-        y += taglinePx * 1.3 + L.section;
+        y += taglinePx * 1.3 + L.section * 1.4;
 
-        // Ship section — browse full roster; owned equips, locked shows price.
-        // Hit zones: left/right halves cycle; centre band taps to unlock.
         this.menuButtons = {};
-        const browseId = this.menuShipBrowseId || this.shipSkinId;
-        const browseOwned = isSkinOwned(browseId);
-        const previewCy = y + indexH + previewR * 1.2;
-        drawSkinPreview(ctx, browseId, L.centerX, previewCy, previewR);
-
-        // Same glyph as Play's motif tag (\u25B6), mirrored for previous.
-        // Sit mid-figure (hull + wake), not on the nose.
-        const arrowPx = L.isMobile
-            ? Math.min(unit * 2.6, 30)
-            : Math.min(unit * 2.3, 26);
-        const arrowGap = previewR * 2.8 + unit * 1.8;
-        const arrowCy = previewCy + previewR * 1.7;
-        const prevX = L.centerX - arrowGap;
-        const nextX = L.centerX + arrowGap;
-        const midGap = unit * 2.4;
-        this.menuButtons.prevShip = {
-            x: L.left,
-            y,
-            width: Math.max(unit * 4, L.centerX - midGap - L.left),
-            height: shipH,
-        };
-        this.menuButtons.nextShip = {
-            x: L.centerX + midGap,
-            y,
-            width: Math.max(unit * 4, L.right - (L.centerX + midGap)),
-            height: shipH,
-        };
-        this.menuButtons.shipPreview = {
-            x: L.centerX - midGap,
-            y,
-            width: midGap * 2,
-            height: shipH,
-        };
-
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        this.drawHangarIndex(L.centerX, y + indexPx * 0.55, indexPx, browseId);
-        ctx.fillStyle = color.ink;
-        ctx.font = `700 ${arrowPx}px ${font.mono}`;
-        ctx.fillText('\u25C0', prevX, arrowCy);
-        ctx.fillText('\u25B6', nextX, arrowCy);
-        setLabelType(ctx, namePx);
-        ctx.fillStyle = browseOwned ? color.ink55 : color.ink;
-        const nameY = y + indexH + previewH + L.row;
-        ctx.fillText(getSkin(browseId).name.toUpperCase(), L.centerX, nameY);
-        resetType(ctx);
-
-        if (!browseOwned) {
-            setMonoType(ctx, pricePx);
-            ctx.fillStyle = color.signal;
-            const price = getSkinPriceLabel(browseId);
-            const priceLine = this.purchaseStatus
-                || (price ? price : 'LOCKED · TAP TO UNLOCK');
-            ctx.fillText(priceLine, L.centerX, nameY + namePx * 1.15);
-            resetType(ctx);
-        } else if (this.purchaseStatus) {
-            setMonoType(ctx, pricePx);
-            ctx.fillStyle = color.signal;
-            ctx.fillText(this.purchaseStatus, L.centerX, nameY + namePx * 1.15);
-            resetType(ctx);
-        }
-        ctx.restore();
-
-        y += shipH + L.section * 1.2;
 
         const bx = L.centerX - buttonWidth / 2;
 
@@ -2557,14 +2509,13 @@ export class Game {
     /** ArrowLeft / ArrowRight and a horizontal swipe change ship on the main menu. */
     setupMenuShipKeys() {
         window.addEventListener('keydown', (e) => {
-            if (this.appScreen !== 'menu') return;
-            if (e.repeat) return;
+            if (this.appScreen !== 'hangar' || e.repeat) return;
             if (e.key === 'ArrowLeft') {
                 e.preventDefault();
-                this.cycleMenuShip(-1);
+                stepHangar(this, -1);
             } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
-                this.cycleMenuShip(1);
+                stepHangar(this, 1);
             }
         });
 
@@ -2587,15 +2538,8 @@ export class Game {
     consumeMenuShipSwipe(touch) {
         const start = this.menuSwipe;
         this.menuSwipe = null;
-        if (!start || this.appScreen !== 'menu') return false;
-        const dx = touch.clientX - start.x;
-        const dy = touch.clientY - start.y;
-        const swipePx = 40;
-        if (Math.abs(dx) < swipePx || Math.abs(dx) <= Math.abs(dy) * 1.15) {
-            return false;
-        }
-        this.cycleMenuShip(dx < 0 ? 1 : -1);
-        return true;
+        if (!start || !touch || this.appScreen !== 'menu') return false;
+        return false;
     }
 
     async handleShipTileClick(skinId) {
@@ -2658,11 +2602,28 @@ export class Game {
         }
     }
 
-    /** Jump from the ship picker into Open World with the equipped vessel. */
+    /** Jump from the ship picker into the Hangar, then Open Space. */
     quickPlayEndless() {
         if (!isSkinOwned(this.shipSkinId)) return;
         track('quick_play_endless', { skin_id: this.shipSkinId });
-        this.tryBeginOpenWorld();
+        this.openHangar({ mode: PLAY_MODE.openWorld, returnScreen: 'optionsShip' });
+    }
+
+    /** Last step before a run. Retry paths call beginRun directly. */
+    openHangar({ mode, level = 1, returnScreen = 'modeSelect' } = {}) {
+        if (mode === PLAY_MODE.journey && !isLevelUnlocked(this.journeyProgress, level)) return;
+        this.hangarLaunch = { mode, level, returnScreen };
+        resetHangar(this);
+        this.appScreen = 'hangar';
+        this.updatePauseButtonVisibility();
+    }
+
+    /** Equip the centered owned hull, then the existing lives gate and run start. */
+    launchFromHangar() {
+        const launch = this.hangarLaunch;
+        if (!launch) return;
+        if (launch.mode === PLAY_MODE.journey) this.tryBeginJourneyLevel(launch.level);
+        else this.tryBeginOpenWorld();
     }
 
     /** Empty lives → Pro paywall; otherwise start Open Space. */
@@ -4073,17 +4034,13 @@ export class Game {
                 return;
             }
 
+            if (this.appScreen === 'hangar') {
+                await handleHangarClick(this, x, y);
+                return;
+            }
+
             if (this.appScreen === 'menu' && this.menuButtons) {
-                if (this.isClickInButton(x, y, this.menuButtons.prevShip)) {
-                    this.cycleMenuShip(-1);
-                } else if (this.isClickInButton(x, y, this.menuButtons.nextShip)) {
-                    this.cycleMenuShip(1);
-                } else if (this.isClickInButton(x, y, this.menuButtons.shipPreview)) {
-                    const browseId = this.menuShipBrowseId || this.shipSkinId;
-                    if (!isSkinOwned(browseId)) {
-                        await this.handleShipTileClick(browseId);
-                    }
-                } else if (this.isClickInButton(x, y, this.menuButtons.play)) {
+                if (this.isClickInButton(x, y, this.menuButtons.play)) {
                     this.goToModeSelect();
                 } else if (this.isClickInButton(x, y, this.menuButtons.logbook)) {
                     this.logbookCategory = 'obstacles';
@@ -4273,15 +4230,58 @@ export class Game {
             }
         };
 
+        const hangarPoint = (clientX, clientY) => {
+            const rect = this.canvas.getBoundingClientRect();
+            return {
+                x: (clientX - rect.left) * (this.width / rect.width),
+                y: (clientY - rect.top) * (this.height / rect.height),
+            };
+        };
+
         // Mouse events
         this.canvas.addEventListener('click', (e) => {
             handleInteraction(e.clientX, e.clientY);
         });
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (this.appScreen !== 'hangar') return;
+            const p = hangarPoint(e.clientX, e.clientY);
+            hangarPointerDown(this, p.x, p.y);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (this.appScreen !== 'hangar') return;
+            const p = hangarPoint(e.clientX, e.clientY);
+            hangarPointerMove(this, p.x, p.y);
+        });
+        window.addEventListener('mouseup', (e) => {
+            if (this.appScreen !== 'hangar') return;
+            const p = hangarPoint(e.clientX, e.clientY);
+            hangarPointerUp(this, p.x, p.y);
+        });
 
         // Touch events
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (this.appScreen !== 'hangar') return;
+            const touch = e.touches[0];
+            if (!touch) return;
+            const p = hangarPoint(touch.clientX, touch.clientY);
+            hangarPointerDown(this, p.x, p.y);
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (this.appScreen !== 'hangar') return;
+            const touch = e.touches[0];
+            if (!touch) return;
+            const p = hangarPoint(touch.clientX, touch.clientY);
+            hangarPointerMove(this, p.x, p.y);
+        }, { passive: true });
+
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             const ended = e.changedTouches[0];
+            if (this.appScreen === 'hangar' && ended) {
+                const p = hangarPoint(ended.clientX, ended.clientY);
+                if (hangarPointerUp(this, p.x, p.y)) return;
+            }
             if (ended && this.consumeMenuShipSwipe(ended)) return;
             // A drag on a scrollable list wasn't aiming at a tile/button.
             if ((this.appScreen === 'journeyMap'
@@ -4387,6 +4387,7 @@ export class Game {
     // Play Again keeps you in the mode you were in — in Journey that means the
     // same level, not the next one. Empty lives opens the Pro paywall.
     restart() {
+        this.launchIsRetry = true;
         if (this.playMode !== PLAY_MODE.hazardLab) {
             ensureRegen();
             if (!canStartRun()) {

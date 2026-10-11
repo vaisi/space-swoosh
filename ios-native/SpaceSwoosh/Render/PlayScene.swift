@@ -1,5 +1,6 @@
 // PlayScene.swift
-// Changes: dark mode paints DepthField behind the hull (Android night paper).
+// Changes: each frame ticks the NAV launch-line clock. Dark mode paints
+// DepthField behind the hull (Android night paper).
 // Pause holds the sim but keeps the field drifting. Shield ring sprites add
 // Android Canvas half-stroke so the visible outer edge matches radius×1.6 /
 // ×1.7 (hitbox stays 1.5×). Present interpolates play cameraY.
@@ -174,6 +175,7 @@ final class PlayScene: SKScene {
     }
 
     override func update(_ currentTime: TimeInterval) {
+        LaunchVoice.shared.tick()
         guard running else { return }
         if runHeld {
             paintDepth(cameraY: nil)

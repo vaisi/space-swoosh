@@ -2,6 +2,7 @@
 // One definition of "go back one step", shared by Android's hardware back
 // button and the Escape key.
 // Changes:
+// - Hangar back returns to the screen that opened it.
 // - Leaving Space Log stops Journey-day voice replay (same as on-screen Back).
 // - Enjoyment review overlay on game-over treats back as Later.
 // - Written L42 epilogue consumes back (skip / dismiss cards) instead of
@@ -96,6 +97,17 @@ export function goBack(game) {
         } else {
             game.goToMenu();
         }
+        return true;
+    }
+
+    if (game.appScreen === 'hangar') {
+        const ret = game.hangarLaunch?.returnScreen || 'modeSelect';
+        if (ret === 'journeyMap') game.goToJourneyMap();
+        else if (ret === 'optionsShip') {
+            game.appScreen = 'optionsShip';
+            game.updatePauseButtonVisibility();
+        } else if (ret === 'menu') game.showMenu();
+        else game.goToModeSelect();
         return true;
     }
 
