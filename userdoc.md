@@ -7,7 +7,7 @@
      Play lists Journey with a quiet Recommended hint under the title.
      iPhone Dark Mode shows the same drifting stars as Android
      behind menus, the Journey map, and the run. Light Mode stays flat.
-     iPhone TestFlight marketing is 1.0.2 (Apple closed 1.0.1).
+     iPhone TestFlight marketing is 1.0.3 (Apple closed 1.0.2).
      Friends Space Board YOU row shows the Open Space distance
      (and obstacles) you flew on this device even when Game Center / Play
      Games has not indexed the run yet. TestFlight Friends signing now turns on Game Center on the

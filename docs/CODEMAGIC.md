@@ -6,8 +6,8 @@
   - APP_STORE_APPLE_ID also injects the Options → Rate write-review URL.
   - Native iOS Firebase: GOOGLE_SERVICE_INFO_PLIST secret; SPM product is FirebaseAnalyticsCore.
   - TestFlight uses .playback so Silent switch no longer mutes SFX.
-  - iOS marketing version is 1.0.2 — ASC closed the approved 1.0.1 train.
-    Native iOS default build is 14; Android Play default is 50 / 1.0.50.
+  - iOS marketing version is 1.0.3 — ASC closed the approved 1.0.2 train.
+    Native iOS default build is 14; Android Play default is 51 / 1.0.51.
   - iOS CI builds ios-native/ (SpriteKit) only; Capacitor iOS is not published.
   - VITE_SUPABASE_* must match vaisi's Project (Away leaderboard).
   - iOS Native workflows inject those vars into Info.plist for SPACE BOARD
@@ -207,12 +207,12 @@ Two Swift archive breakers that look the same in the Codemagic step summary:
 is not a single-expression `some View`). `HighScoreRow` must not redeclare its
 memberwise `init` in an extension.
 
-Apple treats **version + build** as unique. After **1.0.1** is approved, that
+Apple treats **version + build** as unique. After **1.0.2** is approved, that
 train is closed (ASC `90062` / `90186`). New uploads must use a higher
-`CFBundleShortVersionString`. The shipping marketing version is **`1.0.2`**.
+`CFBundleShortVersionString`. The shipping marketing version is **`1.0.3`**.
 **CFBundleVersion** (the number in parentheses) must still go up every upload.
 
 CI writes both into `Info.plist` before `xcodebuild` (`MARKETING_VERSION` plus
 the next build number, floor **3**). Confirm in the Codemagic log:
-`CFBundleShortVersionString=1.0.2` and `CFBundleVersion=` **3 or higher**.
-After processing (5–30 min), TestFlight shows **1.0.2 (N)**.
+`CFBundleShortVersionString=1.0.3` and `CFBundleVersion=` **3 or higher**.
+After processing (5–30 min), TestFlight shows **1.0.3 (N)**.
