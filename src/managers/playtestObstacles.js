@@ -1,7 +1,8 @@
 // playtestObstacles.js
 // Hazard Lab candidates kept on the playtest/new-obstacles branch.
 // Ink still kills on contact. Each one draws its tell before the hit.
-// Journey days and the iOS sim do not spawn these types.
+// Journey, Open Space, and the native iOS sim spawn these types.
+// Debut voice and the on-screen teach line stay off.
 // Changes:
 // - Spinner / Hollow orbit spin, Ricochet speed, and Blink row beat read
 //   intensity knobs (config/ObstacleIntensity.js); today's values are the middle.

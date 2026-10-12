@@ -90,6 +90,14 @@
 		0405605E5D39FE9723F9C203 /* FloatPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22F7DD72D5CE35B970A8A40 /* FloatPopup.swift */; };
 		B8770DBFAFA9F3A4584BA7B0 /* HazardCollision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0871048511B16134F49F6AC5 /* HazardCollision.swift */; };
 		DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D2C43869B699798FD0DFC5 /* ObstacleState.swift */; };
+		A11A0B020001000000000001 /* HazardParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000001 /* HazardParts.swift */; };
+		A11A0B020001000000000002 /* ObstacleIntensity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000002 /* ObstacleIntensity.swift */; };
+		A11A0B020001000000000003 /* LoadBudget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000003 /* LoadBudget.swift */; };
+		A11A0B020001000000000004 /* PlaytestBodies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000004 /* PlaytestBodies.swift */; };
+		A11A0B020001000000000005 /* PlaytestFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000005 /* PlaytestFields.swift */; };
+		A11A0B020001000000000006 /* PlaytestWallHazards.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000006 /* PlaytestWallHazards.swift */; };
+		A11A0B020001000000000007 /* PlaytestStreakers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000007 /* PlaytestStreakers.swift */; };
+		A11A0B020001000000000008 /* PlaytestDraw.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A0B010001000000000008 /* PlaytestDraw.swift */; };
 		C07CFC91216D19167DEDF60B /* PlayCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = D68773AAD1B288557B4C5F77 /* PlayCamera.swift */; };
 		DC4BAFF0320792C69EEE8ECF /* ShipHitbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E968961A2E34B9F89BCDDE /* ShipHitbox.swift */; };
 		E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */; };
@@ -372,6 +380,14 @@
 		B22F7DD72D5CE35B970A8A40 /* FloatPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatPopup.swift; sourceTree = "<group>"; };
 		0871048511B16134F49F6AC5 /* HazardCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardCollision.swift; sourceTree = "<group>"; };
 		14D2C43869B699798FD0DFC5 /* ObstacleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObstacleState.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000001 /* HazardParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardParts.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000002 /* ObstacleIntensity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObstacleIntensity.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000003 /* LoadBudget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadBudget.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000004 /* PlaytestBodies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaytestBodies.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000005 /* PlaytestFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaytestFields.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000006 /* PlaytestWallHazards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaytestWallHazards.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000007 /* PlaytestStreakers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaytestStreakers.swift; sourceTree = "<group>"; };
+		A11A0B010001000000000008 /* PlaytestDraw.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaytestDraw.swift; sourceTree = "<group>"; };
 		D68773AAD1B288557B4C5F77 /* PlayCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayCamera.swift; sourceTree = "<group>"; };
 		08E968961A2E34B9F89BCDDE /* ShipHitbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipHitbox.swift; sourceTree = "<group>"; };
 		394B4BABF977D9B915F6D5C5 /* ShipSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipSimulator.swift; sourceTree = "<group>"; };
@@ -727,6 +743,7 @@
 				4C1A28A938DFEA8932A3FFDD,
 				628FF1116246728150EFF6C1,
 				6D9C2266E5757995489D1B37,
+				A11A0B010001000000000008,
 				C78C3E515B75F5AFACA0EA5F,
 				79154F051600D3126EA7B3B2,
 				D070E474B470DF4731D50D19,
@@ -768,6 +785,13 @@
 				B22F7DD72D5CE35B970A8A40,
 				0871048511B16134F49F6AC5,
 				14D2C43869B699798FD0DFC5,
+				A11A0B010001000000000001,
+				A11A0B010001000000000002,
+				A11A0B010001000000000003,
+				A11A0B010001000000000004,
+				A11A0B010001000000000005,
+				A11A0B010001000000000006,
+				A11A0B010001000000000007,
 				D68773AAD1B288557B4C5F77,
 				08E968961A2E34B9F89BCDDE,
 				394B4BABF977D9B915F6D5C5,
@@ -1325,6 +1349,14 @@
 				0405605E5D39FE9723F9C203 /* FloatPopup.swift in Sources */,
 				B8770DBFAFA9F3A4584BA7B0 /* HazardCollision.swift in Sources */,
 				DA5811F7E62306EC265C7C22 /* ObstacleState.swift in Sources */,
+				A11A0B020001000000000001 /* HazardParts.swift in Sources */,
+				A11A0B020001000000000002 /* ObstacleIntensity.swift in Sources */,
+				A11A0B020001000000000003 /* LoadBudget.swift in Sources */,
+				A11A0B020001000000000004 /* PlaytestBodies.swift in Sources */,
+				A11A0B020001000000000005 /* PlaytestFields.swift in Sources */,
+				A11A0B020001000000000006 /* PlaytestWallHazards.swift in Sources */,
+				A11A0B020001000000000007 /* PlaytestStreakers.swift in Sources */,
+				A11A0B020001000000000008 /* PlaytestDraw.swift in Sources */,
 				C07CFC91216D19167DEDF60B /* PlayCamera.swift in Sources */,
 				DC4BAFF0320792C69EEE8ECF /* ShipHitbox.swift in Sources */,
 				E3338132D651209A056FE981 /* ShipSimulator.swift in Sources */,

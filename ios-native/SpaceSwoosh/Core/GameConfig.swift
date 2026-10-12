@@ -1,5 +1,7 @@
 // GameConfig.swift
-// Changes: blackHoleRingSlots (8) for the Android hairline pulse ring.
+// Changes: Open Space unlocks come from GeneratedJourneyData. hazardPartSlots
+// holds pebbles, fish, and meteor rocks for the nine new obstacles.
+// blackHoleRingSlots (8) for the Android hairline pulse ring.
 // Fuel magnet ease-in + closing accel (latchMin / ramp / pull 0.16).
 // Flicker.speedBoostSeconds 5.0 (wall-clock wall-boost rush).
 // Flicker.shieldSeconds 5.0 (wall-clock, matches Android/web).
@@ -141,20 +143,9 @@ enum GameConfig {
     }
 
     enum Unlocks {
-        static let table: [(type: String, score: CGFloat, message: String)] = [
-            ("simple", 0, "Watch out for asteroids!"),
-            ("sideBarrier", 1000, "Warning: Side barriers detected!"),
-            ("complex", 1000, "Warning: Asteroids with orbiting debris detected!"),
-            ("moving", 2000, "Caution: Moving asteroids detected!"),
-            ("shooting", 3000, "Warning: Hostile asteroids detected!"),
-            ("driftCurrent", 3500, "Crosswinds detected — lateral currents ahead!"),
-            ("pulsating", 4000, "Warning: Unstable asteroids ahead!"),
-            ("phase", 4500, "Square blooms detected — they spring open and shove!"),
-            ("wormhole", 5000, "Spatial anomalies detected!"),
-            ("repulsor", 5500, "Repulsor fields detected — they push, not pull!"),
-            ("blackhole", 6000, "Gravitational anomalies detected!"),
-            ("sweepGate", 7000, "Sweep lines ahead — timed corridors!"),
-        ]
+        static var table: [(type: String, score: CGFloat, message: String)] {
+            GeneratedJourneyData.openWorldUnlocks.map { ($0.type, $0.score, "") }
+        }
     }
 
     enum Milestones {
@@ -172,6 +163,7 @@ enum GameConfig {
     enum Stress {
         static let obstacleSlots = 64
         static let extraPartSlots = 48
+        static let hazardPartSlots = 384
         /// 4 on-screen drift currents × 7 shear lines (Android DriftCurrent).
         static let driftLaneSlots = 28
         static let sparkleSlots = 24

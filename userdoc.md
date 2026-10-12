@@ -20,7 +20,9 @@
      mixes nine new obstacles (Spinner, Hollow Orbit, Ricochet,
      Blink Row, Tunnel Field, Shoal, Satellite Debris, Lightning,
      Meteor Shower) with the usual lab hazards. Bumpers, Comet, and Snap are gone. Spinner looks like a radar; Shoal bounces twice, then leaves. Nothing in that run counts
-     toward Journey. The iPhone build does not have these yet.
+     toward Journey. The iPhone build now has the same obstacles, Space Log
+     pictures, and Hazard Lab tile. No extra sentence or voice plays for a
+     first meeting. A Mac still needs to fly them once to confirm.
      Home menu has a quiet headphones line above the title.
      Open Space launch lines are named nav_XX_ship_N.mp3.
      Play opens the Hangar before Open Space or a Journey day.

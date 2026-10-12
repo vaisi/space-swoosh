@@ -1,5 +1,6 @@
 // JourneyConfig.swift
-// Changes: 42-level Journey descriptors; L6+ pairTheme / encounterCount, L20+ comboTheme;
+// Changes: OpenWorldUnlock is the Open Space ladder row (type + KM).
+// 42-level Journey descriptors; L6+ pairTheme / encounterCount, L20+ comboTheme;
 // Open Space weather + belt density types; storm quiet/chain/gap-cap from GeneratedJourneyData.
 
 import Foundation
@@ -33,6 +34,11 @@ struct JourneyLevelSpec: Equatable {
     var sparklesTarget: Int
     var smashTarget: Int
     var starSlots: Int
+}
+
+struct OpenWorldUnlock {
+    var type: String
+    var score: CGFloat
 }
 
 struct EncounterSlot: Equatable {

@@ -1,5 +1,6 @@
 // WorldState.swift
-// Changes: baseUnit matches Android mobile min(width/45, height/75).
+// Changes: parts pool for the nine new obstacles (pebbles, fish, shards).
+// baseUnit matches Android mobile min(width/45, height/75).
 // World carries equipped SkinId; trail buffer sized from the skin.
 
 import Foundation
@@ -24,6 +25,7 @@ struct WorldState {
     var ship: ShipState
     var trail: TrailRingBuffer
     var obstacles: [ObstacleState]
+    var parts: [HazardPart]
     var pickups: [PickupState]
     var width: CGFloat
     var height: CGFloat
@@ -56,6 +58,7 @@ struct WorldState {
             repeating: ObstacleState.inactive(),
             count: GameConfig.Stress.obstacleSlots
         )
+        let parts = Array(repeating: HazardPart.inactive(), count: GameConfig.Stress.hazardPartSlots)
         let pickups = Array(
             repeating: PickupState(active: false, kind: .sparkle, x: 0, y: 0, phase: 0),
             count: GameConfig.Stress.pickupSlots
@@ -64,6 +67,7 @@ struct WorldState {
             ship: ship,
             trail: trail,
             obstacles: obstacles,
+            parts: parts,
             pickups: pickups,
             width: width,
             height: height,

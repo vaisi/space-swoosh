@@ -29,8 +29,10 @@
      (playtestWallHazards.js). Ricochet restored; bumper, comet, and snap removed. Satellite cells exit through walls; Shoal is a spaced, wandering school that bounces twice, then leaves. Spinner is drawn as a radar sweep.
      Shared helpers live in playtestShared.js. Tunnel
      field claims its band via ObstacleManager.claimArea(). The Journey map shows Hazard Lab
-     on this branch only. Journey debuts the nine on existing days. No
-     shared/game-constants.json export yet, no iOS ObstacleKind cases.
+     on this branch (JS and native iOS). Journey debuts the nine on existing days.
+     Native iOS has the same nine kinds, part pool, load budget, and Space Log
+     glyphs. Debut voice and on-screen teach lines stay off. A Mac still has
+     to fly day 7, day 13, day 19, and Open Space past 1500 KM.
      Home menu hint: Headphones recommended for best experience.
      Launch lines on disk are nav_XX_ship_N.mp3 in
      public/sounds/voice/ and ios-native/SpaceSwoosh/Voice/
@@ -105,7 +107,7 @@
 > `UNLOCK_ALL_LEVELS = false` (web also `?unlocklevels=1|0`). Free forever (no
 > `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
 > High Scores plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
-> Light Mode / Restore; native Rate ★ is a header chip. PLAY is Journey then Open Space; Lab is hidden (`SHOW_HAZARD_LAB` / `showHazardLab`, flip to restore the map tile). SPACE BOARD
+> Light Mode / Restore; native Rate ★ is a header chip. PLAY is Journey then Open Space. Hazard Lab is on for this branch (`SHOW_HAZARD_LAB` / `showHazardLab`). Native iOS obstacles match Android: nine kinds in `PlaytestBodies`, `PlaytestFields`, `PlaytestWallHazards`, and `PlaytestStreakers`, drawn by `PlaytestDraw`. Open Space unlocks come from `GeneratedJourneyData.openWorldUnlocks`. Debut clips stay silent. SPACE BOARD
 > uses the same Supabase `high_scores` table as Android (anon key injected at
 > build) for **Global**. Phones add a **Friends** chip (Game Center on iOS,
 > Play Games on Android). Style is the flown/saved flight style (no Z/S chip).
@@ -179,9 +181,9 @@
 > iOS/Android/PWA). Level logbook entries unlock to KNOWN on level start (intro heard).
 >
 > **Hazard Lab (sandbox):** Run code stays (`PLAY_MODE.hazardLab` /
-> `HazardLabProfile`) but the Journey-map tile is **hidden** (`SHOW_HAZARD_LAB`
-> in `JourneyMapScreen.js`, `showHazardLab` in `JourneyMapView.swift`). Flip
-> either true to restore the always-unlocked LAB tile above Troposphere.
+> `HazardLabProfile`). On this branch the Journey-map tile is **shown**
+> (`SHOW_HAZARD_LAB` in `JourneyMapScreen.js`, `showHazardLab` in
+> `JourneyMapView.swift`). The always-unlocked LAB tile sits above Troposphere.
 > Practice for **Phase**, **Sweep**, **Repulsor**, **Drift
 > Current**, **Wormhole**, and **Black hole** (advanced Y-pull). Camera reseat
 > after 5s below seat is on for every JS run (web + Capacitor), including lab. Finish/crash skips

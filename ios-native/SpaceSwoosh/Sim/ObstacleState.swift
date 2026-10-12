@@ -1,5 +1,6 @@
 // ObstacleState.swift
-// Changes: Wormholes do not use additive glow (Android stroke-only gate).
+// Changes: Nine playtest kinds (spinner through meteor shower) match Android.
+// Wormholes do not use additive glow (Android stroke-only gate).
 // Per-type hazard kinds + fields for JS collision / motion.
 
 import Foundation
@@ -21,6 +22,15 @@ enum ObstacleKind: Int, CaseIterable {
     case repulsor
     case blackhole
     case projectile
+    case spinner
+    case hollowOrbit
+    case ricochet
+    case blinkRow
+    case tunnelField
+    case shoal
+    case satDebris
+    case lightning
+    case meteorShower
 }
 
 struct ObstacleState {

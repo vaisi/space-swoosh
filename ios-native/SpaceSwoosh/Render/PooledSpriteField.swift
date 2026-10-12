@@ -1,5 +1,6 @@
 // PooledSpriteField.swift
-// Changes: Black hole matches Android Canvas — solid disc, alpha halo at
+// Changes: The nine new obstacles draw in PlaytestDraw (ink and dashed tells).
+// Black hole matches Android Canvas — solid disc, alpha halo at
 // 8×radius, 2pt ink pulse ring (1.2 ± 0.2×sin(phase)). Repulsor still uses
 // additive glowInk at 3.4×. Drift lanes cache a dashed hairline and slide
 // in X (Android lineDashOffset). Latched sparkles scale/pulse as magnetMix
@@ -15,6 +16,7 @@ final class PooledSpriteField: SKNode {
     private let blackHoleRingNodes: [SKShapeNode]
     private let pickupNodes: [SKSpriteNode]
     private let driftLaneNodes: [SKShapeNode]
+    private let playtestLayer = SKNode()
     private var driftLanePath: CGPath?
     private var driftLaneCacheWidth: CGFloat = -1
     private var driftLaneCacheUnit: CGFloat = -1
@@ -102,8 +104,10 @@ final class PooledSpriteField: SKNode {
             lanes.append(node)
         }
         driftLaneNodes = lanes
+        playtestLayer.zPosition = 4.3
 
         super.init()
+        addChild(playtestLayer)
         for node in bodyNodes { addChild(node) }
         for node in extraNodes { addChild(node) }
         for node in glowNodes { addChild(node) }
@@ -134,7 +138,7 @@ final class PooledSpriteField: SKNode {
             let y = screenY + (o.y - cameraY)
             let merge = HazardCollision.mergeFactor(o)
 
-            if o.kind == .drift || (o.kind == .phase && merge < 0.001) {
+            if o.kind == .drift || (o.kind == .phase && merge < 0.001) || PlaytestHazards.owns(o.kind) {
                 node.isHidden = true
             } else {
                 node.isHidden = false
@@ -216,6 +220,7 @@ final class PooledSpriteField: SKNode {
         for i in driftUsed..<driftLaneNodes.count {
             driftLaneNodes[i].isHidden = true
         }
+        PlaytestDraw.render(into: playtestLayer, world: world, cameraY: cameraY, sceneHeight: sceneHeight)
 
         for i in 0..<pickupNodes.count {
             let node = pickupNodes[i]

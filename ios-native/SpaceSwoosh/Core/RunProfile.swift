@@ -1,5 +1,7 @@
 // RunProfile.swift
-// Changes: Journey L24+ deep belt (~12% easier gaps/density/row mix) mirrors
+// Changes: Journey and Open Space belts omit set pieces (shoal, tunnel,
+// satellite). Those arrive as encounters. Lab still rolls them.
+// Journey L24+ deep belt (~12% easier gaps/density/row mix) mirrors
 // JS JourneyProfile. Journey cruise is GameConfig.cruiseSpeedMultiplier (1.1),
 // same as Open Space — difficulty no longer lerps travel speed. Journey/Lab
 // clusterCount adds Int(roll * dens) like Android spawnSimpleAsteroids.
@@ -200,10 +202,14 @@ struct RunProfile {
     }
 
     func unlockedTypes(scoreKm: CGFloat) -> [String] {
+        let raw: [String]
         if usesKmUnlocks {
-            return GameConfig.Unlocks.table.compactMap { scoreKm >= $0.score ? $0.type : nil }
+            raw = GameConfig.Unlocks.table.compactMap { scoreKm >= $0.score ? $0.type : nil }
+        } else {
+            raw = types
         }
-        return types
+        if mode == .hazardLab { return raw }
+        return raw.filter { !PlaytestDemand.setPieces.contains($0) }
     }
 
     func density(scoreKm: CGFloat) -> CGFloat {

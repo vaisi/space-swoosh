@@ -1,5 +1,6 @@
 // export-game-constants.mjs
-// Changes: emit Open Space 20k deep storm quiet / chain / fromKm.
+// Changes: emit OpenWorldUnlock rows into GeneratedJourneyData.
+// emit Open Space 20k deep storm quiet / chain / fromKm.
 // defaultShipId is Flicker (matches JS DEFAULT_SHIP_SKIN).
 // emit ENDING_EPILOGUE (42-level written ending) instead of ENDING_BEATS.
 // Skip captions export as epilogueSkip beats (one phrase per line).
@@ -360,6 +361,9 @@ const emptyCatLines = Object.entries(EMPTY_CATEGORY_COPY)
 const firstBoop = swiftBeats(FIRST_BOOP_BEATS.map(normalizeBeat));
 const epilogueOpen = swiftBeats(ENDING_EPILOGUE.open.map(normalizeBeat));
 const epilogueSkip = swiftBeats((ENDING_EPILOGUE.skip || []).map(normalizeBeat));
+const unlockLines = OPEN_WORLD_UNLOCKS.map(({ type, score }) =>
+  `        OpenWorldUnlock(type: ${swiftStr(type)}, score: ${score})`
+).join(',\n');
 const encounterLines = encounterCatalog.map(swiftEncounterRecipe).join(',\n');
 const weatherBandLines = OPEN_SPACE_WEATHER.map((band) => `        OpenSpaceWeatherBand(
             fromKm: ${band.fromKm},
@@ -401,6 +405,9 @@ enum GeneratedJourneyData {
     static let labGoalKm: CGFloat = ${HAZARD_LAB.goalKm}
     static let labDifficulty: CGFloat = ${HAZARD_LAB.difficulty}
     static let labTypes = [${HAZARD_LAB.types.map((t) => swiftStr(t)).join(', ')}]
+    static let openWorldUnlocks: [OpenWorldUnlock] = [
+${unlockLines}
+    ]
     static let emptyLogbook = ${swiftStr(EMPTY_LOGBOOK_COPY)}
     static let epiloguePrompt = ${swiftStr(ENDING_EPILOGUE.prompt)}
     static let epiloguePromptPlaceholder = ${swiftStr(ENDING_EPILOGUE.promptPlaceholder)}

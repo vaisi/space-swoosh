@@ -225,12 +225,24 @@
       "score": 1000
     },
     {
+      "type": "spinner",
+      "score": 1500
+    },
+    {
       "type": "moving",
       "score": 2000
     },
     {
+      "type": "blinkRow",
+      "score": 2500
+    },
+    {
       "type": "shooting",
       "score": 3000
+    },
+    {
+      "type": "meteorShower",
+      "score": 3200
     },
     {
       "type": "driftCurrent",
@@ -241,12 +253,24 @@
       "score": 4000
     },
     {
+      "type": "hollowOrbit",
+      "score": 4200
+    },
+    {
       "type": "phase",
       "score": 4500
     },
     {
+      "type": "shoal",
+      "score": 4800
+    },
+    {
       "type": "wormhole",
       "score": 5000
+    },
+    {
+      "type": "ricochet",
+      "score": 5200
     },
     {
       "type": "repulsor",
@@ -257,8 +281,20 @@
       "score": 6000
     },
     {
+      "type": "tunnelField",
+      "score": 6400
+    },
+    {
+      "type": "lightning",
+      "score": 6500
+    },
+    {
       "type": "sweepGate",
       "score": 7000
+    },
+    {
+      "type": "satDebris",
+      "score": 8000
     }
   ],
   "openSpaceWeather": {
@@ -338,6 +374,36 @@
         "pair": "complex",
         "combo": "pulsating",
         "focus": "shooting"
+      },
+      {
+        "pair": "moving",
+        "combo": "pulsating",
+        "focus": "spinner"
+      },
+      {
+        "pair": "shooting",
+        "combo": "moving",
+        "focus": "ricochet"
+      },
+      {
+        "pair": "pulsating",
+        "combo": "moving",
+        "focus": "hollowOrbit"
+      },
+      {
+        "pair": "moving",
+        "combo": "complex",
+        "focus": "blinkRow"
+      },
+      {
+        "pair": "shooting",
+        "combo": "pulsating",
+        "focus": "meteorShower"
+      },
+      {
+        "pair": "moving",
+        "combo": "shooting",
+        "focus": "lightning"
       }
     ],
     "belt": [
@@ -560,13 +626,14 @@
         "types": [
           "simple",
           "moving",
-          "sideBarrier"
+          "sideBarrier",
+          "spinner"
         ],
-        "focusType": "moving",
-        "pairTheme": "sideBarrier",
+        "focusType": "spinner",
+        "pairTheme": "moving",
         "comboTheme": null,
         "encounterCount": 1,
-        "introduces": null,
+        "introduces": "spinner",
         "sparklesTarget": 8,
         "smashTarget": 2,
         "starSlots": 3
@@ -580,10 +647,11 @@
         "types": [
           "simple",
           "moving",
-          "sideBarrier"
+          "sideBarrier",
+          "spinner"
         ],
         "focusType": "moving",
-        "pairTheme": "sideBarrier",
+        "pairTheme": "spinner",
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": null,
@@ -601,7 +669,8 @@
           "simple",
           "moving",
           "sideBarrier",
-          "complex"
+          "complex",
+          "spinner"
         ],
         "focusType": "complex",
         "pairTheme": "moving",
@@ -622,13 +691,15 @@
           "simple",
           "moving",
           "sideBarrier",
-          "complex"
+          "complex",
+          "spinner",
+          "blinkRow"
         ],
-        "focusType": "complex",
-        "pairTheme": "moving",
+        "focusType": "blinkRow",
+        "pairTheme": "complex",
         "comboTheme": null,
         "encounterCount": 1,
-        "introduces": null,
+        "introduces": "blinkRow",
         "sparklesTarget": 10,
         "smashTarget": 2,
         "starSlots": 3
@@ -643,10 +714,12 @@
           "simple",
           "moving",
           "sideBarrier",
-          "complex"
+          "complex",
+          "spinner",
+          "blinkRow"
         ],
-        "focusType": "moving",
-        "pairTheme": "complex",
+        "focusType": "spinner",
+        "pairTheme": "blinkRow",
         "comboTheme": null,
         "encounterCount": 1,
         "introduces": null,
@@ -665,7 +738,9 @@
           "moving",
           "sideBarrier",
           "complex",
-          "shooting"
+          "shooting",
+          "spinner",
+          "blinkRow"
         ],
         "focusType": "shooting",
         "pairTheme": "moving",
@@ -687,13 +762,16 @@
           "moving",
           "sideBarrier",
           "complex",
-          "shooting"
+          "shooting",
+          "spinner",
+          "blinkRow",
+          "meteorShower"
         ],
-        "focusType": "complex",
-        "pairTheme": "shooting",
+        "focusType": "meteorShower",
+        "pairTheme": "complex",
         "comboTheme": null,
         "encounterCount": 1,
-        "introduces": null,
+        "introduces": "meteorShower",
         "sparklesTarget": 12,
         "smashTarget": 3,
         "starSlots": 3
@@ -709,7 +787,10 @@
           "moving",
           "sideBarrier",
           "complex",
-          "shooting"
+          "shooting",
+          "spinner",
+          "blinkRow",
+          "meteorShower"
         ],
         "focusType": "shooting",
         "pairTheme": "moving",
@@ -732,7 +813,10 @@
           "sideBarrier",
           "complex",
           "shooting",
-          "driftCurrent"
+          "driftCurrent",
+          "spinner",
+          "blinkRow",
+          "meteorShower"
         ],
         "focusType": "driftCurrent",
         "pairTheme": "moving",
@@ -755,13 +839,17 @@
           "sideBarrier",
           "complex",
           "shooting",
-          "driftCurrent"
+          "driftCurrent",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit"
         ],
-        "focusType": "complex",
-        "pairTheme": "shooting",
+        "focusType": "hollowOrbit",
+        "pairTheme": "complex",
         "comboTheme": null,
         "encounterCount": 1,
-        "introduces": null,
+        "introduces": "hollowOrbit",
         "sparklesTarget": 9,
         "smashTarget": 8,
         "starSlots": 3
@@ -779,7 +867,11 @@
           "complex",
           "shooting",
           "driftCurrent",
-          "pulsating"
+          "pulsating",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit"
         ],
         "focusType": "pulsating",
         "pairTheme": "moving",
@@ -803,7 +895,11 @@
           "complex",
           "shooting",
           "driftCurrent",
-          "pulsating"
+          "pulsating",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit"
         ],
         "focusType": "complex",
         "pairTheme": "shooting",
@@ -827,13 +923,18 @@
           "complex",
           "shooting",
           "driftCurrent",
-          "pulsating"
+          "pulsating",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal"
         ],
-        "focusType": "shooting",
-        "pairTheme": "pulsating",
+        "focusType": "shoal",
+        "pairTheme": "shooting",
         "comboTheme": null,
         "encounterCount": 1,
-        "introduces": null,
+        "introduces": "shoal",
         "sparklesTarget": 10,
         "smashTarget": 8,
         "starSlots": 3
@@ -852,7 +953,12 @@
           "shooting",
           "driftCurrent",
           "pulsating",
-          "phase"
+          "phase",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal"
         ],
         "focusType": "phase",
         "pairTheme": "moving",
@@ -877,7 +983,12 @@
           "shooting",
           "driftCurrent",
           "pulsating",
-          "phase"
+          "phase",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal"
         ],
         "focusType": "complex",
         "pairTheme": "shooting",
@@ -903,7 +1014,12 @@
           "driftCurrent",
           "pulsating",
           "phase",
-          "wormhole"
+          "wormhole",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal"
         ],
         "focusType": "wormhole",
         "pairTheme": "moving",
@@ -929,13 +1045,19 @@
           "driftCurrent",
           "pulsating",
           "phase",
-          "wormhole"
+          "wormhole",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet"
         ],
-        "focusType": "complex",
-        "pairTheme": "shooting",
-        "comboTheme": "phase",
+        "focusType": "ricochet",
+        "pairTheme": "complex",
+        "comboTheme": "pulsating",
         "encounterCount": 1,
-        "introduces": null,
+        "introduces": "ricochet",
         "sparklesTarget": 12,
         "smashTarget": 8,
         "starSlots": 3
@@ -955,7 +1077,13 @@
           "driftCurrent",
           "pulsating",
           "phase",
-          "wormhole"
+          "wormhole",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet"
         ],
         "focusType": "shooting",
         "pairTheme": "pulsating",
@@ -982,7 +1110,13 @@
           "pulsating",
           "phase",
           "wormhole",
-          "repulsor"
+          "repulsor",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet"
         ],
         "focusType": "repulsor",
         "pairTheme": "moving",
@@ -1009,7 +1143,13 @@
           "pulsating",
           "phase",
           "wormhole",
-          "repulsor"
+          "repulsor",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet"
         ],
         "focusType": "complex",
         "pairTheme": "shooting",
@@ -1037,7 +1177,13 @@
           "phase",
           "wormhole",
           "repulsor",
-          "blackhole"
+          "blackhole",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet"
         ],
         "focusType": "blackhole",
         "pairTheme": "moving",
@@ -1065,13 +1211,20 @@
           "phase",
           "wormhole",
           "repulsor",
-          "blackhole"
+          "blackhole",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning"
         ],
-        "focusType": "complex",
-        "pairTheme": "shooting",
-        "comboTheme": "phase",
+        "focusType": "lightning",
+        "pairTheme": "complex",
+        "comboTheme": "pulsating",
         "encounterCount": 2,
-        "introduces": null,
+        "introduces": "lightning",
         "sparklesTarget": 14,
         "smashTarget": 14,
         "starSlots": 3
@@ -1093,7 +1246,14 @@
           "phase",
           "wormhole",
           "repulsor",
-          "blackhole"
+          "blackhole",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning"
         ],
         "focusType": "shooting",
         "pairTheme": "pulsating",
@@ -1121,7 +1281,14 @@
           "phase",
           "wormhole",
           "repulsor",
-          "blackhole"
+          "blackhole",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning"
         ],
         "focusType": "driftCurrent",
         "pairTheme": "moving",
@@ -1150,7 +1317,14 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning"
         ],
         "focusType": "sweepGate",
         "pairTheme": "moving",
@@ -1179,7 +1353,14 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning"
         ],
         "focusType": "complex",
         "pairTheme": "shooting",
@@ -1208,13 +1389,21 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField"
         ],
-        "focusType": "shooting",
-        "pairTheme": "pulsating",
-        "comboTheme": "wormhole",
+        "focusType": "tunnelField",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
         "encounterCount": 2,
-        "introduces": null,
+        "introduces": "tunnelField",
         "sparklesTarget": 17,
         "smashTarget": 18,
         "starSlots": 3
@@ -1237,7 +1426,15 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField"
         ],
         "focusType": "moving",
         "pairTheme": "shooting",
@@ -1266,7 +1463,15 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField"
         ],
         "focusType": "complex",
         "pairTheme": "shooting",
@@ -1295,13 +1500,22 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField",
+          "satDebris"
         ],
-        "focusType": "shooting",
-        "pairTheme": "pulsating",
-        "comboTheme": "wormhole",
+        "focusType": "satDebris",
+        "pairTheme": "shooting",
+        "comboTheme": "phase",
         "encounterCount": 2,
-        "introduces": null,
+        "introduces": "satDebris",
         "sparklesTarget": 18,
         "smashTarget": 18,
         "starSlots": 3
@@ -1324,7 +1538,16 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField",
+          "satDebris"
         ],
         "focusType": "driftCurrent",
         "pairTheme": "moving",
@@ -1353,7 +1576,16 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField",
+          "satDebris"
         ],
         "focusType": "pulsating",
         "pairTheme": "shooting",
@@ -1382,7 +1614,16 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField",
+          "satDebris"
         ],
         "focusType": "phase",
         "pairTheme": "shooting",
@@ -1411,11 +1652,20 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField",
+          "satDebris"
         ],
         "focusType": "wormhole",
         "pairTheme": "moving",
-        "comboTheme": "complex",
+        "comboTheme": "spinner",
         "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 20,
@@ -1440,11 +1690,20 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField",
+          "satDebris"
         ],
         "focusType": "repulsor",
         "pairTheme": "shooting",
-        "comboTheme": "complex",
+        "comboTheme": "blinkRow",
         "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 21,
@@ -1469,11 +1728,20 @@
           "wormhole",
           "repulsor",
           "blackhole",
-          "sweepGate"
+          "sweepGate",
+          "spinner",
+          "blinkRow",
+          "meteorShower",
+          "hollowOrbit",
+          "shoal",
+          "ricochet",
+          "lightning",
+          "tunnelField",
+          "satDebris"
         ],
         "focusType": "blackhole",
         "pairTheme": "complex",
-        "comboTheme": "driftCurrent",
+        "comboTheme": "meteorShower",
         "encounterCount": 2,
         "introduces": null,
         "sparklesTarget": 22,
@@ -2996,6 +3264,93 @@
             "slots": []
           }
         ]
+      },
+      {
+        "id": "tunnelRun",
+        "family": "tunnel",
+        "requires": [
+          "tunnelField"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "tunnelField",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "accompany",
+            "frac": 0,
+            "slots": []
+          },
+          {
+            "kind": "gap",
+            "frac": 0.4,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "shoalPass",
+        "family": "shoal",
+        "requires": [
+          "shoal"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "shoal",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "accompany",
+            "frac": 0,
+            "slots": []
+          },
+          {
+            "kind": "gap",
+            "frac": 0.4,
+            "slots": []
+          }
+        ]
+      },
+      {
+        "id": "debrisField",
+        "family": "debris",
+        "requires": [
+          "satDebris"
+        ],
+        "beats": [
+          {
+            "kind": "spawn",
+            "frac": 0,
+            "slots": [
+              {
+                "type": "satDebris",
+                "lane": null
+              }
+            ]
+          },
+          {
+            "kind": "accompany",
+            "frac": 0,
+            "slots": []
+          },
+          {
+            "kind": "gap",
+            "frac": 0.4,
+            "slots": []
+          }
+        ]
       }
     ]
   },
@@ -3012,7 +3367,16 @@
       "repulsor",
       "driftCurrent",
       "wormhole",
-      "blackhole"
+      "blackhole",
+      "spinner",
+      "hollowOrbit",
+      "ricochet",
+      "blinkRow",
+      "tunnelField",
+      "shoal",
+      "satDebris",
+      "lightning",
+      "meteorShower"
     ],
     "focusType": null,
     "introduces": null,
@@ -3020,7 +3384,7 @@
     "smashTarget": 0,
     "starSlots": 0,
     "isHazardLab": true,
-    "intro": "Hazard Lab — blooms, sweeps, push nodes, wind, portals, and wells. Practice only — nothing counts toward Journey."
+    "intro": "Hazard Lab. Blooms, sweeps, and new shapes: tunnel fields, lightning, meteor showers, satellite debris, and more. Practice only. Nothing counts toward Journey."
   },
   "logbook": {
     "categories": [
@@ -3158,6 +3522,87 @@
         "remark": "Attraction without consent. Classic.",
         "unlockMode": "observeThenInteract",
         "icon": "blackhole"
+      },
+      {
+        "id": "spinner",
+        "category": "obstacles",
+        "name": "Spinner",
+        "definition": "A radar hand turning on a hub. Only the hand kills; the fading arcs behind it are just its sweep. Pass near the hub while the hand points away.",
+        "remark": "A clock that only covers one lane.",
+        "unlockMode": "observeThenInteract",
+        "icon": "spinner"
+      },
+      {
+        "id": "hollowOrbit",
+        "category": "obstacles",
+        "name": "Hollow Orbit",
+        "definition": "Two moons circling an empty centre. The hole is the line, and it turns.",
+        "remark": "The core declined to attend.",
+        "unlockMode": "observeThenInteract",
+        "icon": "hollowOrbit"
+      },
+      {
+        "id": "ricochet",
+        "category": "obstacles",
+        "name": "Ricochet",
+        "definition": "A shard on a straight diagonal. It banks off the screen edges. Read the line.",
+        "remark": "Geometry that refuses to leave.",
+        "unlockMode": "observeThenInteract",
+        "icon": "ricochet"
+      },
+      {
+        "id": "blinkRow",
+        "category": "obstacles",
+        "name": "Blink Row",
+        "definition": "Three rocks side by side. One lane turns hollow at a time, and that lane cycles.",
+        "remark": "Stand where the ink is only a drawing.",
+        "unlockMode": "observeThenInteract",
+        "icon": "blinkRow"
+      },
+      {
+        "id": "tunnelField",
+        "category": "obstacles",
+        "name": "Tunnel Field",
+        "definition": "A band of rubble with one tunnel cut at your lean. Flip at each bend. The dashed lining chips off. The solid rubble does not.",
+        "remark": "Someone dug this at exactly 52 degrees.",
+        "unlockMode": "observeThenInteract",
+        "icon": "tunnelField"
+      },
+      {
+        "id": "shoal",
+        "category": "obstacles",
+        "name": "Shoal",
+        "definition": "A loose school of rocks. It bounces off each wall once, then swims out for good. Slip a gap or let it pass.",
+        "remark": "They have places to be.",
+        "unlockMode": "observeThenInteract",
+        "icon": "shoal"
+      },
+      {
+        "id": "satDebris",
+        "category": "obstacles",
+        "name": "Satellite Debris",
+        "definition": "A dead satellite tumbling toward a wall. When it hits, it breaks into pieces that drift back in.",
+        "remark": "Warranty void.",
+        "unlockMode": "observeThenInteract",
+        "icon": "satDebris"
+      },
+      {
+        "id": "lightning",
+        "category": "obstacles",
+        "name": "Lightning",
+        "definition": "The wall crackles and a dashed line shows the reach. Then a bolt snaps across and is gone. Only the bolt kills. The wall stays safe.",
+        "remark": "Never strikes the same place twice. It does, actually.",
+        "unlockMode": "observeThenInteract",
+        "icon": "lightning"
+      },
+      {
+        "id": "meteorShower",
+        "category": "obstacles",
+        "name": "Meteor Shower",
+        "definition": "Dashed streaks fall first, and they are safe. Then tiny rocks follow that same slant. Zig against the grain.",
+        "remark": "Forecast: brief, pointy.",
+        "unlockMode": "observeThenInteract",
+        "icon": "meteorShower"
       },
       {
         "id": "spaceBoop",

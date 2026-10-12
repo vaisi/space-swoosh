@@ -1,5 +1,6 @@
 // HazardCollision.swift
-// Changes: Phase piece local Y is SpriteKit-up (Canvas Y-down). Portal hop grants shield.
+// Changes: The nine new kinds are tested in PlaytestHazards, not here.
+// Phase piece local Y is SpriteKit-up (Canvas Y-down). Portal hop grants shield.
 
 import Foundation
 import CoreGraphics
@@ -37,6 +38,8 @@ enum HazardCollision {
                 && shipX + shipR > o.x - o.halfW
                 && shipY - shipR < o.y + o.halfH
                 && shipY + shipR > o.y - o.halfH
+        case .spinner, .hollowOrbit, .ricochet, .blinkRow, .tunnelField, .shoal, .satDebris, .lightning, .meteorShower:
+            return false
         }
     }
 
@@ -112,6 +115,8 @@ enum HazardCollision {
                     inward: true,
                     pullY: run.profile.advancedBlackHoles(scoreKm: run.scoreKm)
                 )
+            case .spinner, .hollowOrbit, .ricochet, .blinkRow, .tunnelField, .shoal, .satDebris, .lightning, .meteorShower:
+                break
             case .phase:
                 let open = displayOpen(o)
                 guard open >= 0.25 else { continue }

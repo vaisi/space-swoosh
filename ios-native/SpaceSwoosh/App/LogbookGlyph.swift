@@ -1,6 +1,6 @@
 // LogbookGlyph.swift
 // Space Log picture-well specimens matching Android LogbookGlyphs.js.
-// Changes:
+// Changes: Nine playtest specimens (spinner through meteor shower).
 // - Space BOOP: zigzag bounce (52° from vertical) with even Signal-Blue dots
 //   kissing the left wall then reflecting — matches the in-run wake, not a
 //   droop off the hull.
@@ -155,6 +155,46 @@ enum LogbookGlyph {
             )
             fillCircle(&ctx, cx: cx, cy: cy, r: size, color: ink)
             strokeCircle(&ctx, cx: cx, cy: cy, r: size * 1.2, color: ink, width: max(1.5, u * 0.1))
+        case "spinner":
+            drawSpinnerGlyph(&ctx, cx: cx, cy: cy, u: u, ink: ink, dimmed: dimmed)
+        case "hollowOrbit":
+            fillCircle(&ctx, cx: cx - u * 3.4, cy: cy, r: u * 1.15, color: ink)
+            fillCircle(&ctx, cx: cx + u * 3.4, cy: cy, r: u * 1.15, color: ink)
+        case "blinkRow":
+            let br = u * 1.55
+            let bxs = [cx - br * 2.5, cx, cx + br * 2.5]
+            for (i, px) in bxs.enumerated() {
+                if i == 1 {
+                    strokeCircle(
+                        &ctx, cx: px, cy: cy, r: br,
+                        color: BrandColors.ink30, width: max(1.25, u * 0.08),
+                        dash: [br * 0.38, br * 0.24]
+                    )
+                } else {
+                    fillCircle(&ctx, cx: px, cy: cy, r: br, color: ink)
+                }
+            }
+        case "tunnelField":
+            drawTunnelGlyph(&ctx, canvas: canvas, cx: cx, cy: cy, u: u, ink: ink)
+        case "shoal":
+            let fish: [(CGFloat, CGFloat)] = [
+                (-2.6, 0.4), (-1.2, -0.9), (0.2, 0.2), (1.5, -0.6), (2.8, 0.7),
+                (-0.6, 1.3), (1.0, 1.4), (-2.0, -1.6), (2.2, -1.8),
+            ]
+            for (fx, fy) in fish {
+                fillCircle(&ctx, cx: cx + fx * u * 1.6, cy: cy + fy * u * 1.6, r: u * 0.6, color: ink)
+            }
+        case "ricochet":
+            var spun = ctx
+            spun.translateBy(x: cx, y: cy)
+            spun.rotate(by: .radians(0.55))
+            fillTriangle(&spun, cx: 0, cy: 0, r: Size.asteroid * 0.75 * u, color: ink)
+        case "satDebris":
+            drawSatGlyph(&ctx, cx: cx, cy: cy, u: u, ink: ink)
+        case "lightning":
+            drawLightningGlyph(&ctx, canvas: canvas, cy: cy, u: u, ink: ink, dimmed: dimmed)
+        case "meteorShower":
+            drawMeteorGlyph(&ctx, cx: cx, cy: cy, u: u, ink: ink)
         case "spaceBoop":
             let wall = u * 1.15
             ctx.fill(Path(CGRect(x: 0, y: 0, width: wall, height: canvas.height)), with: .color(ink))
@@ -374,6 +414,170 @@ enum LogbookGlyph {
         )
         let coreX = facingRight ? tipX - tipW * 0.15 : tipX + tipW * 0.15
         fillCircle(&ctx, cx: coreX, cy: cy, r: u * 0.14, color: signal)
+    }
+
+    private static func drawSpinnerGlyph(
+        _ ctx: inout GraphicsContext, cx: CGFloat, cy: CGFloat, u: CGFloat, ink: Color, dimmed: Bool
+    ) {
+        var local = ctx
+        local.translateBy(x: cx, y: cy)
+        local.rotate(by: .radians(-0.6))
+        let len = u * 4.2
+        let tell = dimmed ? BrandColors.ink30.opacity(0.45) : BrandColors.ink30
+        let sweep: CGFloat = 0.95
+        let slices = 7
+        let rings = 4
+        let step = sweep / CGFloat(slices)
+        for s in 0..<slices {
+            let from = CGFloat(s) * step
+            let to = CGFloat(s + 1) * step
+            var arcs = Path()
+            for k in 1...rings {
+                let r = len * (0.4 + (0.6 * CGFloat(k)) / CGFloat(rings))
+                arcs.move(to: CGPoint(x: cos(from) * r, y: sin(from) * r))
+                arcs.addArc(center: .zero, radius: r, startAngle: .radians(from), endAngle: .radians(to), clockwise: false)
+            }
+            local.opacity = 1 - CGFloat(s) / CGFloat(slices)
+            local.stroke(arcs, with: .color(tell), style: StrokeStyle(lineWidth: max(1.25, u * 0.14), lineCap: .butt))
+        }
+        local.opacity = 1
+        local.fill(Path(CGRect(x: 0, y: -u * 0.16, width: len, height: u * 0.32)), with: .color(ink))
+        fillCircle(&local, cx: 0, cy: 0, r: u * 0.7, color: ink)
+    }
+
+    private static func drawTunnelGlyph(
+        _ ctx: inout GraphicsContext, canvas: CGSize, cx: CGFloat, cy: CGFloat, u: CGFloat, ink: Color
+    ) {
+        let k = tan(52 * CGFloat.pi / 180)
+        let leg = canvas.height * 0.32
+        let pts = [
+            CGPoint(x: cx - leg * k * 0.5, y: cy + leg * 1.5),
+            CGPoint(x: cx + leg * k * 0.5, y: cy + leg * 0.5),
+            CGPoint(x: cx - leg * k * 0.5, y: cy - leg * 0.5),
+            CGPoint(x: cx + leg * k * 0.5, y: cy - leg * 1.5),
+        ]
+        let step = u * 1.6
+        let r = u * 0.6
+        var py = step * 0.5
+        var row = 0
+        while py < canvas.height {
+            var px = row % 2 == 1 ? step * 0.5 : 0
+            while px < canvas.width {
+                let d = distToPolyline(px, py, pts)
+                if d >= u * 2.2 {
+                    if d < u * 3.4 {
+                        strokeCircle(
+                            &ctx, cx: px, cy: py, r: r, color: BrandColors.ink30,
+                            width: max(1, u * 0.07), dash: [r * 0.6, r * 0.4]
+                        )
+                    } else {
+                        fillCircle(&ctx, cx: px, cy: py, r: r, color: ink)
+                    }
+                }
+                px += step
+            }
+            py += step * 0.87
+            row += 1
+        }
+    }
+
+    private static func distToPolyline(_ px: CGFloat, _ py: CGFloat, _ pts: [CGPoint]) -> CGFloat {
+        var best = CGFloat.greatestFiniteMagnitude
+        for i in 0..<(pts.count - 1) {
+            let a = pts[i]
+            let b = pts[i + 1]
+            let dx = b.x - a.x
+            let dy = b.y - a.y
+            let len = dx * dx + dy * dy
+            var t: CGFloat = 0
+            if len > 0 { t = max(0, min(1, ((px - a.x) * dx + (py - a.y) * dy) / len)) }
+            let ex = px - (a.x + t * dx)
+            let ey = py - (a.y + t * dy)
+            best = min(best, hypot(ex, ey))
+        }
+        return best
+    }
+
+    private static func drawSatGlyph(_ ctx: inout GraphicsContext, cx: CGFloat, cy: CGFloat, u: CGFloat, ink: Color) {
+        var local = ctx
+        local.translateBy(x: cx, y: cy)
+        local.rotate(by: .radians(-0.35))
+        var arm = Path()
+        arm.move(to: CGPoint(x: -u * 2.4, y: 0))
+        arm.addLine(to: CGPoint(x: u * 2.4, y: 0))
+        local.stroke(arm, with: .color(ink), style: StrokeStyle(lineWidth: max(1.2, u * 0.18), lineCap: .butt))
+        local.fill(Path(CGRect(x: -u, y: -u, width: u * 2, height: u * 2)), with: .color(ink))
+        local.fill(Path(CGRect(x: -u * 3.55, y: -u * 0.62, width: u * 2.3, height: u * 1.24)), with: .color(ink))
+        local.fill(Path(CGRect(x: u * 1.25, y: -u * 0.62, width: u * 2.3, height: u * 1.24)), with: .color(ink))
+        local.fill(Path(CGRect(x: -u * 0.14, y: -u * 2.3, width: u * 0.28, height: u * 1.3)), with: .color(ink))
+    }
+
+    private static func drawLightningGlyph(
+        _ ctx: inout GraphicsContext, canvas: CGSize, cy: CGFloat, u: CGFloat, ink: Color, dimmed: Bool
+    ) {
+        let reach = canvas.width * 0.7
+        let jags: [CGFloat] = [0, -0.9, 0.7, -1.2, 0.4, 1.1, -0.6, 0.9, -1.0, 0.3]
+        func bolt() -> Path {
+            var path = Path()
+            for (i, j) in jags.enumerated() {
+                let p = CGPoint(x: (reach * CGFloat(i)) / CGFloat(jags.count - 1), y: cy + j * u)
+                if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
+            }
+            return path
+        }
+        let line = bolt()
+        let wide = dimmed ? BrandColors.ink30.opacity(0.45) : BrandColors.ink30
+        ctx.stroke(line, with: .color(wide), style: StrokeStyle(lineWidth: u * 0.6, lineCap: .round, lineJoin: .round))
+        ctx.stroke(line, with: .color(ink), style: StrokeStyle(lineWidth: u * 0.36, lineCap: .round, lineJoin: .round))
+        let forks: [[CGPoint]] = [
+            [
+                CGPoint(x: reach * 3 / 9, y: cy - 1.2 * u),
+                CGPoint(x: reach * 4.0 / 9, y: cy - 2.4 * u),
+                CGPoint(x: reach * 4.6 / 9, y: cy - 3.3 * u),
+            ],
+            [
+                CGPoint(x: reach * 6 / 9, y: cy - 0.6 * u),
+                CGPoint(x: reach * 7.1 / 9, y: cy + 0.8 * u),
+                CGPoint(x: reach * 7.6 / 9, y: cy + 2.0 * u),
+            ],
+        ]
+        for fork in forks {
+            var path = Path()
+            for (i, p) in fork.enumerated() {
+                if i == 0 { path.move(to: p) } else { path.addLine(to: p) }
+            }
+            ctx.stroke(path, with: .color(ink), style: StrokeStyle(lineWidth: u * 0.24, lineCap: .round, lineJoin: .round))
+        }
+    }
+
+    private static func drawMeteorGlyph(_ ctx: inout GraphicsContext, cx: CGFloat, cy: CGFloat, u: CGFloat, ink: Color) {
+        let a = 28 * CGFloat.pi / 180
+        let sx = sin(a) * u * 3.5
+        let sy = cos(a) * u * 3.5
+        let ghosts: [(CGFloat, CGFloat)] = [(-7, -9), (-1, -11), (5, -8), (8, -12)]
+        var ghost = Path()
+        for (dx, dy) in ghosts {
+            let mx = cx + dx * u
+            let my = cy + dy * u
+            ghost.move(to: CGPoint(x: mx, y: my))
+            ghost.addLine(to: CGPoint(x: mx - sx * 1.15, y: my - sy * 1.15))
+        }
+        ctx.stroke(
+            ghost, with: .color(BrandColors.ink30),
+            style: StrokeStyle(lineWidth: max(1, u * 0.28), lineCap: .butt, dash: [u * 0.45, u * 0.5])
+        )
+        let drops: [(CGFloat, CGFloat)] = [
+            (-5, -4), (-1, -6), (3, -3), (6, -7), (-6, 2), (-2, 1), (2, 4), (5, 1), (-3, 6), (1, 8),
+        ]
+        for (dx, dy) in drops {
+            let mx = cx + dx * u
+            let my = cy + dy * u
+            var streak = Path()
+            streak.move(to: CGPoint(x: mx, y: my))
+            streak.addLine(to: CGPoint(x: mx - sx, y: my - sy))
+            ctx.stroke(streak, with: .color(BrandColors.ink30), style: StrokeStyle(lineWidth: u * 0.46, lineCap: .round))
+            fillCircle(&ctx, cx: mx, cy: my, r: u * 0.42, color: ink)
+        }
     }
 }
 
