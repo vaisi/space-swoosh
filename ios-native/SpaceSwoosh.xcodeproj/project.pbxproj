@@ -278,6 +278,9 @@
 		676EAFB2488D06838A562324 /* nav_39_chime_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BE822F2CE15059A2C956D3A2 /* nav_39_chime_1.mp3 */; };
 		4942D97FA2D4336FDE7BD766 /* nav_39_chime_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B684BBC0F040B5A09854B6DC /* nav_39_chime_2.mp3 */; };
 		A1018B50D3BE2769D83FDB1B /* nav_39_chime_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = CA7BC6F8E0F8ED88292FDC75 /* nav_39_chime_3.mp3 */; };
+		E4A040010001000000000001 /* nav_40_ion_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E4A040010002000000000001 /* nav_40_ion_1.mp3 */; };
+		E4A040020001000000000002 /* nav_40_ion_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E4A040020002000000000002 /* nav_40_ion_2.mp3 */; };
+		E4A040030001000000000003 /* nav_40_ion_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E4A040030002000000000003 /* nav_40_ion_3.mp3 */; };
 		8A194133EAEF2F68CB6B1E26 /* nav_h1_merlin_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 19444653B4BDDF12046FEA1B /* nav_h1_merlin_1.mp3 */; };
 		3FCC18ACC871F48EC75EB00E /* nav_h1_merlin_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 383B831F4F8BFF2A88456A12 /* nav_h1_merlin_2.mp3 */; };
 		256A44DED36B419461A93034 /* nav_h1_merlin_3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2C1C90F9905B4EA658A457EB /* nav_h1_merlin_3.mp3 */; };
@@ -562,6 +565,9 @@
 		BE822F2CE15059A2C956D3A2 /* nav_39_chime_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_39_chime_1.mp3; sourceTree = "<group>"; };
 		B684BBC0F040B5A09854B6DC /* nav_39_chime_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_39_chime_2.mp3; sourceTree = "<group>"; };
 		CA7BC6F8E0F8ED88292FDC75 /* nav_39_chime_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_39_chime_3.mp3; sourceTree = "<group>"; };
+		E4A040010002000000000001 /* nav_40_ion_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_40_ion_1.mp3; sourceTree = "<group>"; };
+		E4A040020002000000000002 /* nav_40_ion_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_40_ion_2.mp3; sourceTree = "<group>"; };
+		E4A040030002000000000003 /* nav_40_ion_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_40_ion_3.mp3; sourceTree = "<group>"; };
 		19444653B4BDDF12046FEA1B /* nav_h1_merlin_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_h1_merlin_1.mp3; sourceTree = "<group>"; };
 		383B831F4F8BFF2A88456A12 /* nav_h1_merlin_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_h1_merlin_2.mp3; sourceTree = "<group>"; };
 		2C1C90F9905B4EA658A457EB /* nav_h1_merlin_3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nav_h1_merlin_3.mp3; sourceTree = "<group>"; };
@@ -972,6 +978,9 @@
 				BE822F2CE15059A2C956D3A2,
 				B684BBC0F040B5A09854B6DC,
 				CA7BC6F8E0F8ED88292FDC75,
+				E4A040010002000000000001,
+				E4A040020002000000000002,
+				E4A040030002000000000003,
 				19444653B4BDDF12046FEA1B,
 				383B831F4F8BFF2A88456A12,
 				2C1C90F9905B4EA658A457EB,
@@ -1220,6 +1229,9 @@
 				676EAFB2488D06838A562324 /* nav_39_chime_1.mp3 in Resources */,
 				4942D97FA2D4336FDE7BD766 /* nav_39_chime_2.mp3 in Resources */,
 				A1018B50D3BE2769D83FDB1B /* nav_39_chime_3.mp3 in Resources */,
+				E4A040010001000000000001 /* nav_40_ion_1.mp3 in Resources */,
+				E4A040020001000000000002 /* nav_40_ion_2.mp3 in Resources */,
+				E4A040030001000000000003 /* nav_40_ion_3.mp3 in Resources */,
 				8A194133EAEF2F68CB6B1E26 /* nav_h1_merlin_1.mp3 in Resources */,
 				3FCC18ACC871F48EC75EB00E /* nav_h1_merlin_2.mp3 in Resources */,
 				256A44DED36B419461A93034 /* nav_h1_merlin_3.mp3 in Resources */,

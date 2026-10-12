@@ -2,7 +2,8 @@
 // Lore-order roster and archive copy for the Hangar. Ship ids stay the
 // game's ids; display order follows navCues.json (Saber is Hull 004).
 // Changes:
-// - hangarOnFile() counts owned listed hulls against the 39 on the roster.
+// - Ion is listed hull 040. hangarOnFile() still counts owned listed hulls
+//   against whatever the roster files (40, with Merlin and Rook unlisted).
 // - Added the lore roster, archive card fields, and the seen-set for NEW ENTRY.
 // - Hidden Merlin and Rook stay unlisted and cannot be equipped from here.
 
@@ -42,7 +43,7 @@ export function hangarIndexOf(id) {
     return index >= 0 ? index : 0;
 }
 
-/** Owned listed hulls, and how many listed hulls the roster files (39). */
+/** Owned listed hulls, and how many listed hulls the roster files. */
 export function hangarOnFile() {
     let owned = 0;
     for (const entry of HANGAR_ROSTER) {
@@ -51,7 +52,7 @@ export function hangarOnFile() {
     return { owned, listed: LISTED_TOTAL };
 }
 
-/** `Hull 004 / 039` for a listed hull. Hidden hulls use the unlisted label. */
+/** `Hull 004 / 040` for a listed hull. Hidden hulls use the unlisted label. */
 export function hangarFileLabel(entry) {
     if (!entry || entry.hidden) return 'Hull ??? / Unlisted';
     const num = String(entry.num).padStart(3, '0');

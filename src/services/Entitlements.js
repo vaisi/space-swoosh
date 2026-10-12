@@ -13,7 +13,7 @@
 //   roster + ownedSkinIds cache cover the first hangar frame.
 // - Pro weekly/yearly: `pro` entitlement, offline cache, yearly ship-pick claim.
 // - Annual picks (any 3 premium skins) merge into isSkinOwned and stay after lapse.
-// - Free roster is productId-driven (Focus/Flicker/Ember/Saber); others premium.
+// - Free roster is productId-driven (Focus/Flicker/Ember/Saber/Ion); others premium.
 // - Night paper: SIGNAL_RGB follows brand `color.signalRgb` (soft orchid).
 // - UNLOCK_PRO false for store.
 // - Created file: ownership is separate from "selected skin" (ships/skins.js).

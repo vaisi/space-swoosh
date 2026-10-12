@@ -1,6 +1,7 @@
 // hulls.js
 // Hull geometry shared by the ship skins.
 // Changes:
+// - Ion `ionPath`: slightly narrower straight arrow. Small swept fins, shallow notch.
 // - Seal `sealPath` slim vesica almond + wet-flex jelly (replaces stamp cube).
 // - Orbit `orbitPath` is Spine's vertical bar; helix wake stays Orbit's.
 //   Orbit jelly shears the bar (precess), not an oval blob.
@@ -68,6 +69,21 @@ export function tearPath(ctx, cx, cy, r, stretch = 1) {
         cx - r * 0.2, cy - ry * 0.35,
         cx, cy - ry
     );
+    ctx.closePath();
+}
+
+// Signal arrow: straight flare, a little slimmer. Small swept fins, shallow notch.
+export function ionPath(ctx, cx, cy, r, stretch = 1) {
+    const ry = r * stretch;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - ry * 1.00);
+    ctx.lineTo(cx + r * 0.82, cy + ry * 0.18);
+    ctx.lineTo(cx + r * 0.71, cy + ry * 0.46);
+    ctx.lineTo(cx + r * 0.44, cy + ry * 0.30);
+    ctx.lineTo(cx, cy + ry * 0.40);
+    ctx.lineTo(cx - r * 0.44, cy + ry * 0.30);
+    ctx.lineTo(cx - r * 0.71, cy + ry * 0.46);
+    ctx.lineTo(cx - r * 0.82, cy + ry * 0.18);
     ctx.closePath();
 }
 
