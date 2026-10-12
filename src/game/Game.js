@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Journey debut days keep their obstacles. The teach line and clip
+//   (game/DebutCue.js) stay off until the wording is final.
+// - ?deaths=1 shows a dev crash tally (game/DeathTally.js) with a Copy button.
 // - Home menu: DOM hint above the title (icon + HEADPHONES RECOMMENDED).
 //   Shared by web, Android, and Capacitor iOS. Signal blue, no layout
 //   shift. Fades in on the menu, out when leaving it. Native SwiftUI
@@ -372,6 +375,8 @@ import { parsePerfFlags, isKilled } from '../core/perfFlags.js';
 import { PerfMonitor } from '../core/PerfMonitor.js';
 import { clearHullCache } from '../ships/HullCache.js';
 import { renderControlHint } from '../ui/ControlHint.js';
+import { DeathTally, deathTallyEnabled } from './DeathTally.js';
+import { DebutCue } from './DebutCue.js';
 
 export class Game {
     constructor(config) {
@@ -518,6 +523,7 @@ export class Game {
         this.pendingIntroMessage = null; // legacy single-line handoff
         this.pendingIntroBeats = null; // string[] shown when intro hands off
         this.introNarration = null; // sentence beats + voice while title phase
+        this.debutCue = new DebutCue(this);
         // Post-intro HUD reveal: 'title' | 'wait' | 'chips' | null (done).
         this.hudRevealPhase = null;
         this.hudRevealStart = null; // performance.now() when chip fades begin
@@ -662,6 +668,7 @@ export class Game {
         this.depthField = new DepthField(this);
         this.spacecraft = new Spacecraft(this);
         this.obstacleManager = new ObstacleManager(this);
+        if (!this.deathTally && deathTallyEnabled()) this.deathTally = new DeathTally();
         this.inputHandler = new InputHandler(this);
         this.milestoneManager = new MilestoneManager(this);
     }
@@ -908,6 +915,7 @@ export class Game {
             }
 
             this.obstacleManager.update();
+            this.debutCue?.update();
             this.milestoneManager.update();
             this.powerUpManager.update();
             this.collectibleManager.update();
@@ -2890,6 +2898,7 @@ export class Game {
         this.wallBoopManager = new WallBoopManager(this);
         this.powerUpManager = new PowerUpManager(this);
         this.explosionParticles = [];
+        this.debutCue?.arm();
     }
 
     // A single stat column: mono figure over a micro-label, optionally led by the

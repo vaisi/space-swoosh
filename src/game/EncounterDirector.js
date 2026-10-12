@@ -9,10 +9,14 @@
 // - Open Space: KM-anchored storms at unlock marks, then every 1500 KM after 5k;
 //   dual-family patches after 12.5k.
 // - Journey 6+ one spike; 25+ two different families.
+// - `accompany` holds a recipe open while its set piece is still in view and
+//   lets ordinary rows spawn (the load budget keeps those to rocks + one light).
+//   profile.setPieceEncounterIds schedules those recipes by id (Hazard Lab).
 // - Created file: progress-based encounter windows, quiet-zone breathing room.
 
 import { clamp01 } from '../utils/math.js';
-import { pickEncounterRecipes } from '../config/EncounterCatalog.js';
+import { ENCOUNTER_CATALOG, pickEncounterRecipes } from '../config/EncounterCatalog.js';
+import { demandTypeOf, isSetPiece } from '../config/ObstacleDemand.js';
 import {
     openSpaceStormMarks,
     stormCountAt,
@@ -63,6 +67,12 @@ export class EncounterDirector {
             return;
         }
 
+        const named = profile?.setPieceEncounterIds;
+        if (named?.length) {
+            this.armNamed(named);
+            return;
+        }
+
         const count = profile?.encounterCount ?? 0;
         if (count <= 0) return;
 
@@ -77,6 +87,17 @@ export class EncounterDirector {
         recipes.forEach((recipe, i) => {
             const at = clamp01(anchors[i] + jitterFor(profile.level, i));
             this.schedule.push({ at: Math.min(0.88, Math.max(0.15, at)), recipe, fired: false });
+        });
+    }
+
+    /** Place the named recipes evenly through the run, e.g. at 1/4, 1/2, 3/4. */
+    armNamed(ids) {
+        const recipes = ids
+            .map((id) => ENCOUNTER_CATALOG.find((recipe) => recipe.id === id))
+            .filter(Boolean);
+        const step = 1 / (recipes.length + 1);
+        recipes.forEach((recipe, i) => {
+            this.schedule.push({ at: step * (i + 1), recipe, fired: false });
         });
     }
 
@@ -163,26 +184,56 @@ export class EncounterDirector {
             }
         }
 
-        const live = this.live;
-        const beat = live.recipe.beats[live.beat];
-        live.beat += 1;
-        const last = live.beat >= live.recipe.beats.length;
+        while (this.live) {
+            const live = this.live;
+            const beat = live.recipe.beats[live.beat];
+            if (!beat) {
+                this.finishRecipe(manager, live.atKm);
+                return true;
+            }
+            // Ordinary rows may spawn until the piece this recipe spawned has left.
+            if (beat.kind === 'accompany' && this.anchorsOccupy(manager)) return false;
 
-        if (beat.kind === 'gap') {
-            this.beginQuiet(manager, this.gapFrac(beat.frac, last, live.atKm));
-            if (last) this.live = null;
+            live.beat += 1;
+            const last = live.beat >= live.recipe.beats.length;
+
+            if (beat.kind === 'gap') {
+                this.beginQuiet(manager, this.gapFrac(beat.frac, last, live.atKm));
+                if (last) this.live = null;
+                return true;
+            }
+
+            if (beat.kind === 'spawn' && beat.slots) {
+                const before = manager.obstacles.length;
+                manager.spawnPlannedRow({ slots: beat.slots });
+                live.anchors = manager.obstacles.slice(before)
+                    .filter((obstacle) => isSetPiece(demandTypeOf(obstacle)));
+            }
+
+            if (beat.kind === 'accompany' && !last) continue;
+
+            if (last) this.finishRecipe(manager, live.atKm);
             return true;
         }
+        return false;
+    }
 
-        if (beat.kind === 'spawn' && beat.slots) {
-            manager.spawnPlannedRow({ slots: beat.slots });
-        }
+    finishRecipe(manager, atKm) {
+        this.beginQuiet(manager, this.endQuietFrac(atKm));
+        this.live = null;
+    }
 
-        if (last) {
-            this.beginQuiet(manager, this.endQuietFrac(live.atKm));
-            this.live = null;
-        }
-        return true;
+    /** True while a set piece this recipe spawned still overlaps the view. */
+    anchorsOccupy(manager) {
+        const { camera, height } = manager.game;
+        const viewTop = camera.y - height * 0.6;
+        const viewBottom = camera.y + height;
+        return (this.live?.anchors || []).some((obstacle) => {
+            if (obstacle.retired || !manager.obstacles.includes(obstacle)) return false;
+            const top = obstacle.claim?.top ?? obstacle.y - (obstacle.size || 0);
+            const bottom = obstacle.claim?.bottom ?? obstacle.y + (obstacle.size || 0);
+            return bottom > viewTop && top < viewBottom;
+        });
     }
 
     hasChainedStorm(atKm) {

@@ -1,6 +1,7 @@
 // Purchases.js
 // Thin wrapper around RevenueCat (@revenuecat/purchases-capacitor).
 // Changes:
+// - import.meta.env falls back to {} outside Vite, so Node scripts can import.
 // - Successful buys also log GA4 `purchase` (value + currency) for Firebase
 //   revenue. Restores do not. Skins keep the separate `purchase_skin` funnel.
 // - Pro weekly/yearly product ids + customer Pro snapshot (active + product).
@@ -12,8 +13,9 @@
 import { Capacitor } from '@capacitor/core';
 import { trackPurchase } from './Analytics.js';
 
-const IOS_KEY = import.meta.env.VITE_REVENUECAT_IOS_KEY || '';
-const ANDROID_KEY = import.meta.env.VITE_REVENUECAT_ANDROID_KEY || '';
+const env = import.meta.env ?? {};
+const IOS_KEY = env.VITE_REVENUECAT_IOS_KEY || '';
+const ANDROID_KEY = env.VITE_REVENUECAT_ANDROID_KEY || '';
 
 /** Auto-renewable — unlimited lives. */
 export const PRO_WEEKLY_PRODUCT_ID = 'com.orbi.spaceswoosh.pro.weekly';

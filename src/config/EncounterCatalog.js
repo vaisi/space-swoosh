@@ -9,6 +9,9 @@
 //   push-shot, well-wind, sweep-shot, portal rocks.
 // - Source of truth for iOS: `npm run constants:export` copies this catalog
 //   into shared/game-constants.json and GeneratedJourneyData.encounterCatalog.
+// - Solo set pieces: tunnelRun, shoalPass, debrisField. An `accompany` beat
+//   lets ordinary rows through (rocks + one light) until that piece leaves
+//   the view, then the closing gap.
 // - Created file: readable set-piece recipes + picker keyed to focus / pairTheme.
 
 function recipeScore(recipe, focus, pairTheme) {
@@ -240,6 +243,36 @@ export const ENCOUNTER_CATALOG = [
             { kind: 'gap', frac: 0.85 },
             { kind: 'spawn', slots: [{ type: 'complex', lane: 'center' }] },
             { kind: 'gap', frac: 0.5 },
+        ],
+    },
+    {
+        id: 'tunnelRun',
+        family: 'tunnel',
+        requires: ['tunnelField'],
+        beats: [
+            { kind: 'spawn', slots: [{ type: 'tunnelField' }] },
+            { kind: 'accompany' },
+            { kind: 'gap', frac: 0.4 },
+        ],
+    },
+    {
+        id: 'shoalPass',
+        family: 'shoal',
+        requires: ['shoal'],
+        beats: [
+            { kind: 'spawn', slots: [{ type: 'shoal' }] },
+            { kind: 'accompany' },
+            { kind: 'gap', frac: 0.4 },
+        ],
+    },
+    {
+        id: 'debrisField',
+        family: 'debris',
+        requires: ['satDebris'],
+        beats: [
+            { kind: 'spawn', slots: [{ type: 'satDebris' }] },
+            { kind: 'accompany' },
+            { kind: 'gap', frac: 0.4 },
         ],
     },
 ];

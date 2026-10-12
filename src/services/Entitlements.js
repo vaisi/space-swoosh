@@ -6,6 +6,8 @@
 // - UNLOCK_ALL_SKINS false (store hangar). Premium tiles stay locked until a
 //   RevenueCat buy / restore / yearly 3-ship pick. Cache gen 2 drops the
 //   playtest "every id owned" localStorage so testers cannot keep free ships.
+//   Local web `?anyship=1` treats every catalog hull as owned, including
+//   unlisted Merlin and Rook, without writing that into ownedSkinIds.
 // - initEntitlements() is fired after game.start() (not awaited on boot) so a
 //   RevenueCat / Play Billing hang cannot pin the native splash. The free
 //   roster + ownedSkinIds cache cover the first hangar frame.
@@ -48,6 +50,28 @@ const SIGNAL_RGB = color.signalRgb;
 
 /** Store hangar — premium skins stay locked until purchase / restore / annual pick. */
 export const UNLOCK_ALL_SKINS = false;
+
+function searchParams() {
+    try {
+        if (typeof location === 'undefined') return null;
+        return new URLSearchParams(location.search);
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Local web override: `?anyship=1` flies any hull. `=0` / `false` forces the
+ * store lock. Absent query leaves UNLOCK_ALL_SKINS as the only override.
+ * Does not write ownership into localStorage.
+ */
+export function unlockAllSkinsEnabled() {
+    if (UNLOCK_ALL_SKINS) return true;
+    const params = searchParams();
+    if (!params?.has('anyship')) return false;
+    const value = params.get('anyship');
+    return value !== '0' && value !== 'false';
+}
 /** Playtest Pro — keep false for store builds. */
 export const UNLOCK_PRO = false;
 
@@ -253,7 +277,7 @@ export function claimAnnualShipPicks(skinIds) {
 export function isSkinOwned(id) {
     const skin = skinById(id);
     if (!skin) return false;
-    if (UNLOCK_ALL_SKINS || !skin.productId) return true;
+    if (unlockAllSkinsEnabled() || !skin.productId) return true;
     if (annualPicks.has(id)) return true;
     return owned.has(id);
 }

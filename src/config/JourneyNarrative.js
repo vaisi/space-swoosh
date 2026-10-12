@@ -1,5 +1,8 @@
 // JourneyNarrative.js
-// Changes: skip captions are two beats (one phrase each); skipLine is the joined string.
+// Changes: DEBUT_LINES and debut-N.mp3 stay drafted. DebutCue does not
+//   show or speak them until DEBUT_CUE_ENABLED is turned on.
+//   Captions stay plain. The mp3s are PerfectSwoosh with NAV performance tags.
+// skip captions are two beats (one phrase each); skipLine is the joined string.
 // L42 arrival (level-42.mp3) waits 3s on black before epilogue-open.
 // First L42 ending adds an Arc unlock card after Follow @spaceswoosh.app.
 // Instagram CTA: https://www.instagram.com/spaceswoosh.app
@@ -339,6 +342,28 @@ export function levelMessage(level) {
 }
 
 /**
+ * Teach line shown on screen the first time that obstacle appears.
+ * The recording adds NAV tags (softly, warmly, whispers). Those tags are not shown.
+ */
+export const DEBUT_LINES = {
+    7: 'A hand is turning up ahead. Wait by the hub until it points away.',
+    10: 'Three rocks. One of them is hollow, and that hollow moves. Slip through it.',
+    13: 'A shower. They all fall the same way. Read the slant, then cross it.',
+    16: 'Two moons, and a hole between them. The hole turns. Fly it.',
+    19: 'A school. It bounces off the walls twice, then leaves. Find a gap and hold it.',
+    23: 'A shard. It banks off the edges. Don\'t chase it. Let it pass.',
+    28: 'The wall will crackle first. The dashed line is the reach. Only the bolt kills.',
+    33: 'A tunnel in the rubble, cut to your lean. Flip at each bend. The dashed edge is safe.',
+    36: 'A satellite. It breaks when it hits a wall, then the pieces break again. Give them room.',
+};
+
+/** File name for the extra clip, or null. */
+export function debutVoiceFile(level) {
+    const n = Math.floor(Number(level) || 0);
+    return DEBUT_LINES[n] ? `debut-${n}.mp3` : null;
+}
+
+/**
  * Normalize intro beats to `{ text, gapAfterMs }[]`.
  * @param {number} level
  * @returns {IntroBeat[] | null}
@@ -346,17 +371,18 @@ export function levelMessage(level) {
 export function levelIntroBeats(level) {
     const n = Math.floor(Number(level) || 0);
     const raw = LEVEL_INTRO_BEATS[n];
+    const beats = [];
     if (raw?.length) {
-        return raw.map((beat) => {
+        for (const beat of raw) {
             if (typeof beat === 'string') {
-                return { text: beat, gapAfterMs: DEFAULT_BEAT_GAP_MS };
+                beats.push({ text: beat, gapAfterMs: DEFAULT_BEAT_GAP_MS });
+            } else {
+                const text = String(beat.text || '').trim();
+                if (text) beats.push({ text, gapAfterMs: beat.gapAfterMs ?? DEFAULT_BEAT_GAP_MS });
             }
-            return {
-                text: String(beat.text || '').trim(),
-                gapAfterMs: beat.gapAfterMs ?? DEFAULT_BEAT_GAP_MS,
-            };
-        }).filter((b) => b.text);
+        }
+    } else if (LEVEL_MESSAGES[n]) {
+        beats.push({ text: LEVEL_MESSAGES[n], gapAfterMs: DEFAULT_BEAT_GAP_MS });
     }
-    const line = LEVEL_MESSAGES[n];
-    return line ? [{ text: line, gapAfterMs: DEFAULT_BEAT_GAP_MS }] : null;
+    return beats.length ? beats : null;
 }

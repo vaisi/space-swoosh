@@ -5,6 +5,10 @@
 // roster and star targets — `JourneyProfile` only translates it into the knobs
 // the managers read.
 // Changes:
+// - Nine debuts, separate from STEPS: spinner 7, blinkRow 10, meteorShower 13,
+//   hollowOrbit 16, shoal 19, ricochet 23, lightning 28, tunnelField 33,
+//   satDebris 36. A debut day focuses that type. Set pieces stay in the
+//   roster for encounters and out of the random belt.
 // - Sparkles star from L14: ~1 per 1,500 KM minus 1 (L14 → 8, L24 → 12,
 //   L42 → 22). L4–13 stay on the 1-per-1,000 KM curve (floor 2; −1 ease).
 // - Smash star (asteroids destroyed): L5–13 keep the teach curve (1 / 2 / 3);
@@ -63,6 +67,41 @@ const STEPS = [
     { d: 0.95, levels: 3, unlock: 'sweepGate' },     // L31–33
     { d: 1.00, levels: 9, unlock: null },           // L34–42
 ];
+
+/**
+ * New obstacles, by debut day. Not a difficulty rank: a day can teach a
+ * gentle shape late, or a demanding one early. Set pieces (tunnel, shoal,
+ * satellite) are encountered, not rolled into random rows.
+ */
+export const JOURNEY_DEBUTS = {
+    7: 'spinner',
+    10: 'blinkRow',
+    13: 'meteorShower',
+    16: 'hollowOrbit',
+    19: 'shoal',
+    23: 'ricochet',
+    28: 'lightning',
+    33: 'tunnelField',
+    36: 'satDebris',
+};
+
+const SET_PIECE_DEBUTS = new Set(['tunnelField', 'shoal', 'satDebris']);
+
+/** Types whose debut day is this level or earlier. */
+export function debutsUnlockedBy(levelNumber) {
+    return Object.entries(JOURNEY_DEBUTS)
+        .filter(([day]) => Number(day) <= levelNumber)
+        .map(([, type]) => type);
+}
+
+/** The type this day teaches, or null. */
+export function debutOn(levelNumber) {
+    return JOURNEY_DEBUTS[levelNumber] ?? null;
+}
+
+export function isDebutSetPiece(type) {
+    return SET_PIECE_DEBUTS.has(type);
+}
 
 // Story chapters: `steps` = number of levels in the band (sums to 42).
 // Independent of difficulty STEPS plateaus.
@@ -177,15 +216,19 @@ function buildLevels() {
 
     STEPS.forEach((step, stepIndex) => {
         if (step.unlock) roster.push(step.unlock);
-        const types = [...roster];
-        const setPieces = types.filter((type) => type !== 'simple');
 
         for (let i = 0; i < step.levels; i++) {
             const levelNumber = levels.length + 1;
             const chapter = chapterForLevel(levelNumber);
             const goalKm = goalKmFor(levelNumber, previousGoalKm);
             previousGoalKm = goalKm;
-            const introduces = i === 0 ? step.unlock : null;
+            const types = [...roster];
+            for (const type of debutsUnlockedBy(levelNumber)) {
+                if (!types.includes(type)) types.push(type);
+            }
+            const setPieces = types.filter((type) => type !== 'simple');
+            const debut = debutOn(levelNumber);
+            const introduces = debut || (i === 0 ? step.unlock : null);
             const starSlots = starsAvailableFor(levelNumber);
             const focusType = pickFocus(introduces, setPieces, i);
             const pairTheme = pickPairTheme(focusType, setPieces, i);

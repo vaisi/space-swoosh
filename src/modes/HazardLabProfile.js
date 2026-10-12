@@ -2,6 +2,13 @@
 // Finite sandbox run: Phase / Sweep / Repulsor / Drift / Wormhole / Black hole
 // (almost no simple rocks), shields/sparkles from KM 0, no Journey progress.
 // Changes:
+// - Solo set-piece encounters (tunnel run, shoal pass, debris field) at
+//   1/4, 1/2 and 3/4 of the lab. Random rows still spawn them too.
+// - New obstacles fly at intensity 0.5 (today's tuning) unless ?intensity= is set.
+// - Load budget on (usesLoadBudget), capped at the lab's difficulty, so the
+//   lab is the test bed before Journey / Open Space switch it on.
+// - Playtest branch: LAB_FOCUS includes spinner, hollowOrbit, blinkRow,
+//   ricochet, tunnelField, shoal, satDebris, lightning, meteorShower.
 // - Black hole in the mix with advanced Y-pull so the 5s camera reseat can
 //   be practiced in-lab.
 // - Wormhole in LAB_FOCUS so portal emerge framing can be practiced in-lab.
@@ -16,7 +23,12 @@ import { PLAY_MODE, RunProfile } from './RunProfile.js';
 const JOURNEY_ACTION_FROM_KM = 0;
 
 /** Even practice mix — portals + wells for exit framing / camera reseat. */
-const LAB_FOCUS = ['phase', 'sweepGate', 'repulsor', 'driftCurrent', 'wormhole', 'blackhole'];
+const LAB_FOCUS = [
+    'phase', 'sweepGate', 'repulsor', 'driftCurrent', 'wormhole', 'blackhole',
+    'spinner', 'hollowOrbit', 'ricochet', 'blinkRow',
+    'tunnelField', 'shoal',
+    'satDebris', 'lightning', 'meteorShower',
+];
 
 export class HazardLabProfile extends RunProfile {
     constructor(game) {
@@ -112,6 +124,24 @@ export class HazardLabProfile extends RunProfile {
 
     get advancedBlackHoles() {
         return true;
+    }
+
+    get usesLoadBudget() {
+        return true;
+    }
+
+    get loadDifficulty() {
+        return this.descriptor.difficulty;
+    }
+
+    /** Today's playtest tuning; web ?intensity=0..1 previews other points. */
+    intensityFor() {
+        return 0.5;
+    }
+
+    /** Solo set pieces at 1/4, 1/2 and 3/4 of the lab, plus the random rows. */
+    get setPieceEncounterIds() {
+        return ['tunnelRun', 'shoalPass', 'debrisField'];
     }
 
     gapRange(canvasHeight) {

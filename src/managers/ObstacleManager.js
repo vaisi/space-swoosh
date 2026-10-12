@@ -1,6 +1,17 @@
 // ObstacleManager.js
 // Spawns, updates, renders and collision-checks every obstacle type.
 // Changes:
+// - A fatal hit notes game.deathTally (?deaths=1) before gameOver().
+// - LoadBudget (game/LoadBudget.js) trims every planned row so live demand stays
+//   under the profile's caps; the Hazard Lab / teach-band path now builds a plan
+//   (planLegacyRow) so both paths go through it. Off unless
+//   profile.usesLoadBudget. ?budget=debug draws the live load.
+// - Playtest branch: spinner, hollowOrbit, blinkRow, tunnelField, shoal,
+//   ricochet, satDebris, lightning, and meteorShower spawn through
+//   createPlaytestObstacle().
+//   Hazard Lab only. No Journey unlocks.
+// - Area claims: an obstacle with `claim {top, bottom}` (tunnel field) moves the
+//   spawn cursor past itself and drops off-screen rows that land inside it.
 // - Each catalogued obstacle sets `logbookId` (a string). Release builds rename
 //   class names, so Space Log can no longer key off constructor.name.
 // - Journey 6+ / Open Space weather: corridor mid-fill and mixed pairs via
@@ -87,8 +98,10 @@ import { hapticShieldSmash } from '../native/index.js';
 import { drawBlackHoleGlowSprite } from '../utils/GlowSprites.js';
 import { isKilled } from '../core/perfFlags.js';
 import { EncounterDirector } from '../game/EncounterDirector.js';
+import { LoadBudget } from '../game/LoadBudget.js';
 import { HEAVY_TYPES, laneRange, planPairedRow, rowPrimaryTypes } from '../config/HazardPairs.js';
 import { PLAY_MODE } from '../modes/RunProfile.js';
+import { createPlaytestObstacle, isPlaytestObstacleType } from './playtestObstacles.js';
 
 // How rarely the shielded-smash sound may repeat during the level-clear flyout.
 const CINEMATIC_CRASH_MS = 120;
@@ -1639,6 +1652,7 @@ export class ObstacleManager {
         // build, and an opening run of log lines would be noise anyway.
         this.updateAvailableTypes(0, { announce: false });
         this.encounters = new EncounterDirector(game);
+        this.budget = new LoadBudget(this);
         this.recentRowPrimaries = [];
     }
 
@@ -1660,6 +1674,27 @@ export class ObstacleManager {
             if (obstacle.y < this.game.camera.y) count++;
         }
         return count;
+    }
+
+    // A tall set piece owns its strip of sky: rows already queued inside it
+    // are dropped (while still off-screen) and the cursor jumps past its top.
+    claimArea(owner) {
+        (this.areaClaims ||= []).push(owner);
+        this.nextSpawnY = Math.min(this.nextSpawnY, owner.claim.top);
+    }
+
+    pruneAreaClaims() {
+        if (!this.areaClaims?.length) return;
+        this.areaClaims = this.areaClaims.filter((owner) => this.obstacles.includes(owner));
+    }
+
+    isInsideClaim(obstacle) {
+        if (!this.areaClaims?.length) return false;
+        const reach = obstacle.height ?? (obstacle.size ?? 0) * 2;
+        if (this.game.camera.getRelativeY(obstacle.y) + reach >= 0) return false;
+        return this.areaClaims.some((owner) => owner !== obstacle
+            && obstacle.y >= owner.claim.top
+            && obstacle.y <= owner.claim.bottom);
     }
 
     buildSteerTutorial() {
@@ -1805,10 +1840,12 @@ export class ObstacleManager {
         // Advance obstacle motion *before* hits so orbiting moons / movers /
         // projectiles match what render will draw this frame. Colliding against
         // last frame's pose while painting this frame's made moons feel invisible.
+        this.pruneAreaClaims();
         this.obstacles = this.obstacles.filter((obstacle) => {
             if (obstacle.update) {
                 obstacle.update();
             }
+            if (this.isInsideClaim(obstacle)) return false;
             return obstacle.y > this.game.camera.y - this.despawnAhead;
         });
 
@@ -1894,6 +1931,7 @@ export class ObstacleManager {
                 } else {
                     // Fatal contact still counts as interaction for the logbook.
                     this.game.logbook?.onObstacleInteract?.(obstacle);
+                    this.game.deathTally?.note(obstacle, this);
                     // If no shield, game over
                     this.game.gameOver();
                 }
@@ -2007,52 +2045,44 @@ export class ObstacleManager {
                 simpleChance: openSpace ? this.game.profile.simpleChance : 0,
                 packThinRows: openSpace,
             });
-            this.spawnPlannedRow(plan, difficultyMultiplier);
+            this.spawnPlannedRow(this.budget.fit(plan), difficultyMultiplier);
             return;
         }
 
+        const plan = this.budget.fit(this.planLegacyRow(availableTypesArray, spawnCount));
+        this.spawnPlannedRow(plan, difficultyMultiplier);
+        this.rememberRowTypes(rowPrimaryTypes(plan));
+    }
+
+    /** Hazard Lab / teach-band rows: random types on evenly spread positions. */
+    planLegacyRow(availableTypesArray, spawnCount) {
         if (spawnCount === 1) {
             const type = this.selectObstacleType(availableTypesArray);
-            if (type === 'simple') {
-                this.spawnSimpleAsteroids(difficultyMultiplier);
-                this.rememberRowTypes([]);
-            } else {
-                const margin = 0.2;
-                const xPos = margin + Math.random() * (1 - margin * 2);
-                this.spawnObstacleByType(type, xPos, xPos + 0.2);
-                this.rememberRowTypes([type]);
-            }
-        } else {
-            const positions = this.generateSpawnPositions(spawnCount);
-            let lastType = null;
-            const used = [];
-            
-            positions.forEach(pos => {
-                const type = this.selectObstacleType(availableTypesArray);
-                const allowRepeat = this.game.profile.allowAdjacentSetPieces;
-                if (type !== 'simple' && type === lastType && !allowRepeat) {
-                    this.spawnSimpleAsteroids(difficultyMultiplier / 2, pos.start, pos.end);
-                } else {
-                    if (type === 'simple') {
-                        this.spawnSimpleAsteroids(difficultyMultiplier / 2, pos.start, pos.end);
-                    } else {
-                        this.spawnObstacleByType(type, pos.start, pos.end);
-                        used.push(type);
-                    }
-                    lastType = type;
-                }
-            });
-            this.rememberRowTypes(used);
+            if (type === 'simple') return { slots: [{ type }] };
+            const xPos = 0.2 + Math.random() * 0.6;
+            return { slots: [{ type, range: { start: xPos, end: xPos + 0.2 } }] };
         }
+        const allowRepeat = this.game.profile.allowAdjacentSetPieces;
+        let lastType = null;
+        const slots = this.generateSpawnPositions(spawnCount).map((range) => {
+            const picked = this.selectObstacleType(availableTypesArray);
+            const repeat = picked !== 'simple' && picked === lastType && !allowRepeat;
+            if (!repeat) lastType = picked;
+            const type = repeat ? 'simple' : picked;
+            return { type, range, simpleScale: 0.5 };
+        });
+        return { slots };
     }
 
     spawnPlannedRow(plan, difficultyMultiplier = this.getDifficultyMultiplier()) {
         const slots = plan?.slots;
         if (!slots || slots.length === 0) return;
         for (const slot of slots) {
-            const range = slot.lane ? laneRange(slot.lane) : null;
+            const range = slot.range || (slot.lane ? laneRange(slot.lane) : null);
             if (slot.type === 'simple') {
-                if (range) {
+                if (range && slot.simpleScale) {
+                    this.spawnSimpleAsteroids(difficultyMultiplier * slot.simpleScale, range.start, range.end);
+                } else if (range) {
                     this.spawnSimpleAsteroids(Math.max(1, difficultyMultiplier * 0.7), range.start, range.end);
                 } else {
                     this.spawnSimpleAsteroids(difficultyMultiplier);
@@ -2125,6 +2155,17 @@ export class ObstacleManager {
                 break;
             case 'sideBarrier':
                 this.spawnSideBarriers(this.nextSpawnY);
+                break;
+            default:
+                if (isPlaytestObstacleType(type)) {
+                    const made = createPlaytestObstacle(
+                        type, this.game, x, width, this.nextSpawnY,
+                    );
+                    if (made) {
+                        this.obstacles.push(made);
+                        if (made.claim) this.claimArea(made);
+                    }
+                }
                 break;
         }
     }
@@ -2459,6 +2500,7 @@ export class ObstacleManager {
         if (this.game.camera.shake) {
             ctx.restore();
         }
+        this.budget.renderDebug(ctx);
     }
 
     showScorePopup(x, y, text) {

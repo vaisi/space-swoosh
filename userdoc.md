@@ -1,4 +1,27 @@
-<!-- Changes: Home menu has a quiet headphones line above the title.
+<!-- Changes: On a local page, `?anyship=1` lets Launch fly any hull,
+     including the two unlisted ones. Drop the parameter and they lock again.
+     Open Space meets the new obstacles on a fresh run, from
+     about 1,500 KM. The school, tunnel, and satellite arrive as storms.
+     Meteor Shower shows dashed streaks first. They are safe.
+     The rocks follow that same slant.
+     Nine Journey days still introduce one new obstacle
+     (days 7, 10, 13, 16, 19, 23, 28, 33, 36). No extra sentence or voice
+     plays for them yet. The day's own story is unchanged.
+     Hangar hull 040 is Ion, a free cyan arrow with no hull halo. Its three
+     launch lines are recorded and play when you fly it.
+     Each new obstacle has a gentle and a hard version; the lab flies today's
+     middle setting.
+     Hazard Lab plays a tunnel, a shoal and a satellite as set moments, and
+     while one is up you only meet rocks plus one small thing, like a Spinner.
+     Adding ?deaths=1 to the address shows a crash tally you can copy.
+     Hazard Lab paces itself: no stacked timing tests, movers, or big set
+     pieces at once, and it leaves breathers when the sky is busy.
+     Playtest branch only: Journey map shows Hazard Lab. That run
+     mixes nine new obstacles (Spinner, Hollow Orbit, Ricochet,
+     Blink Row, Tunnel Field, Shoal, Satellite Debris, Lightning,
+     Meteor Shower) with the usual lab hazards. Bumpers, Comet, and Snap are gone. Spinner looks like a radar; Shoal bounces twice, then leaves. Nothing in that run counts
+     toward Journey. The iPhone build does not have these yet.
+     Home menu has a quiet headphones line above the title.
      Open Space launch lines are named nav_XX_ship_N.mp3.
      Play opens the Hangar before Open Space or a Journey day.
      The home screen shows your equipped ship and no longer swipes between hulls.
@@ -83,7 +106,7 @@
 > Android (a light halo, not a solid white ring). Each hangar card also shows a short sample of that ship’s wake
 > under the hull — chevrons, rings, commas, dashes, and the rest of the
 > family, not a column of dots. The
-> four always-free ships are **Focus**, **Flicker**, **Ember**, and **Saber**.
+> five always-free ships are **Focus**, **Flicker**, **Ember**, **Saber**, and **Ion**.
 > New players start in **Flicker**.
 > The rest of the hangar is locked until you buy (price on the tile) or Restore
 > Purchases. Journey days unlock in order — Level 1 is open; later tiles stay
@@ -216,6 +239,32 @@ reply. **Open Instagram** goes to [@spaceswoosh.app](https://www.instagram.com/s
 The lights that bloom there are the same
 Signal Blue as the fuel sparkles, kept small so the field stays dark.
 
+On this playtest branch the Journey map also shows **Hazard Lab**, above the
+first chapter. It is a practice run. Blooms, sweeps, wells, and new
+shapes share the corridor: **Spinner** (a radar: a turning hand with faint fading arcs sweeping behind it; only the hand kills), **Hollow Orbit**
+(two moons around an empty centre),
+**Ricochet** (a shard that banks off the edges), **Blink Row** (three rocks,
+one lane hollow at a time), **Tunnel Field** (a ragged wall of rubble with
+one narrow zigzag tunnel cut at your lean: flip at each bend), **Shoal** (a
+loose school of well-spaced rocks that drift and wobble on their own but swim together; it bounces off the nearer wall, then off the far wall, then crosses back and leaves for good),
+**Satellite Debris** (a tumbling satellite that breaks into pieces when it
+hits a wall; each solar panel then shatters into its three little cells when it hits a wall again, and those cells fly straight out through the walls),
+**Lightning** (the wall crackles and a dashed line shows how far it reaches,
+then a thin forked bolt snaps across and vanishes; only the bolt kills), and
+**Meteor Shower** (dashed streaks fall first and do not kill; then tiny rocks
+follow that same slant, like rain on a window). Hazard Lab now paces itself: it won't stack two timing tests (say, Lightning
+and a Blink Row) or several moving things at once, a big set piece like the
+Tunnel Field or a Shoal gets the screen mostly to itself, and when the sky is
+busy the next row can be left empty so you get a breather. While a Tunnel,
+Shoal or satellite is on screen, the only company it gets is some rocks and
+one small obstacle, a Spinner or a pulsing rock. The lab also plays each of
+those three on its own, once, spread through the run. Each new obstacle
+also has a gentle and a hard version (a slower Spinner, a longer Lightning
+warning, a smaller Shoal, a wider Tunnel, and so on). The lab flies the middle
+setting; that's the one you've been playtesting. Ink still kills on contact. A dashed drawing is not solid yet: the
+dashed rocks lining the tunnel just chip off if you scrape them. Nothing you
+do in the lab is saved to the Journey.
+
 ### Open Space
 
 The endless run. No finish line: fly until you crash or run out of fuel, and see how far you got.
@@ -228,6 +277,11 @@ one direction at a time. A bouncing finger or pointer sits on the playfield so i
 miss. Journey does not use these lines.
 Asteroids get thicker and stranger the further you go, and new hazards keep
 turning up — they do **not** flash a name banner when they first appear.
+On this playtest branch the newer hazards join that flight too: a spinner
+around 1,500 KM, then the blink row, the meteor shower, the hollow orbit,
+the ricochet, and lightning by about 6,500 KM. The school, the tunnel, and
+the satellite are storms, around 4,800, 6,400, and 8,000 KM. A run that
+already passed those marks does not grow them in; start a new Open Space flight.
 The field stays readable while types arrive; after about **5,000 KM** the
 sky is packed like a late Journey day, and past **12,500 KM** storms come in
 harder pairs with only a short breath between them. Cruise is a bit snappier than before; it does not keep climbing.
@@ -264,7 +318,9 @@ account required.
 Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
 out. Then the navigator’s line (Journey) sits on screen sentence by sentence
-with voice and fades. Open Space can add a short launch line for the ship you
+with voice and fades. On days 7, 10, 13, 16, 19, 23, 28, 33, and 36 the flight
+starts after that story, and the new obstacle is in the run. No extra sentence
+is written or spoken for it yet. Open Space can add a short launch line for the ship you
 picked (`nav_XX_ship_N.mp3`), typed on screen as it is spoken. A Journey day that already has story
 audio skips that launch line. A moment later distance and pause ease in. Once sparkles
 can appear, a sparkle icon + blue fuel bar shows in the compact HUD; the smash
@@ -301,7 +357,7 @@ screens do the same with their own lines.
 
 The home screen is the title, the tagline, and four buttons. At the top, a small blue headphone mark and the words HEADPHONES RECOMMENDED sit on the starfield. Choosing a hull happens in the Hangar.
 
-**Hangar.** After Play, choose Open Space or a Journey day. The screen titles itself from that mode, over "The Hangar", and the corner counts how many hulls you own out of the 39 on file. The ship sits in a short stage and flies the same way it does in a run: it turns, and the wake follows. A line separates that stage from the writing. Tap the hull to flip its turn. The hint under the ship says tap to test and swipe to browse, with arrows on either side. Swipe, tap an arrow, or drag the ruler to move through the fleet. The ruler is a row of ticks: the hull you are on is the tall blue mark, a new hull you own shows a dot, and the two unlisted hulls sit after a small gap. Under the line is the hull number and how it was filed, then the name and the archive sentence, with space before the ruler. **Launch** is the wide cream bar: the word on the left, the ship name on the right. It starts the run with the ship in the center. A locked hull is drawn in its real colors, and the bar shows its price or Locked. Two unlisted hulls at the end of the ruler are shown in their real colors, flying like the others, and cannot be equipped. Launch on either keeps the ship you already own. Crash retry skips the Hangar. The next Journey day goes through it. Options → Ship stays the purchase grid; each card keeps its description even while locked, with the price on the tile.
+**Hangar.** After Play, choose Open Space or a Journey day. The screen titles itself from that mode, over "The Hangar", and the corner counts how many hulls you own out of the 39 on file. The ship sits in a short stage and flies the same way it does in a run: it turns, and the wake follows. A line separates that stage from the writing. Tap the hull to flip its turn. The hint under the ship says tap to test and swipe to browse, with arrows on either side. Swipe, tap an arrow, or drag the ruler to move through the fleet. The ruler is a row of ticks: the hull you are on is the tall blue mark, a new hull you own shows a dot, and the two unlisted hulls sit after a small gap. Under the line is the hull number and how it was filed, then the name and the archive sentence, with space before the ruler. **Launch** is the wide cream bar: the word on the left, the ship name on the right. It starts the run with the ship in the center. A locked hull is drawn in its real colors, and the bar shows its price or Locked. Two unlisted hulls at the end of the ruler are shown in their real colors, flying like the others, and cannot be equipped. Launch on either keeps the ship you already own. On a local page, add `?anyship=1` and every hull, including those two, launches. Take the parameter off and they lock again. It does not stay saved. Crash retry skips the Hangar. The next Journey day goes through it. Options → Ship stays the purchase grid; each card keeps its description even while locked, with the price on the tile.
 
 - **Play** — Journey, with a quiet Recommended hint under the title, then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
@@ -462,11 +518,12 @@ Every ship flies the same — same speed, same turns. They only look different
 | **Puff** | A dandelion clock with a short stem and breathing seed ticks. An ink path sheds gold and teal parachute umbrellas that puff on a wall hit. Stem and ticks are looks only. |
 | **Argus** | A peacock teardrop with a rear fan of pulsing eyespots. Peacock-rim, gold-pupil rings stamp the path; the fan flares on a wall hit. Thin feather tips are looks only. |
 | **Chime** | A temple bell with two smaller side bells and swaying clappers. Dense sound arcs and gold/ink notes ring down the wake. Side bells are looks only. |
+| **Ion** | A free cyan arrow with small swept fins and a shallow notch. The wake is a faint haze, a cyan line, a narrow inner ray, and small bright dots along the outside of the curve. A wall hit springs the line. |
 
 Merlin and Rook are withheld from the hangar for now.
 
 Quill, Fletch, Shard, Seal, Hatch, Trace, Fold, Spine, Mote, Pulse, Echo, Dusk, Orbit, Ink,
-Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, and Chime leave a longer wake in play so the far end runs off the screen. The
+Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi, Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, and Ion leave a longer wake in play so the far end runs off the screen. The
 home-screen ship picture stays short so it does not cover the title.
 
 Hatch, Trace, and Ring collide as the box you see. **Seal** collides on its slim almond (the nose mark is looks only). **Orbit** collides on the same upright bar as Spine. **Lantern** collides on the

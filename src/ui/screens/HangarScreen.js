@@ -11,7 +11,7 @@
 // - Locked and unlisted hulls draw in color. The flight lane is inset so
 //   Merlin and Rook's hull and wake stay inside the stage. The bar still
 //   shows the price or Locked, and those hulls still cannot be equipped.
-//   Launch on Merlin or Rook keeps the last owned ship.
+//   Launch on Merlin or Rook keeps the last owned ship, unless `?anyship=1`.
 
 import { color, font } from '../../brand/tokens.js';
 import { resetType, setDisplayType, setLabelType, setMonoType } from '../../utils/BrandDraw.js';
@@ -31,7 +31,7 @@ import {
     isHangarNew,
     markHangarSeen,
 } from '../../config/HangarLore.js';
-import { getSkinPriceLabel, isSkinOwned, purchaseSkin } from '../../services/Entitlements.js';
+import { getSkinPriceLabel, isSkinOwned, purchaseSkin, unlockAllSkinsEnabled } from '../../services/Entitlements.js';
 import { saveShipSkinId } from '../../ships/skins.js';
 import { setUserProperty, track } from '../../services/Analytics.js';
 import { hapticWallBoop } from '../../native/index.js';
@@ -197,9 +197,9 @@ export function renderHangar(game) {
     const index = game.hangarIndex ?? hangarIndexOf(game.shipSkinId);
     const entry = entryAt(index);
     const skin = skinFor(entry);
-    const owned = Boolean(entry && !entry.hidden && isSkinOwned(entry.id));
+    const flyable = Boolean(entry && isSkinOwned(entry.id) && (!entry.hidden || unlockAllSkinsEnabled()));
     const hidden = Boolean(entry?.hidden);
-    const locked = Boolean(entry && !hidden && !owned);
+    const locked = Boolean(entry && !hidden && !flyable);
     const onFile = hangarOnFile();
     game.hangarMetrics = m;
 
@@ -265,7 +265,7 @@ export function renderHangar(game) {
     resetType(ctx);
 
     cursor += typePx + 10 * m.k;
-    const title = hidden ? 'Unlisted' : (entry?.name || '');
+    const title = hidden && !flyable ? 'Unlisted' : (entry?.name || '');
     setDisplayType(ctx, namePx);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -300,7 +300,7 @@ export function renderHangar(game) {
     const barX = m.x + m.inset16;
     const barW = m.colW - m.inset16 * 2;
     let barLeft = 'Launch';
-    let barRight = hidden ? '' : (entry?.name || '');
+    let barRight = hidden && !flyable ? '' : (entry?.name || '');
     if (locked) {
         barLeft = getSkinPriceLabel(entry.id) || 'Locked';
         barRight = entry?.name || '';
@@ -513,7 +513,7 @@ export async function handleHangarClick(game, x, y) {
             await buyFromHangar(game, entry.id);
             return true;
         }
-        if (entry && !entry.hidden && isSkinOwned(entry.id)) {
+        if (entry && isSkinOwned(entry.id) && (!entry.hidden || unlockAllSkinsEnabled())) {
             if (game.shipSkinId !== entry.id) {
                 game.shipSkinId = saveShipSkinId(entry.id);
                 game.menuShipBrowseId = entry.id;

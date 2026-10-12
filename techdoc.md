@@ -1,6 +1,37 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Home menu hint: Headphones recommended for best experience.
+<!-- Changes: Local web `?anyship=1` equips any hangar hull, including
+     Merlin and Rook, without writing ownership into localStorage.
+     Open Space unlocks the nine new obstacles from 1500 KM.
+     Shoal, tunnel, and satellite are storms only (4800, 6400, 8000).
+     Journey budget is on with JOURNEY_CAPS (raised to measured
+     peaks). Debuts: spinner 7, blinkRow 10, meteorShower 13, hollowOrbit 16,
+     shoal 19, ricochet 23, lightning 28, tunnelField 33, satDebris 36.
+     Debut days still place the obstacle. The teach sentence and debut clip
+     stay off (DebutCue DEBUT_CUE_ENABLED is false) until the wording is final.
+     Story level-N.mp3 files are unchanged. Lab keeps CAPS.
+     Ion is free hangar hull 040 (slightly narrower cyan arrow, no hull halo)
+     on Android/web and native iOS. No store product. Its three NAV lines
+     are recorded with PerfectSwoosh as nav_40_ion_1/2/3.mp3.
+     Intensity knobs (config/ObstacleIntensity.js) for the nine new
+     obstacles: gentle / today / hard; lab = today, ?intensity=0..1 previews.
+     Load budget (game/LoadBudget.js + config/ObstacleDemand.js): per-axis
+     demand caps trim rows. Journey uses JOURNEY_CAPS; the lab keeps CAPS.
+     Beside a set piece: one
+     rock cluster plus one light (spinner or pulsating).
+     Lab plays tunnelRun, shoalPass, debrisField at 1/4, 1/2, 3/4.
+     `npm run fairness` flies a zigzag bot through the real spawner.
+     `?deaths=1` shows a dev crash tally with a Copy button.
+     Playtest branch playtest/new-obstacles has nine Hazard Lab
+     obstacles: spinner, hollowOrbit, ricochet, blinkRow
+     (playtestObstacles.js), tunnelField, shoal (playtestFields.js),
+     meteorShower (playtestStreakers.js), satDebris, lightning
+     (playtestWallHazards.js). Ricochet restored; bumper, comet, and snap removed. Satellite cells exit through walls; Shoal is a spaced, wandering school that bounces twice, then leaves. Spinner is drawn as a radar sweep.
+     Shared helpers live in playtestShared.js. Tunnel
+     field claims its band via ObstacleManager.claimArea(). The Journey map shows Hazard Lab
+     on this branch only. Journey debuts the nine on existing days. No
+     shared/game-constants.json export yet, no iOS ObstacleKind cases.
+     Home menu hint: Headphones recommended for best experience.
      Launch lines on disk are nav_XX_ship_N.mp3 in
      public/sounds/voice/ and ios-native/SpaceSwoosh/Voice/
      (iOS Resources phase). Cue times are still estimates.
@@ -68,7 +99,7 @@
 > **Native iOS (shipping target):** [`ios-native/`](ios-native/) — SpriteKit +
 > SwiftUI, bundle ID `com.orbi.spaceswoosh`. Capacitor [`ios/`](ios/) is
 > **retired before launch**. Android remains Capacitor. Native Play / Journey /
-> Lab fly the **39-ship hangar** (Android `SKIN_DEFS` order; Merlin and Rook stay in the catalog with `hidden: true` and are omitted from `SHIP_SKIN_LIST` / iOS `SkinCatalog.roster`). JS + native iOS
+> Lab fly the **40-ship hangar** (Android `SKIN_DEFS` order; Merlin and Rook stay in the catalog with `hidden: true` and are omitted from `SHIP_SKIN_LIST` / iOS `SkinCatalog.roster`). Ion is the fifth free hull. JS + native iOS
 > `UNLOCK_ALL_SKINS = false` (premium hangar tiles go through RevenueCat);
 > Options still has Restore Purchases. Sequential Journey:
 > `UNLOCK_ALL_LEVELS = false` (web also `?unlocklevels=1|0`). Free forever (no
@@ -370,7 +401,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `ui/screens/ReviewPromptScreen.js` | Paper overlay on a Journey clear: Enjoying so far? / It's great / Not really / Later. |
 | `ui/screens/SubmitSignalModal.js` | Open Space call-sign sheet: idle stacked stats card; keyboard sheet fills remaining viewport (recap + field + Submit). Playtest `?signal=1` / `?kb=N`. |
 | `services/Purchases.js` | RevenueCat wrapper (native only); skins + Pro weekly/yearly; no-ops without API keys. |
-| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. |
+| `services/Entitlements.js` | Skin ownership + Pro cache + annual ship picks. Free = no `productId` (Focus/Flicker/Ember/Saber). **`UNLOCK_ALL_SKINS` is false** on Android/web and native iOS so hangar purchases hit RevenueCat. Cache gen 2 (`ownedSkinIdsGen`) wipes the playtest all-owned list on first launch after the flip. `UNLOCK_PRO` stays **false**. Local web `?anyship=1` makes `isSkinOwned` true for every catalog id (Merlin and Rook included) without writing `ownedSkinIds`. |
 | `services/Lives.js` | Free lives pool (start 10, +6 / 6h, cap 10). **`LIVES_ENABLED` is false** until we ship it — `canStartRun` / `spendLife` / `ensureRegen` no-op; stored `livesState` is left untouched. Spend on crash/fuel and Pro bypass apply only when the flag is on. |
 | `game/Game.js` | Core loop, `appScreen` flow, menu/options/HUD/end screens, scoring. SPACE BOARD: Global/Friends chip on phones, Friends default when that list has anyone, Submit Signal paperTint + page jump. Friends rows: avatar / initials, YOU, paperTint local row; YOU metric is `max(Play Games, OpenWorldProgress)`. |
 | `ships/skinPreview.js` | Hangar specimen: banked hull + curved wake (`drawSkinSpecimen`, short or long arc). `npm run assets:ships` writes night-paper PNGs (hull and wake) to `assets/reference/ships/` plus `catalog.json` and `sheet.png`. The game does not load those files. |
@@ -379,13 +410,13 @@ game build env. Journey progress and Open Space personal best stay in
 | `ships/hulls.js` | Hull paths, jelly profiles, `wallTrailDeform` modes (incl. Focus/Ember `ripple` + `TRAIL_WAVE_MS` 560), `beginHullFrame`, `MAX_BANK`. |
 | `ships/trails.js` | Wake renderers + per-skin wall-boop extras (bubble, rainbow ribbon, saber blade, desync, etc.). |
 | `config/GameConfig.js` | Tuning every run shares (spacecraft, camera, obstacle sizes, milestones, **fuel**, **points**, styleSwoosh). |
-| `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. |
-| `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. |
+| `config/JourneyConfig.js` | The Journey curve: `STEPS`, chapters, the derived `JOURNEY_LEVELS` table, star rules, L1–5 teach gates. `JOURNEY_DEBUTS` adds the nine new obstacles on days 7, 10, 13, 16, 19, 23, 28, 33, 36. That day focuses the new type. Set pieces stay in the roster for encounters and are filtered out of the random belt. |
+| `config/JourneyNarrative.js` | THE REPLY: `PRE_LEVEL_1_LORE`, `LEVEL_MESSAGES[1..42]`, `LEVEL_INTRO_BEATS[1..42]` (+ `gapAfterMs`), `FIRST_BOOP_BEATS`, `ENDING_EPILOGUE`. `DEBUT_LINES` is the in-run teach sentence. `debutVoiceFile` names `debut-N.mp3`. |
 | `game/JourneyEpilogueSequence.js` | L42 written ending: ~1.6s dark hold, arrival voice+captions (`level-42.mp3`), **3s** black gap, then open voice, prompt/skip, lights, ordinal, Follow @spaceswoosh.app, first-time Arc card. Replay skips the prompt (one reply per device). Sky lights and the player star use Signal Blue with tight halos (same accent as fuel sparkles). |
 | `services/ReplyService.js` | RPC `submit_journey_reply(p_body, p_skipped, p_ship_id, p_platform)` → ordinal. Roster `ship_id` and client `platform` stored next to the message. Called once per device; replay does not insert again. Offline falls back to a local card. |
 | `services/ReplyFilter.js` | 140-char UGC filter for epilogue text (same blocklist as call signs). |
 | `modes/RunProfile.js` | `RunProfile` contract + `OpenWorldProfile`; owns `OPEN_WORLD_UNLOCKS`. |
-| `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. |
+| `modes/JourneyProfile.js` | Maps a level descriptor to per-run tunables + story intro lines + pickup gates. Load budget is on (`JOURNEY_CAPS`). A debut day's new obstacle uses intensity 0; later days use that day's difficulty. `unlocksBy` omits set pieces so they only appear as encounters. |
 | `modes/index.js` | `createRunProfile(game, mode, level)`. |
 | `services/JourneyProgress.js` | `localStorage` progress v2: unlocked level, stars, best points, `loreSeen`, `arcUnlockSeen`, `epilogueReplyDone` / `epilogueOrdinal`. Completing old Day 40 migrates `unlocked` to 41. **`UNLOCK_ALL_LEVELS`** is **false** (sequential tiles). Web `?unlocklevels=1\|0` still overrides without rewriting saved `unlocked`. Web epilogue skip: **`?level=42&nearend=1`**. |
 | `services/OpenWorldProgress.js` | `localStorage` personal-best Open Space distance **and** asteroids destroyed per flight style (`bestByStyle` + `bestDestroyedByStyle`; v3. v2 `bestByStyle` / v1 `bestScore` migrate). Friends YOU overlays these when Game Center / Play Games still have 0. |
@@ -406,7 +437,8 @@ game build env. Journey progress and Open Space personal best stay in
 | `ui/LivesChip.js` | Compact lives / ∞ + regen countdown. Hidden while `LIVES_ENABLED` is false. |
 | `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost, fade world, fade screen in. L42 hands off to the written epilogue. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
-| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–41 voice (Day 42 skips intro text); holds belt until done. |
+| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–41 voice (Day 42 skips intro text); holds belt until the story clip is done. |
+| `game/DebutCue.js` | Journey debut days only. `DEBUT_CUE_ENABLED` is false, so the obstacle appears with no extra sentence and no `debut-N.mp3`. When the flag is on: after the belt is open, the first time that day's obstacle overlaps the view, waits 700ms, then shows `DEBUT_LINES` and plays the clip. Once per run. Does not hold the opening. |
 | `utils/BrandDraw.js` | Paper, framed tiles/buttons, sparkle glyph. |
 | `utils/DepthField.js` | Wrapping depth sparkles after `drawPaper` on night paper only: bone specks + rare ice glints / tiny flares; cheap/LOD thins the field; `?kill=stars` skips it. Light Mode stays flat. |
 | `game/cinematicFlight.js` | Shared angled cruise (zigzag / arc heading + silent wall bounce) for intro & outro. |
@@ -415,11 +447,19 @@ game build env. Journey progress and Open Space personal best stay in
 | `entities/Spacecraft.js` | Ship movement, heading, trail data, shield + gameplay speed boost; render delegates to active skin. |
 | `entities/Collectible.js` | The Signal-Blue fuel diamond (render + collision + latched magnet chase). |
 | `entities/ComplexAsteroid.js` | (legacy/aux asteroid variant). |
-| `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. L6+ mixed pairs + `EncounterDirector` spikes/storms. Shield smash: `playSmashCrashFeedback()` (crash SFX + `hapticShieldSmash`), 120 ms flyout gate. |
+| `managers/ObstacleManager.js` | All obstacle types, spawning, collisions, destruction particles, score popups. L6+ mixed pairs + `EncounterDirector` spikes/storms. Shield smash: `playSmashCrashFeedback()` (crash SFX + `hapticShieldSmash`), 120 ms flyout gate. Playtest types delegate to `playtestObstacles.js`. |
+| `managers/playtestObstacles.js` | Branch-only Hazard Lab candidates: Spinner (a radar hand; `drawSweepTrail()` in `playtestShared.js` draws harmless fading ink30 arcs behind it, also used by its Space Log picture), Hollow Orbit, Ricochet, Blink Row. Owns `PLAYTEST_IDS` and `createPlaytestObstacle()`, the single spawn entry. Journey debuts them on the days in `JOURNEY_DEBUTS`. Not in the iOS sim yet. |
+| `managers/playtestFields.js` | Forgiving set pieces. **Tunnel field**: a full-width band of small, spaced pebbles (0.5–0.75 u, 2.75 u apart). Legs run up to 0.42 of the width, so the band stays short. Tunnel walls and the band's top and bottom edges are ragged: smooth 3-sine noise pushes each edge back by up to 0.9 u (walls) or 3.5 u (band), and 30 % of pebbles near a wall are eroded at random. All of it only removes rock. No guide line is drawn. Its zigzag tunnel runs at `zigzagAngleDeg`, and its mouth aims at where a hands-off ship would arrive. Clear core 2.0 u plus a 1.2 u dashed lining; width = pebble + hull + 0.08 s of travel, so it is narrow and timing-tight. Dashed lining pebbles chip off without killing; with the shield up, solid pebbles smash one by one. **Shoal**: about ten rocks (0.7–0.95 u) scattered in a 6.5 × 3.8 u ellipse at least 2.7 u apart. Each rock springs toward its home slot plus its own random two-sine wander (±0.9 u), close neighbours push apart, and the whole school sways gently, so it reads as one loose organic unit. No wakes are drawn. Once on screen it heads for the nearer wall; whenever its leading rock touches a wall the whole school turns. After `SHOAL.bounces` (2) turns it crosses back, exits through the first wall, and calls `retire()`. It ignores the ship. |
+| `managers/playtestStreakers.js` | **Meteor shower**: when it enters the view, four dashed ink30 streaks fall first on the shared 28° slant (random side). They do not collide. Warn is 1.05 / 0.75 / 0.5 s. Then 12 tiny rocks (0.42 u) follow that slant over 1.4 s at 0.7 screen-heights/s. Rock tails are cosmetic ink30. Calls `retire()` when both are gone. |
+| `managers/playtestWallHazards.js` | **Satellite debris**: body + two panels + antenna as rotated rects, drifting toward the nearer wall while spinning. On wall contact it shatters into those four pieces, which drift back in. On a later wall hit, a panel breaks into its 3 cells (plain mini rects that never bounce: they fly out through the walls and are dropped). The body halves on each wall hit until its long half-side is 0.6 u or less, and the antenna only bounces. **Lightning**: anchored at a wall, it runs a 2.8 s loop once on screen. Warning (0.9 s): the wall glow grows, crackle sparks flicker, and a dashed ink30 line shows the 62 % reach. Strike (0.22 s): a slim 10-kink jagged bolt (0.18 u half-width) with 2–4 short forks (0.12 u), all re-rolled every 45 ms. This is the only time it collides, and the forks count. Then a 0.18 s harmless fade and a 1.5 s rest. |
+| `managers/playtestShared.js` | Collision maths (`circleHits`, `circleHitsRect`, `distToPolyline`, …), `inkBurst`/`burstInto`, `traceRect`, and the `PlaytestBody` base class. `retire()` sets `y = -Infinity` so the ahead-despawn filter drops finished movers, because passed obstacles are otherwise never culled. `markHit()` records the contact point so a shield smash bursts there. |
 | `config/EncounterCatalog.js` | Authored gauntlets for Journey spikes and Open Space storms. Source of truth — `npm run constants:export` copies them into `shared/game-constants.json` and `GeneratedJourneyData.encounterCatalog`. |
 | `config/OpenSpaceWeather.js` | Open Space KM pair/combo/focus, belt density lerp, and storm marks. |
 | `config/HazardPairs.js` | Compatible same-row mixes, pair-theme hints, `usesPairedBelt` from L6. |
 | `game/EncounterDirector.js` | Journey 6+: 1–2 catalog spikes. Open Space: KM-anchored storms (dual after 25k). |
+| `game/LoadBudget.js` | Sums live demand from 0.6 screen ahead to the bottom edge and trims each planned row (`fit(plan)`): an overflowing slot becomes simple rocks or is dropped (an empty row is a breather). Caps lerp by `profile.loadDifficulty` (space 5→9, timing 2→5, tracking 3→6, movers 1→3). A set piece starts only when load is under half of every cap with no movers; while one is live only rocks may join. On where `profile.usesLoadBudget`. Hazard Lab uses the tighter `CAPS`. Journey uses `JOURNEY_CAPS` (space 16→22, timing 6→12, tracking 10→17, movers 4→8), raised so today's peaks are not thinned. Web `?budget=0` turns it off; `?budget=debug` draws the live load. |
+| `config/ObstacleIntensity.js` | Intensity knobs for the nine new obstacles as `[gentle, today, hard]`; `knob(game, type, name)` lerps gentle→today over intensity 0–0.5 and today→hard over 0.5–1. Intensity = web `?intensity=` override, else `profile.intensityFor(type)`, else `profile.loadDifficulty`. Hazard Lab returns 0.5 (today's tuning). Knobs: spinner / hollowOrbit spin, ricochet speed, blinkRow beat, tunnelField slackSec + legs, shoal count + speed (school oval grows with √(count/10)), satDebris speed, lightning warn / rest / reach, meteorShower count + speed + warn. Existing obstacle types have no knobs. |
+| `config/ObstacleDemand.js` | Demand profile per type: `space` / `timing` / `tracking` (0–3), `mover`, `setPiece`. `liveDemandOf()` counts each live rock as half a simple slot. First-guess values, to be recalibrated by the fairness sim and death stats. |
 | `managers/PowerUpManager.js` | Shield plus (5s wall-clock grant) + wall-boost slab (from 12000 KM, ~22s, random L/R); collect → shield + 1.82× speed for 5s wall-clock. |
 | `managers/CollectibleManager.js` | Fuel diamonds: spawn cadence, collect → clamped fuel refill + `sparklesCollected`, `+FUEL` popup + `playCollect()`. |
 | `managers/StyleSwooshManager.js` | Near-miss twin-obstacle "swoosh": style points + Signal-Blue VFX + `playSwooshVoice()` (no caption). |
@@ -748,15 +788,24 @@ distance lines at 1000 / 2000 / 5000 KM (atmosphere + asteroid warnings) are sil
 | --- | --- |
 | 0 | `simple` |
 | 1000 | `sideBarrier`, `complex` |
+| 1500 | `spinner` |
 | 2000 | `moving` |
+| 2500 | `blinkRow` |
 | 3000 | `shooting` |
+| 3200 | `meteorShower` |
 | 3500 | `driftCurrent` |
 | 4000 | `pulsating` |
+| 4200 | `hollowOrbit` |
 | 4500 | `phase` |
+| 4800 | `shoal` (storm only, not the belt) |
 | 5000 | `wormhole` |
+| 5200 | `ricochet` |
 | 5500 | `repulsor` |
 | 6000 | `blackhole` |
+| 6400 | `tunnelField` (storm only) |
+| 6500 | `lightning` |
 | 7000 | `sweepGate` |
+| 8000 | `satDebris` (storm only) |
 
 Open Space **weather** (`config/OpenSpaceWeather.js`): from 2000 KM, mixed
 rows follow a KM pair/combo/focus band (full-sky rotation after 7000).
@@ -813,6 +862,33 @@ alpha sprite at diameter `8×radius`, pooled 2pt `SKShapeNode` ring, phase
 stays the older additive `glowInk` blob.
 
 Style Swoosh skips Sweep / Repulsor / Drift Current.
+
+**Load budget (lab only so far):** every lab row, from either row path, goes
+through `LoadBudget.fit()`. The teach-band / lab path now builds a plan first
+(`ObstacleManager.planLegacyRow`) and spawns it with `spawnPlannedRow`, so
+behaviour is unchanged whenever the budget is off. Journey and Open Space keep
+`usesLoadBudget` false until the fairness sim clears every day and KM band.
+In a 400-row lab stress run the budget held timing, tracking, movers, and set
+pieces under their caps; space overshot by at most 0.2 on 6 rows (3-rock
+clusters), and about 9 % of rows became breathers. While a set piece is in
+the window, a row may keep one rock cluster and one light obstacle (Spinner
+or Pulsating), even if that light tips a cap; anything else becomes rocks or
+is dropped. Hazard Lab also schedules `tunnelRun`, `shoalPass` and
+`debrisField` at 1/4, 1/2 and 3/4 of the run. Each spawns its set piece, then
+an `accompany` beat lets ordinary rows through until that piece leaves the
+view, then a 0.4-screen quiet. Random rows can still spawn the same three.
+
+`npm run fairness` (`scripts/fairness-sim.mjs`) flies a zigzag bot for 10 seconds,
+two seeds, through every Journey day, Open Space at 0 / 2k / 5k / 7k / 12.5k /
+20k KM, and Hazard Lab. It uses the real `ObstacleManager`. A death is one
+lethal overlap, then 0.45s of ignoring hits. The bot flips when its path 0.22s
+ahead is blocked and the other lean is clear. The first run survived every
+sample (closest call about 55px on day 20). Journey demand exceeds the day-30
+caps from day 6 (space and tracking); Hazard Lab stayed inside its own caps.
+`?deaths=1` mounts `DeathTally`: each fatal hit records the killer and the other
+non-rock types in the view, kept in `sessionStorage` for the tab, with a Copy
+button. Node scripts import the game by treating a missing `import.meta.env`
+as `{}` in Analytics, Purchases and the Supabase client.
 
 ### Journey Logbook
 

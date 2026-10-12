@@ -11,6 +11,7 @@
 // - Sanitize params for Firebase (string | number only). Booleans like
 //   `completed: true` were putBoolean'd by the plugin and can cause Android to
 //   drop the whole custom event — convert to 0/1. Truncate long strings.
+// - import.meta.env falls back to {} outside Vite, so Node scripts can import.
 // - Review prompt: review_prompt_shown (trigger day_6|day_13), review_prompt_yes,
 //   not_really_enjoying, review_prompt_later, review_from_options.
 
@@ -20,15 +21,17 @@ import { clientPlatform } from '../core/platform.js';
 
 const isNative = () => Capacitor.isNativePlatform();
 
+const env = import.meta.env ?? {};
+
 /** Public web SDK config — same project as google-services.json / iOS plist. */
 const FIREBASE_WEB_CONFIG = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyCJrjzvI2U0w79UiyRw3EjHte09m888zwg',
+    apiKey: env.VITE_FIREBASE_API_KEY || 'AIzaSyCJrjzvI2U0w79UiyRw3EjHte09m888zwg',
     authDomain: 'spaceswoosh-faa9c.firebaseapp.com',
     projectId: 'spaceswoosh-faa9c',
     storageBucket: 'spaceswoosh-faa9c.firebasestorage.app',
     messagingSenderId: '149157024817',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-SMEY63Z40C',
+    appId: env.VITE_FIREBASE_APP_ID || '',
+    measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || 'G-SMEY63Z40C',
 };
 
 let webAnalytics = null;
