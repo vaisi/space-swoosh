@@ -1,11 +1,12 @@
 // RootView.swift
-// Changes: menu headphones hint (signal-blue mark + HEADPHONES RECOMMENDED)
-// sits 56pt below the safe area and does not move the title or buttons.
-// home menu is title, tagline, and the four buttons. No idle ship.
-// Dark mode lays Android's drifting depth field under every shell
-// screen (menu, Journey map, log). Light Mode stays flat paper. Home shows
-// the equipped hull idling. Open Space and Journey days open the Hangar;
-// crash retry and Hazard Lab stay direct.
+// Changes: SVG arc call labels y2 so Xcode 26 accepts it. Options Rate
+// chip passes trailing: explicitly. Menu headphones hint (signal-blue
+// mark + HEADPHONES RECOMMENDED) sits 56pt below the safe area and does
+// not move the title or buttons. Home menu is title, tagline, and the
+// four buttons. No idle ship. Dark mode lays Android's drifting depth
+// field under every shell screen (menu, Journey map, log). Light Mode
+// stays flat paper. Home shows the equipped hull idling. Open Space and
+// Journey days open the Hangar; crash retry and Hazard Lab stay direct.
 
 import SwiftUI
 
@@ -240,10 +241,11 @@ struct RootView: View {
                 "OPTIONS",
                 back: { screen = .menu },
                 trailingTitle: "Rate",
-                trailingTag: "★"
-            ) {
-                ReviewPromptStore.rateFromOptions()
-            }
+                trailingTag: "★",
+                trailing: {
+                    ReviewPromptStore.rateFromOptions()
+                }
+            )
             ShellChrome.screenBlurb("Vessel. Controls. Signal.")
             ShellChrome.brandButton("Ship", tag: "●") { screen = .shipPicker }
             ShellChrome.brandButton("Controls", tag: "↔") { screen = .optionsControls }
@@ -589,7 +591,7 @@ private extension Path {
                 let x2 = command == "a" ? cx + x : x
                 let y2 = command == "a" ? cy + y : y
                 addSVGArc(from: cx, cy, rx: rx, ry: ry, rotation: rot,
-                          large: large != 0, sweep: sweep != 0, to: x2, y2)
+                          large: large != 0, sweep: sweep != 0, to: x2, y2: y2)
                 cx = x2; cy = y2
             case "Z", "z":
                 closeSubpath()
