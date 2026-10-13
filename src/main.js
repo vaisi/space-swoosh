@@ -1,8 +1,9 @@
 // main.js
 // Entry point: bootstraps the game.
 // Changes:
-// - Mobile web never starts Game — store gate + analytics only. Native apps
-//   and desktop browsers still boot the canvas.
+// - Phone and tablet browsers boot the canvas. A bottom bar links the
+//   matching store (web_store_prompt / web_store_click). Desktop still
+//   boots with QR rails. Native boots with no store chrome.
 // - Do not await RevenueCat / entitlements before the menu: the free roster
 //   plus ownedSkinIds cache is enough for the first hangar paint. A
 //   Play Billing hang must not pin the native splash.
@@ -30,7 +31,6 @@ import { initTheme } from './brand/theme.js';
 import {
     markDocumentShell,
     preferredStoreTarget,
-    shouldBlockBrowserPlay,
 } from './core/platform.js';
 import { hideSplashScreen, initNative } from './native/index.js';
 import { initAnalytics, track } from './services/Analytics.js';
@@ -40,6 +40,19 @@ import { playtestLevelFromQuery } from './services/JourneyProgress.js';
 import { CaptureManager } from './capture/CaptureManager.js';
 
 const SPLASH_FAILSAFE_MS = 3000;
+
+/** Phone browsers keep playing; the bar is the download path. */
+function bindPhoneStoreBar() {
+    if (document.documentElement.dataset.webGate !== 'play') return;
+    track('web_store_prompt', { store_target: preferredStoreTarget() });
+    const bar = document.querySelector('.phone-store-bar');
+    if (!bar) return;
+    bar.addEventListener('click', (event) => {
+        const link = event.target.closest('[data-store]');
+        if (!link) return;
+        track('web_store_click', { store: link.dataset.store || '' });
+    });
+}
 
 function applyStoreHrefs() {
     const ios = appStoreUrl();
@@ -59,11 +72,7 @@ window.addEventListener('load', async () => {
     initTheme();
     markDocumentShell();
     applyStoreHrefs();
-
-    if (shouldBlockBrowserPlay()) {
-        track('web_store_gate', { store_target: preferredStoreTarget() });
-        return;
-    }
+    bindPhoneStoreBar();
 
     const splashFailsafe = setTimeout(() => {
         hideSplashScreen().catch(() => {});

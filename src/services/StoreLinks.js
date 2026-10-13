@@ -1,7 +1,7 @@
 // StoreLinks.js
-// Play / App Store listing URLs for Rate, the web store gate, and QR codes.
+// Play / App Store listing URLs for Rate, the phone download bar, and QR codes.
 // Changes: Live Apple id 6801885446; appStoreUrl() is locale-neutral so the
-// device Store opens. Used by the mobile download prompt and desktop QR rails.
+// device Store opens. Used by the phone "Get the app" bar and desktop QR rails.
 
 export const PLAY_PACKAGE_ID = 'com.orbi.spaceswoosh';
 export const PLAY_STORE_URL =

@@ -1,10 +1,10 @@
 // platform.js
 // Lightweight device / canvas-budget detection for Safari vs Android/desktop.
 // Changes:
-// - shouldBlockBrowserPlay() / preferredStoreTarget(): mobile web cannot run
-//   the canvas; html[data-web-gate=store|desktop|play] drives the download
-//   prompt and desktop QR rails. Vite `?webplay=1` bypasses the gate in DEV;
-//   the explicit `?capture=1` production route is reserved for native recording.
+// - Phone and tablet browsers play the canvas. html[data-web-gate=play]
+//   reserves a bottom "Get the app" bar (App Store or Play, from
+//   preferredStoreTarget()). Desktop web stays data-web-gate=desktop with
+//   QR rails. Native clears the gate. The full-screen store wall is gone.
 // - clientPlatform(): 'ios' | 'android' | 'web' for analytics + Supabase rows.
 // - isDesktopWeb() / isNativeApp() / markDocumentShell(): Open World teach copy
 //   and the desktop store rails branch on desktop web vs native/touch.
@@ -44,44 +44,13 @@ export function isAndroidDevice() {
 }
 
 /**
- * Store the mobile-web download prompt should emphasize.
+ * Store the phone download bar should emphasize.
  * @returns {'ios' | 'android' | 'both'}
  */
 export function preferredStoreTarget() {
     if (isIosDevice()) return 'ios';
     if (isAndroidDevice()) return 'android';
     return 'both';
-}
-
-/** Vite-only escape hatch so device-mode can still boot the canvas. */
-export function allowBrowserPlayBypass() {
-    if (typeof window === 'undefined') return false;
-    try {
-        const params = new URLSearchParams(window.location.search);
-        return params.has('capture') || (import.meta.env.DEV && params.has('webplay'));
-    } catch {
-        return false;
-    }
-}
-
-/**
- * Phone / tablet browsers (iOS or Android), including DevTools device mode.
- * Desktop Chrome/Safari/Edge UAs are not mobile.
- */
-export function isMobileBrowser() {
-    return isIosDevice() || isAndroidDevice();
-}
-
-/**
- * Phone and tablet browsers must not run the game — they get a store prompt.
- * Packaged apps and desktop (hover + fine pointer, and not an iOS/Android UA)
- * still play.
- */
-export function shouldBlockBrowserPlay() {
-    if (isNativeApp()) return false;
-    if (allowBrowserPlayBypass()) return false;
-    if (isMobileBrowser()) return true;
-    return !isDesktopWeb();
 }
 
 /**
@@ -144,8 +113,9 @@ export function isDesktopWeb() {
 }
 
 /**
- * `html[data-shell=web|native]` so CSS can hide store rails in the app.
- * `data-web-gate` chooses the mobile download prompt vs desktop QR rails.
+ * `html[data-shell=web|native]` so CSS can hide store chrome in the app.
+ * `data-web-gate=play` is a phone/tablet browser (game + download bar).
+ * `data-web-gate=desktop` is a mouse/trackpad browser (game + QR rails).
  */
 export function markDocumentShell() {
     if (typeof document === 'undefined') return;
@@ -158,21 +128,15 @@ export function markDocumentShell() {
         return;
     }
     root.dataset.storeTarget = preferredStoreTarget();
-    if (shouldBlockBrowserPlay()) {
-        root.dataset.webGate = 'store';
-    } else if (isDesktopWeb()) {
-        root.dataset.webGate = 'desktop';
-    } else {
-        root.dataset.webGate = 'play';
-    }
+    root.dataset.webGate = isDesktopWeb() ? 'desktop' : 'play';
     syncWebStoreDom(root);
 }
 
-/** Keep the download prompt out of the accessibility tree when it is hidden. */
+/** Keep the phone download bar out of the accessibility tree when it is hidden. */
 function syncWebStoreDom(root) {
-    const gate = document.querySelector('.web-store-gate');
-    if (!gate) return;
-    const blocked = root.dataset.webGate === 'store';
-    gate.inert = !blocked;
-    gate.setAttribute('aria-hidden', blocked ? 'false' : 'true');
+    const bar = document.querySelector('.phone-store-bar');
+    if (!bar) return;
+    const shown = root.dataset.webGate === 'play';
+    bar.inert = !shown;
+    bar.setAttribute('aria-hidden', shown ? 'false' : 'true');
 }
