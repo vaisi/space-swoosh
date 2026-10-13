@@ -77,9 +77,9 @@
      uses additive glowInk. Native iOS drift lanes cache a dashed hairline
      and slide in X (Android lineDashOffset). Sparkle magnet latches
      (JS + iOS) then constant chase until collect. Default theme is dark
-     (no ssTheme). DepthField is night-paper only. Mobile browsers on
-     spaceswoosh.app never boot the canvas — store gate + App Store / Play
-     links. Desktop web shows cream/ink QR rails (`public/qr/`,
+     (no ssTheme). DepthField is night-paper only. Phone and tablet
+     browsers boot the canvas and keep a bottom "Get the app" bar
+     (App Store or Play). Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
      shield is 5s wall-clock. Android Play default is 51 / 1.0.51 (caption
@@ -389,7 +389,7 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Path | Responsibility |
 | --- | --- |
-| `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. Mobile **web** returns after `web_store_gate` and never constructs `Game`. |
+| `main.js` | Bootstraps: time-capped font preload, starts the menu, fires entitlements in the background, wires native shell + 3s splash failsafe. Phone and tablet browsers construct `Game` and show the download bar. |
 | `native/index.js` | Capacitor shell: `hideSplashScreen()` first then hardware back, lifecycle pause, keep-awake, `SystemBars.setStyle` (edge-to-edge; no StatusBar color/overlay APIs); wall-boop Light haptic + smash Light haptic at reduced strength (Android `HapticSmash` waveform; iOS intensity 0.55), Keyboard IME height → `game.softKeyboardHeight` (WebView does not resize; `html.ss-ime-open` drops body padding-bottom). `requestNativeReview()` / `openStoreListing()` wrap `InAppReview` (Play Core). |
 | `game/BackNavigation.js` | Shared "go back one step" map for Android back + Escape. Hangar returns to the screen that opened it. Review overlay treats back as Later. |
 | `game/LaunchVoice.js` | Open Space NAV launch line on the shared voice slot. Arms when steering unlocks (`LevelIntroSequence.finish`). Audio at T0 + 0.6s. Subtitles type display cues, hold 1.2s, fade 0.3s. Journey story rounds skip the line and do not spend the session-first flag. |
@@ -397,7 +397,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `config/navCues.json` | Archive copy and 123 launch lines. Display text and Line IDs are verbatim. `cues_are_estimates` is still true. |
 | `ships/hangarFlight.js` | Hangar preview. The ship is a `Spacecraft` and each frame calls `Spacecraft.update()` (the run's zigzag or arc step, heading, and `updateTrail`). The lane is inset so the hull and wake stay inside the stage. The camera only seats the hull. |
 | `ui/screens/HangarScreen.js` | Hangar paint, swipe, ruler, Launch. |
-| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. Mobile web gate: `web_store_gate` (`store_target` ios\|android\|both). |
+| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. Phone web download bar: `web_store_prompt` (`store_target` ios\|android\|both), `web_store_click` (`store` ios\|play). |
 | `services/ReviewPrompt.js` | Enjoyment card eligibility (`ssReviewPrompt`): pending → Day 6; Later snoozes to Day 13 then `done`. Native only. |
 | `services/StoreLinks.js` | Play listing `com.orbi.spaceswoosh`; App Store id `6801885446` (`VITE_APP_STORE_APPLE_ID` override). `appStoreUrl()` is locale-neutral. Feeds Rate, the mobile web gate, and desktop QR generation (`npm run assets:qr`). |
 | `ui/screens/ReviewPromptScreen.js` | Paper overlay on a Journey clear: Enjoying so far? / It's great / Not really / Later. |
@@ -1345,15 +1345,16 @@ with a linear gradient along the wake's chord for the length-wise fade.
   stage in near-black ink. Dark uses charcoal `paperDeep` (`#12100E`) for the
   whole page (not bone beige) and a beige `#E1D9C1` tunnel frame on
   `#gameContainer` so the playfield edge still reads. Desktop **web**
-  (`html[data-web-gate=desktop]`) fills viewport height with a 2:3 stage and
-  cream/ink QR cards for the App Store (left) and Google Play (right) in the
-  leftover side columns — the stage still fills viewport height. Phone/tablet browsers
-  (`html[data-web-gate=store]`) never paint the canvas — a paper card links
-  to the matching store (`data-store-target=ios|android|both`). iOS/Android
-  user agents are always gated (so DevTools device mode works even when the
-  pointer still reports `fine`). Native apps
-  and Vite `?webplay=1` (DEV only) still boot the game. Store rails stay
-  hidden in the native app (`html[data-shell=native]`).   Native Android is edge-to-edge (`EdgeToEdge.enable`
+  (`html[data-web-gate=desktop]`, hover + fine pointer, viewport ≥769px)
+  fills viewport height with a 2:3 stage and cream/ink QR cards for the
+  App Store (left) and Google Play (right) in the leftover side columns.
+  Phone and tablet browsers (`html[data-web-gate=play]`) boot the same
+  canvas, full-bleed in portrait and 2:3 in landscape, and reserve a
+  bottom bar (`--phone-store-bar`) that links the matching store
+  (`data-store-target=ios|android|both`). The bar is `inert` off that
+  gate. Analytics: `web_store_prompt` on show, `web_store_click` on tap.
+  A landscape phone does not pick up the desktop QR grid. Native apps
+  boot with no store chrome (`html[data-shell=native]`). Native Android is edge-to-edge (`EdgeToEdge.enable`
   plus Capacitor `SystemBars` `insetsHandling: css`).   The application theme is
   `NoActionBar` (not `DarkActionBar`). Capacitor `SystemBars` plugin load
   posts `show(systemBars)`, which includes the caption bar and used to
@@ -1365,7 +1366,7 @@ with a linear gradient along the wake's chord for the length-wise fade.
   favicon / apple-touch-icon links; HTMLAudio is hidden and Media Session
   title is blanked so WebView media chrome cannot reuse the page title. Portrait fills the inset
   safe area; landscape letterboxes 2:3 (no `screenOrientation` lock). Phone
-  browsers that are allowed to play (DEV bypass) use the same
+  browsers use the same
   `--safe-area-inset-*` / `env(safe-area-inset-*)` padding.
   `theme-color` matches the surround. Native system-bar glyphs use
   `SystemBarsStyle.Dark` on night paper. Release Android enables R8

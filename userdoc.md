@@ -54,9 +54,9 @@
      like Android (not vertically). Fuel sparkles lock on once you fly
      close and chase the ship until collected. New installs start in Dark
      Mode. Tiny drifting stars sit in the depth on Dark Mode only; Light
-     Mode is flat cream paper. On a phone browser, spaceswoosh.app asks
-     you to install the iPhone or Android app instead of playing in the
-     tab. On a computer it still plays, with App Store and Google Play QR
+     Mode is flat cream paper. On a phone browser, spaceswoosh.app plays
+     in the tab, with a Get the app bar (App Store on iPhone, Google Play
+     on Android). On a computer it still plays, with App Store and Google Play QR
      codes beside the stage. Wall-boost speed rush lasts five seconds of
      flying (iPhone, Android, browser), same as the shield. Journey and
      Open Space share the same cruise. Shield lasts five seconds on
@@ -165,9 +165,10 @@
 > run (a few flash like distant sparks). Light Mode is cream paper with no
 > starfield. In Dark Mode the whole page stays charcoal; a beige frame marks
 > the edges of the playfield.
-> **Phones and tablets:** Open https://spaceswoosh.app on a phone and it will
-> not start the browser game. iPhone and iPad get the App Store; Android gets
-> Google Play. Fly in the installed app.
+> **Phones and tablets:** Open https://spaceswoosh.app on a phone and the
+> game starts in the browser. A bar along the bottom says **Get the app**.
+> iPhone and iPad open the App Store; Android opens Google Play. The
+> browser game stays on screen until you leave for the store.
 >
 > On a **computer**, the game fills the window height. Cream QR cards sit in
 > the leftover space (App Store on the left, Google Play on the right) so you
