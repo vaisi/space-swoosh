@@ -1,6 +1,9 @@
 // PlayContainerView.swift
-// Changes: Open Space game-over ghost rank is #N beside the distance.
-// Ranks are a light #N. YOU is the ship only, with no dashed outline.
+// Changes: Open Space game-over type, rows, and buttons are larger, and the
+// flexible space sits between the strip and the buttons. The ghost rank
+// stays hidden until the reel lands, then pops past full size and settles.
+// The strip shows two rows above YOU and two below. Ranks are a light #N.
+// YOU is the ship only, with no dashed outline.
 // #1 stays put. YOU holds its slot while one continuous list of joke
 // names rolls down past it, fast at first, then easing onto the real
 // neighbors with no snap. A top-10 finish waits for that
@@ -40,6 +43,8 @@ struct PlayContainerView: View {
     @State private var didAutoPrompt = false
     @State private var reelStart: Date?
     @State private var reelSettled = false
+    @State private var rankPopStart: Date?
+    @State private var rankPopSettled = false
     @State private var didOfferReview = false
     @State private var showReviewPrompt = false
     @State private var reviewTrigger = "day_6"
@@ -275,27 +280,36 @@ struct PlayContainerView: View {
         return ShellChrome.paperWash {
             VStack(spacing: 0) {
                 Text(session.failTitle)
-                    .font(BrandType.display(22))
-                    .tracking(BrandType.displayTracking(22))
+                    .font(BrandType.display(30))
+                    .tracking(BrandType.displayTracking(30))
                     .foregroundStyle(BrandColors.ink)
                     .padding(.top, 28)
                 Text(session.failDetail)
-                    .font(BrandType.body(14))
+                    .font(BrandType.body(17))
                     .foregroundStyle(BrandColors.ink55)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 28)
                     .padding(.top, 8)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 36)
 
-                HStack(alignment: .top, spacing: 6) {
+                HStack(alignment: .top, spacing: 8) {
                     Text(ScoreService.formatScore(session.scoreKm))
-                        .font(BrandType.mono(56))
+                        .font(BrandType.mono(76))
                         .foregroundStyle(BrandColors.ink)
-                    if let rank = session.boardRank, !session.rankLookupFailed {
-                        Text("#\(rank)")
-                            .font(BrandType.mono(18))
-                            .foregroundStyle(BrandColors.signal.opacity(0.85))
-                            .padding(.top, 4)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    if let rank = session.boardRank, !session.rankLookupFailed, rankPopStart != nil {
+                        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: rankPopSettled)) { context in
+                            let motion = rankPopSettled
+                                ? (scale: CGFloat(1), opacity: 1.0)
+                                : rankPopMotion(at: context.date)
+                            Text("#\(rank)")
+                                .font(BrandType.mono(22))
+                                .foregroundStyle(BrandColors.signal.opacity(0.85))
+                                .padding(.top, 6)
+                                .scaleEffect(motion.scale, anchor: .leading)
+                                .opacity(motion.opacity)
+                        }
                     }
                 }
 
@@ -308,34 +322,40 @@ struct PlayContainerView: View {
 
                 if !session.deathSlots.isEmpty {
                     ShellChrome.divider()
-                        .padding(.top, 36)
+                        .padding(.top, 28)
                     deathNeighborhood(youShip: youShip)
                         .padding(.vertical, 8)
                     ShellChrome.divider()
                 }
 
-                VStack(spacing: 10) {
-                    ShellChrome.brandButton("Play Again", primary: true) {
+                Spacer(minLength: session.deathSlots.isEmpty ? 24 : 36)
+
+                VStack(spacing: 12) {
+                    ShellChrome.brandButton("Play Again", primary: true, verticalPad: 22) {
                         replay(currentLaunch)
                     }
                     if !session.scoreSubmitted {
-                        ShellChrome.brandButton("Publish Score", signal: true, signalLabel: true) {
+                        ShellChrome.brandButton(
+                            "Publish Score",
+                            signal: true,
+                            signalLabel: true,
+                            verticalPad: 22
+                        ) {
                             showSubmit = true
                         }
                     }
                 }
-                .padding(.top, session.deathSlots.isEmpty ? 32 : 48)
+                .padding(.top, 8)
 
                 HStack(spacing: 10) {
-                    ShellChrome.brandButton("High Scores", labelSize: 14) {
+                    ShellChrome.brandButton("High Scores", labelSize: 17, verticalPad: 20) {
                         boardOpen = SpaceBoardOpen()
                         showHighScores = true
                     }
-                    ShellChrome.brandButton("Menu", labelSize: 14, action: onMenu)
+                    ShellChrome.brandButton("Menu", labelSize: 17, verticalPad: 20, action: onMenu)
                 }
                 .padding(.top, 12)
                 .padding(.bottom, 28)
-                Spacer(minLength: 8)
             }
             .frame(maxWidth: 360)
             .frame(maxWidth: .infinity)
@@ -346,10 +366,10 @@ struct PlayContainerView: View {
     private func deathStat(_ value: String, _ label: String) -> some View {
         HStack(spacing: 4) {
             Text(value)
-                .font(BrandType.mono(14))
+                .font(BrandType.mono(16))
                 .foregroundStyle(BrandColors.ink)
             Text(label)
-                .font(BrandType.body(14))
+                .font(BrandType.body(16))
                 .foregroundStyle(BrandColors.ink55)
         }
     }
@@ -387,10 +407,10 @@ struct PlayContainerView: View {
                 if slot.gap {
                     HStack {
                         Text("...")
-                            .font(BrandType.mono(12, bold: false))
+                            .font(BrandType.mono(15, bold: false))
                             .foregroundStyle(BrandColors.ink55)
                             .tracking(3)
-                            .frame(width: 36, alignment: .leading)
+                            .frame(width: 52, alignment: .leading)
                         Spacer(minLength: 0)
                     }
                     .padding(.leading, 4)
@@ -410,30 +430,65 @@ struct PlayContainerView: View {
             }
         }
         .task(id: reelTaskID) {
-            guard needed else {
-                if session.boardRank != nil || session.rankLookupFailed {
-                    reelSettled = true
-                    maybeAutoPrompt(session.overlayAlpha)
+        guard needed else {
+            if session.boardRank != nil || session.rankLookupFailed {
+                while session.boardRank != nil && session.overlayAlpha < 1 {
+                    try? await Task.sleep(nanoseconds: 30_000_000)
                 }
-                return
+                if rankPopStart == nil, session.boardRank != nil {
+                    rankPopStart = Date()
+                    try? await Task.sleep(nanoseconds: UInt64(Self.rankPopDuration * 1_000_000_000))
+                    rankPopSettled = true
+                }
+                reelSettled = true
+                maybeAutoPrompt(session.overlayAlpha)
             }
-            while session.overlayAlpha < 0.4 {
-                try? await Task.sleep(nanoseconds: 30_000_000)
-            }
-            if reelStart == nil { reelStart = Date() }
-            try? await Task.sleep(nanoseconds: UInt64((Self.reelDuration + 0.25) * 1_000_000_000))
-            reelSettled = true
-            maybeAutoPrompt(session.overlayAlpha)
+            return
+        }
+        while session.overlayAlpha < 0.4 {
+            try? await Task.sleep(nanoseconds: 30_000_000)
+        }
+        if reelStart == nil { reelStart = Date() }
+        try? await Task.sleep(nanoseconds: UInt64(Self.reelDuration * 1_000_000_000))
+        if rankPopStart == nil { rankPopStart = Date() }
+        try? await Task.sleep(nanoseconds: 250_000_000)
+        reelSettled = true
+        maybeAutoPrompt(session.overlayAlpha)
+        let popLeft = Self.rankPopDuration - 0.25
+        if popLeft > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(popLeft * 1_000_000_000))
+        }
+        rankPopSettled = true
         }
     }
 
     private static let reelRows = 14.0
     private static let reelDuration = 1.4
+    private static let rankPopDuration = 0.32
+    private static let deathRowH: CGFloat = 46
+
+    /// One overshoot: 0 → 1.22, then deflate to 1. Opacity is full by the first third.
+    private func rankPopMotion(at now: Date) -> (scale: CGFloat, opacity: Double) {
+        guard let rankPopStart else { return (0, 0) }
+        let t = min(1, max(0, now.timeIntervalSince(rankPopStart) / Self.rankPopDuration))
+        let opacity = min(1, t / 0.33)
+        let peak = 0.42
+        let overshoot = 1.22
+        let scale: Double
+        if t < peak {
+            let u = t / peak
+            scale = overshoot * (1 - pow(1 - u, 3))
+        } else {
+            let u = (t - peak) / (1 - peak)
+            scale = overshoot + (1 - overshoot) * (1 - pow(1 - u, 2))
+        }
+        return (CGFloat(scale), opacity)
+    }
 
     /// One tape of rows slides down past a fixed YOU. Index 0 is YOU's own
     /// slot; negative indexes are the real rows above it. Quartic ease-out.
     private func deathReelWindow(_ reel: [DeathSlot], youShip: String, now: Date) -> some View {
-        let rowH: CGFloat = 36
+        let rowH = Self.deathRowH
         let travel: Double = {
             guard let reelStart else { return Self.reelRows }
             let t = min(1, max(0, now.timeIntervalSince(reelStart) / Self.reelDuration))
@@ -508,25 +563,25 @@ struct PlayContainerView: View {
         let joke = jokes[(index - 1) % jokes.count]
         return HStack(spacing: 8) {
             Text("#\(rank)")
-                .font(BrandType.mono(13, bold: false))
+                .font(BrandType.mono(16, bold: false))
                 .foregroundStyle(BrandColors.ink55)
-                .frame(width: 36, alignment: .leading)
+                .frame(width: 52, alignment: .leading)
             Text(joke.0)
-                .font(BrandType.ui(13))
+                .font(BrandType.ui(16))
                 .foregroundStyle(BrandColors.ink)
                 .lineLimit(1)
             Text(joke.1.uppercased())
-                .font(BrandType.ui(12))
+                .font(BrandType.ui(15))
                 .foregroundStyle(BrandColors.ink55)
                 .lineLimit(1)
             Spacer(minLength: 6)
             Text(ScoreService.formatScore(joke.2))
-                .font(BrandType.mono(13))
+                .font(BrandType.mono(16))
                 .foregroundStyle(BrandColors.ink)
                 .layoutPriority(1)
         }
         .padding(.horizontal, 8)
-        .frame(height: 36)
+        .frame(height: Self.deathRowH)
     }
 
     private func deathStripRow(_ slot: DeathSlot, youShip: String) -> some View {
@@ -534,33 +589,33 @@ struct PlayContainerView: View {
         let score = slot.you ? session.scoreKm : slot.score
         return HStack(spacing: 8) {
             Text("#\(slot.rank)")
-                .font(BrandType.mono(13, bold: false))
+                .font(BrandType.mono(16, bold: false))
                 .foregroundStyle(slot.you ? BrandColors.signal : BrandColors.ink55)
-                .frame(width: 36, alignment: .leading)
+                .frame(width: 52, alignment: .leading)
             if slot.you {
                 Text("YOU")
-                    .font(BrandType.ui(13))
+                    .font(BrandType.ui(16))
                     .foregroundStyle(BrandColors.signal)
             } else {
                 Text(slot.name)
-                    .font(BrandType.ui(13))
+                    .font(BrandType.ui(16))
                     .foregroundStyle(BrandColors.ink)
                     .lineLimit(1)
             }
             if let ship, !ship.isEmpty {
                 Text(ship.uppercased())
-                    .font(BrandType.ui(12))
+                    .font(BrandType.ui(15))
                     .foregroundStyle(BrandColors.ink55)
                     .lineLimit(1)
             }
             Spacer(minLength: 6)
             Text(ScoreService.formatScore(score))
-                .font(BrandType.mono(13))
+                .font(BrandType.mono(16))
                 .foregroundStyle(slot.you ? BrandColors.signal : BrandColors.ink)
                 .layoutPriority(1)
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 7)
+        .frame(height: Self.deathRowH, alignment: .center)
     }
 
     private func levelOutcomeCard(_ outcome: LevelOutcome) -> some View {
@@ -686,6 +741,8 @@ struct PlayContainerView: View {
         showSubmit = false
         reelStart = nil
         reelSettled = false
+        rankPopStart = nil
+        rankPopSettled = false
         showHighScores = false
         boardOpen = SpaceBoardOpen()
         didAutoPrompt = false

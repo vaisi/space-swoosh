@@ -1,4 +1,7 @@
-<!-- Changes: Android is 1.0.52. iPhone TestFlight build floor is 71
+<!-- Changes: After Mission Failed the list shows two scores above you and
+     two below, and the rank beside the distance pops in once that list
+     lands. On a phone the title, distance, list, and buttons are larger.
+     Android is 1.0.52. iPhone TestFlight build floor is 71
      (marketing 1.0.4). Meteor ghosts stay dashed; the iPhone build compiles them
      as a dashed path.
      The new obstacles and Ion are in the same build as the
@@ -299,9 +302,10 @@ harder pairs with only a short breath between them. Cruise is a bit snappier tha
 On browser and Android, if a wormhole or black hole leaves the ship sitting low in the
 view, the camera slowly eases it back to the usual height over several seconds.
 **This is the mode with the leaderboard.** After Mission Failed the screen
-shows your distance, the rank beside it, and where that run would sit: first place,
-the score just above you, and the score just below. Your row says YOU
-and the ship you flew. First place stays put. As the screen appears, joke names rush past YOU and then slow down until YOU rests between the score above and the score below. A dotted gap under first place means those rows are not next to each other. A top-10 finish opens the
+shows your distance and where that run would sit: first place, up to two
+scores above you, and up to two below. The rank beside the distance stays
+hidden until the rolling list lands, then pops out and settles. Your row says YOU
+and the ship you flew. First place stays put. As the screen appears, joke names rush past YOU and then slow down until YOU rests in that neighborhood. A dotted gap under first place means those rows are not next to each other. On a phone the title, the distance, the list, and the buttons are larger, and the buttons sit lower on the screen. A top-10 finish opens the
 call-sign card on its own once that screen has settled. Otherwise **Publish
 Score** opens it. Nothing is sent until you submit it. The card shows the
 distance and a call sign. On a phone it stays centered in the space above

@@ -1,5 +1,7 @@
 // ShellChrome.swift
-// Changes: brandButton signalLabel paints the title in signal blue
+// Changes: brandButton takes verticalPad so the death card can grow its
+// buttons without changing every other screen. signalLabel paints the title
+// in signal blue
 // (Publish Score). compactTag for Friends YOU chip. Header still accepts a second
 // compact trailing chip; SPACE BOARD now uses one Global/Friends chip
 // (Zigzag/Arc is the flown style, not a toggle). Home ShipPreview swipes
@@ -130,6 +132,7 @@ enum ShellChrome {
         signalLabel: Bool = false,
         disabled: Bool = false,
         labelSize: CGFloat = 17,
+        verticalPad: CGFloat = 16,
         action: @escaping () -> Void
     ) -> some View {
         let lit = primary && !disabled
@@ -146,7 +149,7 @@ enum ShellChrome {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, verticalPad)
                 if let tag {
                     Rectangle()
                         .fill(lit ? BrandColors.paper.opacity(0.25) : BrandColors.ink.opacity(0.12))

@@ -21,10 +21,11 @@
 // - Call signs pass through NameFilter before insert (UGC moderation for Apple
 //   1.2). Invalid names throw CallSignRejectedError with a player-facing message.
 // - getDeathPreview reads the Open Space neighborhood for the death screen:
-//   rank, the #1 row, the closest higher score, and the closest lower score.
-//   deathPreviewLines turns that into the strip (#1 is not repeated when you
-//   are #1 or #2). A rank jump inserts a gap row so #1 is not read as
-//   sitting next to the neighborhood.
+//   rank, the #1 row, the two closest higher scores (n−1, n−2), and the two
+//   closest lower scores (n+1, n+2). deathPreviewLines turns that into the
+//   strip (#1 is not repeated when it is already a neighbor, or when you
+//   are #1). A rank jump inserts a gap row so #1 is not read as sitting
+//   next to the neighborhood. A single above/below object still works.
 // - `formatScore` stays pure — it is called from the HUD every frame and must
 //   never depend on the backend being configured.
 
@@ -215,7 +216,9 @@ export class ScoreService {
     /**
      * Where an unpublished Open Space distance would sit on this flight style.
      * Rank is the count of strictly higher scores, plus one.
-     * @returns {Promise<{ rank: number, top: object | null, above: object | null, below: object | null }>}
+     * `above` is closest-first (n−1, then n−2). `below` is closest-first
+     * (n+1, then n+2). Either side is shorter when the board runs out.
+     * @returns {Promise<{ rank: number, top: object | null, above: object[], below: object[] }>}
      */
     static async getDeathPreview(score, flightStyle = FLIGHT_STYLE.zigzag) {
         const client = ScoreService.requireClient();
@@ -234,12 +237,12 @@ export class ScoreService {
                 .eq('flight_style', style)
                 .gt('score', value)
                 .order('score', { ascending: true })
-                .limit(1),
+                .limit(2),
             client.from(TABLE).select('player_name,score,ship_id')
                 .eq('flight_style', style)
                 .lt('score', value)
                 .order('score', { ascending: false })
-                .limit(1),
+                .limit(2),
         ]);
 
         if (higher.error) throw higher.error;
@@ -248,19 +251,21 @@ export class ScoreService {
         if (belowRes.error) throw belowRes.error;
 
         const top = previewRow(topRes.data?.[0]);
-        const above = previewRow(aboveRes.data?.[0]);
-        const below = previewRow(belowRes.data?.[0]);
-
-        const [aboveHigher, belowHigher] = await Promise.all([
-            above ? ScoreService.getAllScoresCount(above.score, style) : null,
-            below ? ScoreService.getAllScoresCount(below.score, style) : null,
+        const aboveRows = (aboveRes.data || []).map(previewRow).filter(Boolean);
+        const belowRows = (belowRes.data || []).map(previewRow).filter(Boolean);
+        const counts = await Promise.all([
+            ...aboveRows.map((row) => ScoreService.getAllScoresCount(row.score, style)),
+            ...belowRows.map((row) => ScoreService.getAllScoresCount(row.score, style)),
         ]);
 
         return {
             rank: (higher.count || 0) + 1,
             top: top ? { ...top, rank: 1 } : null,
-            above: above ? { ...above, rank: aboveHigher + 1 } : null,
-            below: below ? { ...below, rank: belowHigher + 1 } : null,
+            above: aboveRows.map((row, i) => ({ ...row, rank: counts[i] + 1 })),
+            below: belowRows.map((row, i) => ({
+                ...row,
+                rank: counts[aboveRows.length + i] + 1,
+            })),
         };
     }
 }
@@ -274,30 +279,53 @@ function previewRow(row) {
     };
 }
 
+function neighborRows(value) {
+    if (!value) return [];
+    const list = Array.isArray(value) ? value : [value];
+    return list.filter((row) => row && Number.isFinite(row.rank));
+}
+
+function pushBoardRow(lines, row) {
+    if (!row) return;
+    if (row.rank === 1 && lines.some((line) => line.rank === 1 && !line.you)) return;
+    lines.push({
+        you: false,
+        rank: row.rank,
+        name: row.name,
+        score: row.score,
+        shipId: row.shipId,
+    });
+}
+
 /**
  * Strip order for the death screen. Rank 1 is only the preview row.
- * Rank 2 uses the row above as #1 so first place is not drawn twice.
+ * Neighbors are up to two above (drawn far to near) and two below.
+ * #1 is not drawn twice when it is already a neighbor.
  * A jump of more than one rank inserts `{ gap: true }` (the "· · ·" row).
- * @param {{ rank: number, top: object | null, above: object | null, below: object | null } | null} preview
+ * `above` / `below` may be one row or a closest-first list.
+ * @param {{ rank: number, top: object | null, above: object | object[] | null, below: object | object[] | null } | null} preview
  * @returns {Array<{ you?: boolean, gap?: boolean, rank: number, name?: string, score?: number, shipId?: string | null }>}
  */
 export function deathPreviewLines(preview) {
     if (!preview || !Number.isFinite(preview.rank)) return [];
-    const { rank, top, above, below } = preview;
+    const { rank, top } = preview;
     if (rank === 1) return [{ you: true, rank: 1 }];
 
+    const above = neighborRows(preview.above);
+    const below = neighborRows(preview.below);
     const lines = [];
-    const aboveIsFirst = above && above.rank === 1;
-    if (aboveIsFirst) {
-        lines.push({ you: false, ...above });
-    } else if (top) {
-        lines.push({ you: false, rank: 1, name: top.name, score: top.score, shipId: top.shipId });
-        if (above && above.rank !== 1) lines.push({ you: false, ...above });
-    } else if (above) {
-        lines.push({ you: false, ...above });
+    const aboveHasFirst = above.some((row) => row.rank === 1);
+    if (!aboveHasFirst && top) {
+        pushBoardRow(lines, {
+            rank: 1,
+            name: top.name,
+            score: top.score,
+            shipId: top.shipId,
+        });
     }
+    for (const row of [...above].reverse()) pushBoardRow(lines, row);
     lines.push({ you: true, rank });
-    if (below) lines.push({ you: false, ...below });
+    for (const row of below) pushBoardRow(lines, row);
     return withRankGaps(lines);
 }
 

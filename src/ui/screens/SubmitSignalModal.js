@@ -5,6 +5,7 @@
 // pinning to the top. The call-sign field starts with the last saved name.
 // Playtest: ?signal=1 opens sample stats; ?kb=N fakes IME height.
 // ?death=1 paints the Mission Failed strip without opening the sheet.
+// The fixture includes n−2 and n+2 so the wider neighborhood is visible.
 
 import { color } from '../../brand/tokens.js';
 import { CALL_SIGN_MAX_LEN } from '../../services/NameFilter.js';
@@ -55,8 +56,14 @@ export function applySubmitSignalPlaytest(game) {
         game.scorePreview = {
             rank: 113,
             top: { name: 'Adrian Nastase', score: 189720, shipId: 'ember' },
-            above: { name: 'Benzz', score: 4778, shipId: 'echo', rank: 112 },
-            below: { name: 'okok', score: 4089, shipId: 'flicker', rank: 113 },
+            above: [
+                { name: 'Benzz', score: 4778, shipId: 'echo', rank: 112 },
+                { name: 'try a swoosh', score: 8885, shipId: 'echo', rank: 111 },
+            ],
+            below: [
+                { name: 'okok', score: 4089, shipId: 'flicker', rank: 114 },
+                { name: 'alcoholic', score: 3900, shipId: 'nyan', rank: 115 },
+            ],
         };
         game.pendingHighScore = null;
         return;

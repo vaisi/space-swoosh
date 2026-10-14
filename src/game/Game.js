@@ -2,6 +2,11 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Open Space death screen: phone-width type, rows, and buttons are larger,
+//   and leftover height sits between the strip and the buttons. Desktop type
+//   stays put; the strip is taller because it shows n−2 and n+2. The #N
+//   beside the distance stays hidden until the reel lands, then pops past
+//   full size and settles.
 // - Merged the nine playtest obstacles and free Ion onto the death-screen
 //   score reel. DebutCue and DeathTally stay wired; the reel constants
 //   are declared once.
@@ -110,8 +115,9 @@
 //   drawScreenFrame chrome.
 // - Leaderboard rows show "CallSign, Ship"; submits write `ship_id` from the
 //   active skin.
-// - Open Space death screen shows the distance with no unit label, a ghost rank (#N, clear
-//   of the distance), and the board neighborhood. Ranks are a light #N.
+// - Open Space death screen shows the distance with no unit label. The ghost
+//   rank (#N) pops in beside it once the reel has landed. The board neighborhood
+//   is #1, then up to two rows above YOU and two below. Ranks are a light #N.
 //   YOU is the ship only, with no dashed outline. #1 stays put. YOU holds
 //   its slot while one continuous list of joke names rolls down past it,
 //   fast at first, then easing onto the real neighbors with no snap. A
@@ -398,6 +404,24 @@ import { DebutCue } from './DebutCue.js';
 
 const DEATH_REEL_ROWS = 14;
 const DEATH_REEL_MS = 1400;
+const RANK_POP_MS = 320;
+
+/** One overshoot: 0 → 1.22, then deflate to 1. Opacity is full by the first third. */
+function rankPopMotion(t) {
+    const clamped = Math.min(1, Math.max(0, t));
+    const opacity = Math.min(1, clamped / 0.33);
+    const peak = 0.42;
+    const overshoot = 1.22;
+    let scale;
+    if (clamped < peak) {
+        const u = clamped / peak;
+        scale = overshoot * (1 - Math.pow(1 - u, 3));
+    } else {
+        const u = (clamped - peak) / (1 - peak);
+        scale = overshoot + (1 - overshoot) * (1 - Math.pow(1 - u, 2));
+    }
+    return { scale, opacity };
+}
 
 export class Game {
     constructor(config) {
@@ -422,6 +446,7 @@ export class Game {
         this.isGameOver = false;
         this.gameOverAlpha = 0;
         this.deathReelAt = null;
+        this.rankPopAt = null;
         this.explosionParticles = [];
         this.gameOverScreen = 'main'; // nested: 'main' or 'highscores' while appScreen is gameover
         // menu | modeSelect | hangar | journeyMap | logbook | options | optionsShip |
@@ -2983,13 +3008,20 @@ export class Game {
         return skin?.name || '';
     }
 
+    deathStripType() {
+        const unit = this.baseUnit;
+        const isMobile = window.innerWidth <= 768;
+        const rankPx = isMobile ? Math.max(15, unit * 1.55) : Math.max(11, unit * 1.15);
+        const namePx = isMobile ? Math.max(16, unit * 1.7) : Math.max(12, unit * 1.25);
+        const rankCol = isMobile ? Math.max(unit * 4.8, rankPx * 3.4) : unit * 3.2;
+        return { rankPx, namePx, rankCol };
+    }
+
     deathStripWidth(line) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const rankPx = Math.max(11, unit * 1.15);
-        const namePx = Math.max(12, unit * 1.25);
+        const { rankPx, namePx, rankCol } = this.deathStripType();
         const pad = unit * 0.7;
-        const rankCol = unit * 3.2;
         const you = line.you;
         const name = you ? '' : (line.name || '');
         const ship = you ? this.previewShipName(this.shipSkinId) : this.previewShipName(line.shipId);
@@ -3023,8 +3055,7 @@ export class Game {
     drawDeathStripRow(x, y, width, height, line) {
         const ctx = this.ctx;
         const unit = this.baseUnit;
-        const rankPx = Math.max(11, unit * 1.15);
-        const namePx = Math.max(12, unit * 1.25);
+        const { rankPx, namePx, rankCol } = this.deathStripType();
         const you = line.you;
         const name = you ? '' : (line.name || '');
         const ship = you
@@ -3032,7 +3063,6 @@ export class Game {
             : (line.shipName || this.previewShipName(line.shipId));
         const scoreStr = ScoreService.formatScore(you ? this.finalScore : line.score);
         const pad = unit * 0.7;
-        const rankCol = unit * 3.2;
 
         const midY = y + height / 2;
         ctx.save();
@@ -3081,7 +3111,7 @@ export class Game {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const pad = unit * 0.7;
-        const rankPx = Math.max(11, unit * 1.15);
+        const { rankPx } = this.deathStripType();
         const r = Math.max(1.3, unit * 0.095);
         const step = r * 3.8;
         setMonoType(ctx, rankPx, 400);
@@ -3202,8 +3232,16 @@ export class Game {
         const L = screenLayout(this, unit);
 
         const lines = this.currentRank === '?' ? [] : deathPreviewLines(this.scorePreview);
-        if (this.deathReelNeeded(lines) && this.deathReelAt == null && this.gameOverAlpha >= 0.4) {
+        const reelNeeded = this.deathReelNeeded(lines);
+        if (reelNeeded && this.deathReelAt == null && this.gameOverAlpha >= 0.4) {
             this.deathReelAt = performance.now();
+        }
+        const rankKnown = Number.isFinite(this.currentRank);
+        const reelLanded = reelNeeded
+            && this.deathReelAt != null
+            && performance.now() - this.deathReelAt >= DEATH_REEL_MS;
+        if (rankKnown && this.rankPopAt == null && (reelNeeded ? reelLanded : this.gameOverAlpha >= 1)) {
+            this.rankPopAt = performance.now();
         }
 
         // Paint the card alone so a resized IME viewport cannot squeeze
@@ -3229,39 +3267,71 @@ export class Game {
         const columnW = Math.min(L.width, contentW);
         const columnX = L.centerX - columnW / 2;
         const buttonWidth = columnW;
-        const buttonHeight = L.isMobile ? unit * 4.6 : unit * 4.4;
+        let buttonHeight = L.isMobile ? unit * 6.4 : unit * 4.4;
         const buttonGap = unit * 1.1;
-        const publishH = this.scoreSubmitted ? 0 : buttonHeight + buttonGap;
         const pairGap = unit * 0.8;
-        const pairH = L.isMobile ? unit * 4.2 : unit * 4;
+        let pairH = L.isMobile ? unit * 5.6 : unit * 4;
 
-        const titlePx = L.isMobile ? Math.min(unit * 2.4, 22) : unit * 2.2;
-        const subPx = L.isMobile ? Math.min(unit * 1.35, 15) : unit * 1.25;
-        const distPx = L.isMobile ? Math.min(unit * 6.4, 64) : Math.min(unit * 5.6, 72);
-        const statPx = Math.max(12, unit * 1.2);
-        const rowH = Math.max(26, unit * 2.6);
-        const gapRowH = Math.max(36, unit * 3.1);
+        let titlePx = L.isMobile ? Math.min(unit * 3.2, 34) : unit * 2.2;
+        let subPx = L.isMobile ? Math.min(unit * 1.7, 18) : unit * 1.25;
+        let distPx = L.isMobile ? Math.min(unit * 8.2, 84) : Math.min(unit * 5.6, 72);
+        let statPx = L.isMobile ? Math.max(15, unit * 1.55) : Math.max(12, unit * 1.2);
+        let rowH = L.isMobile ? Math.max(38, unit * 3.7) : Math.max(26, unit * 2.6);
+        let gapRowH = L.isMobile ? Math.max(48, unit * 4.2) : Math.max(36, unit * 3.1);
         const gapCount = lines.filter((line) => line.gap).length;
         const bodyRows = lines.length - gapCount;
 
-        const distH = distPx * 1.05;
-        const afterDist = unit * 1.4;
-        const statH = statPx * 2.2;
-        const verdictBlock = titlePx * 1.15 + unit * 0.35 + subPx * 1.5;
-        const scoreBlock = distH + afterDist + statH;
-        const stripBlock = lines.length
-            ? unit * 0.9 + bodyRows * rowH + gapCount * gapRowH + unit * 0.7
-            : 0;
-        const actionsBlock = buttonHeight + publishH + unit * 0.8 + pairH;
+        const measureDeath = () => {
+            const distH = distPx * 1.05;
+            const afterDist = unit * 1.4;
+            const statH = statPx * 2.2;
+            const verdictBlock = titlePx * 1.15 + unit * 0.35 + subPx * 1.5;
+            const scoreBlock = distH + afterDist + statH;
+            const stripBlock = lines.length
+                ? unit * 0.9 + bodyRows * rowH + gapCount * gapRowH + unit * 0.7
+                : 0;
+            const publishH = this.scoreSubmitted ? 0 : buttonHeight + buttonGap;
+            const actionsBlock = buttonHeight + publishH + unit * 0.8 + pairH;
+            return {
+                distH, afterDist, statH, verdictBlock, scoreBlock, stripBlock, actionsBlock,
+                fixed: verdictBlock + scoreBlock + stripBlock + actionsBlock,
+            };
+        };
+        const topAnchor = L.top;
+        const available = this.height - topAnchor - unit;
+        // A short 2:3 stage cannot hold the phone type at full size.
+        // A full-height phone stays large.
+        if (L.isMobile) {
+            let box = measureDeath();
+            if (box.fixed > available - unit * 4) {
+                const budget = Math.max(unit * 24, available - unit * 6);
+                const fit = Math.max(0.78, Math.min(1, budget / box.fixed));
+                titlePx *= fit;
+                subPx *= fit;
+                distPx *= fit;
+                statPx = Math.max(13, statPx * fit);
+                rowH = Math.max(30, rowH * fit);
+                gapRowH = Math.max(36, gapRowH * fit);
+                buttonHeight = Math.max(unit * 4.8, buttonHeight * fit);
+                pairH = Math.max(unit * 4.4, pairH * fit);
+            }
+        }
+        const {
+            distH, afterDist, statH, verdictBlock, scoreBlock, stripBlock, actionsBlock,
+        } = measureDeath();
+        const fixed = verdictBlock + scoreBlock + stripBlock + actionsBlock;
         // Verdict, the distance block, the strip, and the buttons are
         // separate. Extra air collapses only when the phone is short.
         const afterVerdict = L.section;
         const beforeStrip = lines.length ? unit * 4.8 : unit * 1.6;
-        const afterStrip = lines.length ? unit * 5.2 : unit * 1.2;
-        const fixed = verdictBlock + scoreBlock + stripBlock + actionsBlock;
+        let afterStrip = lines.length ? unit * 5.2 : unit * 1.2;
+        if (L.isMobile && lines.length) {
+            const bottomInset = unit * 2;
+            const used = fixed + afterVerdict + beforeStrip + afterStrip + bottomInset;
+            const leftover = available - used;
+            if (leftover > 0) afterStrip += leftover;
+        }
         const slack = afterVerdict + beforeStrip + afterStrip;
-        const topAnchor = L.top;
-        const available = this.height - topAnchor - unit;
         const padScale = fixed + slack <= available
             ? 1
             : Math.max(0, (available - fixed) / slack);
@@ -3292,7 +3362,6 @@ export class Game {
         y += subPx * 1.5 + afterVerdict * padScale;
 
         const distStr = ScoreService.formatScore(this.finalScore ?? 0);
-        const showGhost = Number.isFinite(this.currentRank);
         ctx.save();
         ctx.textBaseline = 'middle';
         setMonoType(ctx, distPx);
@@ -3301,13 +3370,21 @@ export class Game {
         ctx.textAlign = 'left';
         ctx.fillStyle = color.ink;
         ctx.fillText(distStr, distX, y + distPx * 0.55);
-        if (showGhost) {
+        if (this.rankPopAt != null) {
+            const motion = rankPopMotion((performance.now() - this.rankPopAt) / RANK_POP_MS);
             const ghostPx = Math.max(16, distPx * 0.3);
+            const gx = distX + distW + unit * 1.05;
+            const gy = y + unit * 0.15;
+            ctx.save();
+            ctx.globalAlpha *= 0.85 * motion.opacity;
+            ctx.translate(gx, gy);
+            ctx.scale(motion.scale, motion.scale);
             setMonoType(ctx, ghostPx, 700);
-            ctx.globalAlpha = 0.85;
             ctx.fillStyle = color.signal;
             ctx.textBaseline = 'top';
-            ctx.fillText(`#${this.currentRank}`, distX + distW + unit * 1.05, y + unit * 0.15);
+            ctx.textAlign = 'left';
+            ctx.fillText(`#${this.currentRank}`, 0, 0);
+            ctx.restore();
         }
         resetType(ctx);
         ctx.restore();
@@ -3380,22 +3457,26 @@ export class Game {
 
         const bx = columnX;
         this.gameOverButtons = {};
+        const actionLabel = L.isMobile ? Math.min(unit * 2.1, 20) : null;
         this.gameOverButtons.playAgain = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Play Again', { primary: true }
+            bx, y, buttonWidth, buttonHeight, 'Play Again',
+            { primary: true, labelPx: actionLabel }
         );
         y += buttonHeight + buttonGap;
 
         if (!this.scoreSubmitted) {
             this.gameOverButtons.submitScore = this.drawBrandButton(
                 bx, y, buttonWidth, buttonHeight, 'Publish Score',
-                { signal: true, signalLabel: true }
+                { signal: true, signalLabel: true, labelPx: actionLabel }
             );
             y += buttonHeight + buttonGap;
         }
 
         y += unit * 0.8;
         const halfW = (buttonWidth - pairGap) / 2;
-        const pairLabel = Math.max(11, Math.min(unit * 1.15, 14));
+        const pairLabel = L.isMobile
+            ? Math.max(15, Math.min(unit * 1.55, 17))
+            : Math.max(11, Math.min(unit * 1.15, 14));
         this.gameOverButtons.highScores = this.drawBrandButton(
             bx, y, halfW, pairH, 'High Scores', { labelPx: pairLabel }
         );
@@ -3979,6 +4060,7 @@ export class Game {
             this.currentRank = null;
             this.scorePreview = null;
             this.deathReelAt = null;
+            this.rankPopAt = null;
             try {
                 const preview = await ScoreService.getDeathPreview(
                     this.finalScore,
@@ -4001,6 +4083,7 @@ export class Game {
                 this.currentRank = '?';
                 this.scorePreview = null;
                 this.deathReelAt = null;
+                this.rankPopAt = null;
                 this.pendingHighScore = null;
             }
         }

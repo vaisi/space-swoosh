@@ -1,7 +1,8 @@
 // ScoreService.swift
 // Changes: deathPreview loads the Open Space neighborhood (rank, #1, the
-// closest higher score, the closest lower score) for the death screen.
-// A rank jump inserts a gap slot so the strip can draw "...".
+// two closest higher scores, the two closest lower scores) for the death
+// screen. #1 is not repeated when it is already a neighbor. A rank jump
+// inserts a gap slot so the strip can draw "...".
 // scorePage loads one Space Board page plus the real row count.
 // Open Space scores go through start_score_run and
 // submit_verified_score. saveScore no longer inserts high_scores directly.
@@ -146,28 +147,27 @@ enum ScoreService {
     }
 
     /// Where an unpublished distance would sit. Rank is strictly-higher count + 1.
+    /// Above is closest-first (n−1, n−2). Below is closest-first (n+1, n+2).
     static func deathPreview(score: Int, style: FlightStyle) async throws -> DeathPreview {
         guard isAvailable else { throw ScoreServiceError.unavailable }
         let value = max(0, score)
         async let higher = higherCount(score: value, style: style)
         async let top = oneRow(style: style, scoreFilter: nil, descending: true)
-        async let above = oneRow(style: style, scoreFilter: "gt.\(value)", descending: false)
-        async let below = oneRow(style: style, scoreFilter: "lt.\(value)", descending: true)
+        async let above = rows(style: style, scoreFilter: "gt.\(value)", descending: false, limit: 2)
+        async let below = rows(style: style, scoreFilter: "lt.\(value)", descending: true, limit: 2)
         let rank = try await higher + 1
         let topRow = try await top
-        let aboveRow = try await above
-        let belowRow = try await below
-        async let aboveRank = rankOf(aboveRow, style: style)
-        async let belowRank = rankOf(belowRow, style: style)
+        let aboveRows = try await above
+        let belowRows = try await below
+        async let aboveRanked = ranked(aboveRows, style: style)
+        async let belowRanked = ranked(belowRows, style: style)
         return DeathPreview(
             rank: rank,
             slots: deathSlots(
                 rank: rank,
                 top: topRow,
-                above: aboveRow,
-                aboveRank: try await aboveRank,
-                below: belowRow,
-                belowRank: try await belowRank
+                above: try await aboveRanked,
+                below: try await belowRanked
             )
         )
     }
@@ -228,33 +228,55 @@ enum ScoreService {
         scoreFilter: String?,
         descending: Bool
     ) async throws -> HighScoreRow? {
+        try await rows(style: style, scoreFilter: scoreFilter, descending: descending, limit: 1).first
+    }
+
+    private static func rows(
+        style: FlightStyle,
+        scoreFilter: String?,
+        descending: Bool,
+        limit: Int
+    ) async throws -> [HighScoreRow] {
         var comps = URLComponents(string: "\(configURL)/rest/v1/\(table)")!
         var items = [
             URLQueryItem(name: "select", value: "*"),
             URLQueryItem(name: "flight_style", value: "eq.\(sanitize(style))"),
             URLQueryItem(name: "order", value: descending ? "score.desc" : "score.asc"),
-            URLQueryItem(name: "limit", value: "1"),
+            URLQueryItem(name: "limit", value: "\(max(1, limit))"),
         ]
         if let scoreFilter {
             items.append(URLQueryItem(name: "score", value: scoreFilter))
         }
         comps.queryItems = items
         let data = try await send(comps.url!, method: "GET")
-        return try JSONDecoder().decode([HighScoreRow].self, from: data).first
+        return try JSONDecoder().decode([HighScoreRow].self, from: data)
     }
 
-    private static func rankOf(_ row: HighScoreRow?, style: FlightStyle) async throws -> Int? {
-        guard let row else { return nil }
-        return try await higherCount(score: row.score, style: style) + 1
+    /// Closest-first rows with their board rank (strictly-higher count + 1).
+    private static func ranked(
+        _ rows: [HighScoreRow],
+        style: FlightStyle
+    ) async throws -> [(HighScoreRow, Int)] {
+        try await withThrowingTaskGroup(of: (Int, HighScoreRow, Int).self) { group in
+            for (index, row) in rows.enumerated() {
+                group.addTask {
+                    let rank = try await higherCount(score: row.score, style: style) + 1
+                    return (index, row, rank)
+                }
+            }
+            var tagged: [(Int, HighScoreRow, Int)] = []
+            for try await item in group {
+                tagged.append(item)
+            }
+            return tagged.sorted { $0.0 < $1.0 }.map { ($0.1, $0.2) }
+        }
     }
 
     private static func deathSlots(
         rank: Int,
         top: HighScoreRow?,
-        above: HighScoreRow?,
-        aboveRank: Int?,
-        below: HighScoreRow?,
-        belowRank: Int?
+        above: [(HighScoreRow, Int)],
+        below: [(HighScoreRow, Int)]
     ) -> [DeathSlot] {
         func board(_ row: HighScoreRow, rank: Int) -> DeathSlot {
             DeathSlot(
@@ -272,20 +294,17 @@ enum ScoreService {
         }
 
         var lines: [DeathSlot] = []
-        let aboveIsFirst = aboveRank == 1
-        if aboveIsFirst, let above, let aboveRank {
-            lines.append(board(above, rank: aboveRank))
-        } else if let top {
+        let aboveHasFirst = above.contains { $0.1 == 1 }
+        if !aboveHasFirst, let top {
             lines.append(board(top, rank: 1))
-            if let above, let aboveRank, aboveRank != 1 {
-                lines.append(board(above, rank: aboveRank))
-            }
-        } else if let above, let aboveRank {
-            lines.append(board(above, rank: aboveRank))
+        }
+        for pair in above.reversed() {
+            if pair.1 == 1, lines.contains(where: { $0.rank == 1 && !$0.you }) { continue }
+            lines.append(board(pair.0, rank: pair.1))
         }
         lines.append(DeathSlot(id: "you", you: true, rank: rank, name: "", ship: nil, score: 0))
-        if let below, let belowRank {
-            lines.append(board(below, rank: belowRank))
+        for pair in below {
+            lines.append(board(pair.0, rank: pair.1))
         }
         return withRankGaps(lines)
     }
