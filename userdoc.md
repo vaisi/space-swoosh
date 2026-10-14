@@ -1,5 +1,5 @@
 <!-- Changes: Android is 1.0.52. iPhone TestFlight build floor is 71
-     (marketing 1.0.3). Meteor ghosts stay dashed; the iPhone build compiles them
+     (marketing 1.0.4). Meteor ghosts stay dashed; the iPhone build compiles them
      as a dashed path.
      The new obstacles and Ion are in the same build as the
      Open Space death screen, where your rank rolls into place before you
@@ -41,7 +41,7 @@
      Play lists Journey with a quiet Recommended hint under the title.
      iPhone Dark Mode shows the same drifting stars as Android
      behind menus, the Journey map, and the run. Light Mode stays flat.
-     iPhone TestFlight marketing is 1.0.3 (Apple closed 1.0.2).
+     iPhone TestFlight marketing is 1.0.4 (Apple closed 1.0.3).
      Friends Space Board YOU row shows the Open Space distance
      (and obstacles) you flew on this device even when Game Center / Play
      Games has not indexed the run yet. TestFlight Friends signing now turns on Game Center on the
