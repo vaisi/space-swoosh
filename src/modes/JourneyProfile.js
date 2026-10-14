@@ -4,6 +4,8 @@
 // keeps the stair-with-plateaus curve honest: hold `d` and nothing gets harder,
 // however many levels pass.
 // Changes:
+// - Load budget on, using JOURNEY_CAPS (raised to measured peaks). A debut
+//   day's new obstacle flies at intensity 0; later days use the day's d.
 // - L24+ deep belt (~12% easier than L20 late): wider gaps, 0.88× density,
 //   more simple rows, 45/40/15 slot mix, maxOnScreen 12.
 // - speedMultiplier is GameConfig.cruiseSpeedMultiplier (1.1) — same cruise as
@@ -31,6 +33,8 @@ import {
     getLevel,
     POINTS_FROM_LEVEL,
     SHIELDS_FROM_LEVEL,
+    debutOn,
+    isDebutSetPiece,
 } from '../config/JourneyConfig.js';
 import {
     DEEP_FROM_LEVEL,
@@ -39,6 +43,7 @@ import {
 } from '../config/HazardPairs.js';
 import { levelIntroBeats, levelMessage } from '../config/JourneyNarrative.js';
 import { PLAY_MODE, RunProfile } from './RunProfile.js';
+import { JOURNEY_CAPS } from '../game/LoadBudget.js';
 
 // Action (asteroids, shields, sparkles) as soon as KM is live — except when a
 // teach gate pushes the threshold to Infinity for that level.
@@ -75,6 +80,24 @@ export class JourneyProfile extends RunProfile {
 
     get d() {
         return this.descriptor.difficulty;
+    }
+
+    get loadDifficulty() {
+        return this.d;
+    }
+
+    /** Budget on. Caps are JOURNEY_CAPS, not the tighter lab table. */
+    get usesLoadBudget() {
+        return true;
+    }
+
+    get loadCaps() {
+        return JOURNEY_CAPS;
+    }
+
+    /** Debut day is the gentle end. Every later day uses this day's d. */
+    intensityFor(type) {
+        return debutOn(this.level) === type ? 0 : this.d;
     }
 
     get isLateJourney() {
@@ -252,6 +275,8 @@ export class JourneyProfile extends RunProfile {
     // The level's difficulty already prices in its whole roster, so all of it is
     // live from the start rather than unlocking by distance mid-level.
     unlocksBy() {
-        return this.descriptor.types.map((type) => ({ type, message: null }));
+        return this.descriptor.types
+            .filter((type) => !isDebutSetPiece(type))
+            .map((type) => ({ type, message: null }));
     }
 }

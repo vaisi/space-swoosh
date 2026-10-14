@@ -13,6 +13,7 @@
   - Added Lantern (jellyfish bell + plankton) and Bloom (soap-film + prism motes).
   - Added Fletch (smooth arrow + length-wise dawn ribbon).
   - Added Dusk (Echo crescent + purple Mote cloud).
+  - Ion is free (no product). Premium set is everything except Focus / Flicker / Ember / Saber / Ion.
   - Expanded to all premium ships (everything except Focus / Flicker / Ember / Saber).
   - Created: store / RevenueCat setup checklist for premium ship skins.
   - App / product IDs renamed gg.orbi.spaceswoosh → com.orbi.spaceswoosh.
@@ -20,8 +21,8 @@
 
 # In-app purchases — Space Swoosh
 
-Cosmetic ship skins only. No gameplay paywall. The four free ships
-(**Focus / Flicker / Ember / Saber**) stay free forever. Every other ship is a
+Cosmetic ship skins only. No gameplay paywall. The five free ships
+(**Focus / Flicker / Ember / Saber / Ion**) stay free forever. Every other ship is a
 separate non-consumable IAP.
 
 ## Products

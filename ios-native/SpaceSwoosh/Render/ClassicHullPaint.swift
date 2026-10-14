@@ -1,5 +1,6 @@
 // ClassicHullPaint.swift
-// Changes: Seal almond + Orbit Spine bar match Android live drawers.
+// Changes: Ion has no signal halo behind the hull.
+// Seal almond + Orbit Spine bar match Android live drawers.
 
 import CoreGraphics
 import SpriteKit
@@ -41,6 +42,8 @@ enum ClassicHullPaint {
             circle(canvas, radius, alpha)
         case .tear, .dart, .shard, .crescent, .petal:
             factory(canvas, kind, radius, turn, nowMs, jellyLive, alpha)
+        case .ion:
+            ion(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .fletch:
             fletch(canvas, radius, turn, nowMs, jellyLive, alpha)
         case .fold:
@@ -119,6 +122,24 @@ enum ClassicHullPaint {
         c.fillEllipse(x: 0, y: r * 0.12, rx: r * 1.35, ry: r * 1.35, color: BrandColors.UI.ink12, alpha: body)
         c.fillHull(kind, cx: 0, cy: 0, r: r, stretch: stretch, color: BrandColors.UI.ink, alpha: body)
         c.fillHull(kind, cx: 0, cy: r * 0.08, r: r * 0.42, stretch: stretch, color: BrandColors.UI.ink55, alpha: a * (jelly ? 0.28 : b * 0.35))
+    }
+
+    private static func ion(_ c: LiveHullCanvas, _ radius: CGFloat, _ turn: CGFloat, _ t: CGFloat, _ jelly: Bool, _ a: CGFloat) {
+        let b = breath(t)
+        let r = radius * 0.95 * scale(t)
+        let stretch = 1 + 0.2 * turn
+        let ry = r * stretch
+        let body = jelly ? a : a * b
+        let cyan = UIColor(red: 0.49, green: 0.86, blue: 1, alpha: 1)
+        c.fillHull(.ion, cx: 0, cy: 0, r: r, stretch: stretch, color: cyan, alpha: body)
+        c.fillEllipse(x: 0, y: -ry * 0.78, rx: r * 0.13, ry: r * 0.2, color: .white, alpha: body * 0.92)
+        c.strokeLine(
+            from: CGPoint(x: 0, y: -ry * 0.92),
+            to: CGPoint(x: 0, y: ry * 0.14),
+            color: UIColor(red: 1, green: 0.93, blue: 0.73, alpha: 1),
+            width: max(0.8, r * 0.04),
+            alpha: body * 0.9
+        )
     }
 
     private static func fletch(_ c: LiveHullCanvas, _ radius: CGFloat, _ turn: CGFloat, _ t: CGFloat, _ jelly: Bool, _ a: CGFloat) {

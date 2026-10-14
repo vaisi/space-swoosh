@@ -6,6 +6,7 @@
 // - `skinRosterMark(id)` is the home hangar pager (`5 / 42`); hidden skins omitted.
 // - SHIP_SKIN_LIST omits `hidden` skins (Merlin, Rook). resolve/load/save treat
 //   a hidden id as unknown so a leftover shipSkinId falls back to Flicker.
+//   `?anyship=1` is the exception: Merlin and Rook resolve and save for that tab.
 // - Default equipped ship is Flicker (`DEFAULT_SHIP_SKIN`) when unset / unknown
 //   / not owned — not Focus.
 // - Menu preview samples originate at skin.trailTailOffset (Nyan centre;
@@ -24,7 +25,7 @@
 
 import { SKIN_DEFS } from './skinDefs.js';
 import { drawSkinSpecimen } from './skinPreview.js';
-import { isSkinOwned } from '../services/Entitlements.js';
+import { isSkinOwned, unlockAllSkinsEnabled } from '../services/Entitlements.js';
 
 export const DEFAULT_SHIP_SKIN = 'flicker';
 export const SHIP_SKIN_STORAGE_KEY = 'shipSkinId';
@@ -50,7 +51,9 @@ export function skinRosterMark(id) {
 }
 
 function isListedSkin(id) {
-    return Boolean(skins[id]) && !skins[id].hidden;
+    if (!skins[id]) return false;
+    if (!skins[id].hidden) return true;
+    return unlockAllSkinsEnabled();
 }
 
 /** @returns {string} */

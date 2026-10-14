@@ -1,5 +1,6 @@
 // ClassicRibbonWakes.swift
-// Changes: Orbit HelixTrailNode; Android Wisp / Cinder / Lag / Crease / Dash.
+// Changes: Ion wake — faint haze, narrow warm ray, smaller denser brighter dots.
+// Orbit HelixTrailNode; Android Wisp / Cinder / Lag / Crease / Dash.
 
 import SpriteKit
 
@@ -515,5 +516,124 @@ enum ClassicWakePath {
         }
         path.addLine(to: pts[pts.count - 1])
         return path
+    }
+}
+
+/// Android `drawIonTrail`: cyan bloom, solid core, hot spine, dots outside the turn.
+final class IonTrailNode: SKNode, SkinTrail {
+    var node: SKNode { self }
+
+    private let glow: SKShapeNode
+    private let core: SKShapeNode
+    private let hot: SKShapeNode
+    private let dots: [SKSpriteNode]
+    private var wake: [WakeSample]
+    private var left: [CGPoint]
+    private var right: [CGPoint]
+    private let maxPoints: Int
+    private let hotColor = UIColor(red: 1, green: 244 / 255, blue: 214 / 255, alpha: 1)
+    private let dotColor = UIColor(red: 214 / 255, green: 248 / 255, blue: 1, alpha: 1)
+
+    init(disc: SKTexture, maxPoints: Int) {
+        self.maxPoints = max(maxPoints, 8)
+        wake = Array(
+            repeating: WakeSample(x: 0, y: 0, opacity: 0, seed: 0.5, angle: 0, sx: 1, sy: 1, along: 0, scale: 1),
+            count: self.maxPoints
+        )
+        left = Array(repeating: .zero, count: self.maxPoints)
+        right = Array(repeating: .zero, count: self.maxPoints)
+        glow = WakeCollect.shapeNode(z: 4.6)
+        core = WakeCollect.shapeNode(z: 5)
+        hot = WakeCollect.shapeNode(z: 5.15)
+        dots = (0..<(self.maxPoints * 2)).map { _ in WakeCollect.sprite(disc, z: 5.3) }
+        super.init()
+        addChild(glow)
+        addChild(core)
+        addChild(hot)
+        for dot in dots { addChild(dot) }
+    }
+
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) not used") }
+
+    func sync(_ ctx: TrailSyncContext) {
+        let n = WakeCollect.points(ctx, into: &wake, capacity: maxPoints)
+        guard n >= 3 else {
+            glow.isHidden = true
+            core.isHidden = true
+            hot.isHidden = true
+            glow.path = nil
+            core.path = nil
+            hot.path = nil
+            for dot in dots { dot.isHidden = true }
+            return
+        }
+
+        let r = ctx.shipRadius
+        let last = CGFloat(n - 1)
+        let width: (CGFloat) -> (Int) -> CGFloat = { scale in
+            { i in
+                let t = CGFloat(i) / last
+                return r * scale * pow(t, 0.55) * (0.35 + 0.65 * self.wake[i].opacity)
+            }
+        }
+
+        glow.path = WakeCollect.ribbonPath(pts: wake, count: n, widthAt: width(0.7), left: &left, right: &right)
+        glow.fillColor = BrandColors.UI.signal
+        glow.alpha = 0.055
+        glow.isHidden = false
+
+        core.path = WakeCollect.ribbonPath(pts: wake, count: n, widthAt: width(0.22), left: &left, right: &right)
+        core.fillColor = BrandColors.UI.signal
+        core.alpha = 0.9
+        core.isHidden = false
+
+        hot.path = WakeCollect.ribbonPath(pts: wake, count: n, widthAt: width(0.05), left: &left, right: &right)
+        hot.fillColor = hotColor
+        hot.alpha = 0.95
+        hot.isHidden = false
+
+        var di = 0
+        var i = 0
+        while i < n {
+            guard di < dots.count else { break }
+            let p = wake[i]
+            let prev = wake[max(0, i - 1)]
+            let next = wake[min(n - 1, i + 1)]
+            let ax = p.x - prev.x
+            let ay = p.y - prev.y
+            let bx = next.x - p.x
+            let by = next.y - p.y
+            let cross = ax * by - ay * bx
+            let len = hypot(bx, by)
+            let inv = len > 0.0001 ? 1 / len : 1
+            let sign: CGFloat = cross >= 0 ? 1 : -1
+            let along = CGFloat(i) / last
+            let spread = r * (0.3 + 0.08 * (1 - along))
+            let size = r * 0.042 * (0.72 + 0.28 * p.opacity)
+            let node = dots[di]
+            di += 1
+            node.isHidden = false
+            node.position = CGPoint(x: p.x + by * inv * sign * spread, y: p.y - bx * inv * sign * spread)
+            node.size = CGSize(width: max(0.9, size * 2), height: max(0.9, size * 2))
+            node.alpha = min(1, 0.72 + p.opacity * 0.28)
+            node.color = dotColor
+            if i < n - 1, di < dots.count {
+                let q = wake[i + 1]
+                let mid = dots[di]
+                di += 1
+                let mx = (p.x + q.x) * 0.5
+                let my = (p.y + q.y) * 0.5
+                let mo = (p.opacity + q.opacity) * 0.5
+                mid.isHidden = false
+                mid.position = CGPoint(x: mx + by * inv * sign * spread, y: my - bx * inv * sign * spread)
+                let midSize = r * 0.042 * (0.72 + 0.28 * mo)
+                mid.size = CGSize(width: max(0.9, midSize * 2), height: max(0.9, midSize * 2))
+                mid.alpha = min(1, 0.72 + mo * 0.28)
+                mid.color = dotColor
+            }
+            i += 1
+        }
+        for k in di..<dots.count { dots[k].isHidden = true }
     }
 }

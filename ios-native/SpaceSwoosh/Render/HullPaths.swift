@@ -1,5 +1,6 @@
 // HullPaths.swift
-// Changes: Seal vesica almond; Orbit shares Spine's vertical bar.
+// Changes: Ion is a slightly narrower straight arrow — small swept fins, shallow notch.
+// Seal vesica almond; Orbit shares Spine's vertical bar.
 // Rook fuselage shortened so the hangar needle matches Android.
 
 import CoreGraphics
@@ -22,6 +23,16 @@ enum HullPaths {
             path.addCurve(to: CGPoint(x: cx, y: cy - ry),
                           control1: CGPoint(x: cx - r * 0.98, y: cy + ry * 0.15),
                           control2: CGPoint(x: cx - r * 0.2, y: cy - ry * 0.35))
+            path.closeSubpath()
+        case .ion:
+            path.move(to: CGPoint(x: cx, y: cy - ry * 1.00))
+            path.addLine(to: CGPoint(x: cx + r * 0.82, y: cy + ry * 0.18))
+            path.addLine(to: CGPoint(x: cx + r * 0.71, y: cy + ry * 0.46))
+            path.addLine(to: CGPoint(x: cx + r * 0.44, y: cy + ry * 0.30))
+            path.addLine(to: CGPoint(x: cx, y: cy + ry * 0.40))
+            path.addLine(to: CGPoint(x: cx - r * 0.44, y: cy + ry * 0.30))
+            path.addLine(to: CGPoint(x: cx - r * 0.71, y: cy + ry * 0.46))
+            path.addLine(to: CGPoint(x: cx - r * 0.82, y: cy + ry * 0.18))
             path.closeSubpath()
         case .dart:
             path.move(to: CGPoint(x: cx, y: cy - ry * 1.05))

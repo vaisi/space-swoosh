@@ -1,6 +1,11 @@
 // LogbookGlyphs.js
 // Space Log picture-well specimens: in-game silhouettes at playfield scale.
 // Changes:
+// - Meteor shower specimen leads with dashed streaks, then solid drops.
+// - Spinner specimen is a radar: hand plus fading sweep arcs.
+// - Playtest branch specimens: spinner, hollowOrbit, blinkRow,
+//   ricochet, tunnelField, shoal, satDebris, lightning (with forks),
+//   meteorShower. Bumper, comet, and snap removed. Hazard Lab only.
 // - Space BOOP: zigzag bounce (52° from vertical) with even Signal-Blue dots
 //   kissing the left wall then reflecting — matches the in-run wake, not a
 //   droop off the hull.
@@ -11,6 +16,7 @@
 
 import { color, font } from '../../brand/tokens.js';
 import { drawSparkle, setLabelType, resetType } from '../../utils/BrandDraw.js';
+import { drawSweepTrail } from '../../managers/playtestShared.js';
 
 /** Well width maps to this many in-game baseUnits (zoomed corridor crop). */
 export const LOGBOOK_CORRIDOR_U = 20;
@@ -307,6 +313,197 @@ export function drawLogbookSpecimen(ctx, icon, x, y, w, h, dimmed = false) {
             ctx.strokeStyle = ink;
             ctx.lineWidth = Math.max(1.5, u * 0.1);
             strokeCircle(ctx, cx, cy, size * 1.2);
+            break;
+        }
+        case 'spinner': {
+            const hub = u * 0.7;
+            const len = u * 4.2;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(-0.6);
+            drawSweepTrail(ctx, len, -1, color.ink30, Math.max(1.25, u * 0.14));
+            ctx.fillStyle = ink;
+            ctx.fillRect(0, -u * 0.16, len, u * 0.32);
+            fillCircle(ctx, 0, 0, hub);
+            ctx.restore();
+            break;
+        }
+        case 'hollowOrbit': {
+            const moon = u * 1.15;
+            const orbit = u * 3.4;
+            fillCircle(ctx, cx - orbit, cy, moon);
+            fillCircle(ctx, cx + orbit, cy, moon);
+            break;
+        }
+        case 'blinkRow': {
+            const r = u * 1.55;
+            const xs = [cx - r * 2.5, cx, cx + r * 2.5];
+            xs.forEach((px, i) => {
+                if (i === 1) {
+                    ctx.strokeStyle = color.ink30;
+                    ctx.lineWidth = Math.max(1.25, u * 0.08);
+                    ctx.setLineDash([r * 0.38, r * 0.24]);
+                    strokeCircle(ctx, px, cy, r);
+                    ctx.setLineDash([]);
+                } else {
+                    ctx.fillStyle = ink;
+                    fillCircle(ctx, px, cy, r);
+                }
+            });
+            break;
+        }
+        case 'tunnelField': {
+            const k = Math.tan((52 * Math.PI) / 180);
+            const leg = h * 0.32;
+            const pts = [
+                { x: cx - leg * k * 0.5, y: cy + leg * 1.5 },
+                { x: cx + leg * k * 0.5, y: cy + leg * 0.5 },
+                { x: cx - leg * k * 0.5, y: cy - leg * 0.5 },
+                { x: cx + leg * k * 0.5, y: cy - leg * 1.5 },
+            ];
+            const distTo = (px, py) => {
+                let best = Infinity;
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const a = pts[i];
+                    const b = pts[i + 1];
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const t = Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / (dx * dx + dy * dy)));
+                    best = Math.min(best, Math.hypot(px - a.x - t * dx, py - a.y - t * dy));
+                }
+                return best;
+            };
+            const step = u * 1.6;
+            const r = u * 0.6;
+            ctx.fillStyle = ink;
+            ctx.strokeStyle = color.ink30;
+            ctx.lineWidth = Math.max(1, u * 0.07);
+            for (let py = y + step * 0.5, row = 0; py < y + h; py += step * 0.87, row++) {
+                for (let px = x + (row % 2 ? step * 0.5 : 0); px < x + w; px += step) {
+                    const d = distTo(px, py);
+                    if (d < u * 2.2) continue;
+                    if (d < u * 3.4) {
+                        ctx.setLineDash([r * 0.6, r * 0.4]);
+                        strokeCircle(ctx, px, py, r);
+                        ctx.setLineDash([]);
+                    } else {
+                        fillCircle(ctx, px, py, r);
+                    }
+                }
+            }
+            break;
+        }
+        case 'shoal': {
+            const fish = [
+                [-2.6, 0.4], [-1.2, -0.9], [0.2, 0.2], [1.5, -0.6], [2.8, 0.7],
+                [-0.6, 1.3], [1.0, 1.4], [-2.0, -1.6], [2.2, -1.8],
+            ];
+            ctx.fillStyle = ink;
+            fish.forEach(([fx, fy]) => fillCircle(ctx, cx + fx * u * 1.6, cy + fy * u * 1.6, u * 0.6));
+            break;
+        }
+        case 'ricochet': {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(0.55);
+            drawTriangle(ctx, 0, 0, U.asteroid * 0.75 * u);
+            ctx.restore();
+            break;
+        }
+        case 'satDebris': {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(-0.35);
+            ctx.fillStyle = ink;
+            ctx.strokeStyle = ink;
+            ctx.lineWidth = Math.max(1.2, u * 0.18);
+            ctx.beginPath();
+            ctx.moveTo(-u * 2.4, 0);
+            ctx.lineTo(u * 2.4, 0);
+            ctx.stroke();
+            ctx.fillRect(-u, -u, u * 2, u * 2);
+            ctx.fillRect(-u * 3.55, -u * 0.62, u * 2.3, u * 1.24);
+            ctx.fillRect(u * 1.25, -u * 0.62, u * 2.3, u * 1.24);
+            ctx.fillRect(-u * 0.14, -u * 2.3, u * 0.28, u * 1.3);
+            ctx.restore();
+            break;
+        }
+        case 'lightning': {
+            const g = ctx.createRadialGradient(x, cy, 0, x, cy, u * 4);
+            g.addColorStop(0, `rgba(${color.inkRgb}, ${dimmed ? 0.15 : 0.4})`);
+            g.addColorStop(1, `rgba(${color.inkRgb}, 0)`);
+            ctx.fillStyle = g;
+            fillCircle(ctx, x, cy, u * 4);
+            const jags = [0, -0.9, 0.7, -1.2, 0.4, 1.1, -0.6, 0.9, -1.0, 0.3];
+            const reach = w * 0.7;
+            const trace = () => {
+                ctx.beginPath();
+                jags.forEach((j, i) => {
+                    const px = x + (reach * i) / (jags.length - 1);
+                    const py = cy + j * u;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+            };
+            const forks = [
+                [[3, -1.2], [4.0, -2.4], [4.6, -3.3]],
+                [[6, -0.6], [7.1, 0.8], [7.6, 2.0]],
+            ].map(([[k, j], ...rest]) => [
+                [x + (reach * k) / (jags.length - 1), cy + j * u],
+                ...rest.map(([kk, jj]) => [x + (reach * kk) / (jags.length - 1), cy + jj * u]),
+            ]);
+            const traceFork = (pts) => {
+                ctx.beginPath();
+                pts.forEach(([px, py], i) => (i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)));
+                ctx.stroke();
+            };
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color.ink30;
+            ctx.lineWidth = u * 0.6;
+            trace();
+            ctx.stroke();
+            ctx.strokeStyle = ink;
+            ctx.lineWidth = u * 0.36;
+            trace();
+            ctx.stroke();
+            ctx.lineWidth = u * 0.24;
+            forks.forEach(traceFork);
+            break;
+        }
+        case 'meteorShower': {
+            const a = (28 * Math.PI) / 180;
+            const sx = Math.sin(a) * u * 3.5;
+            const sy = Math.cos(a) * u * 3.5;
+            const ghosts = [[-7, -9], [-1, -11], [5, -8], [8, -12]];
+            ctx.save();
+            ctx.strokeStyle = color.ink30;
+            ctx.lineWidth = Math.max(1, u * 0.28);
+            ctx.lineCap = 'butt';
+            ctx.setLineDash([u * 0.45, u * 0.5]);
+            ctx.beginPath();
+            ghosts.forEach(([dx, dy]) => {
+                const mx = cx + dx * u;
+                const my = cy + dy * u;
+                ctx.moveTo(mx, my);
+                ctx.lineTo(mx - sx * 1.15, my - sy * 1.15);
+            });
+            ctx.stroke();
+            ctx.restore();
+            const drops = [[-5, -4], [-1, -6], [3, -3], [6, -7], [-6, 2], [-2, 1], [2, 4], [5, 1], [-3, 6], [1, 8]];
+            drops.forEach(([dx, dy]) => {
+                const mx = cx + dx * u;
+                const my = cy + dy * u;
+                ctx.strokeStyle = color.ink30;
+                ctx.lineWidth = u * 0.46;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(mx, my);
+                ctx.lineTo(mx - sx, my - sy);
+                ctx.stroke();
+                ctx.fillStyle = ink;
+                fillCircle(ctx, mx, my, u * 0.42);
+            });
             break;
         }
         case 'spaceBoop': {

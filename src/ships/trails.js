@@ -2,6 +2,7 @@
 // Wake renderers shared by the ship skins. Each takes the raw world-space trail
 // plus a world->screen Y mapper and draws in screen space.
 // Changes:
+// - Ion wake: faint haze, narrower inner ray, smaller denser brighter dots.
 // - Seal vortex: paired commas at the same aft sample, narrower street
 //   (hairline + two trails close but not touching), crush-then-peel pulse.
 // - Rook `drawRookTrail`: twin bronze/gold filaments + ember diamonds (theme-aware).
@@ -474,6 +475,89 @@ export function drawRibbonTrail(ctx, ship, trail, toScreenY, opts = {}) {
             ctx.fillStyle = `rgba(${rgb}, ${Math.min(0.85, p.opacity * energy * (0.45 + alongTip * 0.4))})`;
             ctx.fill();
         }
+    }
+
+    ctx.restore();
+}
+
+/** Outside-of-turn unit normal. Straight segments keep a stable side. */
+function outsideNormal(pts, i) {
+    const prev = pts[Math.max(0, i - 1)];
+    const next = pts[Math.min(pts.length - 1, i + 1)];
+    const p = pts[i];
+    const ax = p.x - prev.x;
+    const ay = p.y - prev.y;
+    const bx = next.x - p.x;
+    const by = next.y - p.y;
+    const cross = ax * by - ay * bx;
+    const len = Math.hypot(bx, by) || 1;
+    const sign = cross >= 0 ? 1 : -1;
+    return { nx: (by / len) * sign, ny: (-bx / len) * sign };
+}
+
+/**
+ * Cyan-arrow exhaust: a barely-there haze, a signal body, a narrow warm ray,
+ * and small bright dots along the outside of the turn.
+ */
+export function drawIonTrail(ctx, ship, trail, toScreenY) {
+    const pts = wakePoints(ship, trail, toScreenY);
+    if (pts.length < 3) return;
+
+    const rgb = color.signalRgb;
+    const hot = '255, 244, 214';
+    const dotRgb = '214, 248, 255';
+    const r = ship.radius;
+    const last = pts.length - 1;
+    const widthAt = (i, scale) => {
+        const t = i / last;
+        return r * scale * Math.pow(t, 0.55) * (0.35 + 0.65 * pts[i].opacity);
+    };
+
+    ctx.save();
+    const baseAlpha = ctx.globalAlpha;
+
+    ribbonPath(ctx, pts, (i) => widthAt(i, 0.7));
+    ctx.globalAlpha = baseAlpha * 0.055;
+    ctx.fillStyle = `rgba(${rgb}, 1)`;
+    ctx.fill();
+
+    ribbonPath(ctx, pts, (i) => widthAt(i, 0.22));
+    ctx.globalAlpha = baseAlpha * 0.9;
+    ctx.fillStyle = `rgba(${rgb}, 1)`;
+    ctx.fill();
+
+    ribbonPath(ctx, pts, (i) => widthAt(i, 0.05));
+    ctx.globalAlpha = baseAlpha * 0.95;
+    ctx.fillStyle = `rgba(${hot}, 1)`;
+    ctx.fill();
+
+    const marks = denseTrailMarks(ship, trail, toScreenY, iosBudget(ship) ? 0 : 1);
+    const markLast = Math.max(1, marks.length - 1);
+    ctx.globalAlpha = baseAlpha;
+    for (let i = 0; i < marks.length; i++) {
+        const p = marks[i];
+        const prev = marks[Math.max(0, i - 1)];
+        const next = marks[Math.min(marks.length - 1, i + 1)];
+        const ax = p.x - prev.x;
+        const ay = p.y - prev.y;
+        const bx = next.x - p.x;
+        const by = next.y - p.y;
+        const cross = ax * by - ay * bx;
+        const len = Math.hypot(bx, by) || 1;
+        const sign = cross >= 0 ? 1 : -1;
+        const along = i / markLast;
+        const spread = r * (0.3 + 0.08 * (1 - along));
+        const size = r * 0.042 * (0.72 + 0.28 * p.opacity);
+        ctx.beginPath();
+        ctx.arc(
+            p.x + (by / len) * sign * spread,
+            p.y + (-bx / len) * sign * spread,
+            Math.max(0.45, size),
+            0,
+            Math.PI * 2,
+        );
+        ctx.fillStyle = `rgba(${dotRgb}, ${Math.min(1, 0.72 + p.opacity * 0.28)})`;
+        ctx.fill();
     }
 
     ctx.restore();

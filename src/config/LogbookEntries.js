@@ -1,6 +1,13 @@
 // LogbookEntries.js
 // Static Journey Logbook catalog: categories, entry copy, unlock modes.
 // Changes:
+// - Meteor Shower copy: dashed streaks come first and are safe.
+// - Playtest branch obstacles (Hazard Lab only): Spinner, Hollow Orbit,
+//   Ricochet, Blink Row, Tunnel Field, Shoal, Satellite Debris,
+//   Lightning, Meteor Shower. Ricochet restored; Bumper and Comet removed;
+//   Solar Flare became Lightning; Shoal copy says it swims; Snap removed.
+//   Spinner copy describes the radar sweep arcs as safe; Shoal copy says it
+//   bounces twice, then leaves.
 // - Removed class-name maps. Release minify renames those classes, so obstacle
 //   pages key off each obstacle's `logbookId` string instead.
 // - levelFromEntryId parses `level_N` for Space Log voice replay (The Call → null).
@@ -188,6 +195,96 @@ const OBSTACLE_ENTRIES = [
         remark: 'Attraction without consent. Classic.',
         unlockMode: 'observeThenInteract',
         icon: 'blackhole',
+    },
+    {
+        id: 'spinner',
+        category: 'obstacles',
+        name: 'Spinner',
+        definition:
+            'A radar hand turning on a hub. Only the hand kills; the fading arcs behind it are just its sweep. Pass near the hub while the hand points away.',
+        remark: 'A clock that only covers one lane.',
+        unlockMode: 'observeThenInteract',
+        icon: 'spinner',
+    },
+    {
+        id: 'hollowOrbit',
+        category: 'obstacles',
+        name: 'Hollow Orbit',
+        definition:
+            'Two moons circling an empty centre. The hole is the line, and it turns.',
+        remark: 'The core declined to attend.',
+        unlockMode: 'observeThenInteract',
+        icon: 'hollowOrbit',
+    },
+    {
+        id: 'ricochet',
+        category: 'obstacles',
+        name: 'Ricochet',
+        definition:
+            'A shard on a straight diagonal. It banks off the screen edges. Read the line.',
+        remark: 'Geometry that refuses to leave.',
+        unlockMode: 'observeThenInteract',
+        icon: 'ricochet',
+    },
+    {
+        id: 'blinkRow',
+        category: 'obstacles',
+        name: 'Blink Row',
+        definition:
+            'Three rocks side by side. One lane turns hollow at a time, and that lane cycles.',
+        remark: 'Stand where the ink is only a drawing.',
+        unlockMode: 'observeThenInteract',
+        icon: 'blinkRow',
+    },
+    {
+        id: 'tunnelField',
+        category: 'obstacles',
+        name: 'Tunnel Field',
+        definition:
+            'A band of rubble with one tunnel cut at your lean. Flip at each bend. The dashed lining chips off. The solid rubble does not.',
+        remark: 'Someone dug this at exactly 52 degrees.',
+        unlockMode: 'observeThenInteract',
+        icon: 'tunnelField',
+    },
+    {
+        id: 'shoal',
+        category: 'obstacles',
+        name: 'Shoal',
+        definition:
+            'A loose school of rocks. It bounces off each wall once, then swims out for good. Slip a gap or let it pass.',
+        remark: 'They have places to be.',
+        unlockMode: 'observeThenInteract',
+        icon: 'shoal',
+    },
+    {
+        id: 'satDebris',
+        category: 'obstacles',
+        name: 'Satellite Debris',
+        definition:
+            'A dead satellite tumbling toward a wall. When it hits, it breaks into pieces that drift back in.',
+        remark: 'Warranty void.',
+        unlockMode: 'observeThenInteract',
+        icon: 'satDebris',
+    },
+    {
+        id: 'lightning',
+        category: 'obstacles',
+        name: 'Lightning',
+        definition:
+            'The wall crackles and a dashed line shows the reach. Then a bolt snaps across and is gone. Only the bolt kills. The wall stays safe.',
+        remark: 'Never strikes the same place twice. It does, actually.',
+        unlockMode: 'observeThenInteract',
+        icon: 'lightning',
+    },
+    {
+        id: 'meteorShower',
+        category: 'obstacles',
+        name: 'Meteor Shower',
+        definition:
+            'Dashed streaks fall first, and they are safe. Then tiny rocks follow that same slant. Zig against the grain.',
+        remark: 'Forecast: brief, pointy.',
+        unlockMode: 'observeThenInteract',
+        icon: 'meteorShower',
     },
     {
         id: 'spaceBoop',

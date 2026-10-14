@@ -1,5 +1,6 @@
 // SkinCatalog.swift
-// Changes: `rosterMark` is the home hangar pager (`5 / 42`). Merlin and Rook stay
+// Changes: Ion stays free. Hull is a slightly narrower arrow (small fins, shallow notch).
+// `rosterMark` is the home hangar pager (`5 / 42`). Merlin and Rook stay
 // in SkinId / allDefs but are omitted from `roster` (hangar, home arrows, store
 // prices). resolve() maps a leftover id to Flicker.
 // Unset / unknown skin id resolves to Flicker (matches JS DEFAULT_SHIP_SKIN).
@@ -17,7 +18,7 @@ enum SkinId: String, CaseIterable, Hashable {
     case fold, mote, spine, orbit, ink
     case flux, cinder, lantern, bloom
     case lyra, sprout, plume, koi, spore, boreal
-    case luna, wish, darner, puff, argus, chime, merlin, rook
+    case luna, wish, darner, puff, argus, chime, ion, merlin, rook
 }
 
 enum WallTrailMode {
@@ -34,7 +35,7 @@ enum JellyProfile: String {
 }
 
 enum HullKind: Hashable {
-    case circle, tear, dart, fletch, shard, needle, crescent, nyan
+    case circle, tear, dart, ion, fletch, shard, needle, crescent, nyan
     case square, stamp, seal, fold, spine, hex, petal, orbit, mote, halo
     case bell, bloom, star, seed, wing, koi, cap, curtain, moth
     case wish, darner, puff, argus, chime, merlin, rook
@@ -44,7 +45,7 @@ enum TrailKind {
     case dots, twinDots, ribbon, rainbow, horizon, wisp, chevron
     case rings, hairline, saber, twin, stamp, vortex, tick, crease, cloud
     case ladder, lag, helix, dash, cinder, lantern, bloom, lyra, plume
-    case koi, boreal, luna, wish, darner, puff, argus, chime, merlin, rook
+    case koi, boreal, luna, wish, darner, puff, argus, chime, ion, merlin, rook
 }
 
 struct HitCircle {
@@ -84,7 +85,7 @@ enum SkinCatalog {
 
     static let hidden: Set<SkinId> = [.merlin, .rook]
     static let roster: [SkinId] = SkinId.allCases.filter { !hidden.contains($0) }
-    static let free: [SkinId] = [.focus, .flicker, .ember, .saber]
+    static let free: [SkinId] = [.focus, .flicker, .ember, .saber, .ion]
 
     static func resolve(_ raw: String?) -> SkinId {
         guard let id = SkinId(rawValue: raw ?? ""), !hidden.contains(id) else {
@@ -238,6 +239,8 @@ enum SkinCatalog {
           pad: 3.4, half: 0.75, jelly: .argus, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
         s(.chime, "Chime", "Temple bells. Sound rings down the wake.", H.chime, .ripple, .chime, .chime,
           pad: 3.2, half: 0.85, jelly: .chime, iap: true, pts: longPts, fade: longFade, live: true, ripple: true, tail: 0.38),
+        s(.ion, "Ion", "A cyan arrow. A thin ray in the wake.", H.ion, .spring, .ion, .ion,
+          pad: 3.2, half: 0.85, jelly: .standard, pts: longPts, fade: longFade, tail: 0.5),
         s(.merlin, "Merlin", "A spark-falcon. Stars pour from its wake.", H.merlin, .flare, .merlin, .merlin,
           pad: 3.6, half: 0.55, jelly: .merlin, iap: true, pts: longPts, fade: longFade, live: true, tail: 0.22),
         s(.rook, "Rook", "Four gold vanes. Dust pours from its wake.", H.rook, .flare, .rook, .rook,
@@ -303,6 +306,11 @@ private enum H {
         .init(x: 0, y: -0.61, r: 0.1), .init(x: 0, y: -0.35, r: 0.23),
         .init(x: 0, y: 0.16, r: 0.53), .init(x: -0.33, y: 0.28, r: 0.33),
         .init(x: 0.32, y: 0.28, r: 0.34),
+    ]
+    static let ion: [HitCircle] = [
+        .init(x: 0, y: -0.74, r: 0.08), .init(x: 0, y: -0.4, r: 0.2),
+        .init(x: 0, y: -0.06, r: 0.3), .init(x: 0, y: 0.16, r: 0.1),
+        .init(x: -0.58, y: 0.26, r: 0.08), .init(x: 0.58, y: 0.26, r: 0.08),
     ]
     static let dart: [HitCircle] = [
         .init(x: 0, y: -0.71, r: 0.08), .init(x: 0, y: -0.5, r: 0.16),

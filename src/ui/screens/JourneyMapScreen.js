@@ -4,7 +4,8 @@
 // level locked. The list is taller than the screen, so it scrolls (wheel or
 // drag — Game owns the gesture and hands us the offset).
 // Changes:
-// - SHOW_HAZARD_LAB = false hides the LAB heading/tile/hit-box (run code stays).
+// - Playtest branch: SHOW_HAZARD_LAB = true pins the LAB tile so the remaining
+//   candidate obstacles can be flown in the browser. Journey days are unchanged.
 // - Header no longer draws a TEST chip when UNLOCK_ALL_LEVELS / ?unlocklevels=1
 //   is on; tiles still unlock for playtest. Saved journeyProgress.unlocked is
 //   unchanged.
@@ -43,8 +44,8 @@ import {
 import { drawLivesChip } from '../LivesChip.js';
 import { ensureRegen } from '../../services/Lives.js';
 
-/** Flip true to pin the always-unlocked Hazard Lab tile above Troposphere. */
-const SHOW_HAZARD_LAB = false;
+/** Playtest branch: pin the always-unlocked Hazard Lab tile above Troposphere. */
+const SHOW_HAZARD_LAB = true;
 
 /**
  * Draws the map and returns `{ back, levels, metrics }`. `metrics` tells Game

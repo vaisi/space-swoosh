@@ -1,5 +1,6 @@
 // SkinTrail.swift
-// Changes: Seal paired aft vortex field; Orbit helix wake. Rook twin bronze/gold filaments.
+// Changes: Ion wake is a cyan glow, solid core, and outside-curve dots.
+// Seal paired aft vortex field; Orbit helix wake. Rook twin bronze/gold filaments.
 
 import SpriteKit
 
@@ -71,6 +72,8 @@ enum SkinTrailFactory {
             return ArgusWake(ring: bake.ring, disc: disc, slots: slots)
         case .chime:
             return ChimeWake(disc: disc, slots: slots)
+        case .ion:
+            return IonTrailNode(disc: disc, maxPoints: slots + 2)
         case .merlin:
             return WishWake(disc: disc, slots: slots * 3, spectacular: true)
         case .rook:

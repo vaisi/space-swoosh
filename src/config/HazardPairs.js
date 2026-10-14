@@ -1,6 +1,8 @@
 // HazardPairs.js
 // Compatible mixed-row rules for Journey 6+ and Open Space weather.
 // Changes:
+// - Blink Row, Meteor Shower, Hollow Orbit, and Lightning own their row
+//   and do not repeat on the next row.
 // - DEEP_FROM_LEVEL 24: Journey days 24+ ease gaps / density / row mix
 //   (~12%) without changing the L20 late belt.
 // - PAIRED_FROM_LEVEL 6: one spike on 6–24; comboTheme still only from 20.
@@ -26,6 +28,10 @@ export const SOLO_IN_ROW = new Set([
     'phase',
     'wormhole',
     'sweepGate',
+    'blinkRow',
+    'meteorShower',
+    'hollowOrbit',
+    'lightning',
 ]);
 
 /** Edge/wind hazards that leave the mid empty unless we fill it. */
@@ -47,6 +53,10 @@ export const HEAVY_TYPES = new Set([
     'sweepGate',
     'phase',
     'sideBarrier',
+    'blinkRow',
+    'meteorShower',
+    'hollowOrbit',
+    'lightning',
 ]);
 
 export const LANE_FRACS = {

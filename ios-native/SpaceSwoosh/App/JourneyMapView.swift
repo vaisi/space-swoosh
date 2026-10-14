@@ -1,5 +1,5 @@
 // JourneyMapView.swift
-// Changes: showHazardLab = false hides the LAB heading/tile (run code stays).
+// Changes: Hazard Lab tile is on for this branch, matching Android.
 // Sequential Journey locks follow JourneyProgress.UNLOCK_ALL_LEVELS.
 // 5-column grid and tileH = tileW × 1.15 (Android JourneyMapScreen).
 // Hazard Lab (when shown) is a same-size centered LAB tile, not a full-width banner.
@@ -15,8 +15,8 @@ struct JourneyMapView: View {
 
     private let tileGap: CGFloat = 10
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 5)
-    /// Flip true to pin the always-unlocked Hazard Lab tile above Troposphere.
-    private let showHazardLab = false
+    /// Always-unlocked Hazard Lab tile above Troposphere. On for this branch.
+    private let showHazardLab = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {

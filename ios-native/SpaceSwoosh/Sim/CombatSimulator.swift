@@ -1,5 +1,8 @@
 // CombatSimulator.swift
-// Changes: Open Space 20k+ storm quiet 0.21 / chain 0.10; Journey L24+
+// Changes: Nine new obstacles spawn, move, and collide. Accompany holds a
+// set piece, then the belt may add rocks plus one light. Journey rows pass
+// the load budget. Open Space unlocks follow the generated table.
+// Open Space 20k+ storm quiet 0.21 / chain 0.10; Journey L24+
 // post-spike quiet 0.56. Black-hole phase ticks at 3.0 rad/s (Android
 // +0.05/frame at 60 fps).
 // Sparkle magnet latches, then ease-in + closing acceleration
@@ -76,7 +79,7 @@ struct RunState {
     var sfxPortalOut: Bool = false
     var sfxSwoosh: Bool = false
     var sfxFuelOut: Bool = false
-    var announcedMask: UInt16 = 1
+    var announcedMask: UInt64 = 1
     var milestoneMask: UInt16 = 0
     var taughtSteer: Bool = false
     var taughtSteerLeft: Bool = false
@@ -447,7 +450,11 @@ enum CombatSimulator {
         let margin = world.baseUnit * 2
         for i in world.obstacles.indices {
             if world.obstacles[i].active, world.obstacles[i].y >= gate - margin {
-                world.obstacles[i].active = false
+                if PlaytestHazards.owns(world.obstacles[i].kind) {
+                    PlaytestHazards.deactivate(world: &world, index: i)
+                } else {
+                    world.obstacles[i].active = false
+                }
             }
         }
         for i in world.pickups.indices {
@@ -465,27 +472,39 @@ enum CombatSimulator {
         let spawnCount = run.profile.rollRowSpawnCount(&run.rng, scoreKm: run.scoreKm)
         let dens = run.profile.density(scoreKm: run.scoreKm)
         if run.profile.usesPairedBelt(scoreKm: run.scoreKm) {
-            let plan = LateJourneyBelt.planPairedRow(types: types, world: world, run: &run, spawnCount: spawnCount)
+            let plan = LoadBudget.fit(
+                LateJourneyBelt.planPairedRow(types: types, world: world, run: &run, spawnCount: spawnCount),
+                world: world,
+                run: run
+            )
             LateJourneyBelt.spawnPlan(plan, world: &world, run: &run, atY: atY, dens: dens)
             return
         }
         var lastType: String?
-        var used: [String] = []
+        var drafts: [(type: String, x: CGFloat)] = []
         for i in 0..<spawnCount {
             var type = pickType(types, run: &run, world: world)
             if !run.profile.allowAdjacentSetPieces, type != "simple", type == lastType {
                 type = types.contains("simple") ? "simple" : type
             }
-            if type == "simple" {
-                spawnSimpleCluster(world: &world, run: &run, atY: atY, dens: dens)
-            } else {
-                let lane = spawnCount == 1 ? 0.5 : (0.22 + 0.56 * CGFloat(i) / CGFloat(max(spawnCount - 1, 1)))
-                placeHazard(world: &world, type: type, x: world.width * lane, y: atY, run: &run)
-                used.append(type)
-            }
+            let lane = spawnCount == 1 ? 0.5 : (0.22 + 0.56 * CGFloat(i) / CGFloat(max(spawnCount - 1, 1)))
+            drafts.append((type, world.width * lane))
             lastType = type
         }
-        LateJourneyBelt.remember(used, run: &run)
+        let fitted = LoadBudget.fit(
+            drafts.map { EncounterSlot(type: $0.type, lane: nil) },
+            world: world,
+            run: run
+        )
+        for (i, slot) in fitted.enumerated() {
+            if slot.type == "simple" {
+                spawnSimpleCluster(world: &world, run: &run, atY: atY, dens: dens)
+            } else {
+                let x = i < drafts.count ? drafts[i].x : world.width * 0.5
+                placeHazard(world: &world, type: slot.type, x: x, y: atY, run: &run)
+            }
+        }
+        LateJourneyBelt.remember(fitted.map(\.type), run: &run)
     }
 
     private static func pickType(_ types: [String], run: inout RunState, world: WorldState) -> String {
@@ -601,7 +620,7 @@ enum CombatSimulator {
             run.taughtAtmosphere = true
         }
         for (i, entry) in GameConfig.Unlocks.table.enumerated() {
-            let bit = UInt16(1 << i)
+            let bit = UInt64(1) << UInt64(i)
             if run.scoreKm >= entry.score, run.announcedMask & bit == 0 {
                 run.announcedMask |= bit
             }
@@ -731,6 +750,8 @@ enum CombatSimulator {
             run.logbookMarks.append(.observe(id))
         }
         switch type {
+        case "spinner", "hollowOrbit", "ricochet", "blinkRow", "tunnelField", "shoal", "satDebris", "lightning", "meteorShower":
+            PlaytestHazards.spawn(world: &world, run: &run, type: type, x: x, y: y)
         case "sideBarrier":
             spawnSideBarriers(world: &world, y: y)
         case "complex":
@@ -972,6 +993,10 @@ enum CombatSimulator {
     static func moveHazards(world: inout WorldState, run: inout RunState, dt: CGFloat) {
         for i in 0..<world.obstacles.count {
             guard world.obstacles[i].active else { continue }
+            if PlaytestHazards.owns(world.obstacles[i].kind) {
+                PlaytestHazards.step(world: &world, index: i, run: &run, dt: dt)
+                continue
+            }
             world.obstacles[i].rotation += world.obstacles[i].spin * dt
             switch world.obstacles[i].kind {
             case .pentagon:
@@ -1085,8 +1110,13 @@ enum CombatSimulator {
     private static func recycleBehind(world: inout WorldState) {
         let minY = world.ship.y - world.height * 0.4
         for i in 0..<world.obstacles.count where world.obstacles[i].active && world.obstacles[i].y < minY {
-            world.obstacles[i].active = false
+            if PlaytestHazards.owns(world.obstacles[i].kind) {
+                PlaytestHazards.deactivate(world: &world, index: i)
+            } else {
+                world.obstacles[i].active = false
+            }
         }
+        PlaytestHazards.reap(world: &world)
         for i in 0..<world.pickups.count where world.pickups[i].active && world.pickups[i].y < minY {
             world.pickups[i].active = false
         }
@@ -1232,6 +1262,37 @@ enum CombatSimulator {
         let shipR = world.baseUnit * GameConfig.Spacecraft.radiusUnits
         for i in 0..<world.obstacles.count {
             guard world.obstacles[i].active, world.obstacles[i].lethal else { continue }
+            if PlaytestHazards.owns(world.obstacles[i].kind) {
+                switch PlaytestHazards.touch(world: &world, index: i, run: run) {
+                case .none:
+                    continue
+                case .chip:
+                    markInteract(run: &run, obstacle: world.obstacles[i])
+                    if run.shieldActive { run.requestShieldCrashSfx() }
+                    continue
+                case .destroy:
+                    let ox = world.obstacles[i].x
+                    let oy = world.obstacles[i].y
+                    markSmash(run: &run, obstacle: world.obstacles[i])
+                    PlaytestHazards.deactivate(world: &world, index: i)
+                    run.points += GameConfig.Points.perAsteroid
+                    run.obstaclesDestroyed += 1
+                    run.scoreKm += 10
+                    run.requestShieldCrashSfx()
+                    FloatPopupBuffer.spawn(&run.popups, kind: .smash, x: ox, y: oy, vy: 2)
+                    continue
+                case .crash:
+                    markInteract(run: &run, obstacle: world.obstacles[i])
+                    if run.cinema.isClearFlyout { continue }
+                    run.isOver = true
+                    run.completed = false
+                    run.failReason = .crash
+                    run.hullHidden = true
+                    run.sfxCrash = true
+                    BlastBuffer.explode(into: &run.blast, x: world.ship.x, y: world.ship.y, baseUnit: world.baseUnit)
+                    return
+                }
+            }
             if run.shieldActive {
                 switch ShipHitbox.shieldSmash(
                     world.obstacles[i],
@@ -1315,7 +1376,7 @@ enum CombatSimulator {
         case .drift: type = "driftCurrent"
         case .wormhole: type = "wormhole"
         case .blackhole: type = "blackhole"
-        default: type = nil
+        default: type = PlaytestHazards.typeName(obstacle.kind)
         }
         if let type, let id = LogbookCatalog.obstacleId(for: type) {
             run.logbookMarks.append(.interact(id))
@@ -1330,7 +1391,7 @@ enum CombatSimulator {
 
 enum LateJourneyBelt {
     private static let solo: Set<String> = [
-        "phase", "wormhole", "sweepGate"
+        "phase", "wormhole", "sweepGate", "blinkRow", "meteorShower", "hollowOrbit", "lightning"
     ]
     private static let corridor: Set<String> = [
         "sideBarrier", "driftCurrent"
@@ -1339,7 +1400,8 @@ enum LateJourneyBelt {
         "wormhole"
     ]
     private static let heavy: Set<String> = [
-        "blackhole", "repulsor", "wormhole", "sweepGate", "phase", "sideBarrier"
+        "blackhole", "repulsor", "wormhole", "sweepGate", "phase", "sideBarrier",
+        "blinkRow", "meteorShower", "hollowOrbit", "lightning"
     ]
     private static let points: Set<String> = [
         "simple", "moving", "shooting", "pulsating", "complex"
@@ -1431,6 +1493,10 @@ enum LateJourneyBelt {
         if run.encounterLiveIndex < 0 {
             guard wouldStart(world: world, run: &run) else { return false }
             if let i = run.encounterFired.enumerated().first(where: { !$0.element && cursor(world: world, run: run) >= run.encounterAt[$0.offset] })?.offset {
+                if let pending = recipes.first(where: { $0.id == run.encounterRecipeIds[i] }),
+                   LoadBudget.blocksSetPiece(pending, world: world, run: run) {
+                    return false
+                }
                 run.encounterFired[i] = true
                 run.encounterLiveIndex = i
                 run.encounterBeat = 0
@@ -1444,6 +1510,20 @@ enum LateJourneyBelt {
             return false
         }
         let beat = recipe.beats[run.encounterBeat]
+        if beat.kind == "accompany" {
+            if PlaytestHazards.setPieceOccupies(world: world, cameraY: run.cameraY) { return false }
+            run.encounterBeat += 1
+            if run.encounterBeat < recipe.beats.count {
+                return playIfNeeded(world: &world, run: &run, atY: atY)
+            }
+            let chained = run.encounterUsesKm && hasChainedStorm(run: run)
+            let frac = run.encounterUsesKm
+                ? quietFrac(chained: chained, scoreKm: run.scoreKm)
+                : journeyEndQuiet(run)
+            run.quietUntilY = atY + world.height * frac
+            run.encounterLiveIndex = -1
+            return true
+        }
         run.encounterBeat += 1
         let last = run.encounterBeat >= recipe.beats.count
         let chained = last && run.encounterUsesKm && hasChainedStorm(run: run)

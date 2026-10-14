@@ -2,6 +2,7 @@
 // KM bands for Open Space pairing (weather), belt density, and storm marks.
 // Storms play EncounterCatalog recipes; the belt between them is planPairedRow.
 // Changes:
+// - After 7000 the sky rotation also focuses the new belt types.
 // - 20k hold eases ~12%: minGapFrac 0.115, density 1.90, simpleChance 0.28,
 //   row mix 0.16 / 0.66. Storm quiet past 20k is 0.21 / chain 0.10.
 // - Tighter vertical belt (0.22→0.115) and more 2/3-slot rows so 20k+ is not
@@ -62,6 +63,12 @@ export const OPEN_SPACE_FULL_SKY = [
     { pair: 'repulsor', combo: 'phase', focus: 'blackhole' },
     { pair: 'sweepGate', combo: 'moving', focus: 'sweepGate' },
     { pair: 'complex', combo: 'pulsating', focus: 'shooting' },
+    { pair: 'moving', combo: 'pulsating', focus: 'spinner' },
+    { pair: 'shooting', combo: 'moving', focus: 'ricochet' },
+    { pair: 'pulsating', combo: 'moving', focus: 'hollowOrbit' },
+    { pair: 'moving', combo: 'complex', focus: 'blinkRow' },
+    { pair: 'shooting', combo: 'pulsating', focus: 'meteorShower' },
+    { pair: 'moving', combo: 'shooting', focus: 'lightning' },
 ];
 
 /**

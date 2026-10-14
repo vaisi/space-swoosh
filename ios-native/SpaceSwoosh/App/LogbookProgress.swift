@@ -1,5 +1,6 @@
 // LogbookProgress.swift
-// Changes: Slice E — observe / interact / known catalog + toast.
+// Changes: Any catalog id (including the nine new obstacles) fills the page.
+// Slice E — observe / interact / known catalog + toast.
 
 import Foundation
 import Combine
@@ -38,20 +39,7 @@ enum LogbookCatalog {
     static func levelEntryId(_ level: Int) -> String { "level_\(level)" }
 
     static func obstacleId(for type: String) -> String? {
-        switch type {
-        case "sideBarrier": return "sideBarrier"
-        case "complex": return "complex"
-        case "moving": return "moving"
-        case "shooting": return "shooting"
-        case "pulsating": return "pulsating"
-        case "phase": return "phase"
-        case "sweepGate": return "sweepGate"
-        case "repulsor": return "repulsor"
-        case "driftCurrent": return "driftCurrent"
-        case "wormhole": return "wormhole"
-        case "blackhole": return "blackhole"
-        default: return nil
-        }
+        byId[type] == nil ? nil : type
     }
 
     static func simpleId(for kind: ObstacleKind) -> String? {

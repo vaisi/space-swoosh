@@ -1,6 +1,7 @@
 // supabase.js
 // Supabase client for the online leaderboard.
 // Changes:
+// - import.meta.env falls back to {} outside Vite, so Node scripts can import.
 // - Credentials moved out of source into Vite env vars (VITE_SUPABASE_URL /
 //   VITE_SUPABASE_ANON_KEY, see .env.example). They still ship in the client
 //   bundle — the anon key is public by design — but they are no longer literals
@@ -12,8 +13,9 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const env = import.meta.env ?? {};
+const supabaseUrl = env.VITE_SUPABASE_URL
+const supabaseKey = env.VITE_SUPABASE_ANON_KEY
 
 const configured = Boolean(supabaseUrl && supabaseKey)
 

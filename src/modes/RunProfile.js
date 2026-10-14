@@ -5,6 +5,8 @@
 // `game.score` and the global config, which is what makes a second play mode
 // possible at all.
 // Changes:
+// - usesLoadBudget (default false) and loadDifficulty (default 0.5) for
+//   game/LoadBudget.js.
 // - Open Space speedMultiplier reads GameConfig.cruiseSpeedMultiplier (1.1) —
 //   the same constant Journey uses, so cruise matches on iOS / Android / web.
 // - Open Space weather + belt density live on OpenWorldProfile (tighter vertical
@@ -13,6 +15,9 @@
 // - Journey L6+ pairing / L20+ comboTheme / encounters live on JourneyProfile.
 // - OPEN_WORLD_UNLOCKS messages are null — types still unlock by KM, but
 //   Open Space no longer flashes hazard-name banners.
+// - Nine new obstacles join Open Space. Belt types unlock from 1500–6500.
+//   Shoal, tunnel, and satellite stay out of the belt and arrive as storms
+//   at 4800, 6400, and 8000.
 // - OPEN_WORLD_UNLOCKS: driftCurrent@3500, phase@4500, repulsor@5500,
 //   sweepGate@7000 (between/after existing shooting→BH ladder).
 // - `focusChance` (default 0.5): how often `focusType` wins a set-piece slot.
@@ -29,6 +34,7 @@
 //   there is now one source of truth for it.
 
 import { clamp01 } from '../utils/math.js';
+import { isSetPiece } from '../config/ObstacleDemand.js';
 import { GameConfig } from '../config/GameConfig.js';
 import {
     OPEN_SPACE_PAIRED_FROM_KM,
@@ -51,15 +57,24 @@ export const OPEN_WORLD_UNLOCKS = [
     { type: 'simple', score: 0, message: null },
     { type: 'sideBarrier', score: 1000, message: null },
     { type: 'complex', score: 1000, message: null },
+    { type: 'spinner', score: 1500, message: null },
     { type: 'moving', score: 2000, message: null },
+    { type: 'blinkRow', score: 2500, message: null },
     { type: 'shooting', score: 3000, message: null },
+    { type: 'meteorShower', score: 3200, message: null },
     { type: 'driftCurrent', score: 3500, message: null },
     { type: 'pulsating', score: 4000, message: null },
+    { type: 'hollowOrbit', score: 4200, message: null },
     { type: 'phase', score: 4500, message: null },
+    { type: 'shoal', score: 4800, message: null },
     { type: 'wormhole', score: 5000, message: null },
+    { type: 'ricochet', score: 5200, message: null },
     { type: 'repulsor', score: 5500, message: null },
     { type: 'blackhole', score: 6000, message: null },
+    { type: 'tunnelField', score: 6400, message: null },
+    { type: 'lightning', score: 6500, message: null },
     { type: 'sweepGate', score: 7000, message: null },
+    { type: 'satDebris', score: 8000, message: null },
 ];
 
 export const ALL_OBSTACLE_TYPES = OPEN_WORLD_UNLOCKS.map((entry) => entry.type);
@@ -202,6 +217,16 @@ export class RunProfile {
         return false;
     }
 
+    /** LoadBudget trims rows only where this is true. */
+    get usesLoadBudget() {
+        return false;
+    }
+
+    /** 0–1 position between the soft and hard load caps. */
+    get loadDifficulty() {
+        return 0.5;
+    }
+
     rollRowSpawnCount() {
         const maxSpawns = Math.max(1, this.maxRowSpawns());
         if (maxSpawns <= 1) return 1;
@@ -289,6 +314,13 @@ export class OpenWorldProfile extends RunProfile {
 
     get focusType() {
         return weatherAt(this.game.score).focus;
+    }
+
+    /** Set pieces are storms only. The belt never rolls them. */
+    unlocksBy(score) {
+        return OPEN_WORLD_UNLOCKS.filter(
+            (entry) => score >= entry.score && !isSetPiece(entry.type)
+        );
     }
 
     get simpleChance() {

@@ -2799,6 +2799,77 @@
       ]
     },
     {
+      "num": "40",
+      "name": "Ion",
+      "hidden": false,
+      "filed_as": "Signal",
+      "archive_note": "The hull from the posters. Cream, pointed, and brighter in the dark than the file suggests. The Index calls the wake exhaust. Pilots call it the line they follow home.",
+      "lines": [
+        {
+          "id": "NAV_40_ION_1",
+          "file": "nav_40_ion_1.mp3",
+          "display": "Ion. Leave a line I can follow.",
+          "elevenlabs_input": "[warm, steady] Ion. Leave a line I can follow.",
+          "est_seconds": 3.84,
+          "cues": [
+            {
+              "start": 0.15,
+              "end": 0.66,
+              "text": "Ion."
+            },
+            {
+              "start": 1.03,
+              "end": 3.62,
+              "text": "Leave a line I can follow."
+            }
+          ]
+        },
+        {
+          "id": "NAV_40_ION_2",
+          "file": "nav_40_ion_2.mp3",
+          "display": "Ion. Bright, and it stays bright.",
+          "elevenlabs_input": "[pleased, quiet] Ion. Bright, and it stays bright.",
+          "est_seconds": 4.08,
+          "cues": [
+            {
+              "start": 0.15,
+              "end": 0.66,
+              "text": "Ion."
+            },
+            {
+              "start": 1.02,
+              "end": 3.86,
+              "text": "Bright, and it stays bright."
+            }
+          ]
+        },
+        {
+          "id": "NAV_40_ION_3",
+          "file": "nav_40_ion_3.mp3",
+          "display": "Ion. Point it. The dark will keep the curve.",
+          "elevenlabs_input": "[low, confident] Ion. Point it. [beat] The dark will keep the curve.",
+          "est_seconds": 6.96,
+          "cues": [
+            {
+              "start": 0.19,
+              "end": 0.87,
+              "text": "Ion."
+            },
+            {
+              "start": 1.35,
+              "end": 2.61,
+              "text": "Point it."
+            },
+            {
+              "start": 3.29,
+              "end": 6.67,
+              "text": "The dark will keep the curve."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "num": "???",
       "name": "Merlin",
       "hidden": true,

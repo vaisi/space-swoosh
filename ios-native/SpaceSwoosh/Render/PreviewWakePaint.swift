@@ -1,5 +1,6 @@
 // PreviewWakePaint.swift
-// Changes: Hangar samples originate at trailTailOffset so thin hulls (Rook)
+// Changes: Ion preview matches the cyan arrow wake — faint haze, narrow ray, bright dots.
+// Hangar samples originate at trailTailOffset so thin hulls (Rook)
 // do not leak wake from mid-body. Seal paired aft vortex commas and Orbit helix.
 
 import CoreGraphics
@@ -108,6 +109,8 @@ enum PreviewWakePaint {
             argus(cg, pts, radius)
         case .chime:
             chime(cg, pts, radius)
+        case .ion:
+            ion(cg, pts, &left, &right, radius)
         case .merlin:
             merlin(cg, pts, radius)
         case .rook:
@@ -254,6 +257,54 @@ enum PreviewWakePaint {
             fillRibbon(cg, pts, &left, &right, widthAt: { widthAt($0) * 1.55 }, color: color, alpha: skin.trailAlpha * 0.22)
         }
         fillRibbon(cg, pts, &left, &right, widthAt: widthAt, color: color, alpha: skin.trailAlpha)
+    }
+
+    private static func ion(
+        _ cg: CGContext,
+        _ pts: [WakeSample],
+        _ left: inout [CGPoint],
+        _ right: inout [CGPoint],
+        _ r: CGFloat
+    ) {
+        let last = CGFloat(max(pts.count - 1, 1))
+        let signal = BrandColors.UI.signal
+        let hot = UIColor(red: 1, green: 244 / 255, blue: 214 / 255, alpha: 1)
+        let dot = UIColor(red: 214 / 255, green: 248 / 255, blue: 1, alpha: 1)
+        let width: (CGFloat) -> (Int) -> CGFloat = { scale in
+            { i in
+                let t = CGFloat(i) / last
+                return r * scale * pow(t, 0.55) * (0.35 + 0.65 * pts[i].opacity)
+            }
+        }
+        fillRibbon(cg, pts, &left, &right, widthAt: width(0.7), color: signal, alpha: 0.055)
+        fillRibbon(cg, pts, &left, &right, widthAt: width(0.22), color: signal, alpha: 0.9)
+        fillRibbon(cg, pts, &left, &right, widthAt: width(0.05), color: hot, alpha: 0.95)
+        var i = 0
+        while i < pts.count {
+            let p = pts[i]
+            let prev = pts[max(0, i - 1)]
+            let next = pts[min(pts.count - 1, i + 1)]
+            let ax = p.x - prev.x
+            let ay = p.y - prev.y
+            let bx = next.x - p.x
+            let by = next.y - p.y
+            let cross = ax * by - ay * bx
+            let len = hypot(bx, by)
+            let inv = len > 0.0001 ? 1 / len : 1
+            let sign: CGFloat = cross >= 0 ? 1 : -1
+            let along = CGFloat(i) / last
+            let spread = r * (0.3 + 0.08 * (1 - along))
+            let size = r * 0.042 * (0.72 + 0.28 * p.opacity)
+            disc(
+                cg,
+                x: p.x + by * inv * sign * spread,
+                y: p.y - bx * inv * sign * spread,
+                r: size,
+                color: dot,
+                alpha: min(1, 0.72 + p.opacity * 0.28)
+            )
+            i += 1
+        }
     }
 
     private static func rainbow(

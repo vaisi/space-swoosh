@@ -2,6 +2,7 @@
 // The ship roster. Every skin is visual only — physics and speed are identical,
 // so picking one never changes how the ship plays.
 // Changes:
+// - Ion: free, slightly narrower cyan arrow. No hull halo.
 // - Merlin and Rook stay in SKIN_DEFS but set `hidden: true` so hangar / menu
 //   / yearly pick omit them (skins.js filters SHIP_SKIN_LIST).
 // - Seal — slim vesica almond + paired aft vortex commas (crush then peel).
@@ -26,7 +27,7 @@
 //   Pulse, Echo, Dusk, Orbit, Ink, Cinder, Lantern, Bloom, Lyra, Sprout, Plume, Koi,
 //   Spore, Boreal, Luna, Wish, Darner, Puff, Argus, Chime, Merlin, Rook). Menu preview stays short so it never covers title.
 // - Free Saber: Needle hull + slim purple lightsaber wake (long trail, whip).
-// - Free forever: Focus / Flicker / Ember / Saber. Every other skin has productId +
+// - Free forever: Focus / Flicker / Ember / Saber / Ion. Every other skin has productId +
 //   entitlementId (com.orbi.spaceswoosh.skin.<id> / skin_<id>) for IAP.
 // - Renamed square* → Stamp/Tick/Trace/Ring, then Stamp→Seal, Tick→Hatch.
 // - Night paper: Nyan hull gray lifted so the crescent still reads on charcoal.
@@ -54,6 +55,7 @@ import {
     MAX_BANK,
     tearPath,
     dartPath,
+    ionPath,
     shardPath,
     needlePath,
     crescentPath,
@@ -102,6 +104,7 @@ import {
     drawRainbowRibbonTrail,
     drawHorizonRibbonTrail,
     drawSaberTrail,
+    drawIonTrail,
     drawLanternTrail,
     drawBloomTrail,
     drawLyraTrail,
@@ -136,6 +139,15 @@ const TEAR_HITBOX = [
     { x: 0, y: 0.16, r: 0.53 },
     { x: -0.33, y: 0.28, r: 0.33 },
     { x: 0.32, y: 0.28, r: 0.34 },
+];
+
+const ION_HITBOX = [
+    { x: 0, y: -0.74, r: 0.08 },
+    { x: 0, y: -0.4, r: 0.2 },
+    { x: 0, y: -0.06, r: 0.3 },
+    { x: 0, y: 0.16, r: 0.1 },
+    { x: -0.58, y: 0.26, r: 0.08 },
+    { x: 0.58, y: 0.26, r: 0.08 },
 ];
 
 const DART_HITBOX = [
@@ -2547,6 +2559,58 @@ const chime = {
     },
 };
 
+function drawIonHull(ctx, ship, screenY, time = performance.now()) {
+    const breath = 0.9 + 0.06 * Math.sin(time * 0.0056) + 0.04 * Math.sin(time * 0.0088);
+    const scale = 0.97 + 0.03 * Math.sin(time * 0.0044);
+    const r = ship.radius * 0.95 * scale;
+    const bank = ship.bank ?? 0;
+    const turn = Math.min(1, Math.abs(bank) / MAX_BANK);
+    const stretch = 1 + 0.2 * turn;
+    const ry = r * stretch;
+
+    const jelly = beginHullFrame(ctx, ship, screenY, bank, time, 0.85, 'default');
+    const baseAlpha = ctx.globalAlpha;
+    const body = jelly ? baseAlpha : baseAlpha * breath;
+
+    const bodyPaint = ctx.createLinearGradient(0, -ry * 1.22, 0, ry * 0.56);
+    bodyPaint.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    bodyPaint.addColorStop(0.16, 'rgba(186, 244, 255, 1)');
+    bodyPaint.addColorStop(0.55, 'rgba(92, 214, 255, 1)');
+    bodyPaint.addColorStop(1, 'rgba(64, 186, 245, 1)');
+    ctx.globalAlpha = body;
+    ionPath(ctx, 0, 0, r, stretch);
+    ctx.fillStyle = bodyPaint;
+    ctx.fill();
+
+    ctx.globalAlpha = body * 0.92;
+    ctx.strokeStyle = 'rgba(255, 236, 186, 1)';
+    ctx.lineWidth = Math.max(0.7, r * 0.04);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -ry * 0.92);
+    ctx.lineTo(0, ry * 0.14);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+// Cyan arrow seated in the notch, with a long signal exhaust.
+const ion = {
+    id: 'ion',
+    name: 'Ion',
+    blurb: 'A cyan arrow. A thin ray in the wake.',
+    hitbox: ION_HITBOX,
+    wallTrailMode: 'spring',
+    ...LONG_WAKE,
+    trailTailOffset: 0.5,
+
+    drawHull: drawIonHull,
+
+    drawTrail(ctx, ship, trail, toScreenY) {
+        drawIonTrail(ctx, ship, trail, toScreenY);
+    },
+};
+
 const merlin = {
     id: 'merlin',
     name: 'Merlin',
@@ -2588,5 +2652,5 @@ export const SKIN_DEFS = [
     fold, mote, spine, orbit, ink,
     flux, cinder, lantern, bloom,
     lyra, sprout, plume, koi, spore, boreal,
-    luna, wish, darner, puff, argus, chime, merlin, rook,
+    luna, wish, darner, puff, argus, chime, ion, merlin, rook,
 ];
