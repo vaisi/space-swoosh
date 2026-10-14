@@ -1,5 +1,9 @@
 // GameSession.swift
-// Changes: Open Space game-over records local distance + obstacles, then
+// Changes: Open Space death keeps deathSlots for the neighborhood strip.
+// A top-10 Open Space finish still auto-opens the call-sign sheet.
+// Open Space start stores scoreRunTask from start_score_run.
+// reset() drops it so a new flight cannot submit on the previous ticket.
+// Open Space game-over records local distance + obstacles, then
 // silently submits both to Game Center. Friends Space Board overlays that
 // local best if Game Center has not indexed the run yet.
 
@@ -56,11 +60,16 @@ final class GameSession: ObservableObject {
     @Published var logbookToast: String = ""
     @Published var boardRank: Int?
     @Published var rankLookupFailed = false
+    @Published var deathSlots: [DeathSlot] = []
     @Published var scoreSubmitted = false
     @Published var showEpilogue = false
     @Published var steerCue: String = ""
 
     private var flavorPicked = false
+    /// In-flight Open Space clock. Empty string means the check-in failed.
+    private(set) var scoreRunTask: Task<String, Never>?
+    /// Style stamped with the clock, so a later settings change cannot miss the ticket.
+    private(set) var scoreRunStyle: FlightStyle?
 
     var rankLabel: String {
         if rankLookupFailed { return "?" }
@@ -68,6 +77,8 @@ final class GameSession: ObservableObject {
         return "…"
     }
 
+    /// Top 10 on this flight style opens the call-sign sheet once the
+    /// death screen has settled. Publish Score stays available otherwise.
     var shouldAutoPromptSubmit: Bool {
         guard !scoreSubmitted, !rankLookupFailed, let boardRank else { return false }
         return boardRank <= 10
@@ -148,7 +159,17 @@ final class GameSession: ObservableObject {
         }
     }
 
+    func beginScoreClock(style: FlightStyle) {
+        scoreRunStyle = style
+        scoreRunTask = Task {
+            await ScoreService.startRun(style: style) ?? ""
+        }
+    }
+
     func reset() {
+        scoreRunTask?.cancel()
+        scoreRunTask = nil
+        scoreRunStyle = nil
         scoreKm = 0
         fuel = 1
         fuelLive = false
@@ -181,6 +202,7 @@ final class GameSession: ObservableObject {
         logbookToast = ""
         boardRank = nil
         rankLookupFailed = false
+        deathSlots = []
         scoreSubmitted = false
         showEpilogue = false
         steerCue = ""

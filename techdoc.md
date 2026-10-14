@@ -1,6 +1,10 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Local web `?anyship=1` equips any hangar hull, including
+<!-- Changes: Open Space leaderboard submits use start_score_run /
+     submit_verified_score (500 km/s, 5000 km grace, 24h ticket). The public
+     high_scores INSERT stays until
+     supabase/cutover/close_raw_high_score_insert.sql is applied by hand.
+     Local web `?anyship=1` equips any hangar hull, including
      Merlin and Rook, without writing ownership into localStorage.
      Open Space unlocks the nine new obstacles from 1500 KM.
      Shoal, tunnel, and satellite are storms only (4800, 6400, 8000).
@@ -13,6 +17,8 @@
      Ion is free hangar hull 040 (slightly narrower cyan arrow, no hull halo)
      on Android/web and native iOS. No store product. Its three NAV lines
      are recorded with PerfectSwoosh as nav_40_ion_1/2/3.mp3.
+     `npm run build:native` syncs the web bundle to Android only.
+     The shipped iOS app is ios-native/ (Xcode), not the Capacitor ios/ tree.
      Intensity knobs (config/ObstacleIntensity.js) for the nine new
      obstacles: gentle / today / hard; lab = today, ?intensity=0..1 previews.
      Load budget (game/LoadBudget.js + config/ObstacleDemand.js): per-axis
@@ -282,7 +288,7 @@ npm install
 npm run dev           # Vite dev server (usually http://localhost:5173)
 npm run build         # production build to dist/
 npm run preview       # preview the build
-npm run build:native  # vite build + cap sync (copies dist into android/ + ios/)
+npm run build:native  # vite build + cap sync android (not Capacitor ios/)
 npm run open:android  # open the Android Studio project
 npm run open:ios      # open the Xcode project (macOS / Codemagic)
 ```
@@ -335,8 +341,12 @@ bypass RLS and are for dashboard / trusted server work only (e.g. cleaning
 abusive rows). This repo does not use a secret key.
 
 Safety for the leaderboard is **RLS**, not key secrecy: `high_scores` allows
-public SELECT + INSERT with column checks; no UPDATE/DELETE for `anon`. Keeping
-`.env` out of git is hygiene (rotation, per-env builds), matching `.env.example`.
+public SELECT + INSERT with column checks; no UPDATE/DELETE for `anon`. New
+clients do not use that INSERT. They check in with `start_score_run` and
+submit with `submit_verified_score`. The public INSERT stays so builds already
+on the store can still post, until
+`supabase/cutover/close_raw_high_score_insert.sql` is applied by hand.
+Keeping `.env` out of git is hygiene (rotation, per-env builds), matching `.env.example`.
 CI stores the same public vars as “secrets” for the same reason.
 
 Optional later: migrate legacy `anon` → publishable key
@@ -349,13 +359,15 @@ RLS behavior stays the same.
 | --- | --- |
 | Project | vaisi's Project — ref `ptzaxgslzjefaxdkrvyr` |
 | Table | `public.high_scores` (`player_name`, `ship_id`, `score` = KM, `obstacles_destroyed`, `flight_style` = `arc`\|`zigzag`, `platform` = `ios`\|`android`\|`web`, `created_at`) |
-| Client | `src/config/supabase.js` + `src/services/ScoreService.js`; native iOS `SpaceSwoosh/Services/ScoreService.swift` (PostgREST, same table / RLS) |
+| Death screen | Open Space `renderMainGameOver` / iOS `gameOverCard`. Ghost rank `#N` sits beside the distance. No unit label. Then a strip of light `#N` ranks, a `...` under `#1` when later rows skip, then the rows just above and below `YOU` (ship only, no call sign, no dashed outline). `#1` stays put. YOU holds its final slot while one continuous tape of joke rows rolls down past it (14 rows, 1.4 s, quartic ease-out), so it is fast at first and slows onto the real neighbors with no swap at the end. Rows fade as they pass under YOU and at the strip edges. The roll starts once the card is 40% faded in. A top-10 finish opens the call-sign sheet after that landing. The strip and the buttons share one centered column. High Scores and Menu share one button row. Board distance rows have no KM suffix. Submit Signal is one card (distance + call sign) centered in the space above the keyboard. The verdict sits high, with air around the board. `getDeathPreview` / `ScoreService.deathPreview`. Publish Score opens the call-sign sheet. A top-10 rank still auto-opens it once the end screen has settled. |
+| Clock | `public.score_runs` (no anon access). `start_score_run` writes `started_at`. `submit_verified_score` inserts the board row when `score <= floor(seconds) * 500 + 5000`. 500 km/s sits above a boosted arc climb (~430) with room for a portal catch-up. The 5000 km grace is ten seconds at that cap, for a slow start check-in. Ticket must be under 24 hours, unused, and the same flight style. Missing check-in: "This run was not started online." |
+| Client | `src/config/supabase.js` + `src/services/ScoreService.js`; native iOS `SpaceSwoosh/Services/ScoreService.swift` (PostgREST RPC). Web and Capacitor Android share the JS client. Open Space `beginRun` / `PlayScene.startRun` fires the check-in and does not wait. Journey and Hazard Lab do not. |
 | Access | Anonymous call signs (no Supabase Auth). `NameFilter` validates before insert. |
 | RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated`. INSERT requires `flight_style in ('arc','zigzag')` and `platform` null or `ios`/`android`/`web`. |
-| Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql`, `…_add_platform_to_scores_and_replies.sql` |
+| Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql`, `…_add_platform_to_scores_and_replies.sql`, `…_score_run_clock.sql`, `…_score_run_clock_rate.sql` |
 | Boards | Separate Arc and Zigzag leaderboards. Column default `'zigzag'` keeps all legacy rows on Zigzag. Rank / top-10 / submit filter by the run's `game.flightStyle`. |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
-| Fetch | `ScoreService.getTopScores(type, limit = 100, flightStyle)` — enough for 10 pages × 10 rows per style. Friends on Android: `FriendsScoreService.loadFriends` via `PlayGamesPlugin` (friends collection + `loadCurrentPlayerLeaderboardScore`, then overlay local Open Space PB). Friends on iOS: `FriendsScoreService.loadFriends` via GameKit (friends-only + local player entry + overlay local PB). |
+| Fetch | `ScoreService.getScorePage` — 10 rows plus the real count for that style, so the pager is not capped at 10 pages. Friends on Android: `FriendsScoreService.loadFriends` via `PlayGamesPlugin` (friends collection + `loadCurrentPlayerLeaderboardScore`, then overlay local Open Space PB). Friends on iOS: `FriendsScoreService.loadFriends` via GameKit (friends-only + local player entry + overlay local PB). |
 | UI | **Space Board** screen: header title + quiet **← Back**. Native phones: **Global** (`#`) / **Friends** (`F`) chip. No Zigzag/Arc chip — `highScoreFlightStyle` / `boardStyle` is the current flown or saved style. Web has Global only. **DISTANCE / OBSTACLES** metric tabs below. Menu / game-over High Scores: silent friends probe, open Friends when signed in and that list has a friend or a scored local row; else Global. Friends YOU shows `max(store, OpenWorldProgress)` so a just-finished Open Space run is not "—". Submit Signal stays on Global, pages to the matching call-sign row (`paperTint`). Friends pages to the YOU row. |
 | Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. No auto-focus. Idle: stacked distance → asteroids → rank above the call-sign field. Soft keyboard overlays (`Keyboard.resize: none`, Android `adjustNothing`); `@capacitor/keyboard` writes `game.softKeyboardHeight`. `getVisibleCanvasBounds` subtracts only real IME overlap (never a second keyboard-sized cut). `html.ss-ime-open` zeros body `padding-bottom` so `--safe-area-inset-bottom` cannot shrink `#gameContainer`. Opaque paper wash covers the full canvas. Keyboard-open sheet fills the remaining viewport: header + recap line + field + Submit docked above the IME. DOM input on `#gameContainer`, mapped from canvas to CSS every frame. Paint lives in `ui/screens/SubmitSignalModal.js`. Playtest `?signal=1` (sample stats) and `?kb=N` (fake IME height). Native iOS `SubmitScoreView` matches: compact header (no `ShellChrome.header`), same recap/field/Submit rhythm, keyboard height pads the sheet above the IME, `safeAreaPadding` clears the island. |
 
@@ -468,7 +480,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `managers/WallBoopManager.js` | Sidewall bounce "BOOP": ink text beside the hull on the open side, SFX, light haptic. First hit per session (after LEVEL N intro voice/title when applicable) → first-boop voice + `FIRST_BOOP_BEATS` milestone queue. |
 | `managers/MilestoneManager.js` | Distance milestone / hazard / level-intro messages. |
 | `managers/SoundManager.js` | Audio (BGM + SFX + voice). Rapid turn/move one-shots are pre-decoded Web Audio buffers (`playTurn` / `playMove`; `move.mp3` optional). `first-boop.mp3` / `swoosh-voice.mp3` / `fuel-low-1.mp3`–`fuel-low-3.mp3` decode at init into the same buffer pool so session cues do not hitch synth SFX. Also Web Audio `playCollect()` / `playSwoosh()` / `playBoop()` / `playPortalEntry()` / `playPortalExit()` / `playLogbook()` / `playFuelOut()`. Journey navigator audio: `playLevelVoice` / `playCueVoice` / `playFirstBoopVoice` / `playSwooshVoice` / `playFuelLowVoice` (shared slot; ducks BGM except `playSwooshVoice` and `playFuelLowVoice`; `recoverBgmIfInterrupted` restarts HTMLAudio if WebKit pauses it under Web Audio; `stopLevelVoice` / `stopCueVoice`). `currentVoiceLevel` / `getCurrentVoiceLevel()` tell Space Log which Day owns the slot. Per-channel Options gates (`canPlayMusic` / `canPlaySfx` / `canPlayVoice`) plus pause master mute. |
-| `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. |
+| `services/ScoreService.js` | Supabase leaderboard read/write + `formatScore()`; filters by `flight_style`; `getTopScores` defaults to 100. Open Space submit uses the score-clock RPCs. |
 | `services/FriendsScoreService.js` | Android Play Games Friends board: maps `isLocal` + photo data-URL. Web no-ops (`isAvailable` is Android native only). |
 | `services/SpaceBoardFocus.js` | Friends-default probe, Submit Signal call-sign row match, 10-row page index. |
 | `config/supabase.js` | Supabase client config. |
@@ -493,7 +505,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `optionsShip` | Ship picker (2-column grid of the roster); every tile draws `skin.blurb` (locked premium keeps the catalog line; price / LOCKED stays in the corner); persists `shipSkinId` |
 | `optionsControls` | Stub — future touch schemes (swipe / on-screen L–R) |
 | `optionsSound` | Music / Sound FX / Voice ON/OFF (`soundMusicEnabled`, `soundSfxEnabled`, `soundVoiceEnabled`) |
-| `highscores` | Space Board: 10 tall rows/page (max 10 pages), native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); YOU shows the device Open Space PB when the store score is still 0; Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
+| `highscores` | Space Board: 10 tall rows/page through the whole board, native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); YOU shows the device Open Space PB when the store score is still 0; Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `hangar` | Last step before Open Space or a Journey day. Lore order from `navCues.json` (Saber is Hull 004). Layout is the 390×844 mock, scaled to fit: header 22+44, stage 372 (hint inside it), hairline, copy block 214, ruler 48, Launch 58 inset 16. The stage runs `Spacecraft.update()` — the same zigzag or arc step as a run — in a lane inset from the stage edges, and the camera only seats the hull, so the skin trail stays inside the stage. Ruler: owned ticks 2×16, locked hollow 4×11, unlisted hollow 4×7, current 3×30 signal, new hull a 5px dot, 12px gap before Merlin and Rook. Locked hulls stay in color; the bar shows the price or Locked and they cannot be equipped. Merlin and Rook are `Hull ??? / Unlisted`, drawn in color with their real wake, and do not equip. Launch on either keeps the last owned ship. Launch uses the centered owned hull, or the last equipped hull if the center is unlisted. The Hangar is not on the 30 Hz idle governor. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
 | `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission. After a successful Day 6 clear (native only), the enjoyment card layers on top; Later snoozes until Day 13. |

@@ -100,13 +100,26 @@
 //   the level-outcome screen (not Open World game-over).
 // - Open World personal best (localStorage via OpenWorldProgress) updates on
 //   every finished Open World run and feeds the mode-select card footer.
-// - Leaderboard: 10 rows/page (max 10 pages / 100 scores), wider taller rows,
+// - Leaderboard: 10 rows/page, paging through every score on that board, wider taller rows,
 //   🥇🥈🥉 for ranks 1–3, sharper dotted row separators (no ship–score leaders),
 //   PAGE n/m arrows centered in the gap under the list; auto call-sign prompt
 //   only for top 10 (manual Submit Score still available). Removed
 //   drawScreenFrame chrome.
 // - Leaderboard rows show "CallSign, Ship"; submits write `ship_id` from the
 //   active skin.
+// - Open Space death screen shows the distance with no unit label, a ghost rank (#N, clear
+//   of the distance), and the board neighborhood. Ranks are a light #N.
+//   YOU is the ship only, with no dashed outline. #1 stays put. YOU holds
+//   its slot while one continuous list of joke names rolls down past it,
+//   fast at first, then easing onto the real neighbors with no snap. A
+//   top-10 finish waits until that landing, then opens
+//   the call-sign sheet. The strip and buttons share one centered column.
+//   The skip mark sits under #1. High Scores and Menu share one button row. Publish
+//   Score opens the call-sign sheet. A top-10 finish still auto-opens it
+//   once the end screen has settled.
+// - Open Space beginRun checks in with start_score_run and does not wait on
+//   it. submitHighScore sends that run id. A run that never checked in still
+//   plays; Submit says it was not started online.
 // - Submit-score errors distinguish LeaderboardUnavailableError (missing
 //   VITE_SUPABASE_* in the build) from generic network failures.
 // - Phase 0+1: ?perf / ?nodraw / ?drawonly / ?kill= / ?fullvfx / ?cheap / ?dpr
@@ -223,7 +236,9 @@ import { SoundManager } from '../managers/SoundManager.js';
 import {
     CallSignRejectedError,
     LeaderboardUnavailableError,
+    ScoreRejectedError,
     ScoreService,
+    deathPreviewLines,
 } from '../services/ScoreService.js';
 import { FriendsScoreService } from '../services/FriendsScoreService.js';
 import {
@@ -378,6 +393,9 @@ import { renderControlHint } from '../ui/ControlHint.js';
 import { DeathTally, deathTallyEnabled } from './DeathTally.js';
 import { DebutCue } from './DebutCue.js';
 
+const DEATH_REEL_ROWS = 14;
+const DEATH_REEL_MS = 1400;
+
 export class Game {
     constructor(config) {
         console.log('Game initializing...'); // Debug log
@@ -400,6 +418,7 @@ export class Game {
         this.sparklesCollected = 0;
         this.isGameOver = false;
         this.gameOverAlpha = 0;
+        this.deathReelAt = null;
         this.explosionParticles = [];
         this.gameOverScreen = 'main'; // nested: 'main' or 'highscores' while appScreen is gameover
         // menu | modeSelect | hangar | journeyMap | logbook | options | optionsShip |
@@ -478,6 +497,8 @@ export class Game {
         }
         this.obstaclesDestroyed = 0; // Shield-smash count; Journey's third star
         this.scoreSubmitted = false; // Track if score has been submitted
+        this.scoreRunPromise = null; // Open Space server-clock check-in
+        this.scoreRunStyle = null; // Flight style stamped with that check-in
         // Set by native/index.js Keyboard listeners (CSS px). 0 on web.
         // Playtest ?kb=N also writes this (and playtestKeyboardHeight).
         this.softKeyboardHeight = 0;
@@ -485,6 +506,7 @@ export class Game {
         this.highScoreTab = 'distance'; // metric tab: distance | obstacles
         this.highScoreFlightStyle = this.flightStyle; // arc | zigzag board (locked to flown style)
         this.highScorePage = 0; // 0-based page index (10 scores per page)
+        this.highScoreTotal = 0; // Global row count; Friends uses the loaded list
         this.highScoreSource = 'global'; // global (Supabase) | friends (Play Games)
         this.highScoreHighlight = null; // { name, score, obstacles, shipId } after Submit Signal
         this.highScoreFocusIndex = -1;
@@ -1877,6 +1899,7 @@ export class Game {
     drawBrandButton(x, y, width, height, text, {
         primary = false,
         signal = false,
+        signalLabel = false,
         tag = null,
         labelPx = null,
         disabled = false,
@@ -1891,6 +1914,7 @@ export class Game {
             tag,
             primary,
             signal,
+            signalLabel,
             disabled,
             baseUnit: this.baseUnit,
             labelPx: labelPx ?? defaultPx,
@@ -2716,6 +2740,15 @@ export class Game {
         this.profile = createRunProfile(this, this.playMode, this.journeyLevel);
         this.flightStyle = resolveFlightStyle(this.flightStyle, this.journeyProgress);
 
+        // Open Space only. The check-in overlaps the intro; a failure leaves
+        // the run playable and blocks the later board submit.
+        this.scoreRunPromise = null;
+        this.scoreRunStyle = null;
+        if (mode === PLAY_MODE.openWorld) {
+            this.scoreRunStyle = this.flightStyle;
+            this.scoreRunPromise = ScoreService.startRun(this.flightStyle);
+        }
+
         this.resetRunState();
         if (mode === PLAY_MODE.journey) {
             const remaining = playtestNearEndRemainingKm();
@@ -2932,14 +2965,249 @@ export class Game {
         ctx.restore();
     }
 
+    savedCallSign() {
+        try {
+            const name = localStorage.getItem('playerName');
+            return name && name.trim() ? name.trim() : '';
+        } catch {
+            return '';
+        }
+    }
+
+    previewShipName(shipId) {
+        if (!shipId) return '';
+        const skin = getSkin(shipId);
+        return skin?.name || '';
+    }
+
+    deathStripWidth(line) {
+        const ctx = this.ctx;
+        const unit = this.baseUnit;
+        const rankPx = Math.max(11, unit * 1.15);
+        const namePx = Math.max(12, unit * 1.25);
+        const pad = unit * 0.7;
+        const rankCol = unit * 3.2;
+        const you = line.you;
+        const name = you ? '' : (line.name || '');
+        const ship = you ? this.previewShipName(this.shipSkinId) : this.previewShipName(line.shipId);
+        const scoreStr = ScoreService.formatScore(you ? this.finalScore : line.score);
+        ctx.save();
+        let width = pad + rankCol;
+        if (you) {
+            ctx.font = `700 ${namePx}px ${font.ui}`;
+            width += ctx.measureText('YOU').width + unit * 0.55;
+        }
+        if (name) {
+            ctx.font = `600 ${namePx}px ${font.ui}`;
+            const maxName = unit * 14;
+            let shown = name;
+            while (shown.length > 1 && ctx.measureText(shown).width > maxName) {
+                shown = shown.slice(0, -1);
+            }
+            width += ctx.measureText(shown).width + unit * 0.45;
+        }
+        if (ship) {
+            ctx.font = `500 ${Math.max(10, namePx * 0.85)}px ${font.ui}`;
+            width += ctx.measureText(ship.toUpperCase()).width;
+        }
+        setMonoType(ctx, rankPx, 700);
+        width += unit * 2.2 + ctx.measureText(scoreStr).width + pad;
+        resetType(ctx);
+        ctx.restore();
+        return width;
+    }
+
+    drawDeathStripRow(x, y, width, height, line) {
+        const ctx = this.ctx;
+        const unit = this.baseUnit;
+        const rankPx = Math.max(11, unit * 1.15);
+        const namePx = Math.max(12, unit * 1.25);
+        const you = line.you;
+        const name = you ? '' : (line.name || '');
+        const ship = you
+            ? this.previewShipName(this.shipSkinId)
+            : (line.shipName || this.previewShipName(line.shipId));
+        const scoreStr = ScoreService.formatScore(you ? this.finalScore : line.score);
+        const pad = unit * 0.7;
+        const rankCol = unit * 3.2;
+
+        const midY = y + height / 2;
+        ctx.save();
+        ctx.textBaseline = 'middle';
+        setMonoType(ctx, rankPx, 400);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = you ? color.signal : color.ink55;
+        ctx.fillText(`#${line.rank}`, x + pad, midY);
+
+        let cursor = x + pad + rankCol;
+        if (you) {
+            ctx.font = `700 ${namePx}px ${font.ui}`;
+            ctx.fillStyle = color.signal;
+            ctx.textAlign = 'left';
+            ctx.fillText('YOU', cursor, midY);
+            cursor += ctx.measureText('YOU').width + unit * 0.55;
+        }
+        if (name) {
+            ctx.font = `600 ${namePx}px ${font.ui}`;
+            ctx.fillStyle = color.ink;
+            ctx.textAlign = 'left';
+            const maxName = unit * 14;
+            let shown = name;
+            while (shown.length > 1 && ctx.measureText(shown).width > maxName) {
+                shown = shown.slice(0, -1);
+            }
+            ctx.fillText(shown, cursor, midY);
+            cursor += ctx.measureText(shown).width + unit * 0.45;
+        }
+        if (ship) {
+            ctx.font = `500 ${Math.max(10, namePx * 0.85)}px ${font.ui}`;
+            ctx.fillStyle = color.ink55;
+            ctx.textAlign = 'left';
+            ctx.fillText(ship.toUpperCase(), cursor, midY);
+        }
+
+        setMonoType(ctx, rankPx, 700);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = you ? color.signal : color.ink;
+        ctx.fillText(scoreStr, x + width - pad, midY);
+        resetType(ctx);
+        ctx.restore();
+    }
+
+    drawDeathGap(x, y, height) {
+        const ctx = this.ctx;
+        const unit = this.baseUnit;
+        const pad = unit * 0.7;
+        const rankPx = Math.max(11, unit * 1.15);
+        const r = Math.max(1.3, unit * 0.095);
+        const step = r * 3.8;
+        setMonoType(ctx, rankPx, 400);
+        const rankW = ctx.measureText('#1').width;
+        resetType(ctx);
+        const cx = x + pad + rankW / 2;
+        const cy = y + height / 2;
+        ctx.save();
+        ctx.fillStyle = color.ink55;
+        for (const dx of [-step, 0, step]) {
+            ctx.beginPath();
+            ctx.arc(cx + dx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    splitDeathStrip(lines) {
+        const pinned = [];
+        const reel = [];
+        let pinning = true;
+        for (const line of lines) {
+            if (pinning && (line.gap || (line.rank === 1 && !line.you))) {
+                pinned.push(line);
+            } else {
+                pinning = false;
+                if (!line.gap) reel.push(line);
+            }
+        }
+        return { pinned, reel };
+    }
+
+    deathReelNeeded(lines) {
+        if (!lines.length) return false;
+        if (lines.length === 1 && lines[0].you && lines[0].rank === 1) return false;
+        return this.splitDeathStrip(lines).reel.length > 0;
+    }
+
+    deathReelSpinning(lines) {
+        if (!this.deathReelNeeded(lines)) return false;
+        if (this.deathReelAt == null) return true;
+        return performance.now() - this.deathReelAt < DEATH_REEL_MS + 250;
+    }
+
+    /** Rows still to roll past YOU. Quartic ease-out: fast start, no snap. */
+    deathReelTravel() {
+        if (this.deathReelAt == null) return DEATH_REEL_ROWS;
+        const t = Math.min(1, (performance.now() - this.deathReelAt) / DEATH_REEL_MS);
+        return DEATH_REEL_ROWS * Math.pow(1 - t, 4);
+    }
+
+    drawDeathReel(x, y, width, rowH, reel) {
+        const ctx = this.ctx;
+        const reelH = reel.length * rowH;
+        const youIndex = Math.max(0, reel.findIndex((line) => line.you));
+        const youRank = reel[youIndex]?.rank || 2;
+        const youY = y + youIndex * rowH;
+        const lastReal = reel.length - 1 - youIndex;
+        const travel = this.deathReelTravel();
+        const baseAlpha = ctx.globalAlpha;
+        const first = Math.ceil(travel - youIndex - 1);
+        const last = Math.floor(travel + reel.length - youIndex);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, width, reelH);
+        ctx.clip();
+        // One tape of rows slides down past a fixed YOU. Index 0 is YOU's
+        // own slot; negative indexes are the real rows above it.
+        for (let i = first; i <= last; i += 1) {
+            if (i === 0 || youIndex + i < 0) continue;
+            const line = i <= lastReal
+                ? reel[youIndex + i]
+                : this.deathReelJoke(i, youRank + i);
+            const rowY = youY + (i - travel) * rowH;
+            const d = Math.abs(rowY - youY) / rowH;
+            const passFade = Math.min(1, Math.max(0, (d - 0.3) / 0.6));
+            const center = rowY + rowH / 2;
+            const edge = Math.min(center - y, y + reelH - center) / (rowH * 0.5);
+            ctx.globalAlpha = baseAlpha * passFade * Math.min(1, Math.max(0, edge));
+            this.drawDeathStripRow(x, rowY, width, rowH, line);
+        }
+        ctx.globalAlpha = baseAlpha;
+        this.drawDeathStripRow(x, youY, width, rowH, {
+            you: true,
+            rank: youRank + Math.max(0, Math.round(travel)),
+        });
+        ctx.restore();
+        return reelH;
+    }
+
+    deathReelJoke(index, rank) {
+        const jokes = [
+            { name: 'Honk', ship: 'Goose', score: 90210 },
+            { name: 'Mochi', ship: 'Spoon', score: 42420 },
+            { name: 'Blip', ship: 'Toaster', score: 11111 },
+            { name: 'Otto', ship: 'Kettle', score: 80808 },
+            { name: 'Pips', ship: 'Balloon', score: 27182 },
+            { name: 'Crumb', ship: 'Toast', score: 65000 },
+            { name: 'Niblet', ship: 'Sock', score: 12345 },
+            { name: 'Gloop', ship: 'Ladle', score: 77777 },
+            { name: 'Zed', ship: 'Teacup', score: 31415 },
+            { name: 'Wobble', ship: 'Duck', score: 50505 },
+            { name: 'Nano', ship: 'Lamp', score: 22000 },
+            { name: 'Beep', ship: 'Toaster', score: 99991 },
+            { name: 'Gary', ship: 'Anvil', score: 13579 },
+            { name: 'Moth', ship: 'Lamp', score: 64000 },
+            { name: 'Soup', ship: 'Ladle', score: 18000 },
+            { name: 'Kite', ship: 'String', score: 45000 },
+        ];
+        const joke = jokes[(index - 1) % jokes.length];
+        return { you: false, rank, name: joke.name, shipName: joke.ship, score: joke.score };
+    }
+
     renderMainGameOver() {
         const ctx = this.ctx;
         const unit = this.baseUnit;
         const L = screenLayout(this, unit);
 
+        const lines = this.currentRank === '?' ? [] : deathPreviewLines(this.scorePreview);
+        if (this.deathReelNeeded(lines) && this.deathReelAt == null && this.gameOverAlpha >= 0.4) {
+            this.deathReelAt = performance.now();
+        }
+
         // Paint the card alone so a resized IME viewport cannot squeeze
-        // Play Again / Submit Score up through the modal.
-        if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1) {
+        // Play Again / Publish Score up through the modal. A top-10 finish
+        // waits until the reel has landed.
+        if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1
+            && !this.deathReelSpinning(lines)) {
             this.renderNameInputModal();
             return;
         }
@@ -2951,127 +3219,185 @@ export class Game {
             align: 'right',
         });
 
-        // Three bands: verdict, stats, actions — separated by dotted rules and
-        // centred as one block so the screen never sits top-heavy.
-        const numButtons = this.scoreSubmitted ? 3 : 4;
-        const buttonWidth = Math.min(unit * 30, L.width);
-        const buttonHeight = L.isMobile ? unit * 5.6 : unit * 5;
-        const buttonGap = unit * 1.5;
-        const buttonsH = buttonHeight * numButtons + buttonGap * (numButtons - 1);
+        let contentW = unit * 22;
+        for (const line of lines) {
+            if (!line.gap) contentW = Math.max(contentW, this.deathStripWidth(line));
+        }
+        const columnW = Math.min(L.width, contentW);
+        const columnX = L.centerX - columnW / 2;
+        const buttonWidth = columnW;
+        const buttonHeight = L.isMobile ? unit * 4.6 : unit * 4.4;
+        const buttonGap = unit * 1.1;
+        const publishH = this.scoreSubmitted ? 0 : buttonHeight + buttonGap;
+        const pairGap = unit * 0.8;
+        const pairH = L.isMobile ? unit * 4.2 : unit * 4;
 
-        const titlePx = L.isMobile ? Math.min(unit * 3.2, 38) : unit * 3;
-        const subPx = L.isMobile ? Math.min(unit * 1.45, 16) : unit * 1.3;
-        const distPx = L.isMobile ? Math.min(unit * 3.4, 40) : unit * 3.2;
-        const kmPx = Math.max(10, unit * 1);
-        const statValuePx = L.isMobile ? Math.min(unit * 2, 23) : unit * 1.9;
-        const statLabelPx = Math.max(9, unit * 0.88);
+        const titlePx = L.isMobile ? Math.min(unit * 2.4, 22) : unit * 2.2;
+        const subPx = L.isMobile ? Math.min(unit * 1.35, 15) : unit * 1.25;
+        const distPx = L.isMobile ? Math.min(unit * 6.4, 64) : Math.min(unit * 5.6, 72);
+        const statPx = Math.max(12, unit * 1.2);
+        const rowH = Math.max(26, unit * 2.6);
+        const gapRowH = Math.max(36, unit * 3.1);
+        const gapCount = lines.filter((line) => line.gap).length;
+        const bodyRows = lines.length - gapCount;
 
-        const verdictH = titlePx * 1.1 + L.row + subPx * 1.3;
-        const distH = distPx * 1.15;
-        const statRowH = statValuePx * 1.25 + statLabelPx * 2;
-        const statsH = distH + L.block + statRowH;
-        const totalH = verdictH + L.section + statsH + L.section + buttonsH;
+        const distH = distPx * 1.05;
+        const afterDist = unit * 1.4;
+        const statH = statPx * 2.2;
+        const verdictBlock = titlePx * 1.15 + unit * 0.35 + subPx * 1.5;
+        const scoreBlock = distH + afterDist + statH;
+        const stripBlock = lines.length
+            ? unit * 0.9 + bodyRows * rowH + gapCount * gapRowH + unit * 0.7
+            : 0;
+        const actionsBlock = buttonHeight + publishH + unit * 0.8 + pairH;
+        // Verdict, the distance block, the strip, and the buttons are
+        // separate. Extra air collapses only when the phone is short.
+        const afterVerdict = L.section;
+        const beforeStrip = lines.length ? unit * 4.8 : unit * 1.6;
+        const afterStrip = lines.length ? unit * 5.2 : unit * 1.2;
+        const fixed = verdictBlock + scoreBlock + stripBlock + actionsBlock;
+        const slack = afterVerdict + beforeStrip + afterStrip;
+        const topAnchor = L.top;
+        const available = this.height - topAnchor - unit;
+        const padScale = fixed + slack <= available
+            ? 1
+            : Math.max(0, (available - fixed) / slack);
 
-        let y = Math.max(L.top + unit, (this.height - totalH) / 2);
+        let y = fixed > available ? Math.max(0, L.top - unit) : topAnchor;
 
-        // --- Verdict ---------------------------------------------------------
         const titleText = this.hasWon ? 'MISSION COMPLETE' : 'MISSION FAILED';
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = color.ink;
-        fitPx(ctx, titleText, L.width, titlePx, unit * 1.8, (px) => setDisplayType(ctx, px));
-        ctx.fillText(titleText, L.centerX, y + titlePx * 0.55);
+        fitPx(ctx, titleText, L.width, titlePx, unit * 1.6, (px) => setDisplayType(ctx, px));
+        ctx.fillText(titleText, L.centerX, y + titlePx * 0.5);
         resetType(ctx);
-
-        y += titlePx * 1.1 + L.row;
+        y += titlePx * 1.15 + unit * 0.35;
 
         const subText = this.endFlavor
             || (this.hasWon
                 ? pickCopy('victory')
                 : (this.failReason === 'fuel' ? pickCopy('fuelOut') : pickCopy('crash')));
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.font = `500 ${subPx}px ${font.ui}`;
         ctx.fillStyle = color.ink55;
-        ctx.fillText(subText, L.centerX, y + subPx * 0.6);
+        ctx.fillText(subText, L.centerX, y + subPx * 0.5);
         ctx.restore();
+        y += subPx * 1.5 + afterVerdict * padScale;
 
-        y += subPx * 1.3 + L.section / 2;
-        drawDivider(ctx, L.left, L.right, y);
-        y += L.section / 2;
-
-        // --- Stats: headline distance, then destroyed | sparkles -------------
-        const distStr = ScoreService.formatScore(this.finalScore);
+        const distStr = ScoreService.formatScore(this.finalScore ?? 0);
+        const showGhost = Number.isFinite(this.currentRank);
         ctx.save();
         ctx.textBaseline = 'middle';
         setMonoType(ctx, distPx);
         const distW = ctx.measureText(distStr).width;
-        setLabelType(ctx, kmPx);
-        const kmW = ctx.measureText('KM').width;
-        const kmGap = unit * 0.7;
-        const distX = L.centerX - (distW + kmGap + kmW) / 2;
+        const distX = L.centerX - distW / 2;
         ctx.textAlign = 'left';
-        setMonoType(ctx, distPx);
         ctx.fillStyle = color.ink;
         ctx.fillText(distStr, distX, y + distPx * 0.55);
-        setLabelType(ctx, kmPx);
-        ctx.fillStyle = color.ink55;
-        ctx.fillText('KM', distX + distW + kmGap, y + distPx * 0.72);
+        if (showGhost) {
+            const ghostPx = Math.max(16, distPx * 0.3);
+            setMonoType(ctx, ghostPx, 700);
+            ctx.globalAlpha = 0.85;
+            ctx.fillStyle = color.signal;
+            ctx.textBaseline = 'top';
+            ctx.fillText(`#${this.currentRank}`, distX + distW + unit * 1.05, y + unit * 0.15);
+        }
         resetType(ctx);
         ctx.restore();
+        y += distH + afterDist;
 
-        y += distH + L.block;
-
-        const colGap = unit * 2;
-        const colW = (Math.min(unit * 28, L.width) - colGap) / 2;
-        const leftCx = L.centerX - colGap / 2 - colW / 2;
-        const rightCx = L.centerX + colGap / 2 + colW / 2;
-
-        this.drawStatColumn(
-            leftCx, y, ScoreService.formatScore(this.obstaclesDestroyed), 'DESTROYED',
-            { valuePx: statValuePx, labelPx: statLabelPx }
-        );
-        this.drawStatColumn(
-            rightCx, y, ScoreService.formatScore(this.sparklesCollected), 'SPARKLES',
-            { sparkle: true, valuePx: statValuePx, labelPx: statLabelPx }
-        );
-
-        // Hairline between the two stat columns.
+        const destroyed = ScoreService.formatScore(this.obstaclesDestroyed ?? 0);
+        const sparkles = ScoreService.formatScore(this.sparklesCollected ?? 0);
         ctx.save();
-        ctx.strokeStyle = color.ink12;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(Math.round(L.centerX) + 0.5, y + statValuePx * 0.1);
-        ctx.lineTo(Math.round(L.centerX) + 0.5, y + statRowH);
-        ctx.stroke();
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        ctx.font = `600 ${statPx}px ${font.ui}`;
+        const dW = ctx.measureText(destroyed).width;
+        ctx.font = `500 ${statPx}px ${font.ui}`;
+        const dLabel = ' destroyed';
+        const dLabelW = ctx.measureText(dLabel).width;
+        const gap = unit * 1.8;
+        ctx.font = `600 ${statPx}px ${font.ui}`;
+        const sW = ctx.measureText(sparkles).width;
+        ctx.font = `500 ${statPx}px ${font.ui}`;
+        const sLabel = ' sparkles';
+        const sLabelW = ctx.measureText(sLabel).width;
+        let sx = L.centerX - (dW + dLabelW + gap + sW + sLabelW) / 2;
+        const sy = y + statPx * 0.5;
+        ctx.font = `600 ${statPx}px ${font.ui}`;
+        ctx.fillStyle = color.ink;
+        ctx.fillText(destroyed, sx, sy);
+        sx += dW;
+        ctx.font = `500 ${statPx}px ${font.ui}`;
+        ctx.fillStyle = color.ink55;
+        ctx.fillText(dLabel, sx, sy);
+        sx += dLabelW + gap;
+        ctx.font = `600 ${statPx}px ${font.ui}`;
+        ctx.fillStyle = color.ink;
+        ctx.fillText(sparkles, sx, sy);
+        sx += sW;
+        ctx.font = `500 ${statPx}px ${font.ui}`;
+        ctx.fillStyle = color.ink55;
+        ctx.fillText(sLabel, sx, sy);
         ctx.restore();
+        y += statH + beforeStrip * padScale;
 
-        y += statRowH + L.section / 2;
-        drawDivider(ctx, L.left, L.right, y);
-        y += L.section / 2;
+        if (lines.length) {
+            drawDivider(ctx, columnX, columnX + columnW, y);
+            y += unit * 0.9;
+            const stripW = columnW;
+            const stripX = columnX;
+            const { pinned, reel } = this.splitDeathStrip(lines);
+            const spin = this.deathReelNeeded(lines);
+            for (const line of pinned) {
+                if (line.gap) {
+                    this.drawDeathGap(stripX, y, gapRowH);
+                    y += gapRowH;
+                } else {
+                    this.drawDeathStripRow(stripX, y, stripW, rowH, line);
+                    y += rowH;
+                }
+            }
+            if (!spin) {
+                for (const line of reel) {
+                    this.drawDeathStripRow(stripX, y, stripW, rowH, line);
+                    y += rowH;
+                }
+            } else {
+                y += this.drawDeathReel(stripX, y, stripW, rowH, reel);
+            }
+            y += unit * 0.7;
+            drawDivider(ctx, columnX, columnX + columnW, y);
+            y += afterStrip * padScale;
+        }
 
-        // --- Actions ---------------------------------------------------------
-        const bx = L.centerX - buttonWidth / 2;
+        const bx = columnX;
         this.gameOverButtons = {};
-
         this.gameOverButtons.playAgain = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Play Again', { primary: true, tag: '\u21BA' }
+            bx, y, buttonWidth, buttonHeight, 'Play Again', { primary: true }
         );
         y += buttonHeight + buttonGap;
 
         if (!this.scoreSubmitted) {
             this.gameOverButtons.submitScore = this.drawBrandButton(
-                bx, y, buttonWidth, buttonHeight, 'Submit Score', { tag: '\u2191' }
+                bx, y, buttonWidth, buttonHeight, 'Publish Score',
+                { signal: true, signalLabel: true }
             );
             y += buttonHeight + buttonGap;
         }
 
+        y += unit * 0.8;
+        const halfW = (buttonWidth - pairGap) / 2;
+        const pairLabel = Math.max(11, Math.min(unit * 1.15, 14));
         this.gameOverButtons.highScores = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'High Scores', { tag: '#' }
+            bx, y, halfW, pairH, 'High Scores', { labelPx: pairLabel }
         );
-        y += buttonHeight + buttonGap;
-
         this.gameOverButtons.menu = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'Menu', { tag: '\u2302' }
+            bx + halfW + pairGap, y, halfW, pairH, 'Menu', { labelPx: pairLabel }
         );
     }
 
@@ -3081,7 +3407,6 @@ export class Game {
         const L = screenLayout(this, unit);
         const isMobile = L.isMobile;
         const PAGE_SIZE = SPACE_BOARD_PAGE_SIZE;
-        const MAX_PAGES = 10;
         const RANK_TROPHIES = ['🥇', '🥈', '🥉'];
 
         // Same compact header chip as Options Rate: Global/Friends on phones.
@@ -3170,10 +3495,11 @@ export class Game {
         const profileNameLeft = friendsBoard ? nameLeft + avatarR * 2 + avatarGap : nameLeft;
 
         const scores = this.highScores || [];
-        const totalPages = scores.length === 0
+        const totalCount = friendsBoard ? scores.length : (this.highScoreTotal || 0);
+        const totalPages = totalCount === 0
             ? 1
-            : Math.min(MAX_PAGES, Math.max(1, Math.ceil(scores.length / PAGE_SIZE)));
-        if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
+            : Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+        if (totalCount > 0 && this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
         if (this.highScorePage < 0) this.highScorePage = 0;
 
         if (scores.length === 0) {
@@ -3216,10 +3542,8 @@ export class Game {
             return;
         }
 
-        const pageScores = scores.slice(
-            this.highScorePage * PAGE_SIZE,
-            this.highScorePage * PAGE_SIZE + PAGE_SIZE
-        );
+        const pageStart = friendsBoard ? this.highScorePage * PAGE_SIZE : 0;
+        const pageScores = scores.slice(pageStart, pageStart + PAGE_SIZE);
 
         pageScores.forEach((score, index) => {
             const pageRank = this.highScorePage * PAGE_SIZE + index + 1;
@@ -3269,12 +3593,7 @@ export class Game {
 
             const scoreStr = unscored ? '—' : String(score.formattedScore ?? '');
             setMonoType(ctx, numPx, 700);
-            let scoreBlockW = ctx.measureText(scoreStr).width;
-            if (!unscored && this.highScoreTab === 'distance') {
-                const kmSize = Math.max(9, unit * 0.8);
-                setLabelType(ctx, kmSize);
-                scoreBlockW += ctx.measureText('KM').width + unit * 0.5;
-            }
+            const scoreBlockW = ctx.measureText(scoreStr).width;
             const youPx = Math.max(9, namePx * 0.58);
             let youW = 0;
             if (friendsBoard && score.isLocal) {
@@ -3311,22 +3630,10 @@ export class Game {
                 ctx.fillText('YOU', labelEnd + unit * 0.5, midY);
             }
 
-            // Score — mono figure, optional KM label for distance.
             setMonoType(ctx, numPx, 700);
             ctx.fillStyle = unscored ? color.ink55 : color.ink;
             ctx.textAlign = 'right';
-            if (!unscored && this.highScoreTab === 'distance') {
-                const kmSize = Math.max(9, unit * 0.8);
-                setLabelType(ctx, kmSize);
-                ctx.fillStyle = color.ink55;
-                ctx.fillText('KM', rightX, midY);
-                const kmW = ctx.measureText('KM').width;
-                setMonoType(ctx, numPx, 700);
-                ctx.fillStyle = color.ink;
-                ctx.fillText(scoreStr, rightX - kmW - unit * 0.5, midY);
-            } else {
-                ctx.fillText(scoreStr, rightX, midY);
-            }
+            ctx.fillText(scoreStr, rightX, midY);
 
             resetType(ctx);
             ctx.restore();
@@ -3666,33 +3973,31 @@ export class Game {
                 'ship_id': this.shipSkinId,
             });
 
+            this.currentRank = null;
+            this.scorePreview = null;
+            this.deathReelAt = null;
             try {
-                // Rank against the board for this flight style only.
-                const higherScoresCount = await ScoreService.getAllScoresCount(
+                const preview = await ScoreService.getDeathPreview(
                     this.finalScore,
                     this.flightStyle,
                 );
-                const rank = higherScoresCount + 1;
-                
-                // Store rank separately so it persists even if modal is closed
-                this.currentRank = rank;
-                
-                // Auto-prompt for a call sign only when the run lands in the top 10.
-                // Ranks 11+ can still submit via the manual Submit Score button.
-                const isTop10 = rank <= 10;
-
-                this.pendingHighScore = isTop10 ? {
-                    score: this.finalScore,
-                    obstaclesDestroyed: this.obstaclesDestroyed,
-                    isWinner: this.hasWon,
-                    shouldPromptName: true,
-                    rank: this.currentRank
-                } : null;
-                
+                this.scorePreview = preview;
+                this.currentRank = preview.rank;
+                this.pendingHighScore = preview.rank <= 10
+                    ? {
+                        score: this.finalScore,
+                        obstaclesDestroyed: this.obstaclesDestroyed,
+                        isWinner: this.hasWon,
+                        shouldPromptName: true,
+                        rank: preview.rank,
+                    }
+                    : null;
                 await this.loadHighScores();
             } catch (error) {
                 console.error('Error handling high score:', error);
                 this.currentRank = '?';
+                this.scorePreview = null;
+                this.deathReelAt = null;
                 this.pendingHighScore = null;
             }
         }
@@ -3786,6 +4091,7 @@ export class Game {
         this.highScoreTab = fromSubmit ? 'distance' : (this.highScoreTab || 'distance');
         this.friendsSignInHint = '';
         this.highScorePage = 0;
+        this.highScoreTotal = 0;
         this.highScoreFocusIndex = -1;
         this.highScoreHighlight = fromSubmit
             ? {
@@ -3800,6 +4106,15 @@ export class Game {
         if (fromSubmit) {
             this.highScoreSource = 'global';
             this.pendingFriendsLoad = null;
+            try {
+                const higher = await ScoreService.getAllScoresCount(
+                    opts.score,
+                    this.highScoreFlightStyle,
+                );
+                this.highScorePage = Math.floor((higher || 0) / SPACE_BOARD_PAGE_SIZE);
+            } catch {
+                this.highScorePage = 0;
+            }
         } else {
             await this.chooseFriendsDefault();
         }
@@ -3837,11 +4152,21 @@ export class Game {
         } else if (this.highScoreHighlight) {
             index = findSubmittedRowIndex(rows, this.highScoreHighlight, this.highScoreTab);
         }
-        this.highScoreFocusIndex = this.highScoreSource === 'global' ? index : -1;
-        this.highScorePage = pageForRowIndex(index, SPACE_BOARD_PAGE_SIZE);
-        const totalPages = rows.length === 0
+        if (this.highScoreSource === 'friends') {
+            this.highScoreFocusIndex = -1;
+            this.highScorePage = pageForRowIndex(index, SPACE_BOARD_PAGE_SIZE);
+        } else {
+            const local = index;
+            this.highScoreFocusIndex = local >= 0
+                ? this.highScorePage * SPACE_BOARD_PAGE_SIZE + local
+                : -1;
+        }
+        const totalCount = this.highScoreSource === 'friends'
+            ? rows.length
+            : (this.highScoreTotal || 0);
+        const totalPages = totalCount === 0
             ? 1
-            : Math.min(10, Math.max(1, Math.ceil(rows.length / SPACE_BOARD_PAGE_SIZE)));
+            : Math.max(1, Math.ceil(totalCount / SPACE_BOARD_PAGE_SIZE));
         if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
         if (this.highScorePage < 0) this.highScorePage = 0;
     }
@@ -3856,10 +4181,12 @@ export class Game {
                     this.highScoreFlightStyle,
                 );
                 this.applyFriendsRows(result);
+                this.highScoreTotal = this.highScores.length;
             } catch (error) {
                 console.error('Failed to load friends scores:', error);
                 this.friendsSignedIn = false;
                 this.highScores = [];
+                this.highScoreTotal = 0;
                 this.friendsPhotoImages.clear();
             }
         } else {
@@ -3868,23 +4195,35 @@ export class Game {
                 this.highScoreSource = 'global';
             }
             try {
-                this.highScores = await ScoreService.getTopScores(
+                const page = await ScoreService.getScorePage(
                     this.highScoreTab,
-                    100,
+                    this.highScorePage,
+                    SPACE_BOARD_PAGE_SIZE,
                     this.highScoreFlightStyle,
                 );
+                this.highScores = page.rows;
+                this.highScoreTotal = page.total;
             } catch (error) {
                 console.error('Failed to load high scores:', error);
                 this.highScores = [];
+                this.highScoreTotal = 0;
             }
         }
         if (this.highScoreSource !== 'friends') {
             this.friendsPhotoImages.clear();
         }
-        const totalPages = this.highScores.length === 0
+        const totalCount = this.highScoreSource === 'friends'
+            ? this.highScores.length
+            : this.highScoreTotal;
+        const totalPages = totalCount === 0
             ? 1
-            : Math.min(10, Math.max(1, Math.ceil(this.highScores.length / SPACE_BOARD_PAGE_SIZE)));
-        if (this.highScorePage >= totalPages) this.highScorePage = totalPages - 1;
+            : Math.max(1, Math.ceil(totalCount / SPACE_BOARD_PAGE_SIZE));
+        if (this.highScorePage >= totalPages) {
+            this.highScorePage = totalPages - 1;
+            if (this.highScoreSource !== 'friends' && totalCount > 0) {
+                await this.loadHighScores();
+            }
+        }
         if (this.highScorePage < 0) this.highScorePage = 0;
     }
 
@@ -3934,10 +4273,12 @@ export class Game {
         }
         if (this.highScorePrevButton?.enabled && this.isClickInButton(x, y, this.highScorePrevButton)) {
             this.highScorePage -= 1;
+            if (this.highScoreSource !== 'friends') await this.loadHighScores();
             return true;
         }
         if (this.highScoreNextButton?.enabled && this.isClickInButton(x, y, this.highScoreNextButton)) {
             this.highScorePage += 1;
+            if (this.highScoreSource !== 'friends') await this.loadHighScores();
             return true;
         }
         return false;
@@ -4212,7 +4553,9 @@ export class Game {
             }
 
             // Handle name input modal (only once the end screen has settled).
-            if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1) {
+            const reelLines = this.currentRank === '?' ? [] : deathPreviewLines(this.scorePreview);
+            if (this.pendingHighScore?.shouldPromptName && this.gameOverAlpha >= 1
+                && !this.deathReelSpinning(reelLines)) {
                 if (this.isClickInButton(x, y, this.closeButton)) {
                     this.closeNameInputModal();
                     return;
@@ -4683,13 +5026,21 @@ export class Game {
         this.submitError = null;
 
         try {
+            const runId = this.scoreRunPromise ? await this.scoreRunPromise : null;
             await ScoreService.saveScore(
                 this.finalScore,
                 name,
                 this.obstaclesDestroyed,
                 this.shipSkinId,
-                this.flightStyle,
+                this.scoreRunStyle || this.flightStyle,
+                runId,
             );
+
+            try {
+                localStorage.setItem('playerName', name.trim());
+            } catch {
+                // The preview still paints without a saved call sign.
+            }
 
             track('submit_highscore', {
                 'score': this.finalScore,
@@ -4715,7 +5066,7 @@ export class Game {
             });
         } catch (error) {
             console.error('Error saving score:', error);
-            if (error instanceof CallSignRejectedError) {
+            if (error instanceof CallSignRejectedError || error instanceof ScoreRejectedError) {
                 this.submitError = error.message;
             } else if (error instanceof LeaderboardUnavailableError) {
                 this.submitError = 'Leaderboard offline in this build.';

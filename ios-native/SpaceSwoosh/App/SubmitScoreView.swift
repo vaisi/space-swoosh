@@ -1,7 +1,7 @@
 // SubmitScoreView.swift
-// Changes: full-screen sheet uses the dark-mode depth field. Keyboard-open
-// sheet matches Android — compact header, one recap line, call-sign field,
-// Submit docked above the IME. Idle keeps stacked stats.
+// Changes: one card for idle and keyboard — distance (no KM) and the call
+// sign. No asteroids, rank, or character count. The card stays centered in
+// the space above the keyboard. Submit waits for the score-clock task.
 
 import SwiftUI
 import Combine
@@ -14,6 +14,7 @@ struct SubmitScoreView: View {
     var rankNumber: Int?
     var shipId: SkinId
     var style: FlightStyle
+    var scoreRunTask: Task<String, Never>?
     var onDone: (_ callSign: String) -> Void
     var onCancel: () -> Void
 
@@ -23,24 +24,23 @@ struct SubmitScoreView: View {
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var nameFocused: Bool
 
-    private var compact: Bool { keyboardHeight > 40 }
-
     var body: some View {
         GeometryReader { geo in
-            ZStack {
+            let avail = max(0, geo.size.height - keyboardHeight)
+            ZStack(alignment: .top) {
                 NightPaperGround()
-                VStack(spacing: 0) {
-                    if compact {
-                        keyboardSheet(minHeight: max(280, geo.size.height - keyboardHeight - 16))
-                    } else {
-                        Spacer(minLength: 12)
-                        idleCard
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        signalCard
                         Spacer(minLength: 0)
                     }
+                    .frame(maxWidth: .infinity, minHeight: avail)
                 }
-                .padding(.bottom, keyboardHeight)
-                .animation(.easeOut(duration: 0.22), value: keyboardHeight)
+                .scrollBounceBehavior(.basedOnSize)
+                .frame(height: avail)
             }
+            .animation(.easeOut(duration: 0.22), value: keyboardHeight)
         }
         .safeAreaPadding(.top)
         .ignoresSafeArea(.keyboard, edges: .bottom)
@@ -50,52 +50,28 @@ struct SubmitScoreView: View {
         }
     }
 
-    private func keyboardSheet(minHeight: CGFloat) -> some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                compactHeader
-                recapLine
-                    .padding(.top, 20)
-                ShellChrome.dottedRule()
-                    .padding(.vertical, 20)
-                callSignBlock
-                if !error.isEmpty {
-                    Text(error)
-                        .font(BrandType.body(14))
-                        .foregroundStyle(BrandColors.signal)
-                        .padding(.top, 8)
-                }
-                Spacer(minLength: 24)
-                submitButton
-            }
-            .padding(24)
-            .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .topLeading)
-            .background(BrandColors.paperTint)
-            .overlay {
-                Rectangle().stroke(BrandColors.ink, lineWidth: 1.5)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-        }
-    }
-
-    private var idleCard: some View {
+    private var signalCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             compactHeader
-            ShellChrome.statColumn(value: ScoreService.formatScore(score), label: "KM")
+            Text(ScoreService.formatScore(score))
+                .font(BrandType.mono(56))
+                .foregroundStyle(BrandColors.ink)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 20)
-            HStack(spacing: 0) {
-                ShellChrome.statColumn(value: ScoreService.formatScore(destroyed), label: "ASTEROIDS")
-                Rectangle()
-                    .fill(BrandColors.ink.opacity(0.12))
-                    .frame(width: 1, height: 44)
-                ShellChrome.statColumn(value: rank, label: "YOUR RANK")
-            }
-            .padding(.top, 16)
+                .padding(.top, 26)
+            Text("DISTANCE")
+                .font(BrandType.label(11))
+                .tracking(BrandType.labelTracking(11))
+                .foregroundStyle(BrandColors.ink55)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 6)
             ShellChrome.dottedRule()
-                .padding(.vertical, 20)
+                .padding(.top, 22)
             callSignBlock
+                .padding(.top, 18)
+            Text("This is how the Index will remember you.")
+                .font(BrandType.body(14))
+                .foregroundStyle(BrandColors.ink55)
+                .padding(.top, 12)
             if !error.isEmpty {
                 Text(error)
                     .font(BrandType.body(14))
@@ -103,7 +79,7 @@ struct SubmitScoreView: View {
                     .padding(.top, 8)
             }
             submitButton
-                .padding(.top, 18)
+                .padding(.top, 22)
         }
         .padding(24)
         .background(BrandColors.paperTint)
@@ -131,37 +107,25 @@ struct SubmitScoreView: View {
         }
     }
 
-    private var recapLine: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("\(ScoreService.formatScore(score)) KM  ·  \(ScoreService.formatScore(destroyed))  ·  \(rank)")
-                .font(BrandType.mono(16))
-                .foregroundStyle(BrandColors.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text("DISTANCE  ·  ASTEROIDS  ·  RANK")
-                .font(BrandType.label(9))
-                .tracking(BrandType.labelTracking(9))
-                .foregroundStyle(BrandColors.ink55)
-        }
-    }
-
     private var callSignBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("CALL SIGN")
-                .font(BrandType.label(10))
-                .tracking(BrandType.labelTracking(10))
+                .font(BrandType.label(11))
+                .tracking(BrandType.labelTracking(11))
                 .foregroundStyle(BrandColors.ink55)
             TextField("ENTER CALL SIGN", text: $name)
-                .font(BrandType.body(18))
+                .font(BrandType.ui(28))
                 .foregroundStyle(BrandColors.ink)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.done)
                 .focused($nameFocused)
-                .padding(.vertical, 10)
+                .padding(.vertical, 6)
                 .frame(minHeight: 48, alignment: .bottom)
                 .overlay(alignment: .bottom) {
-                    Rectangle().fill(BrandColors.ink).frame(height: 1.5)
+                    Rectangle()
+                        .fill(nameFocused ? BrandColors.signal : BrandColors.ink.opacity(0.3))
+                        .frame(height: 2)
                 }
                 .onChange(of: name) { _, next in
                     if next.count > NameFilter.maxLength {
@@ -171,15 +135,24 @@ struct SubmitScoreView: View {
         }
     }
 
+    private var canTransmit: Bool {
+        !busy && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     private var submitButton: some View {
-        ShellChrome.brandButton(
-            busy ? "Sending" : "Submit",
-            tag: "↑",
-            primary: true
-        ) {
+        Button {
             Task { await submit() }
+        } label: {
+            Text(busy ? "SENDING" : "TRANSMIT  ↑")
+                .font(BrandType.ui(16))
+                .tracking(BrandType.uiTracking(16))
+                .foregroundStyle(Color(red: 0.06, green: 0.07, blue: 0.09))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(BrandColors.signal.opacity(canTransmit ? 1 : 0.45))
         }
-        .disabled(busy)
+        .buttonStyle(.plain)
+        .disabled(!canTransmit)
     }
 
     private var keyboardFrame: AnyPublisher<CGRect, Never> {
@@ -194,12 +167,14 @@ struct SubmitScoreView: View {
         busy = true
         defer { busy = false }
         do {
+            let runId = await scoreRunTask?.value ?? ""
             try await ScoreService.saveScore(
                 score: score,
                 name: name,
                 destroyed: destroyed,
                 shipId: shipId,
-                style: style
+                style: style,
+                runId: runId
             )
             var params: [String: Any] = [
                 "score": score,

@@ -1,5 +1,7 @@
 // PlayScene.swift
-// Changes: each frame ticks the NAV launch-line clock. Dark mode paints
+// Changes: Open Space startRun asks GameSession to stamp the score clock
+// after reset, once the flight style is known. Journey and Hazard Lab do not.
+// each frame ticks the NAV launch-line clock. Dark mode paints
 // DepthField behind the hull (Android night paper).
 // Pause holds the sim but keeps the field drifting. Shield ring sprites add
 // Android Canvas half-stroke so the visible outer edge matches radius×1.6 /
@@ -60,6 +62,9 @@ final class PlayScene: SKScene {
             SettingsStore.shared.setFlightStyle(run.flightStyle)
         }
         run.profile = launch.profile
+        if launch == .openSpace {
+            session?.beginScoreClock(style: run.flightStyle)
+        }
         CinemaSimulator.beginLevelRun(world: &world, run: &run)
         previousWorld = world
         currentWorld = world
