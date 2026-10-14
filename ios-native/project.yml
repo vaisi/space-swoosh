@@ -1,6 +1,6 @@
 # XcodeGen spec — on Mac: brew install xcodegen && cd ios-native && xcodegen
 # Changes: Game Center entitlements for the native Friends board.
-# MARKETING_VERSION 1.0.3 (ASC closed the approved 1.0.2 train). Floor CURRENT_PROJECT_VERSION at 9.
+# MARKETING_VERSION 1.0.4 (ASC closed the approved 1.0.3 train). CURRENT_PROJECT_VERSION floor 71.
 
 name: SpaceSwoosh
 options:
@@ -11,8 +11,8 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    MARKETING_VERSION: "1.0.3"
-    CURRENT_PROJECT_VERSION: "9"
+    MARKETING_VERSION: "1.0.4"
+    CURRENT_PROJECT_VERSION: "71"
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1,2"
     INFOPLIST_FILE: SpaceSwoosh/Info.plist
@@ -22,7 +22,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_ENTITLEMENTS: SpaceSwoosh/SpaceSwoosh.entitlements
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-    CURRENT_PROJECT_VERSION: "9"
+    CURRENT_PROJECT_VERSION: "71"
 targets:
   SpaceSwoosh:
     type: application
