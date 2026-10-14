@@ -1,4 +1,7 @@
-<!-- Changes: A Space Board submit needs a connection when the Open Space
+<!-- Changes: Android is 1.0.52. iPhone TestFlight build floor is 71
+     (marketing 1.0.3). Meteor ghosts stay dashed; the iPhone build compiles them
+     as a dashed path.
+     A Space Board submit needs a connection when the Open Space
      run starts, and again when you send the score. A run that started
      offline still finishes on the device; it cannot be sent to the board.
      On a local page, `?anyship=1` lets Launch fly any hull,
@@ -49,7 +52,7 @@
      distance and call-sign card that stays centered above the keyboard.
      Friends shows the Game Center / Play Games photo already on
      that store profile, on the device only (Photos App Privacy stays off).
-     Android 1.0.51 / iPhone build 14 — no "Space…" title chip
+     Android 1.0.52 / iPhone build 71 — no "Space…" title chip
      (Android host header; iOS has no nav title and Now Playing is cleared).
      iPhone black holes match Android — solid well, soft shaded halo, thin
      pulsing ring (not a donut). iPhone wind dashes travel left or right
@@ -628,7 +631,7 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
-ink may show in the notch / home-indicator strips). Android **1.0.51** and iPhone (build **14**) do not show an
+ink may show in the notch / home-indicator strips). Android **1.0.52** and iPhone (build **71**) do not show an
 app-name chip or leftover icon above the stars — the run starts at the top of
 the stage. Turn the phone on its side
 and the stage stays a tall rectangle with charcoal on the left and right — the

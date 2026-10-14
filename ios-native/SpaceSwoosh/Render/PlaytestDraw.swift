@@ -2,6 +2,7 @@
 // Ink kills. Ink30 dashed is the tell: spinner arcs, blink hollow, meteor
 // ghosts, tunnel lining, lightning reach.
 // Changes:
+// - Dashes are a dashed CGPath. SKShapeNode has no lineDashPattern.
 // - Created file: screen-space shapes for the nine new obstacles.
 
 import SpriteKit
@@ -112,12 +113,15 @@ enum PlaytestDraw {
         let lanes = PlaytestHazards.blinkLanes(o, width: world.width)
         for (i, x) in lanes.enumerated() {
             if i == hollow {
-                let node = SKShapeNode(circleOfRadius: o.radius)
+                let circle = CGPath(
+                    ellipseIn: CGRect(x: -o.radius, y: -o.radius, width: o.radius * 2, height: o.radius * 2),
+                    transform: nil
+                )
+                let node = SKShapeNode(path: dashed(circle, dash: o.radius * 0.38, gap: o.radius * 0.24))
                 node.position = CGPoint(x: x, y: sy(o.y))
                 node.fillColor = .clear
                 node.strokeColor = ink30
                 node.lineWidth = max(1.25, u * 0.08)
-                node.lineDashPattern = [NSNumber(value: Double(o.radius * 0.38)), NSNumber(value: Double(o.radius * 0.24))]
                 layer.addChild(node)
             } else {
                 let node = SKShapeNode(circleOfRadius: o.radius)
@@ -140,11 +144,10 @@ enum PlaytestDraw {
         fill.fillColor = ink
         fill.strokeColor = .clear
         layer.addChild(fill)
-        let dash = SKShapeNode(path: soft)
+        let dash = SKShapeNode(path: dashed(soft, dash: u * 0.32, gap: u * 0.22))
         dash.fillColor = .clear
         dash.strokeColor = ink30
         dash.lineWidth = max(1.1, u * 0.08)
-        dash.lineDashPattern = [NSNumber(value: Double(u * 0.32)), NSNumber(value: Double(u * 0.22))]
         layer.addChild(dash)
     }
 
@@ -190,10 +193,9 @@ enum PlaytestDraw {
             let path = CGMutablePath()
             path.move(to: CGPoint(x: o.x, y: sy(o.y)))
             path.addLine(to: CGPoint(x: o.x - o.originX * o.displaySpread, y: sy(o.y)))
-            reach.path = path
+            reach.path = dashed(path, dash: u * 0.4, gap: u * 0.6)
             reach.strokeColor = ink30
             reach.lineWidth = max(1, u * 0.08)
-            reach.lineDashPattern = [NSNumber(value: Double(u * 0.4)), NSNumber(value: Double(u * 0.6))]
             reach.alpha = k
             layer.addChild(reach)
             let glow = SKShapeNode(circleOfRadius: u * (2.5 + k * 3))
@@ -222,10 +224,9 @@ enum PlaytestDraw {
             ghosts.move(to: CGPoint(x: part.x, y: y))
             ghosts.addLine(to: CGPoint(x: part.x - gx, y: y - gy))
         }
-        let ghost = SKShapeNode(path: ghosts)
+        let ghost = SKShapeNode(path: dashed(ghosts, dash: u * 0.45, gap: u * 0.55))
         ghost.strokeColor = ink30
         ghost.lineWidth = max(1.25, o.baseRadius * 0.65)
-        ghost.lineDashPattern = [NSNumber(value: Double(u * 0.45)), NSNumber(value: Double(u * 0.55))]
         ghost.lineCap = .butt
         layer.addChild(ghost)
 
@@ -275,6 +276,10 @@ enum PlaytestDraw {
         node.lineJoin = .round
         node.alpha = alpha
         layer.addChild(node)
+    }
+
+    private static func dashed(_ path: CGPath, dash: CGFloat, gap: CGFloat) -> CGPath {
+        path.copy(dashingWithPhase: 0, lengths: [dash, gap])
     }
 
     private static func addBlob(_ path: CGMutablePath, x: CGFloat, y: CGFloat, r: CGFloat, square: Bool, rot: CGFloat) {

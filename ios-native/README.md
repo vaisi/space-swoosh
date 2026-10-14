@@ -4,7 +4,7 @@
  Capacitor ios/ is not shipped.
  Changes: Friends YOU row shows local Open Space PB when Game Center
  has not indexed the run. Build 14 with the title-strip guard (no Now Playing chip).
- Marketing version 1.0.3 (ASC closed approved 1.0.2). Drift /
+ Marketing version 1.0.3, build 71 (failed archive stamped 70). Drift /
  wind caches a dashed hairline and slides in X (Android
  lineDashOffset) — no per-frame dashingWithPhase rebuild.
  Wall-boost rush is 5s wall-clock (Flicker.speedBoostSeconds).
@@ -94,7 +94,7 @@ node ios-native/scripts/generate-pbxproj.mjs
 Codemagic: **iOS Native → TestFlight** (`xcode: latest`, currently Xcode 26).
 Deployment **iOS 17**. Marketing version is **1.0.3** (Apple approved
 **1.0.2**, so that train is closed). Each upload also needs a new
-`CFBundleVersion`. CI stamps **14+**.
+`CFBundleVersion`. CI stamps **71+**.
 
 To play in the browser (no Mac/device): start **iOS Native → App Preview**, then
 click **Quick launch** next to `SpaceSwoosh.app` on the finished build. That

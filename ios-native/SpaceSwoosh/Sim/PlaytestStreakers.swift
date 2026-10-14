@@ -2,6 +2,7 @@
 // Meteor shower. Dashed ghosts fall on the slant first and do not collide.
 // Then the solid rocks follow that same slant.
 // Changes:
+// - Meteor slant uses CGFloat.pi so Xcode 26 does not treat `.pi` as ambiguous.
 // - Created file: Y-up port of playtestStreakers.js. Rocks move toward the ship.
 
 import Foundation
@@ -19,7 +20,7 @@ extension PlaytestHazards {
         o.baseRadius = u * 0.42
         o.lethal = true
         let dir: CGFloat = CombatSimulator.rand01(&run.rng) < 0.5 ? -1 : 1
-        let angle = 28 * .pi / 180
+        let angle = 28 * CGFloat.pi / 180
         let v = world.height * ObstacleIntensity.knob(run: run, type: "meteorShower", gentle: 0.6, today: 0.7, hard: 0.8)
         o.vx = dir * sin(angle) * v
         o.driftDir = -cos(angle) * v

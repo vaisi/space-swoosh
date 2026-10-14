@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: Marketing 1.0.3 — ASC closed the approved 1.0.2 train.
-	     Build 14 with the Android title-strip fix. Status bar hidden;
-	     no system nav title. APP_STORE_APPLE_ID; REVENUECAT_IOS_KEY. -->
+	<!-- Changes: Build 71 (above the failed Codemagic archive that stamped 70).
+	     Marketing stays 1.0.3. Status bar hidden; no system nav title.
+	     APP_STORE_APPLE_ID; REVENUECAT_IOS_KEY. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -22,7 +22,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.3</string>
 	<key>CFBundleVersion</key>
-	<string>14</string>
+	<string>71</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<!-- Required for ProMotion 120 Hz. Without this, iOS caps third-party apps at 60. -->
