@@ -4,6 +4,7 @@
 // (src/brand/tokens.js) to the <canvas> game surface.
 //
 // Changes:
+// - drawFramedButton signalLabel paints the label in signal blue (Publish Score).
 // - setHintType(): Space Grotesk 300, sentence case, 0.06em tracking. The
 //   quiet "headphones recommended" caption (Journey on Play). Weight 300 is
 //   preloaded with the other brand faces.
@@ -122,7 +123,7 @@ export function drawFramedTile(ctx, x, y, w, h, { surface = color.paperTint, str
 // Space Mono micro-tag, split by a hairline. Primary = ink fill / paper label;
 // secondary = outline only; signal = blue border (reserved for shield/active).
 // Returns the hit-box rect used for click detection.
-export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary = false, signal = false, disabled = false, baseUnit = 16, labelPx }) {
+export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary = false, signal = false, signalLabel = false, disabled = false, baseUnit = 16, labelPx }) {
     ctx.save();
     ctx.lineJoin = 'miter';
 
@@ -161,7 +162,9 @@ export function drawFramedButton(ctx, { x, y, w, h, label, tag = null, primary =
     let size = labelPx ?? Math.min(baseUnit * 1.5, h * 0.42);
     const minPx = Math.max(9, Math.min(size, h * 0.28));
 
-    ctx.fillStyle = disabled ? color.ink30 : (lit ? color.paper : color.ink);
+    ctx.fillStyle = disabled
+        ? color.ink30
+        : (lit ? color.paper : (signalLabel ? color.signal : color.ink));
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const applyLabelFont = (px) => {

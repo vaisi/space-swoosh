@@ -1,4 +1,7 @@
 <!-- Changes: Home menu has a quiet headphones line above the title.
+     A Space Board submit needs a connection when the Open Space
+     run starts, and again when you send the score. A run that started
+     offline still finishes on the device; it cannot be sent to the board.
      Open Space launch lines are named nav_XX_ship_N.mp3.
      Play opens the Hangar before Open Space or a Journey day.
      The home screen shows your equipped ship and no longer swipes between hulls.
@@ -17,9 +20,8 @@
      Days 24+ and Open Space past 20,000 KM leave a little more room
      between the nastiest rows.
      Options → Ship cards show each vessel’s description even
-     while locked (price still sits on the tile). Submit Signal stays
-     readable above the phone keyboard —
-     one recap line and the call-sign field, Submit just above the keys.
+     while locked (price still sits on the tile). Submit Signal is a
+     distance and call-sign card that stays centered above the keyboard.
      Friends shows the Game Center / Play Games photo already on
      that store profile, on the device only (Photos App Privacy stays off).
      Android 1.0.51 / iPhone build 14 — no "Space…" title chip
@@ -234,15 +236,19 @@ sky is packed like a late Journey day, and past **12,500 KM** storms come in
 harder pairs with only a short breath between them. Cruise is a bit snappier than before; it does not keep climbing.
 On browser and Android, if a wormhole or black hole leaves the ship sitting low in the
 view, the camera slowly eases it back to the usual height over several seconds.
-**This is the mode with the leaderboard** — if your run lands in the
-top 10 for the flight style you were using (Zigzag or Arc), after Mission Failed
-settles a Submit Signal card lists your distance, asteroids destroyed, and rank —
-tap the call-sign field, type a short name, and send it up. On phones the sheet
-fills the space above the keyboard — your score stays as a quiet recap, the
-call-sign field stays clear, and Submit sits just above the keys (the end-screen
-buttons stay hidden).
+**This is the mode with the leaderboard.** After Mission Failed the screen
+shows your distance, the rank beside it, and where that run would sit: first place,
+the score just above you, and the score just below. Your row says YOU
+and the ship you flew. First place stays put. As the screen appears, joke names rush past YOU and then slow down until YOU rests between the score above and the score below. A dotted gap under first place means those rows are not next to each other. A top-10 finish opens the
+call-sign card on its own once that screen has settled. Otherwise **Publish
+Score** opens it. Nothing is sent until you submit it. The card shows the
+distance and a call sign. On a phone it stays centered in the space above
+the keyboard instead of jumping to the top.
 Outside
-the top 10 you can still tap **Submit Score** to send a signal. Scores go to
+the top 10 you can still tap **Publish Score** to send a signal. The run needs
+a connection when it starts, and again when you send the score. If it started
+with no connection, the flight still finishes on this device, and Submit tells
+you it was not started online. Scores go to
 that style’s board only. The board shows your call sign and the ship you flew
 (`Name, Ship` and the score). After you send a signal, High Scores opens on
 **Global** at your new row (tinted like the Friends YOU row) so you do not have
@@ -307,7 +313,7 @@ The home screen is the title, the tagline, and four buttons. At the top, a small
 - **Play** — Journey, with a quiet Recommended hint under the title, then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar.
-- **High Scores** — open the Space Board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. Your YOU row shows the distance you actually flew (best Open Space KM on this device) even before the store board updates. After Submit Signal it stays on Global and jumps to your row. Android pages 10 scores at a time (up to 100).
+- **High Scores** — open the Space Board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. Your YOU row shows the distance you actually flew (best Open Space KM on this device) even before the store board updates. After Submit Signal it stays on Global and jumps to your row. The board pages 10 scores at a time through every score on that list.
 
 After a run, **Menu** on the end screen brings you back here.
 

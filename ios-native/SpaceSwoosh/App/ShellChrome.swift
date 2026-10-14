@@ -1,5 +1,6 @@
 // ShellChrome.swift
-// Changes: compactTag for Friends YOU chip. Header still accepts a second
+// Changes: brandButton signalLabel paints the title in signal blue
+// (Publish Score). compactTag for Friends YOU chip. Header still accepts a second
 // compact trailing chip; SPACE BOARD now uses one Global/Friends chip
 // (Zigzag/Arc is the flown style, not a toggle). Home ShipPreview swipes
 // hangar and shows a quiet "n / total" roster mark.
@@ -126,6 +127,7 @@ enum ShellChrome {
         tag: String? = nil,
         primary: Bool = false,
         signal: Bool = false,
+        signalLabel: Bool = false,
         disabled: Bool = false,
         labelSize: CGFloat = 17,
         action: @escaping () -> Void
@@ -136,7 +138,11 @@ enum ShellChrome {
                 Text(title.uppercased())
                     .font(BrandType.ui(labelSize))
                     .tracking(BrandType.uiTracking(labelSize))
-                    .foregroundStyle(disabled ? BrandColors.ink30 : (lit ? BrandColors.paper : BrandColors.ink))
+                    .foregroundStyle(
+                        disabled
+                            ? BrandColors.ink30
+                            : (lit ? BrandColors.paper : (signalLabel ? BrandColors.signal : BrandColors.ink))
+                    )
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity)

@@ -2,6 +2,8 @@
 // Changes: dark mode draws the depth field on this sheet (it covers the
 // shell, including when opened over a run). Friends YOU row shows the
 // device Open Space personal best when Game Center still has no score.
+// Distance rows show the number only — no KM unit.
+// Global pages follow the real row count, not a 10-page cap.
 
 import SwiftUI
 
@@ -25,6 +27,7 @@ struct HighScoresView: View {
     @State private var boardStyle: FlightStyle
     @State private var boardSource: BoardSource = .global
     @State private var scores: [HighScoreRow] = []
+    @State private var scoreTotal = 0
     @State private var friendRows: [FriendBoardRow] = []
     @State private var friendsSignedIn = true
     @State private var page = 0
@@ -32,7 +35,6 @@ struct HighScoresView: View {
     @State private var focusedGlobalId: Int?
 
     private let pageSize = 10
-    private let maxPages = 10
 
     init(onBack: @escaping () -> Void, open: SpaceBoardOpen = SpaceBoardOpen()) {
         self.onBack = onBack
@@ -155,11 +157,7 @@ struct HighScoresView: View {
         .padding(.top, 48)
     }
 
-    private var pageScores: [HighScoreRow] {
-        let start = page * pageSize
-        guard start < scores.count else { return [] }
-        return Array(scores[start..<min(start + pageSize, scores.count)])
-    }
+    private var pageScores: [HighScoreRow] { scores }
 
     private var pageFriends: [FriendBoardRow] {
         let start = page * pageSize
@@ -168,18 +166,26 @@ struct HighScoresView: View {
     }
 
     private var totalPages: Int {
-        let count = boardSource == .friends ? friendRows.count : scores.count
+        let count = boardSource == .friends ? friendRows.count : scoreTotal
         if count == 0 { return 1 }
-        return min(maxPages, max(1, (count + pageSize - 1) / pageSize))
+        return max(1, (count + pageSize - 1) / pageSize)
+    }
+
+    private func turnPage(_ delta: Int) {
+        let next = min(max(0, page + delta), totalPages - 1)
+        guard next != page else { return }
+        page = next
+        guard boardSource == .global else { return }
+        Task { await reload(showSpinner: false) }
     }
 
     private var pager: some View {
         HStack(spacing: 18) {
-            Button("←") { page = max(0, page - 1) }
+            Button("←") { turnPage(-1) }
                 .disabled(page == 0)
                 .opacity(page == 0 ? 0.3 : 1)
             Text("PAGE \(page + 1)/\(totalPages)")
-            Button("→") { page = min(totalPages - 1, page + 1) }
+            Button("→") { turnPage(1) }
                 .disabled(page >= totalPages - 1)
                 .opacity(page >= totalPages - 1 ? 0.3 : 1)
         }
@@ -206,12 +212,6 @@ struct HighScoresView: View {
             Spacer()
             Text(ScoreService.formatScore(tab == .distance ? row.score : row.obstaclesDestroyed))
                 .font(BrandType.mono(16))
-            if tab == .distance {
-                Text("KM")
-                    .font(BrandType.label(9))
-                    .tracking(BrandType.labelTracking(9))
-                    .foregroundStyle(BrandColors.ink55)
-            }
         }
         .foregroundStyle(BrandColors.ink)
         .padding(.vertical, 10)
@@ -235,12 +235,6 @@ struct HighScoresView: View {
             if row.rank > 0 || row.value > 0 {
                 Text(ScoreService.formatScore(row.value))
                     .font(BrandType.mono(16))
-                if tab == .distance {
-                    Text("KM")
-                        .font(BrandType.label(9))
-                        .tracking(BrandType.labelTracking(9))
-                        .foregroundStyle(BrandColors.ink55)
-                }
             } else {
                 Text("—")
                     .font(BrandType.mono(16))
@@ -286,6 +280,8 @@ struct HighScoresView: View {
         if open.fromSubmit {
             boardSource = .global
             tab = .distance
+            let higher = (try? await ScoreService.higherCount(score: open.score, style: boardStyle)) ?? 0
+            page = higher / pageSize
             await reload()
             focusCurrentBoard()
             return
@@ -296,6 +292,7 @@ struct HighScoresView: View {
             friendsSignedIn = probe.signedIn
             friendRows = probe.rows
             scores = []
+            scoreTotal = 0
             loading = false
             focusCurrentBoard()
             return
@@ -313,20 +310,29 @@ struct HighScoresView: View {
         }
     }
 
-    private func reload() async {
-        loading = true
+    private func reload(showSpinner: Bool = true) async {
+        if showSpinner { loading = true }
         if boardSource == .friends {
             let result = await FriendsScoreService.loadFriends(tab: tab, style: boardStyle)
             friendsSignedIn = result.signedIn
             friendRows = result.rows
             scores = []
+            scoreTotal = 0
         } else {
             friendsSignedIn = true
             friendRows = []
             do {
-                scores = try await ScoreService.topScores(tab: tab, style: boardStyle)
+                let result = try await ScoreService.scorePage(
+                    tab: tab,
+                    style: boardStyle,
+                    page: page,
+                    pageSize: pageSize
+                )
+                scores = result.rows
+                scoreTotal = result.total
             } catch {
                 scores = []
+                scoreTotal = 0
             }
         }
         if page >= totalPages { page = max(0, totalPages - 1) }
@@ -337,7 +343,7 @@ struct HighScoresView: View {
         if boardSource == .friends {
             focusedGlobalId = nil
             if let index = friendRows.firstIndex(where: \.isLocal) {
-                page = min(maxPages - 1, index / pageSize)
+                page = index / pageSize
             }
             if page >= totalPages { page = max(0, totalPages - 1) }
             return
@@ -361,7 +367,6 @@ struct HighScoresView: View {
         let pick = scored.first ?? named.first
         if let pick {
             focusedGlobalId = pick.element.id
-            page = min(maxPages - 1, pick.offset / pageSize)
         } else {
             focusedGlobalId = nil
         }
