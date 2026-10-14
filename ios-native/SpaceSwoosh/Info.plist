@@ -2,8 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: Build 71 (above the failed Codemagic archive that stamped 70).
-	     Marketing stays 1.0.3. Status bar hidden; no system nav title.
+	<!-- Changes: Marketing 1.0.4 — ASC closed the approved 1.0.3 train
+	     (90062 / 90186). Build floor stays 71. Status bar hidden; no system nav title.
 	     APP_STORE_APPLE_ID; REVENUECAT_IOS_KEY. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
@@ -20,7 +20,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.3</string>
+	<string>1.0.4</string>
 	<key>CFBundleVersion</key>
 	<string>71</string>
 	<key>LSRequiresIPhoneOS</key>

@@ -2,7 +2,8 @@
 
 <!-- Changes: iOS archive compile fix — meteor angle is CGFloat.pi;
      playtest dashes use CGPath dashing (SKShapeNode has no lineDashPattern).
-     Android Play default 52 / 1.0.52. Native iOS build floor 71, marketing 1.0.3.
+     Android Play default 52 / 1.0.52. Native iOS build floor 71, marketing 1.0.4
+     (ASC closed the approved 1.0.3 train, 90062 / 90186).
      Open Space leaderboard submits use start_score_run /
      submit_verified_score (500 km/s, 5000 km grace, 24h ticket). The public
      high_scores INSERT stays until
@@ -93,7 +94,7 @@
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
      shield is 5s wall-clock. Android Play default is 52 / 1.0.52 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
-     build 71; marketing stays 1.0.3. SPACE BOARD phones: Global/Friends
+     build 71; marketing is 1.0.4. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
      is the flown/saved flight style. Friends YOU row shows the device Open
      Space personal best when the store board still has no score. Opens on
@@ -165,7 +166,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps marketing
-> version **1.0.3** and `CFBundleVersion` ≥ 71 on each TestFlight upload.
+> version **1.0.4** and `CFBundleVersion` ≥ 71 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -229,7 +230,7 @@
 > so Play Console declaration can stay **No**. Play upload default:
 > versionCode **52** / versionName **1.0.52** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
-> `CFBundleVersion` **71** (marketing **1.0.3**). There is no on-screen
+> `CFBundleVersion` **71** (marketing **1.0.4**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
