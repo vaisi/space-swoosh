@@ -1,6 +1,6 @@
 // generate-pbxproj.mjs
-// Changes: Game Center entitlements + GameKit.framework. CURRENT_PROJECT_VERSION
-// 14 (title-strip fix). MARKETING_VERSION 1.0.3. RevenueCat SPM + Firebase Analytics.
+// Changes: CURRENT_PROJECT_VERSION 71 (above the failed archive that stamped 70).
+// MARKETING_VERSION stays 1.0.3. Packs nav_*.mp3, Game Center, RevenueCat, Firebase.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -29,10 +29,11 @@ const swiftFiles = walk(appRoot).filter((f) => f.endsWith('.swift'));
 const voiceFiles = walk(appRoot).filter((f) => {
   const name = path.basename(f);
   if (/elevenlabs/i.test(name)) return false;
-  return /^(level-\d+|epilogue-open|epilogue-skip|first-boop|swoosh-voice|fuel-low-\d+|background|crash|crash_with_shield|shield|turn\d*)\.(mp3|m4a)$/i.test(name);
+  return /^(level-\d+|epilogue-open|epilogue-skip|first-boop|swoosh-voice|fuel-low-\d+|background|crash|crash_with_shield|shield|turn\d*|nav_[a-z0-9_]+)\.(mp3|m4a)$/i.test(name);
 });
 const fontFiles = walk(appRoot).filter((f) => /\.(ttf|otf)$/i.test(f));
 const infoPlist = path.join(appRoot, 'Info.plist');
+const navCues = path.join(appRoot, 'App', 'navCues.json');
 const privacyPlist = path.join(appRoot, 'PrivacyInfo.xcprivacy');
 const googleServicePlist = path.join(appRoot, 'GoogleService-Info.plist');
 const entitlementsPath = path.join(appRoot, 'SpaceSwoosh.entitlements');
@@ -87,6 +88,7 @@ for (const f of fontFiles) {
   ensureFile(f, f.toLowerCase().endsWith('.otf') ? 'file' : 'font.ttf');
 }
 ensureFile(infoPlist, 'text.plist.xml');
+ensureFile(navCues, 'text.json');
 ensureFile(privacyPlist, 'text.plist.xml');
 ensureFile(googleServicePlist, 'text.plist.xml');
 ensureFile(entitlementsPath, 'text.plist.entitlements');
@@ -109,7 +111,7 @@ function groupFor(dirRel) {
 }
 
 groupFor('SpaceSwoosh');
-for (const f of [...swiftFiles, ...voiceFiles, ...fontFiles, infoPlist, privacyPlist, googleServicePlist, entitlementsPath]) {
+for (const f of [...swiftFiles, ...voiceFiles, ...fontFiles, infoPlist, navCues, privacyPlist, googleServicePlist, entitlementsPath]) {
   const rel = path.relative(root, f).replace(/\\/g, '/');
   const dir = path.posix.dirname(rel);
   const parts = dir.split('/');
@@ -150,6 +152,8 @@ const privacy = ensureFile(privacyPlist);
 pbx += `\t\t${privacy.build} /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = ${privacy.ref} /* PrivacyInfo.xcprivacy */; };\n`;
 const googleService = ensureFile(googleServicePlist);
 pbx += `\t\t${googleService.build} /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ${googleService.ref} /* GoogleService-Info.plist */; };\n`;
+const navCuesMeta = ensureFile(navCues);
+pbx += `\t\t${navCuesMeta.build} /* navCues.json in Resources */ = {isa = PBXBuildFile; fileRef = ${navCuesMeta.ref} /* navCues.json */; };\n`;
 pbx += `\t\t${firebaseAnalyticsBuild} /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = ${firebaseAnalytics} /* FirebaseAnalyticsCore */; };\n`;
 pbx += `\t\t${revenueCatBuild} /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = ${revenueCatProduct} /* RevenueCat */; };\n`;
 pbx += `\t\t${gameKitBuild} /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ${gameKitRef} /* GameKit.framework */; };\n`;
@@ -286,6 +290,7 @@ pbx += `/* End PBXGroup section */
 				${assets.build} /* Assets.xcassets in Resources */,
 				${privacy.build} /* PrivacyInfo.xcprivacy in Resources */,
 				${googleService.build} /* GoogleService-Info.plist in Resources */,
+				${ensureFile(navCues).build} /* navCues.json in Resources */,
 ${voiceFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}${fontFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} in Resources */,\n`).join('')}\t\t\t);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -360,7 +365,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SpaceSwoosh/SpaceSwoosh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 71;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -390,7 +395,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SpaceSwoosh/SpaceSwoosh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 71;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;

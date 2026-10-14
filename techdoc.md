@@ -1,6 +1,9 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Merged playtest/new-obstacles onto main so the nine new
+<!-- Changes: iOS archive compile fix — meteor angle is CGFloat.pi;
+     playtest dashes use CGPath dashing (SKShapeNode has no lineDashPattern).
+     Android Play default 52 / 1.0.52. Native iOS build floor 71, marketing 1.0.3.
+     Merged playtest/new-obstacles onto main so the nine new
      obstacles and free Ion sit with the Open Space death-screen score submit.
      Home menu hint: Headphones recommended for best experience.
      Open Space leaderboard submits use start_score_run /
@@ -89,9 +92,9 @@
      (App Store or Play). Desktop web shows cream/ink QR rails (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 51 / 1.0.51 (caption
+     shield is 5s wall-clock. Android Play default is 52 / 1.0.52 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
-     build 14; marketing stays 1.0.3. SPACE BOARD phones: Global/Friends
+     build 71; marketing stays 1.0.3. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
      is the flown/saved flight style. Friends YOU row shows the device Open
      Space personal best when the store board still has no score. Opens on
@@ -163,7 +166,7 @@
 > + generated `GeneratedJourneyData.swift`. See
 > [`ios-native/README.md`](ios-native/README.md). KM is `Δy × (800 / playfieldHeight)
 > × (100/60)`. Playfield is the full device. Codemagic stamps marketing
-> version **1.0.3** and `CFBundleVersion` ≥ 14 on each TestFlight upload.
+> version **1.0.3** and `CFBundleVersion` ≥ 71 on each TestFlight upload.
 >
 > **Signal Story (Journey) — THE REPLY (recovery framing):** Full prose in
 > [`docs/spaceswoosh_signal_story.md`](docs/spaceswoosh_signal_story.md). Runtime
@@ -225,9 +228,9 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **51** / versionName **1.0.51** (must be higher than any)
+> versionCode **52** / versionName **1.0.52** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
-> `CFBundleVersion` **14** (marketing **1.0.3**). There is no on-screen
+> `CFBundleVersion` **71** (marketing **1.0.3**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
 >
 > **Phase 0/1 iOS:** Zigzag default flight style. **iOS canvas budget**
@@ -296,7 +299,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 51 / `versionName` 1.0.51. Override
+old assets. Play default is `versionCode` 52 / `versionName` 1.0.52. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
@@ -1591,7 +1594,7 @@ on a Mac (see [`ios-native/README.md`](ios-native/README.md)).
 | `SpaceSwoosh/Sim/` | `WorldState` (equipped `skinId`, trail sized from skin), zigzag path instant + `bankSmoothing` 0.34, per-skin `ShipHitbox`, `WallJelly` (all deform modes + jelly profiles + ripple 560 ms), `CombatSimulator` (one-shot `wallBoopSide`), `HazardCollision` |
 | `SpaceSwoosh/Render/` | `DepthField` night-paper sparkles (Android full layers; shell via `NightPaperGround`, play via pooled `DepthFieldNode`). `ClassicHullPaint` stills by `HullKind` (wash / highlight / Flux 0.82), `SkinRenderer` (one equipped hull + wake), `LiveHullPaint` + pooled `LiveHullNode` (Nyan / Halo / Orbit + Lantern…Rook), hangar stills from `PreviewWakePaint` then banked hull, dedicated classic wakes (Wisp / Chevron / Rings / Cloud / Stamp / Vortex / Tick / Crease / Ladder / Lag / Helix / Dash / Cinder) plus whimsical wakes (`FilamentWake` / Bloom rings / …), Focus ripple dots / Ember twin-dots / Flicker ribbon / Saber bloom+core, 4-point sparkle + filled `signalDisc` halo, wormhole dashed ring (stroke-only, Android diameter, no glow), dual shield rings (sprite size includes Android half-stroke), drift current cached SKShapeNode hairlines (X-slide ≡ Android `lineDashOffset`), popups, blast, `PlayScene` |
 | `SpaceSwoosh/Input/` | Half-screen tap → zigzag flip |
-| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, entitlements, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`) + GameKit. `CODE_SIGN_ENTITLEMENTS` = `SpaceSwoosh/SpaceSwoosh.entitlements`. `CURRENT_PROJECT_VERSION` 14. |
+| `scripts/generate-pbxproj.mjs` | Regenerate `.xcodeproj` after adding Swift files, brand TTFs, entitlements, or the leaderboard inject script. Packs `GoogleService-Info.plist` + Firebase Analytics SPM (`12.17.0+`, `-ObjC`) + RevenueCat SPM (`5.32.0+`) + GameKit. `CODE_SIGN_ENTITLEMENTS` = `SpaceSwoosh/SpaceSwoosh.entitlements`. `CURRENT_PROJECT_VERSION` 71. |
 
 **Butter contract:** no per-frame `SKShapeNode` **alloc**; hot draws are
 textures / pooled sprites. Flicker wake: two **reused** `SKShapeNode`s
