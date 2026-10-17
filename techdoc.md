@@ -1,12 +1,23 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: Open Space death screen shows two neighbors above and below YOU.
+<!-- Changes: Public Space Board reads start at private.leaderboard_epoch.
+     The desktop game calls it Swooshtober. 1st place on the
+     Space Board wins $50, and the count closes at the end of October.
+     /swooshtober opens on the Swooshtober kicker. A night
+     starfield, a Space Board screenshot, and a signal-blue prize note
+     sit on the page. The title is “Win $50 for ranking #1 on the Space Board”.
+     #1 is $50 via Revolut or similar. #2 unlocks any
+     2 ships. #3 unlocks any 1 ship. The result is announced 1 November 2026. Campaign
+     links are YouTube @playspaceswoosh, Instagram @spaceswoosh_app,
+     TikTok @spaceswoosh.app, and X @playspaceswoosh. There is no
+     entry form and no swooshtober table.
+     Open Space death screen shows two neighbors above and below YOU.
      Phone canvas and the iOS card use larger type and buttons, with the
      spare height between the list and the buttons. The rank beside the
      distance pops in after the reel lands.
      iOS archive compile fix — meteor angle is CGFloat.pi;
      playtest dashes use CGPath dashing (SKShapeNode has no lineDashPattern).
-     Android Play default 52 / 1.0.52. Native iOS build floor 71, marketing 1.0.4
+     Android Play default 53 / 1.0.53. Native iOS build floor 71, marketing 1.0.4
      (ASC closed the approved 1.0.3 train, 90062 / 90186).
      Merged playtest/new-obstacles onto main so the nine new
      obstacles and free Ion sit with the Open Space death-screen score submit.
@@ -94,10 +105,11 @@
      (JS + iOS) then constant chase until collect. Default theme is dark
      (no ssTheme). DepthField is night-paper only. Phone and tablet
      browsers boot the canvas and keep a bottom "Get the app" bar
-     (App Store or Play). Desktop web shows cream/ink QR rails (`public/qr/`,
+     (App Store or Play). Desktop web shows night-paper store cards
+     with white QR codes (`public/qr/`,
      `npm run assets:qr`). Wall-boost speed rush is 5s wall-clock on iOS /
      Android / web. Journey cruise matches Open Space (1.1×). iOS native
-     shield is 5s wall-clock. Android Play default is 52 / 1.0.52 (caption
+     shield is 5s wall-clock. Android Play default is 53 / 1.0.53 (caption
      guard so SystemBars cannot restore the host title strip). Native iOS
      build 71; marketing is 1.0.4. SPACE BOARD phones: Global/Friends
      chip (Game Center iOS / Play Games Android); no Zigzag/Arc chip — style
@@ -121,7 +133,7 @@
 > Options still has Restore Purchases. Sequential Journey:
 > `UNLOCK_ALL_LEVELS = false` (web also `?unlocklevels=1|0`). Free forever (no
 > `productId`): Focus, Flicker, Ember, Saber. Home is Play / Space Log / Options /
-> High Scores plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
+> Space Board plus ◀/▶ hull. Options hub → Ship / Controls / Sound (3 channels) /
 > Light Mode / Restore; native Rate ★ is a header chip. PLAY is Journey then Open Space. Hazard Lab is on for this branch (`SHOW_HAZARD_LAB` / `showHazardLab`). Native iOS obstacles match Android: nine kinds in `PlaytestBodies`, `PlaytestFields`, `PlaytestWallHazards`, and `PlaytestStreakers`, drawn by `PlaytestDraw`. Open Space unlocks come from `GeneratedJourneyData.openWorldUnlocks`. Debut clips stay silent. SPACE BOARD
 > uses the same Supabase `high_scores` table as Android (anon key injected at
 > build) for **Global**. Phones add a **Friends** chip (Game Center on iOS,
@@ -233,7 +245,7 @@
 > (`google_analytics_adid_collection_enabled=false`) and
 > `com.google.android.gms.permission.AD_ID` removed via `tools:node="remove"`
 > so Play Console declaration can stay **No**. Play upload default:
-> versionCode **52** / versionName **1.0.52** (must be higher than any)
+> versionCode **53** / versionName **1.0.53** (must be higher than any)
 > code already on Play, including Codemagic drafts). Native iOS
 > `CFBundleVersion` **71** (marketing **1.0.4**). There is no on-screen
 > BUILD badge on web, Android, or native iOS.
@@ -304,7 +316,7 @@ npm run open:ios      # open the Xcode project (macOS / Codemagic)
 
 If a phone still shows an old web bundle, Android Studio ran an old dist —
 run `npm run build:native`, then Run; uninstall the app if WebView cached the
-old assets. Play default is `versionCode` 52 / `versionName` 1.0.52. Override
+old assets. Play default is `versionCode` 53 / `versionName` 1.0.53. Override
 with `VERSION_CODE` / `VERSION_NAME` env vars (Codemagic sets these from
 `$BUILD_NUMBER`). There is no on-screen BUILD / version badge.
 
@@ -372,12 +384,12 @@ RLS behavior stays the same.
 | Clock | `public.score_runs` (no anon access). `start_score_run` writes `started_at`. `submit_verified_score` inserts the board row when `score <= floor(seconds) * 500 + 5000`. 500 km/s sits above a boosted arc climb (~430) with room for a portal catch-up. The 5000 km grace is ten seconds at that cap, for a slow start check-in. Ticket must be under 24 hours, unused, and the same flight style. Missing check-in: "This run was not started online." |
 | Client | `src/config/supabase.js` + `src/services/ScoreService.js`; native iOS `SpaceSwoosh/Services/ScoreService.swift` (PostgREST RPC). Web and Capacitor Android share the JS client. Open Space `beginRun` / `PlayScene.startRun` fires the check-in and does not wait. Journey and Hazard Lab do not. |
 | Access | Anonymous call signs (no Supabase Auth). `NameFilter` validates before insert. |
-| RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated`. INSERT requires `flight_style in ('arc','zigzag')` and `platform` null or `ios`/`android`/`web`. |
-| Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql`, `…_add_platform_to_scores_and_replies.sql`, `…_score_run_clock.sql`, `…_score_run_clock_rate.sql` |
+| RLS | Public SELECT + INSERT; no UPDATE/DELETE for `anon` / `authenticated`. SELECT only returns rows with `created_at` at or after `private.leaderboard_epoch.opened_at` (reset 17 October 2026, 15:01:54 UTC). Older rows stay in the table and are hidden from the game, the death-screen neighbors, and the Swooshtober live list. INSERT requires `flight_style in ('arc','zigzag')` and `platform` null or `ios`/`android`/`web`. |
+| Migrations | `…_create_high_scores_leaderboard.sql`, `…_high_scores_add_ship_id.sql`, `…_high_scores_add_flight_style.sql`, `…_add_platform_to_scores_and_replies.sql`, `…_score_run_clock.sql`, `…_score_run_clock_rate.sql`, `…_reset_space_board_epoch.sql` |
 | Boards | Separate Arc and Zigzag leaderboards. Column default `'zigzag'` keeps all legacy rows on Zigzag. Rank / top-10 / submit filter by the run's `game.flightStyle`. |
 | CI secrets | Same `VITE_SUPABASE_*` in GitHub Actions (repo secrets) + Codemagic env group. A Pages build without them ships a playable game with a dead leaderboard (`RANK #?` / submit fails). |
 | Fetch | `ScoreService.getScorePage` — 10 rows plus the real count for that style, so the pager is not capped at 10 pages. Friends on Android: `FriendsScoreService.loadFriends` via `PlayGamesPlugin` (friends collection + `loadCurrentPlayerLeaderboardScore`, then overlay local Open Space PB). Friends on iOS: `FriendsScoreService.loadFriends` via GameKit (friends-only + local player entry + overlay local PB). |
-| UI | **Space Board** screen: header title + quiet **← Back**. Native phones: **Global** (`#`) / **Friends** (`F`) chip. No Zigzag/Arc chip — `highScoreFlightStyle` / `boardStyle` is the current flown or saved style. Web has Global only. **DISTANCE / OBSTACLES** metric tabs below. Menu / game-over High Scores: silent friends probe, open Friends when signed in and that list has a friend or a scored local row; else Global. Friends YOU shows `max(store, OpenWorldProgress)` so a just-finished Open Space run is not "—". Submit Signal stays on Global, pages to the matching call-sign row (`paperTint`). Friends pages to the YOU row. |
+| UI | **Space Board** screen: header title + quiet **← Back**. Native phones: **Global** (`#`) / **Friends** (`F`) chip. No Zigzag/Arc chip — `highScoreFlightStyle` / `boardStyle` is the current flown or saved style. Web has Global only. **DISTANCE / OBSTACLES** metric tabs below. Menu / game-over Space Board: silent friends probe, open Friends when signed in and that list has a friend or a scored local row; else Global. Friends YOU shows `max(store, OpenWorldProgress)` so a just-finished Open Space run is not "—". Submit Signal stays on Global, pages to the matching call-sign row (`paperTint`). Friends pages to the YOU row. |
 | Submit prompt | Open Space game-over auto-prompts for a call sign only when rank ≤ 10 **on that style's board**. Manual **Submit Score** still opens the modal for any unfinished Open Space run. Crash keeps the world under the blast and crossfades Mission Failed; submit modal opens only after `gameOverAlpha >= 1`. No auto-focus. Idle: stacked distance → asteroids → rank above the call-sign field. Soft keyboard overlays (`Keyboard.resize: none`, Android `adjustNothing`); `@capacitor/keyboard` writes `game.softKeyboardHeight`. `getVisibleCanvasBounds` subtracts only real IME overlap (never a second keyboard-sized cut). `html.ss-ime-open` zeros body `padding-bottom` so `--safe-area-inset-bottom` cannot shrink `#gameContainer`. Opaque paper wash covers the full canvas. Keyboard-open sheet fills the remaining viewport: header + recap line + field + Submit docked above the IME. DOM input on `#gameContainer`, mapped from canvas to CSS every frame. Paint lives in `ui/screens/SubmitSignalModal.js`. Playtest `?signal=1` (sample stats) and `?kb=N` (fake IME height). Native iOS `SubmitScoreView` matches: compact header (no `ShellChrome.header`), same recap/field/Submit rhythm, keyboard height pads the sheet above the IME, `safeAreaPadding` clears the island. |
 
 ### Friends board (Game Center / Play Games)
@@ -405,6 +417,57 @@ GitHub ↔ Supabase (if connected) applies files under `supabase/migrations/` on
 branch deploys. It does not replace putting the publishable URL/key into the
 game build env. Journey progress and Open Space personal best stay in
 `localStorage` only.
+
+### October Challenge (`/swooshtober`)
+
+Static Vite page: `swooshtober/index.html`, `swooshtober/main.js`, `swooshtober/stars.js`, `swooshtober/swooshtober.css`, `swooshtober/death.png`. The Space Board list is loaded from Supabase, not from a screenshot. Built beside the game via `vite.config.js` `rollupOptions.input`, so Pages serves `https://spaceswoosh.app/swooshtober`.
+
+On desktop web, the left column of `index.html` promotes Swooshtober when that column is at least 240px wide and 380px tall: the title “Swooshtober”, the line “Finish October in 1st place on the Space Board and win $50”, a countdown to 31 October 2026 at 23:59 Europe/Bucharest (`2026-11-01T00:00:00` wall time), and a Learn more link to `/swooshtober`. Before 15 October the clock counts down to the open. After the close it reads Ended. The right column is the download push: night-paper App Store and Google Play cards, each with a white QR code when the column is wide enough to show it. A right column under 210px drops the codes and keeps the store names. Phone and native shells do not show either column.
+
+`stars.js` paints a fixed night-paper starfield (bone specks, a few ice glints, slow drift; a still field when reduced motion is on). It does not import the game. The Space Board on the page is live: the same Zigzag distance top 10 as Space Board page 1 (`high_scores`, `flight_style = 'zigzag'`, `score` descending, 10 rows). A refresh shows a new #1. The card is labeled Live. A handwritten signal-blue circle sits on that #1 badge, with an arc pointing right at “wins $50”. The page title is “Win $50 for ranking #1 on the Space Board”. How it works shows `death.png`, the Mission Failed screen, and tells the player to tap Publish Score or the run never reaches the Space Board.
+
+There is no entry form and no `swooshtober_entries` table. Taking part is an Open Space Zigzag distance submit during the window. A player who thinks they are ahead tags or messages one of the campaign accounts and says their call sign:
+
+- YouTube [https://www.youtube.com/@playspaceswoosh](https://www.youtube.com/@playspaceswoosh)
+- Instagram [https://www.instagram.com/spaceswoosh_app](https://www.instagram.com/spaceswoosh_app)
+- TikTok [https://www.tiktok.com/@spaceswoosh.app](https://www.tiktok.com/@spaceswoosh.app)
+- X [https://x.com/playspaceswoosh](https://x.com/playspaceswoosh)
+
+The game’s Journey epilogue still links [https://www.instagram.com/spaceswoosh.app](https://www.instagram.com/spaceswoosh.app). That link is not the campaign page.
+
+Under How it works, three cards open the browser game (`/`), Google Play, and the App Store. The iOS card uses `appStoreUrl()` from `StoreLinks.js`, same as the quiet App Store link.
+
+Prizes: #1 gets $50, sent via Revolut or similar. #2 unlocks any 2 ships for free. #3 unlocks any 1 ship for free. Anyone can play, from anywhere. A recording is not required. The list is Space Board, Distance tab, and only scores submitted from 15 October 2026 00:00 through 31 October 2026 23:59 Europe/Bucharest count. The result is announced on 1 November 2026. The leading score is checked before anyone is paid or granted a ship.
+
+The page banner uses the visitor’s clock formatted in `Europe/Bucharest` (15 Oct 2026 00:00 inclusive, 1 Nov 2026 00:00 exclusive). That banner does not decide the winner. Qualifying rows are `high_scores` with `flight_style = 'zigzag'` and a server `created_at` inside:
+
+```sql
+timestamp '2026-10-15 00:00:00' at time zone 'Europe/Bucharest'
+timestamp '2026-11-01 00:00:00' at time zone 'Europe/Bucharest'
+```
+
+When someone claims the lead, look up that call sign (case-insensitive) and the actual leader. Ties break on the earlier `created_at`. “Verified” on the board means the clock-rate check in `20261014133000_score_run_clock_rate.sql`, not a human review. Capture Studio runs are not flagged on `high_scores`. Call signs are not unique and are not accounts. The Open Space card personal best is device-local, undated, and includes runs that were never submitted.
+
+```sql
+-- Leading Zigzag distance scores submitted in the window.
+select player_name, score, created_at
+from public.high_scores
+where flight_style = 'zigzag'
+  and created_at >= (timestamp '2026-10-15 00:00:00' at time zone 'Europe/Bucharest')
+  and created_at <  (timestamp '2026-11-01 00:00:00' at time zone 'Europe/Bucharest')
+order by score desc, created_at asc;
+
+-- One claimed call sign.
+select player_name, score, created_at, ship_id, platform
+from public.high_scores
+where flight_style = 'zigzag'
+  and lower(btrim(player_name)) = lower('CALL SIGN')
+  and created_at >= (timestamp '2026-10-15 00:00:00' at time zone 'Europe/Bucharest')
+  and created_at <  (timestamp '2026-11-01 00:00:00' at time zone 'Europe/Bucharest')
+order by score desc, created_at asc;
+```
+
+After a claim checks out, set `PUBLISHED_WINNER` in `swooshtober/main.js` to `{ callSign, scoreKm }`. Leave it `null` until then. Do not put an email or a payment detail on the page.
 
 ## 3. Directory map (`src/`)
 
@@ -505,7 +568,7 @@ game build env. Journey progress and Open Space personal best stay in
 
 | Screen | Role |
 | --- | --- |
-| `menu` | Title, tagline, and Play / Space Log / Options / High Scores. Headphones hint is shared: web, Android, and Capacitor iOS use DOM `#hpHint` (56px below the safe-area padding, above the canvas). Native iOS uses `MenuHeadphonesHint` (56pt below the safe area). Signal-blue mark + `HEADPHONES RECOMMENDED` in ink 55. Fades in 400ms after 400ms, fades out 300ms when leaving the menu. Does not move the title or buttons. |
+| `menu` | Title, tagline, and Play / Space Log / Options / Space Board. Headphones hint is shared: web, Android, and Capacitor iOS use DOM `#hpHint` (56px below the safe-area padding, above the canvas). Native iOS uses `MenuHeadphonesHint` (56pt below the safe area). Signal-blue mark + `HEADPHONES RECOMMENDED` in ink 55. Fades in 400ms after 400ms, fades out 300ms when leaving the menu. Does not move the title or buttons. |
 | `modeSelect` | Play → Journey (first; Logbook unlocks) or Open Space. Cards are `cardH = min(unit×17, (area−gap)/2)` and vertically centered between header and footnote (iOS `RootView.modeSelect` matches the layout; iOS still uses the all-caps RECOMMENDED chip). Web Journey hint is sentence-case `Recommended` under the title via `setHintType` (Space Grotesk 300, 0.06em). Open Space keeps the ENDLESS corner label. Card blurbs rotate from CopyBank `modeJourney` / `modeOpenWorld` on each `goToModeSelect()`. Journey footer: level + stars. Open Space footer: per-style PBs from `OpenWorldProgress` (one style → `Personal best: X KM`; both → `Zigzag: A · Arc: B`; empty styles omitted). Journey card → lore if `!loreSeen`, else map. |
 | `lore` | One-time Signal Story brief; Continue marks `loreSeen`, unlocks Logbook `signalCall`, opens map |
 | `journeyMap` | Journey level select; scrollable chapter bands of level tiles |
@@ -517,7 +580,7 @@ game build env. Journey progress and Open Space personal best stay in
 | `highscores` | Space Board: 10 tall rows/page through the whole board, native phones Global/Friends (`#`/`F`) only (style is flown/saved, no Z/S chip), DISTANCE/OBSTACLES tabs, 🥇🥈🥉 for ranks 1–3, `PAGE n/m` arrows; Friends rows draw store avatars + YOU (Global stays `CallSign, Ship`); YOU shows the device Open Space PB when the store score is still 0; Submit Signal paperTint + page jump to the new Global row; menu defaults to Friends when that list has anyone; quiet ← Back → `highScoresReturnScreen` (`menu` or `gameover`). No inset gray screen frame. |
 | `hangar` | Last step before Open Space or a Journey day. Lore order from `navCues.json` (Saber is Hull 004). Layout is the 390×844 mock, scaled to fit: header 22+44, stage 372 (hint inside it), hairline, copy block 214, ruler 48, Launch 58 inset 16. The stage runs `Spacecraft.update()` — the same zigzag or arc step as a run — in a lane inset from the stage edges, and the camera only seats the hull, so the skin trail stays inside the stage. Ruler: owned ticks 2×16, locked hollow 4×11, unlisted hollow 4×7, current 3×30 signal, new hull a 5px dot, 12px gap before Merlin and Rook. Locked hulls stay in color; the bar shows the price or Locked and they cannot be equipped. Merlin and Rook are `Hull ??? / Unlisted`, drawn in color with their real wake, and do not equip. Launch on either keeps the last owned ship. Launch uses the centered owned hull, or the last equipped hull if the center is unlisted. The Hangar is not on the 30 Hz idle governor. |
 | `playing` | Active run; pause button visible; gameplay input enabled |
-| `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / High Scores / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission. After a successful Day 6 clear (native only), the enjoyment card layers on top; Later snoozes until Day 13. |
+| `gameover` | End of a run. Open Space: explosion → Mission Failed/Complete → Play Again / Submit / Space Board / Menu. Journey: a crash explodes the same way, a cleared level runs the flyout (below); either lands on the level-outcome screen (`ui/screens/LevelOutcomeScreen.js`) — no submission. After a successful Day 6 clear (native only), the enjoyment card layers on top; Later snoozes until Day 13. |
 
 Options navigation stacks: main menu → Options hub → sub-screen. Back from a
 sub-screen returns to the hub; Back from the hub returns to the main menu.
@@ -1367,8 +1430,10 @@ with a linear gradient along the wake's chord for the length-wise fade.
   whole page (not bone beige) and a beige `#E1D9C1` tunnel frame on
   `#gameContainer` so the playfield edge still reads. Desktop **web**
   (`html[data-web-gate=desktop]`, hover + fine pointer, viewport ≥769px)
-  fills viewport height with a 2:3 stage and cream/ink QR cards for the
-  App Store (left) and Google Play (right) in the leftover side columns.
+  fills viewport height with a 2:3 stage. The left column promotes
+  Swooshtober (title, prize line, countdown to 31 October 23:59
+  Bucharest). The right column pushes App Store and Google Play
+  downloads on night-paper cards, each with a white QR code.
   Phone and tablet browsers (`html[data-web-gate=play]`) boot the same
   canvas, full-bleed in portrait and 2:3 in landscape, and reserve a
   bottom bar (`--phone-store-bar`) that links the matching store

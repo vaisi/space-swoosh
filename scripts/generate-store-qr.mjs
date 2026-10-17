@@ -1,6 +1,6 @@
 // generate-store-qr.mjs
-// Changes: Writes cream/ink SVG QR codes for the desktop store rails from
-// StoreLinks.js. Run with `npm run assets:qr`.
+// Changes: Writes white-on-night-paper SVG QR codes for the dark desktop
+// store cards. Run with `npm run assets:qr`.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,8 +24,8 @@ async function writeQr(fileName, url) {
         width: 240,
         errorCorrectionLevel: 'M',
         color: {
-            dark: '#1A1A1A',
-            light: '#EAE4D2',
+            dark: '#FFFFFF',
+            light: '#1C1A16',
         },
     });
     const stamped = svg.replace(

@@ -1,7 +1,15 @@
-<!-- Changes: After Mission Failed the list shows two scores above you and
+<!-- Changes: The public Space Board hides every run from before
+     17 October 2026, 15:01 UTC. The desktop game calls it Swooshtober. 1st place on the
+     Space Board wins $50.
+     The title is “Win $50 for ranking #1 on the Space Board”.
+     #1 is $50 via Revolut or similar. #2 unlocks any 2 ships.
+     #3 unlocks any 1 ship.
+     The result is announced on 1 November 2026. Tag
+     @spaceswoosh_app, @playspaceswoosh, or @spaceswoosh.app.
+     After Mission Failed the list shows two scores above you and
      two below, and the rank beside the distance pops in once that list
      lands. On a phone the title, distance, list, and buttons are larger.
-     Android is 1.0.52. iPhone TestFlight build floor is 71
+     Android is 1.0.53. iPhone TestFlight build floor is 71
      (marketing 1.0.4). Meteor ghosts stay dashed; the iPhone build compiles them
      as a dashed path.
      The new obstacles and Ion are in the same build as the
@@ -58,7 +66,7 @@
      distance and call-sign card that stays centered above the keyboard.
      Friends shows the Game Center / Play Games photo already on
      that store profile, on the device only (Photos App Privacy stays off).
-     Android 1.0.52 / iPhone build 71 — no "Space…" title chip
+     Android 1.0.53 / iPhone build 71 — no "Space…" title chip
      (Android host header; iOS has no nav title and Now Playing is cleared).
      iPhone black holes match Android — solid well, soft shaded halo, thin
      pulsing ring (not a donut). iPhone wind dashes travel left or right
@@ -103,9 +111,9 @@
 > **iPhone / iPad:** The shipping App Store target is the **native** Space Swoosh
 > app. Dark Mode shows the same tiny drifting stars as Android behind the menus,
 > the Journey map, and the run. Light Mode stays flat cream. TestFlight menus use the same paper/ink framed chrome as Android (Space
-> Grotesk + Space Mono). Home is Play, Space Log, Options, and High Scores.
+> Grotesk + Space Mono). Home is Play, Space Log, Options, and Space Board.
 > Options is a hub (Ship, Controls, Sound, Light/Dark Mode, Rate, Restore). Play offers Journey
-> then Open Space on two tall, centered cards. High Scores
+> then Open Space on two tall, centered cards. Space Board
 > is the same online SPACE BOARD as Android (distance or obstacles for the
 > style you flew, plus a Global/Friends chip: Friends is Game Center on iPhone).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
@@ -145,7 +153,7 @@
 > build. Music and spoken NAV lines play only when those clips are in the
 > build. The **browser App Preview** is a video of the simulator — it often
 > has **no sound** and extra tap delay. Store prices and Restore Purchases
-> are in this iOS build (sandbox / TestFlight). High Scores / Submit Score use the same online board as Android.
+> are in this iOS build (sandbox / TestFlight). Space Board / Submit Score use the same online board as Android.
 >
 > **Journey opening:** The first time you pick Journey, a short Signal brief
 > appears (a torn message, pieces along the path, NAV guiding you back). Tap
@@ -316,12 +324,12 @@ a connection when it starts, and again when you send the score. If it started
 with no connection, the flight still finishes on this device, and Submit tells
 you it was not started online. Scores go to
 that style’s board only. The board shows your call sign and the ship you flew
-(`Name, Ship` and the score). After you send a signal, High Scores opens on
+(`Name, Ship` and the score). After you send a signal, Space Board opens on
 **Global** at your new row (tinted like the Friends YOU row) so you do not have
 to page for it.
 
-**High Scores** on the main menu opens the **Space Board** for the flight style
-you last used (Zigzag or Arc — change that under Options → Controls). Browse by
+**Space Board** on the main menu opens the board for the flight style
+you last used (Zigzag or Arc — change that under Options → Controls). The public list started over on 17 October 2026. Runs already on the board before that stay saved and do not show. The next run someone publishes is the new #1. Friends on Game Center or Play Games is a separate list and was not cleared. Browse by
 distance or obstacles smashed (up to 100 runs each, 10 per page). On the iPhone
 and Android apps a title-bar chip switches **Global** (public call signs) and
 **Friends** (people you know on Game Center or Play Games who also play). If you
@@ -381,7 +389,7 @@ The home screen is the title, the tagline, and four buttons. At the top, a small
 - **Play** — Journey, with a quiet Recommended hint under the title, then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
 - **Options** — Ship, Controls, Sound (Music / Sound FX / Voice), Light/Dark Mode, and Restore Purchases. On the phone apps, **Rate ★** sits in the title bar.
-- **High Scores** — open the Space Board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. Your YOU row shows the distance you actually flew (best Open Space KM on this device) even before the store board updates. After Submit Signal it stays on Global and jumps to your row. The board pages 10 scores at a time through every score on that list.
+- **Space Board** — the board for the style you fly (DISTANCE / OBSTACLES). Native iOS and Android share the same Global online board (call sign + ship). Phone apps also have a Global / Friends chip: Friends is Game Center on iPhone and Play Games on Android, with that store’s profile photo shown on the device only. If Friends has anyone, the board opens there. Your YOU row shows the distance you actually flew (best Open Space KM on this device) even before the store board updates. After Submit Signal it stays on Global and jumps to your row. The board pages 10 scores at a time through every score on that list.
 
 After a run, **Menu** on the end screen brings you back here.
 
@@ -470,7 +478,7 @@ Options opens a short list:
 | **Controls** | Flight style (Zigzag now; Arc shows as out of service until you finish the Journey). |
 | **Sound** | Separate toggles for **Music**, **Sound FX**, and **Voice** (saved automatically). |
 | **Light / Dark Mode** | Paper look (saved automatically). |
-| **Rate ★** | Phone apps only — title-bar chip, same style as Zigzag / Arc on High Scores. Opens the store’s rating sheet (or the store page if that sheet cannot appear). |
+| **Rate ★** | Phone apps only — title-bar chip, same style as Zigzag / Arc on Space Board. Opens the store’s rating sheet (or the store page if that sheet cannot appear). |
 | **Restore Purchases** | Re-sync ship unlocks after reinstall (iOS / Android). |
 
 Back from a sub-screen returns to the Options list; Back again returns to the
@@ -638,7 +646,7 @@ Pause and end screens still show full KM / sparkles / destroyed numbers.
 
 On a computer, the dark charcoal playfield sits centered on a light bone page so
 you can see its edges. On phones the charcoal stage fills the safe area (bone
-ink may show in the notch / home-indicator strips). Android **1.0.52** and iPhone (build **71**) do not show an
+ink may show in the notch / home-indicator strips). Android **1.0.53** and iPhone (build **71**) do not show an
 app-name chip or leftover icon above the stars — the run starts at the top of
 the stage. Turn the phone on its side
 and the stage stays a tall rectangle with charcoal on the left and right — the
@@ -738,6 +746,21 @@ The game is tuned for phones: on iPhone/iPad it uses lighter drawing tricks
 steering stays smooth — same frame pacing as Android. You don’t need to change
 any settings — just play. If a build ever feels off, the usual fix is to update
 the app or refresh the site.
+
+## October Challenge
+
+From 15 October 2026 at 00:00 through 31 October 2026 at 23:59, Bucharest time, the longest Open Space **Zigzag distance** you submit wins **$50**, sent via Revolut or similar. Second place unlocks **any 2 ships** for free. Third place unlocks **any 1 ship** for free. Anyone can play, from anywhere. Arc, obstacles, Journey, and older scores do not count. Any ship you can already fly is fine. Buying one does not help.
+
+The page title is “Win $50 for ranking #1 on the Space Board”. You play Open Space with Zigzag and go as far as you can. When you die, tap Publish Score. That is what logs the run on the Space Board, the Distance tab. The How it works section shows that death screen. Play Again does not log the run. The Space Board on the page is live. It is the Distance top 10 from the game, and a refresh shows whoever is #1 now. A handwritten circle marks that badge, and an arc points right at “wins $50”. Only a Zigzag distance published inside those dates counts for the prize. It closes at 23:59 on 31 October. The result is announced on 1 November.
+
+If you are ahead, tag me and say your call sign. I don’t need a recording. I check that score before I pay or unlock ships. #1 is paid by transfer, Revolut, or something similar.
+
+- Instagram [@spaceswoosh_app](https://www.instagram.com/spaceswoosh_app)
+- YouTube [@playspaceswoosh](https://www.youtube.com/@playspaceswoosh)
+- TikTok [@spaceswoosh.app](https://www.tiktok.com/@spaceswoosh.app)
+- X [@playspaceswoosh](https://x.com/playspaceswoosh)
+
+The page is [spaceswoosh.app/swooshtober](https://spaceswoosh.app/swooshtober). Under How it works, three cards open the browser game, Google Play, and the App Store. On a wide desktop browser, the left side of the game is titled “Swooshtober”. Under that: “Finish October in 1st place on the Space Board and win $50”. A countdown runs to the end of 31 October Bucharest time, and Learn more opens this page. The right side is where you download the app. The cards are dark, and the codes are white: one for the App Store, one for Google Play. A tight window hides the Swooshtober block.
 
 ## Tips
 

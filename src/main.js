@@ -2,8 +2,10 @@
 // Entry point: bootstraps the game.
 // Changes:
 // - Phone and tablet browsers boot the canvas. A bottom bar links the
-//   matching store (web_store_prompt / web_store_click). Desktop still
-//   boots with QR rails. Native boots with no store chrome.
+//   matching store (web_store_prompt / web_store_click). Desktop web
+//   promotes Swooshtober on the left and both store downloads on the
+//   right. The left clock counts down to 31 October 23:59 Bucharest.
+//   Native boots with no store chrome.
 // - Do not await RevenueCat / entitlements before the menu: the free roster
 //   plus ownedSkinIds cache is enough for the first hangar paint. A
 //   Play Billing hang must not pin the native splash.
@@ -54,6 +56,83 @@ function bindPhoneStoreBar() {
     });
 }
 
+const SWOOSH_OPENS = '2026-10-15T00:00:00';
+const SWOOSH_CLOSES = '2026-11-01T00:00:00';
+
+function bucharestOffsetMs(date) {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Bucharest',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23',
+    });
+    const parts = Object.fromEntries(fmt.formatToParts(date).map((part) => [part.type, part.value]));
+    const hour = parts.hour === '24' ? '00' : parts.hour;
+    const wallAsUtc = Date.UTC(
+        Number(parts.year),
+        Number(parts.month) - 1,
+        Number(parts.day),
+        Number(hour),
+        Number(parts.minute),
+        Number(parts.second),
+    );
+    return wallAsUtc - date.getTime();
+}
+
+/** UTC millis for a Europe/Bucharest wall time, `YYYY-MM-DDTHH:mm:ss`. */
+function bucharestInstant(wall) {
+    const [datePart, timePart] = wall.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute, second] = timePart.split(':').map(Number);
+    const wallAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+    let utc = wallAsUtc - bucharestOffsetMs(new Date(wallAsUtc));
+    utc = wallAsUtc - bucharestOffsetMs(new Date(utc));
+    return utc;
+}
+
+function startSwooshtoberClock() {
+    const clock = document.getElementById('swoosh-clock');
+    const when = document.getElementById('swoosh-when');
+    if (!clock || !when || document.documentElement.dataset.webGate !== 'desktop') return;
+
+    const units = {
+        d: clock.querySelector('[data-unit="d"]'),
+        h: clock.querySelector('[data-unit="h"]'),
+        m: clock.querySelector('[data-unit="m"]'),
+        s: clock.querySelector('[data-unit="s"]'),
+    };
+    const opens = bucharestInstant(SWOOSH_OPENS);
+    const closes = bucharestInstant(SWOOSH_CLOSES);
+    const pad = (value) => String(value).padStart(2, '0');
+
+    function paint() {
+        const now = Date.now();
+        if (now >= closes) {
+            when.textContent = 'Ended';
+            clock.hidden = true;
+            return true;
+        }
+        const target = now < opens ? opens : closes;
+        when.textContent = now < opens ? 'Starts in' : 'Ends in';
+        clock.hidden = false;
+        const total = Math.max(0, Math.floor((target - now) / 1000));
+        units.d.textContent = String(Math.floor(total / 86400));
+        units.h.textContent = pad(Math.floor((total % 86400) / 3600));
+        units.m.textContent = pad(Math.floor((total % 3600) / 60));
+        units.s.textContent = pad(total % 60);
+        return false;
+    }
+
+    if (paint()) return;
+    const timer = setInterval(() => {
+        if (paint()) clearInterval(timer);
+    }, 1000);
+}
+
 function applyStoreHrefs() {
     const ios = appStoreUrl();
     const play = PLAY_STORE_URL;
@@ -73,6 +152,7 @@ window.addEventListener('load', async () => {
     markDocumentShell();
     applyStoreHrefs();
     bindPhoneStoreBar();
+    startSwooshtoberClock();
 
     const splashFailsafe = setTimeout(() => {
         hideSplashScreen().catch(() => {});

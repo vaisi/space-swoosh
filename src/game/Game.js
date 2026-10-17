@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Home menu and the Open Space death screen call the board button
+//   Space Board. The screen behind it was already titled SPACE BOARD.
 // - Open Space death screen: phone-width type, rows, and buttons are larger,
 //   and leftover height sits between the strip and the buttons. Desktop type
 //   stays put; the strip is taller because it shows n−2 and n+2. The #N
@@ -123,7 +125,7 @@
 //   fast at first, then easing onto the real neighbors with no snap. A
 //   top-10 finish waits until that landing, then opens
 //   the call-sign sheet. The strip and buttons share one centered column.
-//   The skip mark sits under #1. High Scores and Menu share one button row. Publish
+//   The skip mark sits under #1. Space Board and Menu share one button row. Publish
 //   Score opens the call-sign sheet. A top-10 finish still auto-opens it
 //   once the end screen has settled.
 // - Open Space beginRun checks in with start_score_run and does not wait on
@@ -2123,7 +2125,7 @@ export class Game {
         );
         y += buttonHeight + buttonGap;
         this.menuButtons.highScores = this.drawBrandButton(
-            bx, y, buttonWidth, buttonHeight, 'High Scores', {
+            bx, y, buttonWidth, buttonHeight, 'Space Board', {
                 tag: '#', labelPx: menuLabelPx,
             }
         );
@@ -3478,7 +3480,7 @@ export class Game {
             ? Math.max(15, Math.min(unit * 1.55, 17))
             : Math.max(11, Math.min(unit * 1.15, 14));
         this.gameOverButtons.highScores = this.drawBrandButton(
-            bx, y, halfW, pairH, 'High Scores', { labelPx: pairLabel }
+            bx, y, halfW, pairH, 'Space Board', { labelPx: pairLabel }
         );
         this.gameOverButtons.menu = this.drawBrandButton(
             bx + halfW + pairGap, y, halfW, pairH, 'Menu', { labelPx: pairLabel }

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!-- swooshtober/index.html
+     Changes: How it works says Open Space Board, not High Scores. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12100E">
+  <meta name="description" content="Swooshtober. Win $50 for ranking #1 on the Space Board. Play Open Space with Zigzag and submit your distance from 15 through 31 October 2026. #2 unlocks 2 ships. #3 unlocks 1.">
+  <title>Swooshtober — Win $50 for #1 on the Space Board</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../src/brand/tokens.css">
+  <link rel="stylesheet" href="./swooshtober.css">
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <main class="page">
+    <p class="kicker">swooshtober</p>
+    <h1>Win $50 for ranking #1 on the Space Board</h1>
+    <p class="lede">Play Open Space with Zigzag and submit your distance under your call sign. The longest one sent from 15 through 31 October 2026 takes #1.</p>
+    <ul class="prizes">
+      <li>#1 $50 sent via Revolut or similar</li>
+      <li>#2 Unlock any 2 ships for free</li>
+      <li>#3 Unlock any ship for free.</li>
+    </ul>
+    <p class="meta">Open Space · Zigzag · 15–31 October</p>
+
+    <div class="actions">
+      <a class="ss-btn ss-btn--primary" href="/">
+        <span class="ss-btn__label">Play Space Swoosh</span>
+      </a>
+      <a class="how" href="#enter">How it works</a>
+    </div>
+    <p class="stores">
+      <a id="app-store" href="https://apps.apple.com/app/id6801885446">App Store</a>
+      ·
+      <a id="play-store" href="https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh">Google Play</a>
+    </p>
+
+    <p id="phase" class="phase">Open now. Send your score by 31 October 2026 at 23:59, Bucharest time.</p>
+
+    <figure class="board ss-frame" id="live-board">
+      <div class="liveboard">
+        <div class="liveboard__bar">
+          <p class="liveboard__title">Space Board</p>
+          <p class="liveboard__live">Live</p>
+        </div>
+        <p class="liveboard__metric">Distance</p>
+        <ol class="liveboard__rows" id="live-rows"></ol>
+        <p class="liveboard__page" id="live-page"></p>
+        <p class="liveboard__status" id="live-status">Loading the live board…</p>
+      </div>
+      <figcaption>This Space Board is live. Refresh the page and a new #1 shows up here.</figcaption>
+    </figure>
+
+    <section id="enter">
+      <h2>How it works</h2>
+      <p class="note">Play Space Swoosh in Open Space, and go as far as you can. The distance shows up when you die. It is not on the Space Board until you publish it.</p>
+      <figure class="board ss-frame">
+        <img src="./death.png" alt="The Mission Failed screen, with Publish Score under the distance. That button logs the run on the Space Board." width="460" height="1024">
+        <figcaption>When you die, tap Publish Score.</figcaption>
+      </figure>
+      <p class="note">Anyone can play, from anywhere. I don’t need a video of the run. If you’re ahead, tag me and tell me your call sign. I look the score up before I send the $50 or unlock any ships.</p>
+      <ol>
+        <li>Play Open Space and go as far as you can.</li>
+        <li>When you die, tap Publish Score. That logs the distance on the Space Board.</li>
+        <li>Play again if you want. Publish each run you want counted. I keep the best distance you published on those dates.</li>
+        <li>Open Space Board and stay on Distance. Only scores published inside the dates count.</li>
+        <li>If you’re ahead, tag me and say your call sign.</li>
+      </ol>
+      <p class="note">Tag me here and say your call sign.
+        <a href="https://www.instagram.com/spaceswoosh_app">Instagram @spaceswoosh_app</a>
+        ·
+        <a href="https://www.youtube.com/@playspaceswoosh">YouTube @playspaceswoosh</a>
+        ·
+        <a href="https://www.tiktok.com/@spaceswoosh.app">TikTok @spaceswoosh.app</a>
+        ·
+        <a href="https://x.com/playspaceswoosh">X @playspaceswoosh</a>
+      </p>
+    </section>
+
+    <section id="where">
+      <h2>Where to play Space Swoosh</h2>
+      <div class="where">
+        <a class="where__card" href="/">
+          <span class="where__kicker">Browser</span>
+          <span class="where__name">Play in the browser</span>
+          <span class="where__go">Open the game</span>
+        </a>
+        <a class="where__card" id="play-android" href="https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh">
+          <span class="where__kicker">Android</span>
+          <span class="where__name">Get it on Google Play</span>
+          <span class="where__go">Open Play Store</span>
+        </a>
+        <a class="where__card" id="play-ios" href="https://apps.apple.com/app/id6801885446">
+          <span class="where__kicker">iOS</span>
+          <span class="where__name">Get it on the App Store</span>
+          <span class="where__go">Open App Store</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="counts">
+      <h2>What counts</h2>
+      <p class="note">Three things, all of them. You played Open Space. You steered with Zigzag. You tapped Publish Score, so the distance is actually on the Space Board.</p>
+      <p class="note">Arc scores don’t count. Obstacle scores don’t count. Journey progress doesn’t count. A score sent before 15 October 2026 at 00:00, or after 31 October 2026 at 23:59, Bucharest time, doesn’t count either. That includes a big one already stuck on the board from before.</p>
+      <p class="note">Fly any ship you already have. Buying another one doesn’t move you up.</p>
+    </section>
+
+    <section id="prize">
+      <h2>Prizes</h2>
+      <p class="note">#1 gets $50, sent by Revolut or a similar transfer. #2 tells me any 2 ships to unlock, free. #3 tells me any 1 ship to unlock, free. I check the top score before I pay or unlock anything. The result goes up on 1 November 2026.</p>
+    </section>
+
+    <section id="faq">
+      <h2>Questions</h2>
+      <div class="faq">
+        <details>
+          <summary>Does it cost anything?</summary>
+          <p>No. You don’t pay to enter. A ship you bought doesn’t help you place. The free ships are the prize for #2 and #3, after I check the scores.</p>
+        </details>
+        <details>
+          <summary>Which mode and score count?</summary>
+          <p>Open Space, steered with Zigzag. I look at distance, the number on the Distance tab of the Space Board. Arc runs, obstacle scores, and Journey days don’t count.</p>
+        </details>
+        <details>
+          <summary>Can I try more than once?</summary>
+          <p>Yes. Fly as many as you want. Tap Publish Score on each run you want counted. I keep the highest Zigzag distance you published from 15 through 31 October 2026.</p>
+        </details>
+        <details>
+          <summary>Do old scores count?</summary>
+          <p>No. If it was submitted before 15 October 2026 at 00:00, or after 31 October 2026 at 23:59, Bucharest time, it doesn’t count. That includes scores already sitting on the board.</p>
+        </details>
+        <details>
+          <summary>Can I use different ships?</summary>
+          <p>Yes. Any ship you can already fly. Which one you pick doesn’t change who wins.</p>
+        </details>
+        <details>
+          <summary>Who can take part?</summary>
+          <p>Anyone, from anywhere.</p>
+        </details>
+        <details>
+          <summary>What happens in a tie?</summary>
+          <p>Same distance: the score that reached my server first wins. I use the time the server recorded, not who says they finished first.</p>
+        </details>
+        <details>
+          <summary>How do I know where I stand?</summary>
+          <p>Open Space Board in the game and stay on Distance. Your row is the distance you submitted. For the $50 I only count rows submitted from 15 October through 31 October, Bucharest time. An older score above you doesn’t take the prize.</p>
+        </details>
+        <details>
+          <summary>How will you check the winner?</summary>
+          <p>I look up the longest Zigzag distance that was actually submitted inside those dates. You don’t need to record the run. Bots, modified clients, made-up scores, and automated capture runs are out. If the person in front doesn’t check out, I look at the next score the same way.</p>
+        </details>
+        <details>
+          <summary>How does the winner get the prize?</summary>
+          <p>Tag me and say your call sign. If the score checks out, I send #1 $50 by Revolut or something similar. #2 and #3 tell me which ships to unlock. I announce it on 1 November 2026.</p>
+        </details>
+      </div>
+    </section>
+
+    <section id="rules">
+      <h2>Rules</h2>
+      <ul class="rules">
+        <li>#1 gets $50, sent by Revolut or a similar transfer.</li>
+        <li>#2 unlocks any 2 ships for free.</li>
+        <li>#3 unlocks any 1 ship for free.</li>
+        <li>Starts 15 October 2026 at 00:00, Bucharest time.</li>
+        <li>Ends 31 October 2026 at 23:59, Bucharest time. That last minute still counts.</li>
+        <li>A score submitted from 1 November 2026 at 00:00, Bucharest time, does not count.</li>
+        <li>Anyone can play, from anywhere.</li>
+        <li>Play Open Space.</li>
+        <li>Steer with Zigzag. Arc does not count.</li>
+        <li>The number that counts is distance. Obstacle scores do not count. Journey does not count.</li>
+        <li>You have to tap Publish Score during those dates. A run you never publish does not count.</li>
+        <li>Scores already on the board from before 15 October do not count.</li>
+        <li>Play as much as you want. Your best distance from those dates counts.</li>
+        <li>Any ship you can already fly is fine.</li>
+        <li>Space Board in the game, on the Distance tab, is the list. I still only count scores sent during the dates above.</li>
+        <li>I don’t need a recording of your run.</li>
+        <li>If two distances match, the one the server received first wins.</li>
+        <li>Play it yourself. Bots, modified clients, fake scores, and automated capture runs don’t count.</li>
+        <li>I check the leading score before I pay anyone or unlock ships.</li>
+        <li>If that score doesn’t hold up, I check the next one the same way.</li>
+        <li>I announce the result on 1 November 2026.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <a href="/">Play</a>
+      ·
+      <a href="https://www.instagram.com/spaceswoosh_app">Instagram</a>
+      ·
+      <a href="https://www.youtube.com/@playspaceswoosh">YouTube</a>
+      ·
+      <a href="https://www.tiktok.com/@spaceswoosh.app">TikTok</a>
+      ·
+      <a href="https://x.com/playspaceswoosh">X</a>
+      ·
+      <a href="/privacy.html">Privacy</a>
+    </footer>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
