@@ -525,7 +525,7 @@ After a claim checks out, set `PUBLISHED_WINNER` in `swooshtober/main.js` to `{ 
 | `ui/LivesChip.js` | Compact lives / ∞ + regen countdown. Hidden while `LIVES_ENABLED` is false. |
 | `game/LevelClearSequence.js` | The level-clear flyout: angled hyperspeed boost, fade world, fade screen in. L42 hands off to the written epilogue. |
 | `game/LevelIntroSequence.js` | Run-start intro (~1s): slow bottom roll + top star shower that eases out. |
-| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–41 voice (Day 42 skips intro text); holds belt until the story clip is done. |
+| `game/IntroNarration.js` | Post-fly-in title phase: chains intro beats + level 1–41 voice (Day 42 skips intro text). A Journey day already failed this page session skips the phase. Holds the belt until the story clip is done. |
 | `game/DebutCue.js` | Journey debut days only. `DEBUT_CUE_ENABLED` is false, so the obstacle appears with no extra sentence and no `debut-N.mp3`. When the flag is on: after the belt is open, the first time that day's obstacle overlaps the view, waits 700ms, then shows `DEBUT_LINES` and plays the clip. Once per run. Does not hold the opening. |
 | `utils/BrandDraw.js` | Paper, framed tiles/buttons, sparkle glyph. |
 | `utils/DepthField.js` | Wrapping depth sparkles after `drawPaper` on night paper only: bone specks + rare ice glints / tiny flares; cheap/LOD thins the field; `?kill=stars` skips it. Light Mode stays flat. |
@@ -776,7 +776,7 @@ the gate, fade **~1400 ms**, then a **~1.6 s** black hold, then `level-42.mp3` w
 its three captions, then a **3 s** black gap, then `epilogue-open.mp3` with the two open captions (Web Audio
 buffer, after `AudioContext.resume`; BGM stays running). Skip uses the same hold then `epilogue-skip.mp3` with **two caption
 beats** (one per phrase). Prompt placeholder
-is **Write it here.** Session cues:
+is **Write it here.** A crash or fuel-out stores that day on `Game.journeyFailedLevels` (web / Android, page session) and `JourneyIntroMemory` (iOS, process). The next start of that day — Retry, map, or Hangar — sets intro beats empty, so the fly-in hands off through the short wait and does not play the level clip. A clear, or leaving without failing, does not store the day. Nothing is written to disk. Session cues:
 `first-boop.mp3`, `swoosh-voice.mp3` (sources under `assets/voice/`).
 Launch lines are `nav_XX_ship_N.mp3` in `public/sounds/voice/` and `ios-native/SpaceSwoosh/Voice/`.
 
@@ -1023,7 +1023,7 @@ live; pause button and spawning stay off until chips):
 
 | Phase | What happens |
 | --- | --- |
-| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Journey levels **1–41** also play `playLevelVoice(level)` and duck BGM. Day 42 skips this phase (short wait, then chips). Phase ends only when **all beats** and the **voice clip** (if any) are done. No HUD, no pause. |
+| `title` | `IntroNarration`: one centre sentence at a time (fade ~350ms, hold by length, fade ~350ms, gap from beat `gapAfterMs` / default 400ms). Journey levels **1–41** also play `playLevelVoice(level)` and duck BGM. Day 42 skips this phase (short wait, then chips). A day already in `journeyFailedLevels` / `JourneyIntroMemory` also skips it. Phase ends only when **all beats** and the **voice clip** (if any) are done. No HUD, no pause. |
 | `wait` | Short calm beat when there is no intro line (e.g. Open Space). |
 | `chips` | Timed 1s fades: distance HUD → **pause last**. Icon-meter stack: route + ink goal bar (Journey) or route + KM (Open Space); sparkle + Signal fuel bar once collectibles are live; target + smash dots when `smashTarget ≤ 6`, or `destroyed / target` from day 14 (Open Space: small ink count) after first smash. |
 

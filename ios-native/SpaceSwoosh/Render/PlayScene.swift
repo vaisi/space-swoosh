@@ -1,5 +1,7 @@
 // PlayScene.swift
-// Changes: Open Space startRun asks GameSession to stamp the score clock
+// Changes: a Journey day already failed this process starts with empty
+// intro beats, so the fly-in hands off through introWait and never plays
+// the level voice. Open Space startRun asks GameSession to stamp the score clock
 // after reset, once the flight style is known. Journey and Hazard Lab do not.
 // each frame ticks the NAV launch-line clock. Dark mode paints
 // DepthField behind the hull (Android night paper).
@@ -62,6 +64,9 @@ final class PlayScene: SKScene {
             SettingsStore.shared.setFlightStyle(run.flightStyle)
         }
         run.profile = launch.profile
+        if case .journey(let level) = launch, JourneyIntroMemory.shouldSkip(level) {
+            run.profile.introBeats = []
+        }
         if launch == .openSpace {
             session?.beginScoreClock(style: run.flightStyle)
         }

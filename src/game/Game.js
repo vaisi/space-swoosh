@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - A Journey crash or fuel-out remembers that day for this page session.
+//   Later starts of the same day (Retry, map, or Hangar) skip navigator
+//   beats and level voice; the fly-in still plays, then the short wait.
 // - Home menu and the Open Space death screen call the board button
 //   Space Board. The screen behind it was already titled SPACE BOARD.
 // - Open Space death screen: phone-width type, rows, and buttons are larger,
@@ -469,6 +472,8 @@ export class Game {
         this.launchSessionPlayed = false;
         this.launchIsRetry = false;
         this.lastLaunchSkinId = null;
+        /** Journey days failed this page session. Later starts skip the intro line. */
+        this.journeyFailedLevels = new Set();
         /** Finger origin for a horizontal hangar swipe on `menu`. */
         this.menuSwipe = null;
         this.flightStyle = loadFlightStyle();
@@ -2792,8 +2797,11 @@ export class Game {
 
         // Defer navigator beats until the intro hands off the controls.
         // Day 42 speaks after the gate with the written ending, not at boot.
+        // A day already failed this session skips the line and starts after the fly-in.
         const skipFinaleIntro = this.isJourneyFinale();
-        const beats = skipFinaleIntro
+        const skipFailedIntro = mode === PLAY_MODE.journey
+            && this.journeyFailedLevels.has(this.journeyLevel);
+        const beats = (skipFinaleIntro || skipFailedIntro)
             ? null
             : (this.profile.introBeats
                 || (this.profile.introMessage ? [this.profile.introMessage] : null));
@@ -4009,6 +4017,9 @@ export class Game {
             if (this.playMode === PLAY_MODE.openWorld
                 || this.playMode === PLAY_MODE.journey) {
                 spendLife();
+            }
+            if (this.playMode === PLAY_MODE.journey) {
+                this.journeyFailedLevels.add(this.journeyLevel);
             }
 
             // Hide pause button

@@ -219,7 +219,9 @@ distances show. Styles you haven't tried don't appear.
 Deep space exploration starting from Day 1. **42 numbered days** (119 stars),
 each with a distance goal to reach. A calm navigator speaks at the start of each
 level (no chatter mid-flight). Words appear **one sentence at a time** so you can read
-along. The last day stays quiet until you pass the finish gate.
+along. If you crash or run out of fuel, the next tries of that same day — Retry,
+the map, or the Hangar — skip the navigator and start after the short fly-in,
+until you leave the app. A day you have not failed still speaks. The last day stays quiet until you pass the finish gate.
 
 **Levels 1–5 teach the basics**, in order:
 
@@ -345,7 +347,8 @@ account required.
 Every run — Journey or Open Space — opens with a short **intro**: the ship rolls
 up from the bottom into place while a light shower of stars at the top fades
 out. Then the navigator’s line (Journey) sits on screen sentence by sentence
-with voice and fades. On days 7, 10, 13, 16, 19, 23, 28, 33, and 36 the flight
+with voice and fades. After a crash or an empty tank, later tries of that day
+in the same visit skip that line. On days 7, 10, 13, 16, 19, 23, 28, 33, and 36 the flight
 starts after that story, and the new obstacle is in the run. No extra sentence
 is written or spoken for it yet. Open Space can add a short launch line for the ship you
 picked (`nav_XX_ship_N.mp3`), typed on screen as it is spoken. A Journey day that already has story

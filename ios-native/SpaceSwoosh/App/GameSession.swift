@@ -1,5 +1,7 @@
 // GameSession.swift
-// Changes: Open Space death keeps deathSlots for the neighborhood strip.
+// Changes: a Journey crash or fuel-out remembers that day for this process.
+// Later starts of the same day skip the navigator line (see PlayScene).
+// Open Space death keeps deathSlots for the neighborhood strip.
 // A top-10 Open Space finish still auto-opens the call-sign sheet.
 // Open Space start stores scoreRunTask from start_score_run.
 // reset() drops it so a new flight cannot submit on the previous ticket.
@@ -10,6 +12,20 @@
 import Foundation
 import Combine
 import CoreGraphics
+
+/// Journey days failed this process. Not written to disk. PlayContainerView
+/// is torn down between runs, so this has to outlive GameSession.
+enum JourneyIntroMemory {
+    private static var failedLevels = Set<Int>()
+
+    static func noteFailure(_ level: Int) {
+        failedLevels.insert(level)
+    }
+
+    static func shouldSkip(_ level: Int) -> Bool {
+        failedLevels.contains(level)
+    }
+}
 
 struct LevelOutcome: Equatable {
     var launch: PlayLaunch
@@ -152,6 +168,9 @@ final class GameSession: ObservableObject {
                 )
                 trackOpenSpaceEnd(run)
             } else {
+                if run.profile.mode == .journey, !run.completed {
+                    JourneyIntroMemory.noteFailure(run.profile.level)
+                }
                 outcome = makeOutcome(run: run)
                 showEpilogue = run.playEpilogue && run.completed
                 trackLevelEnd(run, outcome: outcome)
