@@ -2,6 +2,8 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Open Space ship lines speak once per hull per page session. Journey and
+//   Hazard Lab never play them, including a retry that skipped the day intro.
 // - A Journey crash or fuel-out remembers that day for this page session.
 //   Later starts of the same day (Retry, map, or Hangar) skip navigator
 //   beats and level voice; the fly-in still plays, then the short wait.
@@ -474,6 +476,8 @@ export class Game {
         this.lastLaunchSkinId = null;
         /** Journey days failed this page session. Later starts skip the intro line. */
         this.journeyFailedLevels = new Set();
+        /** Open Space hulls that already spoke a launch line this page session. */
+        this.launchShipsHeard = new Set();
         /** Finger origin for a horizontal hangar swipe on `menu`. */
         this.menuSwipe = null;
         this.flightStyle = loadFlightStyle();

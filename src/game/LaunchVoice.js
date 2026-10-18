@@ -1,12 +1,14 @@
 // LaunchVoice.js
 // Per-ship NAV line at round start, plus the subtitle clock from navCues.json.
 // Changes:
-// - Line pick: first eligible round and a ship change always speak; a crash
-//   retry speaks about 1 in 4 times; Journey story audio skips the line.
+// - Open Space only. Each ship speaks once per page session, then stays quiet
+//   on Play Again, a crash, or a return to that hull. Journey and Hazard Lab
+//   never arm a ship line.
 // - Subtitles type the display cues, hold 1.2s, then fade. Tags are never shown.
 
 import { hangarEntry } from '../config/HangarLore.js';
 import { color, font } from '../brand/tokens.js';
+import { PLAY_MODE } from '../modes/RunProfile.js';
 
 const LAST_KEY = 'navLastLineByShip';
 const HIDDEN_KEY = 'navHiddenLaunched';
@@ -14,7 +16,6 @@ const AUDIO_DELAY_S = 0.6;
 const FADE_IN_S = 0.15;
 const HOLD_S = 1.2;
 const FADE_OUT_S = 0.3;
-const RETRY_CHANCE = 0.25;
 
 function readJson(key) {
     try {
@@ -49,7 +50,7 @@ function markHiddenLaunched(skinId) {
     writeJson(HIDDEN_KEY, map);
 }
 
-function pickLine(skinId, { sessionFirst, shipChanged, retry }) {
+function pickLine(skinId) {
     const entry = hangarEntry(skinId);
     const lines = entry?.lines || [];
     if (lines.length === 0) return null;
@@ -60,10 +61,6 @@ function pickLine(skinId, { sessionFirst, shipChanged, retry }) {
         return lines[0];
     }
 
-    const always = sessionFirst || shipChanged;
-    if (!always && retry && Math.random() >= RETRY_CHANCE) return null;
-    if (!always && !retry) return null;
-
     const last = readJson(LAST_KEY)[skinId];
     const pool = lines.filter((line) => line.id !== last);
     const choice = (pool.length ? pool : lines)[Math.floor(Math.random() * (pool.length || lines.length))];
@@ -73,29 +70,23 @@ function pickLine(skinId, { sessionFirst, shipChanged, retry }) {
 }
 
 /**
- * Called when controls go live. Story rounds skip the launch line and do not
- * spend the session's first-round flag.
+ * Called when controls go live. Journey, Hazard Lab, and a ship already
+ * flown this page session stay silent.
  */
 export function armLaunchVoice(game, { story = false } = {}) {
     game.launchLine = null;
     game.launchArmAt = null;
     game.launchClock = null;
-    const skinId = game.shipSkinId;
-    if (story) {
-        game.launchIsRetry = false;
-        game.lastLaunchSkinId = skinId;
-        return;
-    }
-
-    const sessionFirst = !game.launchSessionPlayed;
-    const shipChanged = game.lastLaunchSkinId != null && game.lastLaunchSkinId !== skinId;
-    const retry = Boolean(game.launchIsRetry);
     game.launchIsRetry = false;
-    game.launchSessionPlayed = true;
-    game.lastLaunchSkinId = skinId;
+    if (story || game.playMode !== PLAY_MODE.openWorld) return;
 
-    const line = pickLine(skinId, { sessionFirst, shipChanged, retry });
+    const skinId = game.shipSkinId;
+    if (!game.launchShipsHeard) game.launchShipsHeard = new Set();
+    if (game.launchShipsHeard.has(skinId)) return;
+
+    const line = pickLine(skinId);
     if (!line) return;
+    game.launchShipsHeard.add(skinId);
     game.launchLine = line;
     game.launchArmAt = performance.now();
 }

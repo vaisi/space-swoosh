@@ -1,8 +1,9 @@
 // LaunchVoice.swift
 // NAV launch line and subtitle clock for Open Space. Journey story audio wins.
 // Changes:
-// - First eligible round and a ship change always speak. Crash retries speak
-//   about 1 in 4 times. Subtitles use the display cues, never the voice tags.
+// - Open Space only. Each ship speaks once per process, then stays quiet
+//   on Play Again, a crash, or a return to that hull. Journey and Hazard Lab
+//   pass story and never arm a line. Subtitles use the display cues.
 
 import Foundation
 import QuartzCore
@@ -17,13 +18,10 @@ final class LaunchVoice: ObservableObject {
     private var line: NavLine?
     private var armAt: TimeInterval?
     private var clock: TimeInterval?
-    private var sessionPlayed = false
-    private var lastSkin: SkinId?
-    private var retry = false
-    private let retryChance = 0.25
+    private var heard = Set<SkinId>()
 
     func markRetry() {
-        retry = true
+        // Kept so Play Again still compiles. Speech no longer depends on a retry.
     }
 
     func arm(skinId: SkinId, story: Bool) {
@@ -32,20 +30,9 @@ final class LaunchVoice: ObservableObject {
         clock = nil
         subtitle = ""
         opacity = 0
-        if story {
-            retry = false
-            lastSkin = skinId
-            return
-        }
-        let sessionFirst = !sessionPlayed
-        let shipChanged = lastSkin != nil && lastSkin != skinId
-        let isRetry = retry
-        retry = false
-        sessionPlayed = true
-        lastSkin = skinId
-        guard let picked = pick(skinId: skinId, sessionFirst: sessionFirst, shipChanged: shipChanged, retry: isRetry) else {
-            return
-        }
+        if story || heard.contains(skinId) { return }
+        guard let picked = pick(skinId: skinId) else { return }
+        heard.insert(skinId)
         line = picked
         armAt = CACurrentMediaTime()
     }
@@ -77,16 +64,13 @@ final class LaunchVoice: ObservableObject {
         if abs(opacity - alpha) > 0.02 { opacity = alpha }
     }
 
-    private func pick(skinId: SkinId, sessionFirst: Bool, shipChanged: Bool, retry: Bool) -> NavLine? {
+    private func pick(skinId: SkinId) -> NavLine? {
         guard let ship = HangarCatalog.entry(for: skinId), !ship.lines.isEmpty else { return nil }
         if ship.hidden && !hiddenLaunched(skinId) {
             markHidden(skinId)
             remember(skinId, ship.lines[0].id)
             return ship.lines[0]
         }
-        let always = sessionFirst || shipChanged
-        if !always && retry && Double.random(in: 0...1) >= retryChance { return nil }
-        if !always && !retry { return nil }
         let last = UserDefaults.standard.string(forKey: "navLastLine.\(skinId.rawValue)")
         let pool = ship.lines.filter { $0.id != last }
         let choice = (pool.isEmpty ? ship.lines : pool).randomElement()

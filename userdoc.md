@@ -48,7 +48,7 @@
      Play opens the Hangar before Open Space or a Journey day.
      The home screen shows your equipped ship and no longer swipes between hulls.
      A NEW ENTRY mark means an owned hull you have not looked at yet.
-     Open Space may speak a short launch line. Journey story days do not.
+     Open Space may speak a short launch line the first time you fly a ship in a visit. The same ship stays quiet after that. Journey and Hazard Lab do not speak a ship line.
      Play lists Journey with a quiet Recommended hint under the title.
      iPhone Dark Mode shows the same drifting stars as Android
      behind menus, the Journey map, and the run. Light Mode stays flat.
@@ -350,9 +350,8 @@ out. Then the navigator’s line (Journey) sits on screen sentence by sentence
 with voice and fades. After a crash or an empty tank, later tries of that day
 in the same visit skip that line. On days 7, 10, 13, 16, 19, 23, 28, 33, and 36 the flight
 starts after that story, and the new obstacle is in the run. No extra sentence
-is written or spoken for it yet. Open Space can add a short launch line for the ship you
-picked (`nav_XX_ship_N.mp3`), typed on screen as it is spoken. A Journey day that already has story
-audio skips that launch line. A moment later distance and pause ease in. Once sparkles
+is written or spoken for it yet. Open Space speaks a short launch line the first time you fly a ship in a visit
+(`nav_XX_ship_N.mp3`), typed on screen as it is spoken. Flying that ship again stays quiet until you leave the app. A different ship you have not flown yet still speaks. Journey and Hazard Lab never play a ship line. A moment later distance and pause ease in. Once sparkles
 can appear, a sparkle icon + blue fuel bar shows in the compact HUD; the smash
 row appears when you smash your first asteroid. The ship intro itself can't be skipped.
 
