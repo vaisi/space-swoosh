@@ -1,6 +1,9 @@
 // PlayContainerView.swift
-// Changes: Open Space game-over type, rows, and buttons are larger, and the
-// flexible space sits between the strip and the buttons. The ghost rank
+// Changes: Open Space death card content is inset by the safe area plus
+// 12pt, so the title clears the island and the buttons clear the home
+// indicator. The paper wash stays full-bleed. Type, rows, the rank gap,
+// and buttons are tighter; leftover height still sits between the strip
+// and the buttons. The ghost rank
 // stays hidden until the reel lands, then pops past full size and settles.
 // The strip shows two rows above YOU and two below. Ranks are a light #N.
 // YOU is the ship only, with no dashed outline.
@@ -9,7 +12,7 @@
 // neighbors with no snap. A top-10 finish waits for that
 // landing before Submit Signal. The strip and buttons share one centered
 // column. The skip mark sits under #1.
-// High Scores / Menu share one button row.
+// Space Board / Menu share one button row.
 // Top 10 still
 // auto-opens Submit Signal. Journey outcome
 // cards are unchanged. Submit Signal passes the score-clock task through.
@@ -150,7 +153,10 @@ struct PlayContainerView: View {
                         levelOutcomeCard(outcome)
                             .opacity(Double(session.overlayAlpha))
                     } else {
-                        gameOverCard
+                        gameOverCard(
+                            topInset: geo.safeAreaInsets.top,
+                            bottomInset: geo.safeAreaInsets.bottom
+                        )
                             .opacity(Double(session.overlayAlpha))
                     }
                 }
@@ -275,26 +281,25 @@ struct PlayContainerView: View {
         }
     }
 
-    private var gameOverCard: some View {
+    private func gameOverCard(topInset: CGFloat, bottomInset: CGFloat) -> some View {
         let youShip = SkinCatalog.def(settings.shipSkinId).name
         return ShellChrome.paperWash {
             VStack(spacing: 0) {
                 Text(session.failTitle)
-                    .font(BrandType.display(30))
-                    .tracking(BrandType.displayTracking(30))
+                    .font(BrandType.display(24))
+                    .tracking(BrandType.displayTracking(24))
                     .foregroundStyle(BrandColors.ink)
-                    .padding(.top, 28)
                 Text(session.failDetail)
-                    .font(BrandType.body(17))
+                    .font(BrandType.body(15))
                     .foregroundStyle(BrandColors.ink55)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 28)
-                    .padding(.top, 8)
-                    .padding(.bottom, 36)
+                    .padding(.horizontal, 8)
+                    .padding(.top, 6)
+                    .padding(.bottom, 14)
 
                 HStack(alignment: .top, spacing: 8) {
                     Text(ScoreService.formatScore(session.scoreKm))
-                        .font(BrandType.mono(76))
+                        .font(BrandType.mono(60))
                         .foregroundStyle(BrandColors.ink)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
@@ -304,9 +309,9 @@ struct PlayContainerView: View {
                                 ? (scale: CGFloat(1), opacity: 1.0)
                                 : rankPopMotion(at: context.date)
                             Text("#\(rank)")
-                                .font(BrandType.mono(22))
+                                .font(BrandType.mono(16))
                                 .foregroundStyle(BrandColors.signal.opacity(0.85))
-                                .padding(.top, 6)
+                                .padding(.top, 4)
                                 .scaleEffect(motion.scale, anchor: .leading)
                                 .opacity(motion.opacity)
                         }
@@ -317,21 +322,21 @@ struct PlayContainerView: View {
                     deathStat(ScoreService.formatScore(session.destroyed), "destroyed")
                     deathStat(ScoreService.formatScore(session.sparkles), "sparkles")
                 }
-                .padding(.top, 22)
-                .padding(.bottom, 8)
+                .padding(.top, 10)
+                .padding(.bottom, 4)
 
                 if !session.deathSlots.isEmpty {
                     ShellChrome.divider()
-                        .padding(.top, 28)
+                        .padding(.top, 10)
                     deathNeighborhood(youShip: youShip)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 4)
                     ShellChrome.divider()
                 }
 
-                Spacer(minLength: session.deathSlots.isEmpty ? 24 : 36)
+                Spacer(minLength: 16)
 
-                VStack(spacing: 12) {
-                    ShellChrome.brandButton("Play Again", primary: true, verticalPad: 22) {
+                VStack(spacing: 8) {
+                    ShellChrome.brandButton("Play Again", primary: true, labelSize: 15, verticalPad: 14) {
                         replay(currentLaunch)
                     }
                     if !session.scoreSubmitted {
@@ -339,7 +344,8 @@ struct PlayContainerView: View {
                             "Publish Score",
                             signal: true,
                             signalLabel: true,
-                            verticalPad: 22
+                            labelSize: 15,
+                            verticalPad: 14
                         ) {
                             showSubmit = true
                         }
@@ -348,28 +354,29 @@ struct PlayContainerView: View {
                 .padding(.top, 8)
 
                 HStack(spacing: 10) {
-                    ShellChrome.brandButton("High Scores", labelSize: 17, verticalPad: 20) {
+                    ShellChrome.brandButton("Space Board", labelSize: 14, verticalPad: 12) {
                         boardOpen = SpaceBoardOpen()
                         showHighScores = true
                     }
-                    ShellChrome.brandButton("Menu", labelSize: 17, verticalPad: 20, action: onMenu)
+                    ShellChrome.brandButton("Menu", labelSize: 14, verticalPad: 12, action: onMenu)
                 }
-                .padding(.top, 12)
-                .padding(.bottom, 28)
+                .padding(.top, 8)
             }
+            .padding(.top, topInset + 12)
+            .padding(.bottom, bottomInset + 12)
             .frame(maxWidth: 360)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 28)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, 24)
         }
     }
 
     private func deathStat(_ value: String, _ label: String) -> some View {
         HStack(spacing: 4) {
             Text(value)
-                .font(BrandType.mono(16))
+                .font(BrandType.mono(14))
                 .foregroundStyle(BrandColors.ink)
             Text(label)
-                .font(BrandType.body(16))
+                .font(BrandType.body(14))
                 .foregroundStyle(BrandColors.ink55)
         }
     }
@@ -407,14 +414,14 @@ struct PlayContainerView: View {
                 if slot.gap {
                     HStack {
                         Text("...")
-                            .font(BrandType.mono(15, bold: false))
+                            .font(BrandType.mono(12, bold: false))
                             .foregroundStyle(BrandColors.ink55)
                             .tracking(3)
                             .frame(width: 52, alignment: .leading)
                         Spacer(minLength: 0)
                     }
                     .padding(.leading, 4)
-                    .padding(.vertical, 8)
+                    .frame(height: 18)
                 } else {
                     deathStripRow(slot, youShip: youShip)
                 }
@@ -465,7 +472,7 @@ struct PlayContainerView: View {
     private static let reelRows = 14.0
     private static let reelDuration = 1.4
     private static let rankPopDuration = 0.32
-    private static let deathRowH: CGFloat = 46
+    private static let deathRowH: CGFloat = 36
 
     /// One overshoot: 0 → 1.22, then deflate to 1. Opacity is full by the first third.
     private func rankPopMotion(at now: Date) -> (scale: CGFloat, opacity: Double) {
@@ -563,20 +570,20 @@ struct PlayContainerView: View {
         let joke = jokes[(index - 1) % jokes.count]
         return HStack(spacing: 8) {
             Text("#\(rank)")
-                .font(BrandType.mono(16, bold: false))
+                .font(BrandType.mono(14, bold: false))
                 .foregroundStyle(BrandColors.ink55)
                 .frame(width: 52, alignment: .leading)
             Text(joke.0)
-                .font(BrandType.ui(16))
+                .font(BrandType.ui(14))
                 .foregroundStyle(BrandColors.ink)
                 .lineLimit(1)
             Text(joke.1.uppercased())
-                .font(BrandType.ui(15))
+                .font(BrandType.ui(12))
                 .foregroundStyle(BrandColors.ink55)
                 .lineLimit(1)
             Spacer(minLength: 6)
             Text(ScoreService.formatScore(joke.2))
-                .font(BrandType.mono(16))
+                .font(BrandType.mono(14))
                 .foregroundStyle(BrandColors.ink)
                 .layoutPriority(1)
         }
@@ -589,28 +596,28 @@ struct PlayContainerView: View {
         let score = slot.you ? session.scoreKm : slot.score
         return HStack(spacing: 8) {
             Text("#\(slot.rank)")
-                .font(BrandType.mono(16, bold: false))
+                .font(BrandType.mono(14, bold: false))
                 .foregroundStyle(slot.you ? BrandColors.signal : BrandColors.ink55)
                 .frame(width: 52, alignment: .leading)
             if slot.you {
                 Text("YOU")
-                    .font(BrandType.ui(16))
+                    .font(BrandType.ui(14))
                     .foregroundStyle(BrandColors.signal)
             } else {
                 Text(slot.name)
-                    .font(BrandType.ui(16))
+                    .font(BrandType.ui(14))
                     .foregroundStyle(BrandColors.ink)
                     .lineLimit(1)
             }
             if let ship, !ship.isEmpty {
                 Text(ship.uppercased())
-                    .font(BrandType.ui(15))
+                    .font(BrandType.ui(12))
                     .foregroundStyle(BrandColors.ink55)
                     .lineLimit(1)
             }
             Spacer(minLength: 6)
             Text(ScoreService.formatScore(score))
-                .font(BrandType.mono(16))
+                .font(BrandType.mono(14))
                 .foregroundStyle(slot.you ? BrandColors.signal : BrandColors.ink)
                 .layoutPriority(1)
         }
