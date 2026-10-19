@@ -1,22 +1,23 @@
 // generate-brand-assets.mjs
 // Generates the app icon / splash source art for @capacitor/assets + web favicons.
 // Changes:
-// - App icon outputs now come from assets/store/app-icon-512.png (upscaled to
-//   1024); splash still uses the brand reticle on paper/ink grounds.
-// - Created file: the project had no icon of any kind (index.html referenced a
-//   favicon.ico and apple-touch-icon.png that did not exist) and the stores
-//   require a full set. Rather than commit opaque binaries, the art is derived
-//   from src/brand/tokens.js so it can never drift from the palette, and the
-//   reticle here is the same glyph utils/BrandDraw.js#drawReticle paints in game.
+// - App icon master is assets/store/app-icon-master.png (the square ship,
+//   signal ring, and edge wake). Fan-out writes the 1024 launcher sources,
+//   the 512 Play icon, and the web favicons. Legacy ic_launcher.png files
+//   are full-bleed (capacitor-assets pads them; --legacy-only puts the art
+//   back). Splash stays the brand reticle.
 //
 // Outputs (source art only — @capacitor/assets fans these out per platform):
 //   assets/icon.png              1024  full-bleed, for iOS + legacy Android
-//   assets/icon-foreground.png   1024  Android adaptive foreground (safe zone)
+//   assets/icon-foreground.png   1024  Android adaptive foreground
 //   assets/icon-background.png   1024  Android adaptive background (flat paper)
+//   assets/store/app-icon-512.png 512  Play Console listing icon
 //   assets/splash.png            2732  light splash
 //   assets/splash-dark.png       2732  dark splash (ink ground, paper glyph)
 //   public/favicon.ico            48   web
 //   public/apple-touch-icon.png  180   web
+//   public/icon-192.png          192   web
+//   public/icon-512.png          512   web
 //
 // Run: npm run assets:generate
 
@@ -28,7 +29,7 @@ import sharp from 'sharp';
 import { color } from '../src/brand/tokens.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const STORE_ICON = resolve(root, 'assets/store/app-icon-512.png');
+const STORE_ICON = resolve(root, 'assets/store/app-icon-master.png');
 
 // --- The reticle, as SVG (splash only) ---------------------------------------
 // Mirrors drawReticle(): a ring, four ticks running from r*0.5 out to r*1.35,
@@ -81,14 +82,39 @@ async function writePng(pipeline, out) {
     console.log('  ✓', out);
 }
 
+const LEGACY_LAUNCHER = [
+    ['ldpi', 36],
+    ['mdpi', 48],
+    ['hdpi', 72],
+    ['xhdpi', 96],
+    ['xxhdpi', 144],
+    ['xxxhdpi', 192],
+];
+
+/** Full-bleed legacy icons. capacitor-assets insets these 8px; this undoes that. */
+async function writeLegacyLaunchers(icon1024) {
+    const res = resolve(root, 'android/app/src/main/res');
+    await Promise.all(LEGACY_LAUNCHER.map(async ([density, size]) => {
+        const out = resolve(res, `mipmap-${density}/ic_launcher.png`);
+        await sharp(icon1024).resize(size, size).png().toFile(out);
+        console.log('  ✓', `android mipmap-${density}/ic_launcher.png`);
+    }));
+}
+
 async function main() {
+    if (process.argv.includes('--legacy-only')) {
+        const icon1024 = await sharp(resolve(root, 'assets/icon.png')).png().toBuffer();
+        await writeLegacyLaunchers(icon1024);
+        return;
+    }
+
     mkdirSync(resolve(root, 'assets'), { recursive: true });
     mkdirSync(resolve(root, 'public'), { recursive: true });
 
     console.log('Generating brand assets…');
-    console.log('  icon source:', 'assets/store/app-icon-512.png');
+    console.log('  icon source:', 'assets/store/app-icon-master.png');
 
-    // Full-bleed 1024 master from the store art (capacitor-assets fans this out).
+    // Full-bleed 1024 master (capacitor-assets fans this out).
     const icon1024 = await sharp(STORE_ICON)
         .resize(1024, 1024, { fit: 'fill' })
         .png()
@@ -123,6 +149,7 @@ async function main() {
         pngFromSvg(background, 'assets/icon-background.png', 1024),
         pngFromSvg(splash, 'assets/splash.png', 2732),
         pngFromSvg(splashDark, 'assets/splash-dark.png', 2732),
+        writePng(sharp(icon1024).resize(512, 512), 'assets/store/app-icon-512.png'),
         writePng(sharp(icon1024).resize(180, 180), 'public/apple-touch-icon.png'),
         writePng(sharp(icon1024).resize(192, 192), 'public/icon-192.png'),
         writePng(sharp(icon1024).resize(512, 512), 'public/icon-512.png'),
@@ -133,6 +160,8 @@ async function main() {
     const favicon = await sharp(icon1024).resize(48, 48).png().toBuffer();
     writeFileSync(resolve(root, 'public/favicon.ico'), favicon);
     console.log('  ✓ public/favicon.ico');
+
+    await writeLegacyLaunchers(icon1024);
 
     console.log('Done.');
 }

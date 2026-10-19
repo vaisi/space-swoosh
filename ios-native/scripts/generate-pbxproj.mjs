@@ -1,5 +1,5 @@
 // generate-pbxproj.mjs
-// Changes: CURRENT_PROJECT_VERSION 71 (above the failed archive that stamped 70).
+// Changes: CURRENT_PROJECT_VERSION 72 (above the previous floor of 71).
 // MARKETING_VERSION is 1.0.5. ASC approved 1.0.4 and closed that train. Packs nav_*.mp3, Game Center, RevenueCat, Firebase.
 // Run: node scripts/generate-pbxproj.mjs
 
@@ -365,7 +365,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SpaceSwoosh/SpaceSwoosh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 71;
+				CURRENT_PROJECT_VERSION = 72;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -395,7 +395,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = SpaceSwoosh/SpaceSwoosh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 71;
+				CURRENT_PROJECT_VERSION = 72;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;

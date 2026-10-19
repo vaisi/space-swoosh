@@ -8,9 +8,9 @@
 # - Stamp CFBundleVersion via CM_ENV + xcodebuild (agvtool alone left IPA at 1).
 # - Inject VITE_SUPABASE_* and VITE_REVENUECAT_IOS_KEY into native Info.plist.
 #   APP_STORE_APPLE_ID is also copied for Options → Rate write-review URL.
-# - Floor build number at 71 (failed archive already stamped 70).
+# - Floor build number at 72 (previous floor was 71).
 # - Marketing version 1.0.5 — ASC approved 1.0.4 and closed that train (90062 / 90186).
-# - Android Play default is versionCode 53 / versionName 1.0.53.
+# - Android Play default is versionCode 54 / versionName 1.0.54.
 # - Require CERTIFICATE_PRIVATE_KEY for fetch-signing-files. Native → TestFlight.
 
 workflows:
@@ -101,8 +101,8 @@ workflows:
           if [ "$AS" -gt "$NEXT" ]; then NEXT=$AS; fi
           if [ "$CM" -gt "$NEXT" ]; then NEXT=$CM; fi
           NEXT=$((NEXT + 1))
-          # Failed archive already consumed stamp 70. Never reuse it.
-          if [ "$NEXT" -lt 71 ]; then NEXT=71; fi
+          # Previous floor was 71. Never reuse it.
+          if [ "$NEXT" -lt 72 ]; then NEXT=72; fi
           echo "Build numbers — TestFlight=$TF AppStore=$AS Codemagic=$CM → using $NEXT"
           echo "NATIVE_BUILD_NUMBER=$NEXT" >> "$CM_ENV"
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios-native/SpaceSwoosh/Info.plist
@@ -143,7 +143,7 @@ workflows:
         script: |
           set -euo pipefail
           EXPORT_PLIST=/Users/builder/export_options.plist
-          : "${NATIVE_BUILD_NUMBER:=71}"
+          : "${NATIVE_BUILD_NUMBER:=72}"
           XCARGS="CURRENT_PROJECT_VERSION=${NATIVE_BUILD_NUMBER} MARKETING_VERSION=${MARKETING_VERSION}"
           dump_xcode_logs() {
             echo "=== xcodebuild log tail ==="

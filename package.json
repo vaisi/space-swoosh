@@ -11,7 +11,7 @@
     "assets:qr": "node scripts/generate-store-qr.mjs",
     "assets:generate": "node scripts/generate-brand-assets.mjs",
     "assets:iap": "node scripts/generate-iap-icons.mjs",
-    "assets:sync": "npm run assets:generate && capacitor-assets generate --iconBackgroundColor \"#E1D9C1\" --iconBackgroundColorDark \"#1A1A1A\" --splashBackgroundColor \"#E1D9C1\" --splashBackgroundColorDark \"#1A1A1A\"",
+    "assets:sync": "npm run assets:generate && capacitor-assets generate --iconBackgroundColor \"#1C1A16\" --iconBackgroundColorDark \"#1C1A16\" --splashBackgroundColor \"#E1D9C1\" --splashBackgroundColorDark \"#1A1A1A\" && node scripts/generate-brand-assets.mjs --legacy-only",
     "build:native": "vite build && cap sync",
     "sync": "cap sync",
     "open:android": "cap open android",

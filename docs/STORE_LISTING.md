@@ -59,7 +59,7 @@ From a device or simulator, portrait:
 | --- | --- |
 | iPhone | 6.9" (e.g. 1320×2868) — required |
 | Android phone | at least one 16:9 or taller portrait |
-| App icon | `assets/store/app-icon-512.png` → `npm run assets:sync` |
+| App icon | `assets/store/app-icon-master.png` → `npm run assets:sync` (Play 512 lands at `assets/store/app-icon-512.png`) |
 | Play feature graphic | 1024×500 — `assets/store/feature-graphic-1024x500.png` |
 
 Tip: after `npm run build:native`, run on the Pixel and take system screenshots; for iOS use TestFlight once Codemagic delivers a build.
