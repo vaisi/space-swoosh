@@ -1,4 +1,7 @@
-<!-- Changes: The public Space Board hides every run from before
+<!-- Changes: You pick a Journey ship once per visit. Next Level, Level
+     Select, and Exit Run keep that ship until you open the main menu.
+     Open Space still asks every time.
+     The public Space Board hides every run from before
      17 October 2026, 15:01 UTC. The desktop game calls it Swooshtober. 1st place on the
      Space Board wins $50.
      The title is “Win $50 for ranking #1 on the Space Board”.
@@ -45,7 +48,7 @@
      pictures, and Hazard Lab tile. No extra sentence or voice plays for a
      first meeting. A Mac still needs to fly them once to confirm.
      Open Space launch lines are named nav_XX_ship_N.mp3.
-     Play opens the Hangar before Open Space or a Journey day.
+     Play opens the Hangar before Open Space, and before the first Journey day of a visit. Later Journey days keep that ship until the main menu.
      The home screen shows your equipped ship and no longer swipes between hulls.
      A NEW ENTRY mark means an owned hull you have not looked at yet.
      Open Space may speak a short launch line the first time you fly a ship in a visit. The same ship stays quiet after that. Journey and Hazard Lab do not speak a ship line.
@@ -118,7 +121,7 @@
 > style you flew, plus a Global/Friends chip: Friends is Game Center on iPhone).
 > A top-10 Open Space run prompts for a call sign; otherwise tap Submit Score.
 > Your equipped ship idles on the home screen. Choosing a hull happens in the
-> Hangar after you tap Play, then Open Space or a Journey day. Options → Ship
+> Hangar after you tap Play, then Open Space, or the first Journey day of a visit. Later days keep that ship until Menu. Options → Ship
 > is still the purchase grid; your choice is saved. The
 > whimsical ships (Lantern through Chime) show their colors on the hangar tile,
 > not a plain ink blob. **Halo**’s ring ticks, **Orbit**’s Spine bar, and
@@ -386,7 +389,7 @@ screens do the same with their own lines.
 
 The home screen is the title, the tagline, and four buttons. At the top, a small blue headphone mark and the words HEADPHONES RECOMMENDED sit on the starfield. Choosing a hull happens in the Hangar.
 
-**Hangar.** After Play, choose Open Space or a Journey day. The screen titles itself from that mode, over "The Hangar", and the corner counts how many hulls you own out of the 39 on file. The ship sits in a short stage and flies the same way it does in a run: it turns, and the wake follows. A line separates that stage from the writing. Tap the hull to flip its turn. The hint under the ship says tap to test and swipe to browse, with arrows on either side. Swipe, tap an arrow, or drag the ruler to move through the fleet. The ruler is a row of ticks: the hull you are on is the tall blue mark, a new hull you own shows a dot, and the two unlisted hulls sit after a small gap. Under the line is the hull number and how it was filed, then the name and the archive sentence, with space before the ruler. **Launch** is the wide cream bar: the word on the left, the ship name on the right. It starts the run with the ship in the center. A locked hull is drawn in its real colors, and the bar shows its price or Locked. Two unlisted hulls at the end of the ruler are shown in their real colors, flying like the others, and cannot be equipped. Launch on either keeps the ship you already own. On a local page, add `?anyship=1` and every hull, including those two, launches. Take the parameter off and they lock again. It does not stay saved. Crash retry skips the Hangar. The next Journey day goes through it. Options → Ship stays the purchase grid; each card keeps its description even while locked, with the price on the tile.
+**Hangar.** After Play, choose Open Space or a Journey day. The screen titles itself from that mode, over "The Hangar", and the corner counts how many hulls you own out of the 39 on file. The ship sits in a short stage and flies the same way it does in a run: it turns, and the wake follows. A line separates that stage from the writing. Tap the hull to flip its turn. The hint under the ship says tap to test and swipe to browse, with arrows on either side. Swipe, tap an arrow, or drag the ruler to move through the fleet. The ruler is a row of ticks: the hull you are on is the tall blue mark, a new hull you own shows a dot, and the two unlisted hulls sit after a small gap. Under the line is the hull number and how it was filed, then the name and the archive sentence, with space before the ruler. **Launch** is the wide cream bar: the word on the left, the ship name on the right. It starts the run with the ship in the center. A locked hull is drawn in its real colors, and the bar shows its price or Locked. Two unlisted hulls at the end of the ruler are shown in their real colors, flying like the others, and cannot be equipped. Launch on either keeps the ship you already own. On a local page, add `?anyship=1` and every hull, including those two, launches. Take the parameter off and they lock again. It does not stay saved. Crash retry skips the Hangar. After you launch a Journey day, Next Level, Level Select, and Exit Run keep that ship until you open the main menu. Options → Ship stays the purchase grid; each card keeps its description even while locked, with the price on the tile.
 
 - **Play** — Journey, with a quiet Recommended hint under the title, then Open Space. The two cards sit in the middle of the screen and match Android’s taller height.
 - **Space Log** — your science journal of things you've seen and touched in Journey.
@@ -469,6 +472,9 @@ outline means missed, and **NEW** marks one you've just added. **Retry** (or
 **Next Level** when you cleared it) is the full-width button; **Level Select** and
 **Menu** sit side by side under it. After a clear that isn't the last level,
 **Replay** pairs with **Level Select**, and **Menu** sits on its own row.
+**Next Level** starts the next day with the ship you already launched. Picking
+another day from the map, or leaving with Exit Run and coming back, does the
+same until you open the main menu.
 
 ## Options
 

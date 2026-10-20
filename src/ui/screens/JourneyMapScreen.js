@@ -4,13 +4,14 @@
 // level locked. The list is taller than the screen, so it scrolls (wheel or
 // drag — Game owns the gesture and hands us the offset).
 // Changes:
+// - A Journey day opens the Hangar only until Launch this visit. After that,
+//   a map tile starts the day with the hull already chosen. Hazard Lab still
+//   starts directly. Lives chip in the header (hidden while LIVES_ENABLED is false).
 // - Playtest branch: SHOW_HAZARD_LAB = true pins the LAB tile so the remaining
 //   candidate obstacles can be flown in the browser. Journey days are unchanged.
 // - Header no longer draws a TEST chip when UNLOCK_ALL_LEVELS / ?unlocklevels=1
 //   is on; tiles still unlock for playtest. Saved journeyProgress.unlocked is
 //   unchanged.
-// - A Journey day opens the Hangar. Hazard Lab still starts directly.
-//   Lives chip in the header (hidden while LIVES_ENABLED is false).
 // - Dropped chapter blurb lines under headings (clutter + story spoilers);
 //   keep name + level range only.
 // - Hazard Lab tile (when SHOW_HAZARD_LAB) pins above Troposphere; sandbox
@@ -320,7 +321,7 @@ export function handleJourneyMapClick(game, x, y) {
         if (tile.hazardLab) {
             game.beginHazardLab();
         } else {
-            game.openHangar({ mode: 'journey', level: tile.level, returnScreen: 'journeyMap' });
+            game.startJourneyDay(tile.level);
         }
         return true;
     }

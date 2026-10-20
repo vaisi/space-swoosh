@@ -3,6 +3,7 @@
 // (endless run + leaderboard). Two description cards rather than two bare
 // buttons, because the difference between the modes needs one line to explain.
 // Changes:
+// - Back to the title menu clears the Journey ship choice for this visit.
 // - Lives chip in the header (hidden while LIVES_ENABLED is false).
 // - Open Space opens the Hangar, then the existing lives gate.
 // - Open Space footer uses per-style personal bests: one style keeps
@@ -170,6 +171,7 @@ export function handleModeSelectClick(game, x, y) {
     if (!buttons) return false;
 
     if (game.isClickInButton(x, y, buttons.back)) {
+        game.journeyShipPicked = false;
         game.appScreen = 'menu';
         return true;
     }

@@ -5,8 +5,10 @@
 // not move the title or buttons. Home menu is title, tagline, and the
 // four buttons. No idle ship. Dark mode lays Android's drifting depth
 // field under every shell screen (menu, Journey map, log). Light Mode
-// stays flat paper. Home shows the equipped hull idling. Open Space and
-// Journey days open the Hangar; crash retry and Hazard Lab stay direct.
+// stays flat paper. Home shows the equipped hull idling. Open Space opens
+// the Hangar every time. A Journey day opens it once per visit; later days
+// reuse that hull until Menu or the title screen. Crash retry and Hazard
+// Lab stay direct.
 
 import SwiftUI
 
@@ -37,6 +39,8 @@ struct RootView: View {
     @State private var openBlurb = CopyBank.pick(.modeOpenWorld)
     @State private var hpHintShown = false
     @State private var hpHintToken = 0
+    /// Journey hull already launched this visit. Cleared on Menu or the title.
+    @State private var journeyShipPicked = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -68,6 +72,7 @@ struct RootView: View {
                     },
                     onLaunch: { next in
                         launch = next
+                        if case .journey = next { journeyShipPicked = true }
                         screen = .play
                     }
                 )
@@ -89,6 +94,8 @@ struct RootView: View {
                         launch = next
                         if case .hazardLab = next {
                             screen = .play
+                        } else if case .journey = next, journeyShipPicked {
+                            screen = .play
                         } else {
                             screen = .hangar
                         }
@@ -100,14 +107,11 @@ struct RootView: View {
                 PlayContainerView(
                     launch: launch,
                     onMenu: {
+                        journeyShipPicked = false
                         screen = .modeSelect
                         menuFlavor = CopyBank.pick(.menu)
                     },
                     onMap: { screen = .journeyMap },
-                    onNextDay: { next in
-                        launch = next
-                        screen = .hangar
-                    },
                     onUnlockArc: {
                         journey.markArcUnlockSeen()
                         settings.setFlightStyle(.arc)
@@ -126,7 +130,8 @@ struct RootView: View {
             HangarCatalog.ensureSeenSeed()
             scheduleHeadphonesHint()
         }
-        .onChange(of: screen) { _, _ in
+        .onChange(of: screen) { _, next in
+            if next == .menu { journeyShipPicked = false }
             scheduleHeadphonesHint()
         }
         .animation(.easeInOut(duration: 0.2), value: screen)

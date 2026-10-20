@@ -2,6 +2,9 @@
 // Core game loop + rendering: main menu, mode select, options (ship skins),
 // high scores, gameplay, and game-over / level-outcome screens.
 // Changes:
+// - Journey ship is chosen once per visit. Hangar Launch sets journeyShipPicked.
+//   Later days (Next Level, the map, Exit Run) start that hull until the title
+//   menu. Open Space still opens the Hangar every time.
 // - Open Space ship lines speak once per hull per page session. Journey and
 //   Hazard Lab never play them, including a retry that skipped the day intro.
 // - A Journey crash or fuel-out remembers that day for this page session.
@@ -471,6 +474,8 @@ export class Game {
         this.menuShipBrowseId = this.shipSkinId;
         this.hangarLaunch = null;
         this.hangarIndex = 0;
+        /** Journey hull already launched this visit. Cleared on the title menu. */
+        this.journeyShipPicked = false;
         this.launchSessionPlayed = false;
         this.launchIsRetry = false;
         this.lastLaunchSkinId = null;
@@ -747,6 +752,7 @@ export class Game {
 
     // Land on the main menu with a fresh Spock line.
     showMenu() {
+        this.journeyShipPicked = false;
         this.appScreen = 'menu';
         this.menuFlavor = pickCopy('menu');
         this.shipSkinId = loadShipSkinId();
@@ -2710,8 +2716,22 @@ export class Game {
     launchFromHangar() {
         const launch = this.hangarLaunch;
         if (!launch) return;
-        if (launch.mode === PLAY_MODE.journey) this.tryBeginJourneyLevel(launch.level);
-        else this.tryBeginOpenWorld();
+        if (launch.mode === PLAY_MODE.journey) {
+            this.journeyShipPicked = true;
+            this.tryBeginJourneyLevel(launch.level);
+        } else this.tryBeginOpenWorld();
+    }
+
+    /**
+     * First Journey day of a visit opens the Hangar. After Launch, later days
+     * in that visit use the equipped hull until the title menu.
+     */
+    startJourneyDay(level) {
+        if (this.journeyShipPicked) {
+            this.tryBeginJourneyLevel(level);
+            return;
+        }
+        this.openHangar({ mode: PLAY_MODE.journey, level, returnScreen: 'journeyMap' });
     }
 
     /** Empty lives → Pro paywall; otherwise start Open Space. */
@@ -2866,6 +2886,7 @@ export class Game {
     }
 
     goToMenu() {
+        this.journeyShipPicked = false;
         this.leaveRun('menu');
         this.menuFlavor = pickCopy('menu');
     }

@@ -16,9 +16,10 @@
 // Top 10 still
 // auto-opens Submit Signal. Journey outcome
 // cards are unchanged. Submit Signal passes the score-clock task through.
-// Next Level returns through the Hangar. Replay and Retry stay
-// direct and mark a crash retry for the launch line. NAV subtitles sit
-// above the HUD. Pause holds the sim without freezing the night-paper stars.
+// Next Level starts the next day in place with the hull already launched.
+// Replay and Retry stay direct and mark a crash retry for the launch line.
+// NAV subtitles sit above the HUD. Pause holds the sim without freezing
+// the night-paper stars.
 // L42 hold is #050505 plus a quieter depth field. After Submit Signal,
 // Space Board opens Global on the new call-sign row. Enjoyment review
 // overlay after Journey Day 6 (Day 13 if Later).
@@ -31,7 +32,6 @@ struct PlayContainerView: View {
     var launch: PlayLaunch
     var onMenu: () -> Void
     var onMap: () -> Void
-    var onNextDay: (PlayLaunch) -> Void
     var onUnlockArc: () -> Void
 
     @ObservedObject private var settings = SettingsStore.shared
@@ -57,13 +57,11 @@ struct PlayContainerView: View {
         launch: PlayLaunch,
         onMenu: @escaping () -> Void,
         onMap: @escaping () -> Void,
-        onNextDay: @escaping (PlayLaunch) -> Void,
         onUnlockArc: @escaping () -> Void
     ) {
         self.launch = launch
         self.onMenu = onMenu
         self.onMap = onMap
-        self.onNextDay = onNextDay
         self.onUnlockArc = onUnlockArc
         _currentLaunch = State(initialValue: launch)
     }
@@ -718,7 +716,7 @@ struct PlayContainerView: View {
         VStack(spacing: 12) {
             if let nextLevel {
                 ShellChrome.brandButton("Next Level", tag: "▶", primary: true) {
-                    onNextDay(.journey(nextLevel))
+                    beginLaunch(.journey(nextLevel))
                 }
                 HStack(spacing: 12) {
                     ShellChrome.brandButton("Replay", labelSize: 14) {
@@ -742,7 +740,12 @@ struct PlayContainerView: View {
     }
 
     private func replay(_ launch: PlayLaunch) {
-        LaunchVoice.shared.markRetry()
+        beginLaunch(launch, retry: true)
+    }
+
+    /// Start a day without leaving play. Next Level reuses the launched hull.
+    private func beginLaunch(_ launch: PlayLaunch, retry: Bool = false) {
+        if retry { LaunchVoice.shared.markRetry() }
         currentLaunch = launch
         paused = false
         showSubmit = false

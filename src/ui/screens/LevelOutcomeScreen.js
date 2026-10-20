@@ -3,8 +3,8 @@
 // against each, and where to go next. Replaces the Open Space game-over screen
 // while in Journey — there is no score submission here.
 // Changes:
-// - Next day opens the Hangar. Retry starts the same day directly and
-//   marks a crash retry for the launch line.
+// - Next Level uses the hull launched this visit. The Hangar returns after
+//   Menu. Retry still starts the same day directly.
 // - Star 2 value is sparklesCollected / sparklesTarget (fuel diamonds).
 // - Hazard Lab outcomes: no star band; titles LAB CLEAR / LAB FAILED; actions
 //   are Replay / Level Select / Menu (retry calls beginHazardLab).
@@ -356,11 +356,7 @@ export function handleLevelOutcomeClick(game, x, y) {
     if (game.gameOverAlpha < 0.6) return true;
 
     if (game.isClickInButton(x, y, buttons.next)) {
-        game.openHangar({
-            mode: 'journey',
-            level: outcome.descriptor.level + 1,
-            returnScreen: 'journeyMap',
-        });
+        game.startJourneyDay(outcome.descriptor.level + 1);
         return true;
     }
     if (game.isClickInButton(x, y, buttons.retry)) {
