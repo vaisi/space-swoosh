@@ -1,22 +1,36 @@
 /*
  * rail.css
- * Changes: Created. Additions to the desktop "Get the app" rail on the game
- * page (index.html): the Space Swoosh logo above the title and a small site
- * nav (About, How to play) under the QR cards. Plus the visually hidden
- * intro that gives crawlers text and links on the canvas-only home page.
- * The rail sits on the surround, which is dark in both themes, so colors
- * are fixed bone rather than var(--ss-ink) (near-black in light mode).
+ * Changes: The Space Swoosh logo moved from above "Get the app" to the
+ * top-left corner of the left rail, pinned there over the Swooshtober
+ * promo. The right rail keeps the site nav (About, How to play) under the
+ * QR cards. Plus the visually hidden intro that gives crawlers text and
+ * links on the canvas-only home page. Both rails sit on the surround, which
+ * is dark in both themes, so colors are fixed bone rather than
+ * var(--ss-ink) (near-black in light mode).
  */
 
-.store-rail .ss-logo {
-    --ss-logo-size: clamp(38px, 14cqi, 52px);
-    align-self: flex-start;
-    margin-bottom: 1.35rem;
+html[data-web-gate="desktop"] .store-rail--left {
+    position: relative;
+}
+
+.store-rail__logo {
+    --ss-logo-size: 44px;
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    z-index: 1;
     color: #E1D9C1;
 }
 
-.store-rail .ss-logo__icon {
+.store-rail__logo .ss-logo__icon {
     box-shadow: 0 0 0 1px rgba(225, 217, 193, 0.3);
+}
+
+/* Narrow or short left rail: the logo would crowd the promo, so it steps out. */
+@container (max-width: 230px) or (max-height: 420px) {
+    .store-rail__logo {
+        display: none;
+    }
 }
 
 .site-links {
@@ -43,13 +57,6 @@
 .site-links a:focus-visible {
     outline: 1.5px solid #5CC8FF;
     outline-offset: 3px;
-}
-
-/* Short windows: the QR cards matter most, so the logo goes first. */
-@container (max-height: 520px) {
-    .store-rail .ss-logo {
-        display: none;
-    }
 }
 
 .seo-intro {

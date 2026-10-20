@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: the desktop download rail shows the
-     Space Swoosh logo (app icon + wordmark) above "Get the app" and links
-     to /about/ and /how-to-play/ under the QR cards (src/site/rail.css).
+<!-- index.html — page shell. Changes: on desktop the Space Swoosh logo (app
+     icon + wordmark) sits in the top-left corner of the left rail, and the
+     download rail links to /about/ and /how-to-play/ under the QR cards
+     (src/site/rail.css).
      SEO: one-tap arcade meta description, canonical, Open Graph / Twitter
      tags, VideoGame JSON-LD, and a visually hidden intro with links so
      crawlers find text on the canvas-only page. Earlier: the Swooshtober prize line is
@@ -613,6 +614,10 @@
         <p><a href="/about/">About the game</a> · <a href="/how-to-play/">How to play</a></p>
     </div>
     <aside class="store-rail store-rail--left" aria-label="Swooshtober">
+        <a class="ss-logo store-rail__logo" href="/about/" aria-label="About Space Swoosh">
+            <img class="ss-logo__icon" src="/icon-192.png" width="192" height="192" alt="">
+            <span class="ss-logo__word">Space Swoosh</span>
+        </a>
         <div class="swoosh-promo">
             <h2 class="swoosh-promo__title"><a href="/swooshtober/">Swooshtober</a></h2>
             <p class="swoosh-promo__line">Finish October in 1st place on the Space Board and win $50</p>
@@ -647,10 +652,6 @@
     </div>
     <aside class="store-rail store-rail--right" aria-label="Download Space Swoosh">
         <div class="get-app">
-            <a class="ss-logo" href="/about/" aria-label="About Space Swoosh">
-                <img class="ss-logo__icon" src="/icon-192.png" width="192" height="192" alt="">
-                <span class="ss-logo__word">Space Swoosh</span>
-            </a>
             <h2 class="get-app__title">Get the app</h2>
             <p class="get-app__lead">Point your camera at a code.</p>
             <div class="get-app__list">
