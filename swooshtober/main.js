@@ -1,10 +1,12 @@
 // main.js
-// Changes: Loads the live Zigzag distance top 10 from high_scores.
+// Changes: The starfield is imported from src/site/stars.js, shared with
+// the About and How to play pages. Loads the live Zigzag distance top 10
+// from high_scores.
 
 import { supabase } from '../src/config/supabase.js';
 import { SKIN_DEFS } from '../src/ships/skinDefs.js';
 import { appStoreUrl, PLAY_STORE_URL } from '../src/services/StoreLinks.js';
-import { mountStars } from './stars.js';
+import { mountStars } from '../src/site/stars.js';
 
 const SHIP_NAMES = Object.fromEntries(SKIN_DEFS.map((skin) => [skin.id, skin.name]));
 const TROPHIES = ['🥇', '🥈', '🥉'];

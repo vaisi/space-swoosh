@@ -1,0 +1,70 @@
+/*
+ * rail.css
+ * Changes: Created. Additions to the desktop "Get the app" rail on the game
+ * page (index.html): the Space Swoosh logo above the title and a small site
+ * nav (About, How to play) under the QR cards. Plus the visually hidden
+ * intro that gives crawlers text and links on the canvas-only home page.
+ * The rail sits on the surround, which is dark in both themes, so colors
+ * are fixed bone rather than var(--ss-ink) (near-black in light mode).
+ */
+
+.store-rail .ss-logo {
+    --ss-logo-size: clamp(38px, 14cqi, 52px);
+    align-self: flex-start;
+    margin-bottom: 1.35rem;
+    color: #E1D9C1;
+}
+
+.store-rail .ss-logo__icon {
+    box-shadow: 0 0 0 1px rgba(225, 217, 193, 0.3);
+}
+
+.site-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    margin-top: 0.95rem;
+    font-family: var(--ss-font-mono, ui-monospace, monospace);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.site-links a {
+    color: rgba(225, 217, 193, 0.55);
+    text-decoration: none;
+    pointer-events: auto;
+}
+
+.site-links a:hover {
+    color: #5CC8FF;
+}
+
+.site-links a:focus-visible {
+    outline: 1.5px solid #5CC8FF;
+    outline-offset: 3px;
+}
+
+/* Short windows: the QR cards matter most, so the logo goes first. */
+@container (max-height: 520px) {
+    .store-rail .ss-logo {
+        display: none;
+    }
+}
+
+.seo-intro {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+html[data-shell="native"] .seo-intro {
+    display: none;
+}

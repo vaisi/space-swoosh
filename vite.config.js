@@ -1,6 +1,7 @@
 // vite.config.js
-// Changes: swooshtober/index.html is a second Vite entry so GitHub Pages
-// serves /swooshtober. Paths use import.meta.url because package.json is
+// Changes: about/index.html and how-to-play/index.html are Vite entries so
+// GitHub Pages serves /about/ and /how-to-play/ (same pattern as
+// /swooshtober/). Paths use import.meta.url because package.json is
 // "type": "module" and __dirname is not defined there.
 import { defineConfig } from 'vite'
 import { dirname, resolve } from 'node:path'
@@ -18,6 +19,8 @@ export default defineConfig({
       input: {
         main: resolve(rootDir, 'index.html'),
         swooshtober: resolve(rootDir, 'swooshtober/index.html'),
+        about: resolve(rootDir, 'about/index.html'),
+        howToPlay: resolve(rootDir, 'how-to-play/index.html'),
       },
     },
   },

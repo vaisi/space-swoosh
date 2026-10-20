@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<!-- how-to-play/index.html
+     Changes: Created. The How to play page at spaceswoosh.app/how-to-play/:
+     steering, walls, fuel, shields, SWOOSH, portals and black holes, Journey
+     stars, publishing to the Space Board, tips, and a FAQ. The FAQPage
+     JSON-LD in the head must match the visible FAQ text word for word. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12100E">
+  <title>How to play Space Swoosh: controls, fuel, shields and tips</title>
+  <meta name="description" content="How to play Space Swoosh. Tap to flip your ship, chase the blue fuel, grab shields to smash asteroids, thread gaps for a SWOOSH, and publish your distance to the Space Board.">
+  <link rel="canonical" href="https://spaceswoosh.app/how-to-play/">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Space Swoosh">
+  <meta property="og:title" content="How to play Space Swoosh">
+  <meta property="og:description" content="One tap to steer. Chase the blue, snap on a shield, thread the gap. Everything you need for your first flight.">
+  <meta property="og:url" content="https://spaceswoosh.app/how-to-play/">
+  <meta property="og:image" content="https://spaceswoosh.app/icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="The Space Swoosh app icon: a bone-white ship inside a blue shield ring.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@playspaceswoosh">
+  <meta name="twitter:title" content="How to play Space Swoosh">
+  <meta name="twitter:description" content="One tap to steer. Chase the blue, snap on a shield, thread the gap.">
+  <meta name="twitter:image" content="https://spaceswoosh.app/icon-512.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is Space Swoosh free?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Journey and Open Space are free to play, with no ads. Some ships are optional purchases, and they are cosmetic only." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work offline?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The iPhone and Android apps fly without wifi or data. You only need a connection to publish a score to the Space Board." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is it pay to win?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Every ship flies the same, with the same speed and the same turns. Buying a ship changes how you look, not how far you go." }
+      },
+      {
+        "@type": "Question",
+        "name": "Where can I play?",
+        "acceptedAnswer": { "@type": "Answer", "text": "On iPhone and iPad from the App Store, on Android from Google Play, and in any modern browser at spaceswoosh.app." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I change the controls?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Zigzag is the default. Finish the Journey and Arc unlocks under Options, then Controls. Arc steers in smooth curves instead of sharp flips, and it has its own Space Board." }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need headphones?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No, but they help. NAV's voice, the music and the small sounds of the ship are a big part of the game." }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="../src/brand/tokens.css">
+  <link rel="stylesheet" href="../src/site/logo.css">
+  <link rel="stylesheet" href="../src/site/site.css">
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="page">
+    <header class="site-header">
+      <a class="ss-logo" href="/" aria-label="Space Swoosh, play in the browser">
+        <img class="ss-logo__icon" src="/icon-192.png" width="192" height="192" alt="">
+        <span class="ss-logo__word">Space Swoosh</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="/about/">About</a>
+        <a href="/how-to-play/" aria-current="page">How to play</a>
+        <a class="site-nav__play" href="/">Play</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero">
+        <p class="kicker">how to play</p>
+        <h1>How to play Space Swoosh</h1>
+        <p class="lede">One tap. That is the whole control scheme. Everything below is about what you do with it, so you fly a little farther every time.</p>
+        <div class="actions">
+          <a class="ss-btn ss-btn--primary" href="/">
+            <span class="ss-btn__label">Try it now</span>
+          </a>
+          <p class="stores">
+            <a data-store="ios" href="https://apps.apple.com/app/id6801885446">App Store</a>
+            ·
+            <a data-store="play" href="https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh">Google Play</a>
+          </p>
+        </div>
+      </div>
+
+      <section id="steer">
+        <h2>Steer with one tap</h2>
+        <p class="note">Your ship climbs on its own, always flying at an angle. Tap anywhere on the screen and it flips to lean the other way. On a computer, click or press Space. The arrow keys work too. There is no hold, no swipe and no joystick.</p>
+        <p class="note">The side walls are soft. Touch one and you bounce off with a BOOP. The thick black barriers are different. Those end the run. Steady, early taps beat frantic late ones, so plan your turns a little ahead.</p>
+      </section>
+
+      <section id="fuel">
+        <h2>Chase the blue</h2>
+        <p class="note">Your ship burns fuel as it flies, and the blue four-point sparkles are that fuel. Fly close to one and it locks on and slides into you with a small chime. Miss too many and the engines sputter, coast, and finally stop. Blue is always safe to touch. It is the only warm thing out here.</p>
+      </section>
+
+      <section id="shield">
+        <h2>Snap on a shield</h2>
+        <p class="note">The pulsing blue plus is a shield. It lasts five seconds, and while it is up you tear straight through asteroids instead of crashing into them. Every rock you smash counts. The shield pulses faster just before it runs out, so pick your moment.</p>
+      </section>
+
+      <section id="swoosh">
+        <h2>Thread the gap for a SWOOSH</h2>
+        <p class="note">Slip between two obstacles with almost no room to spare and SWOOSH flashes across the screen, worth 15 style points. Clip either side and the run is over. Risky, stylish, worth it.</p>
+      </section>
+
+      <section id="space">
+        <h2>Portals, black holes and the rest</h2>
+        <ul class="ticks">
+          <li><strong>Portals</strong> are hollow, spinning blue rings. Fall through one and you come out farther ahead with a fresh shield. Aim for the ring itself, because the rocks around it still hurt.</li>
+          <li><strong>Black holes</strong> pull you in. Swing wide of them and do not let the pull drag your line.</li>
+          <li><strong>Wind</strong> shows up as thin flowing dashes and pushes your ship sideways.</li>
+          <li><strong>Stranger things</strong> arrive the farther you go, from spinners and lightning to meteor showers. Each one appears on its own first, so you get to learn it.</li>
+        </ul>
+      </section>
+
+      <section id="journey">
+        <h2>Journey: 42 days, three stars each</h2>
+        <p class="note">Journey is the story mode. Each day is a short flight with a distance goal, and NAV speaks before you launch. The first days teach one thing at a time: the turn, then rocks, moving rocks, fuel, and finally the shield.</p>
+        <ol class="steps">
+          <li>Reach the distance goal for the first star.</li>
+          <li>Collect enough blue sparkles for the second.</li>
+          <li>Smash enough asteroids with a shield for the third.</li>
+        </ol>
+        <p class="note callout">Stars add up across attempts, so you can go back for the one you missed.</p>
+      </section>
+
+      <section id="board">
+        <h2>Open Space and the Space Board</h2>
+        <p class="note">Open Space is the endless run. Fly as far as you can. When it ends you see your distance and where it would rank.</p>
+        <ol class="steps">
+          <li>Tap Publish Score on the end screen.</li>
+          <li>Type your call sign and send it.</li>
+          <li>Open Space Board from the main menu to see where you landed.</li>
+        </ol>
+        <p class="note callout">A top 10 run asks for your call sign on its own. The flying works offline, but publishing a score needs a connection.</p>
+      </section>
+
+      <section id="tips">
+        <h2>Tips for longer runs</h2>
+        <ul class="ticks">
+          <li>New to the game? Start with Journey. It introduces one idea at a time.</li>
+          <li>Do not chase every sparkle into a wall of rocks. Fuel is not worth a crash, but ignore the blue for too long and the tank runs dry.</li>
+          <li>When a shield is up, go looking for rocks. It is the fastest way to the smash star.</li>
+          <li>Tight corridors pay style points. Take them when the line is clean, skip them when it is not.</li>
+          <li>Use the walls. A bounce is free, and it often lines you up for the next gap.</li>
+        </ul>
+      </section>
+
+      <section id="faq">
+        <h2>Questions</h2>
+        <div class="faq">
+          <details>
+            <summary>Is Space Swoosh free?</summary>
+            <p>Yes. Journey and Open Space are free to play, with no ads. Some ships are optional purchases, and they are cosmetic only.</p>
+          </details>
+          <details>
+            <summary>Does it work offline?</summary>
+            <p>Yes. The iPhone and Android apps fly without wifi or data. You only need a connection to publish a score to the Space Board.</p>
+          </details>
+          <details>
+            <summary>Is it pay to win?</summary>
+            <p>No. Every ship flies the same, with the same speed and the same turns. Buying a ship changes how you look, not how far you go.</p>
+          </details>
+          <details>
+            <summary>Where can I play?</summary>
+            <p>On iPhone and iPad from the App Store, on Android from Google Play, and in any modern browser at spaceswoosh.app.</p>
+          </details>
+          <details>
+            <summary>Can I change the controls?</summary>
+            <p>Zigzag is the default. Finish the Journey and Arc unlocks under Options, then Controls. Arc steers in smooth curves instead of sharp flips, and it has its own Space Board.</p>
+          </details>
+          <details>
+            <summary>Do I need headphones?</summary>
+            <p>No, but they help. NAV's voice, the music and the small sounds of the ship are a big part of the game.</p>
+          </details>
+        </div>
+      </section>
+
+      <div class="closing">
+        <p class="closing__hint">Headphones recommended</p>
+        <p class="closing__line">Turn left. Or right. Or become debris.</p>
+        <div class="actions">
+          <a class="ss-btn ss-btn--primary" href="/">
+            <span class="ss-btn__label">Start flying</span>
+          </a>
+        </div>
+        <p class="note callout">Want the bigger picture? Read <a href="/about/">about Space Swoosh</a>.</p>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        <a href="/">Play</a>
+        ·
+        <a href="/about/">About</a>
+        ·
+        <a href="/how-to-play/">How to play</a>
+        ·
+        <a href="/swooshtober/">Swooshtober</a>
+        ·
+        <a href="/support.html">Support</a>
+        ·
+        <a href="/privacy.html">Privacy</a>
+      </p>
+      <p>
+        <a href="https://www.instagram.com/spaceswoosh_app">Instagram</a>
+        ·
+        <a href="https://www.youtube.com/@playspaceswoosh">YouTube</a>
+        ·
+        <a href="https://www.tiktok.com/@spaceswoosh.app">TikTok</a>
+        ·
+        <a href="https://x.com/playspaceswoosh">X</a>
+      </p>
+    </footer>
+  </div>
+  <script type="module" src="../src/site/site.js"></script>
+</body>
+</html>

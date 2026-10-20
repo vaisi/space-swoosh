@@ -1,0 +1,50 @@
+/*
+ * logo.css
+ * Changes: Created. The Space Swoosh logo for web pages: the app icon as a
+ * rounded tile, then the SPACE SWOOSH wordmark set like the start-screen
+ * title (Space Grotesk 700, uppercase, tight tracking). Scale it with
+ * --ss-logo-size (icon edge); the wordmark follows.
+ *
+ * Markup:
+ *   <a class="ss-logo" href="/">
+ *     <img class="ss-logo__icon" src="/icon-192.png" width="192" height="192" alt="">
+ *     <span class="ss-logo__word">Space Swoosh</span>
+ *   </a>
+ */
+
+.ss-logo {
+    --ss-logo-size: 48px;
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--ss-logo-size) * 0.32);
+    color: var(--ss-ink);
+    text-decoration: none;
+}
+
+.ss-logo__icon {
+    display: block;
+    flex: none;
+    width: var(--ss-logo-size);
+    height: var(--ss-logo-size);
+    border-radius: 22.5%;
+    box-shadow: 0 0 0 1px var(--ss-ink-30);
+}
+
+.ss-logo__word {
+    font-family: var(--ss-font-display);
+    font-size: calc(var(--ss-logo-size) * 0.5);
+    font-weight: 700;
+    letter-spacing: var(--ss-track-tight);
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+a.ss-logo:hover .ss-logo__word {
+    color: var(--ss-signal);
+}
+
+a.ss-logo:focus-visible {
+    outline: 1.5px solid var(--ss-signal);
+    outline-offset: 4px;
+}

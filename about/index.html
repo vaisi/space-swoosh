@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!-- about/index.html
+     Changes: Created. The About page at spaceswoosh.app/about/: what Space
+     Swoosh is, Journey and Open Space, what's inside, fair-play note, and
+     where to play. Logo header, shared starfield (src/site/), canonical,
+     Open Graph and VideoGame / MobileApplication structured data for search. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12100E">
+  <title>Space Swoosh: a one-tap space arcade game</title>
+  <meta name="description" content="Space Swoosh is a free one-tap space arcade game. Steer a tiny ship through asteroid fields, black holes and portals, follow a voiced 42-day story, or fly the endless mode for the global Space Board. Offline, no ads, never pay to win.">
+  <link rel="canonical" href="https://spaceswoosh.app/about/">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Space Swoosh">
+  <meta property="og:title" content="Space Swoosh: a one-tap space arcade game">
+  <meta property="og:description" content="One tap. One tiny ship. A voiced 42-day story and an endless run with a global Space Board. Free on iPhone, Android and the web.">
+  <meta property="og:url" content="https://spaceswoosh.app/about/">
+  <meta property="og:image" content="https://spaceswoosh.app/icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="The Space Swoosh app icon: a bone-white ship inside a blue shield ring.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@playspaceswoosh">
+  <meta name="twitter:title" content="Space Swoosh: a one-tap space arcade game">
+  <meta name="twitter:description" content="One tap. One tiny ship. A voiced 42-day story and an endless run with a global Space Board.">
+  <meta name="twitter:image" content="https://spaceswoosh.app/icon-512.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": ["VideoGame", "MobileApplication"],
+    "name": "Space Swoosh",
+    "url": "https://spaceswoosh.app/",
+    "image": "https://spaceswoosh.app/icon-512.png",
+    "description": "A free one-tap space arcade game. Steer a tiny spaceship through asteroid fields, black holes and portals, follow a voiced 42-day story, or fly the endless mode and chase a spot on the global leaderboard.",
+    "genre": ["Arcade", "Casual", "Endless runner"],
+    "gamePlatform": ["iOS", "Android", "Web browser"],
+    "operatingSystem": "iOS, Android, Web",
+    "applicationCategory": "GameApplication",
+    "playMode": "SinglePlayer",
+    "inLanguage": "en",
+    "installUrl": [
+      "https://apps.apple.com/app/id6801885446",
+      "https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh"
+    ],
+    "sameAs": [
+      "https://apps.apple.com/app/id6801885446",
+      "https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh",
+      "https://www.instagram.com/spaceswoosh_app",
+      "https://www.youtube.com/@playspaceswoosh",
+      "https://www.tiktok.com/@spaceswoosh.app",
+      "https://x.com/playspaceswoosh"
+    ],
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="../src/brand/tokens.css">
+  <link rel="stylesheet" href="../src/site/logo.css">
+  <link rel="stylesheet" href="../src/site/site.css">
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="page">
+    <header class="site-header">
+      <a class="ss-logo" href="/" aria-label="Space Swoosh, play in the browser">
+        <img class="ss-logo__icon" src="/icon-192.png" width="192" height="192" alt="">
+        <span class="ss-logo__word">Space Swoosh</span>
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="/about/" aria-current="page">About</a>
+        <a href="/how-to-play/">How to play</a>
+        <a class="site-nav__play" href="/">Play</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero">
+        <p class="kicker">about the game</p>
+        <h1>A one-tap space arcade game for one small ship</h1>
+        <p class="lede">Space Swoosh puts you in a tiny spaceship that never stops moving. One tap changes which way you lean. Thread asteroid fields, swing wide of black holes, fall through portals, and keep the fire burning for as long as the dark allows. It is free on iPhone and Android, and it plays right here in your browser.</p>
+        <div class="actions">
+          <a class="ss-btn ss-btn--primary" href="/">
+            <span class="ss-btn__label">Play in the browser</span>
+          </a>
+          <p class="stores">
+            <a data-store="ios" href="https://apps.apple.com/app/id6801885446">App Store</a>
+            ·
+            <a data-store="play" href="https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh">Google Play</a>
+          </p>
+        </div>
+      </div>
+
+      <section id="feel">
+        <h2>The feel</h2>
+        <p class="note">There is no throttle and no brake. You are always moving, and the only choice you get is which way to lean. Tap and the ship flips its angle. Tap again and it flips back. That is the whole control scheme, and it is enough to keep you busy for a very long time.</p>
+        <p class="note">Chase the blue, because it is your fuel. Slip through gaps barely wider than your hull. Kiss a side wall, bounce, and keep going. Nothing on screen is there for decoration. No clutter, no homework. Just you, the drift, and the next gap.</p>
+      </section>
+
+      <section id="modes">
+        <h2>Two ways to fly</h2>
+        <div class="modes">
+          <article class="mode">
+            <span class="mode__kicker">Story</span>
+            <h3>Journey</h3>
+            <p>Forty-two days, and a story that reaches you the way late-night radio does: one line at a time. The voice belongs to NAV. She guides your small ship across an enormous silence, toward the source of a broken signal.</p>
+            <p>Someone, somewhere, once tried very hard to be heard. You are the one who finally went looking. Each day is a short flight with a distance to reach and up to three stars to earn. Where it ends is yours to discover, and yours to answer.</p>
+          </article>
+          <article class="mode">
+            <span class="mode__kicker">Endless</span>
+            <h3>Open Space</h3>
+            <p>No story. No mercy. No finish line. Just how far the dark will let you go. The sky fills up the farther you fly, and no two runs are the same.</p>
+            <p>Make the top 100 and your call sign goes on the Space Board for everyone to chase. This is the mode you come back to when you just want to fly.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="inside">
+        <h2>What's inside</h2>
+        <ul class="ticks">
+          <li><strong>One-tap zigzag controls.</strong> Easy to learn, hard to master.</li>
+          <li><strong>A 42-day story mode</strong> with a fully voiced narrator.</li>
+          <li><strong>An endless run</strong> with a global high score board, the Space Board.</li>
+          <li><strong>Friends leaderboards</strong> through Game Center on iPhone and Play Games on Android.</li>
+          <li><strong>40 spaceships</strong>, each leaving its own trail behind it.</li>
+          <li><strong>A Space Log</strong> that quietly fills in as you fly.</li>
+          <li><strong>Stars to earn</strong> on every Journey day.</li>
+          <li><strong>Short runs</strong>, made for a quick break, a commute or a flight.</li>
+          <li><strong>Works offline.</strong> No wifi or data needed to fly.</li>
+          <li><strong>No ads.</strong> Not between runs, not anywhere.</li>
+        </ul>
+      </section>
+
+      <section id="fair">
+        <h2>Never pay to win</h2>
+        <p class="note">Every ship flies the same. Same speed, same turns. A ship changes how you look and the wake you leave behind, nothing else. Five ships are free forever, and the rest are optional unlocks that help keep the game going. Nothing you can buy moves you up the Space Board.</p>
+      </section>
+
+      <section id="where">
+        <h2>Where to play</h2>
+        <div class="where">
+          <a class="where__card" href="/">
+            <span class="where__kicker">Browser</span>
+            <span class="where__name">Play in the browser</span>
+            <span class="where__go">Open the game</span>
+          </a>
+          <a class="where__card" data-store="ios" href="https://apps.apple.com/app/id6801885446">
+            <span class="where__kicker">iPhone and iPad</span>
+            <span class="where__name">Get it on the App Store</span>
+            <span class="where__go">Open App Store</span>
+          </a>
+          <a class="where__card" data-store="play" href="https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh">
+            <span class="where__kicker">Android</span>
+            <span class="where__name">Get it on Google Play</span>
+            <span class="where__go">Open Play Store</span>
+          </a>
+        </div>
+        <p class="note callout">New here? Read <a href="/how-to-play/">how to play</a> before your first flight.</p>
+      </section>
+
+      <div class="closing">
+        <p class="closing__hint">Headphones recommended</p>
+        <p class="closing__line">A small game with a long reach.<br>Turn left. Or right. Or become debris.</p>
+        <div class="actions">
+          <a class="ss-btn ss-btn--primary" href="/">
+            <span class="ss-btn__label">Start flying</span>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        <a href="/">Play</a>
+        ·
+        <a href="/about/">About</a>
+        ·
+        <a href="/how-to-play/">How to play</a>
+        ·
+        <a href="/swooshtober/">Swooshtober</a>
+        ·
+        <a href="/support.html">Support</a>
+        ·
+        <a href="/privacy.html">Privacy</a>
+      </p>
+      <p>
+        <a href="https://www.instagram.com/spaceswoosh_app">Instagram</a>
+        ·
+        <a href="https://www.youtube.com/@playspaceswoosh">YouTube</a>
+        ·
+        <a href="https://www.tiktok.com/@spaceswoosh.app">TikTok</a>
+        ·
+        <a href="https://x.com/playspaceswoosh">X</a>
+      </p>
+    </footer>
+  </div>
+  <script type="module" src="../src/site/site.js"></script>
+</body>
+</html>

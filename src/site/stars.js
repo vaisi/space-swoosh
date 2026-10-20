@@ -1,7 +1,8 @@
 // stars.js
-// Changes: Night-paper starfield behind the whole Swooshtober page.
-// Bone specks, a few ice glints, and slow drift, in the same spirit as
-// the game's DepthField. A still field when reduced motion is on.
+// Changes: Moved from swooshtober/ so Swooshtober, About and How to play
+// share one night-paper starfield. Bone specks, a few ice glints, and slow
+// drift, in the same spirit as the game's DepthField. A still field when
+// reduced motion is on.
 
 const INK = '225, 217, 193';
 const SIGNAL = '92, 200, 255';

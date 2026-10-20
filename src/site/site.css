@@ -1,0 +1,426 @@
+/*
+ * site.css
+ * Changes: Created. Layout and type for the content pages (About, How to
+ * play): night paper with the shared starfield, a logo header with page
+ * nav, framed store cards, mode cards, FAQ, and footer. Generic patterns
+ * follow swooshtober/swooshtober.css so every web page reads as one site.
+ * Needs src/brand/tokens.css and src/site/logo.css loaded first.
+ */
+
+html {
+    background: var(--ss-paper-deep);
+    color: var(--ss-ink);
+    color-scheme: dark;
+}
+
+body {
+    margin: 0;
+    background: var(--ss-paper-deep);
+    color: var(--ss-ink);
+    font-family: var(--ss-font-ui);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+}
+
+#stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+a {
+    color: var(--ss-signal);
+}
+
+a:hover {
+    color: var(--ss-ink);
+}
+
+:focus-visible {
+    outline: 1.5px solid var(--ss-signal);
+    outline-offset: 3px;
+}
+
+.page {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    width: min(42rem, calc(100% - 2.5rem));
+    margin: 0 auto;
+    padding: 1.5rem 0 5rem;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+    box-sizing: border-box;
+}
+
+/* --- Header -------------------------------------------------------------- */
+
+.site-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--ss-ink-12);
+}
+
+.site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    font-family: var(--ss-font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.site-nav a {
+    color: var(--ss-ink-55);
+    text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+    color: var(--ss-ink);
+}
+
+.site-nav a[aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-color: var(--ss-signal);
+    text-underline-offset: 0.35em;
+}
+
+.site-nav .site-nav__play {
+    color: var(--ss-signal);
+}
+
+/* --- Hero ---------------------------------------------------------------- */
+
+.hero {
+    margin-top: 2.5rem;
+}
+
+.kicker {
+    margin: 0;
+    color: var(--ss-signal);
+    font-family: var(--ss-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+}
+
+h1 {
+    margin: 0.35rem 0 1rem;
+    font-size: clamp(2rem, 6.6vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.06;
+}
+
+h2 {
+    margin: 0 0 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: var(--ss-track-label);
+    text-transform: uppercase;
+}
+
+h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: var(--ss-track-tight);
+    line-height: 1.2;
+}
+
+.lede {
+    margin: 0;
+    max-width: 38rem;
+    color: var(--ss-ink-80);
+    font-size: 1.15rem;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.25rem;
+    margin-top: 1.6rem;
+}
+
+.actions .ss-btn {
+    text-decoration: none;
+}
+
+.stores {
+    margin: 0;
+    color: var(--ss-ink-55);
+    font-family: var(--ss-font-mono);
+    font-size: 0.75rem;
+}
+
+.stores a {
+    color: var(--ss-ink-55);
+}
+
+.stores a:hover {
+    color: var(--ss-ink);
+}
+
+/* --- Body sections ------------------------------------------------------- */
+
+section {
+    margin-top: 3.5rem;
+}
+
+p {
+    margin: 0;
+}
+
+p + p {
+    margin-top: 0.85rem;
+}
+
+.note {
+    color: var(--ss-ink-80);
+}
+
+.modes {
+    display: grid;
+    gap: 1rem;
+}
+
+.mode {
+    padding: 1.25rem 1.25rem 1.35rem;
+    border: 1.5px solid var(--ss-ink);
+    background: var(--ss-paper);
+}
+
+.mode__kicker {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--ss-signal);
+    font-family: var(--ss-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: var(--ss-track-label);
+    text-transform: uppercase;
+}
+
+.mode p {
+    color: var(--ss-ink-80);
+}
+
+.ticks {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ticks li {
+    position: relative;
+    padding: 0.7rem 0 0.7rem 1.6rem;
+    border-top: 1px solid var(--ss-ink-12);
+    color: var(--ss-ink-80);
+}
+
+.ticks li::before {
+    content: "";
+    position: absolute;
+    left: 0.15rem;
+    top: 1.25rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--ss-signal);
+    transform: rotate(45deg);
+}
+
+.ticks strong {
+    color: var(--ss-ink);
+}
+
+.steps {
+    margin: 0;
+    padding-left: 1.3rem;
+    color: var(--ss-ink-80);
+}
+
+.steps li + li {
+    margin-top: 0.6rem;
+}
+
+.callout {
+    margin-top: 1.25rem;
+    padding-left: 0.85rem;
+    border-left: 2px solid var(--ss-signal);
+    color: var(--ss-ink-80);
+    font-family: var(--ss-font-mono);
+    font-size: 0.85rem;
+}
+
+/* --- Where to play cards (same treatment as Swooshtober) ----------------- */
+
+.where {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.where__card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 1rem;
+    align-items: center;
+    padding: 0.95rem 1rem 1rem;
+    border: 1.5px solid var(--ss-ink);
+    background: var(--ss-paper);
+    color: var(--ss-ink);
+    text-decoration: none;
+    transition: transform var(--ss-dur-fast) var(--ss-ease-standard), border-color var(--ss-dur-fast) var(--ss-ease-standard);
+}
+
+.where__card:hover {
+    transform: translateY(-2px);
+    border-color: var(--ss-signal);
+    color: var(--ss-ink);
+}
+
+.where__kicker {
+    font-family: var(--ss-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: var(--ss-track-label);
+    text-transform: uppercase;
+    color: var(--ss-signal);
+}
+
+.where__name {
+    margin-top: 0.2rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: var(--ss-track-tight);
+    line-height: 1.2;
+}
+
+.where__go {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    font-family: var(--ss-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ss-signal);
+}
+
+.where__go::after {
+    content: " →";
+}
+
+/* --- FAQ ----------------------------------------------------------------- */
+
+.faq details {
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--ss-ink-12);
+    color: var(--ss-ink-80);
+}
+
+.faq summary {
+    cursor: pointer;
+    color: var(--ss-ink);
+    font-family: var(--ss-font-mono);
+    font-size: 0.92rem;
+}
+
+.faq details p {
+    margin-top: 0.55rem;
+}
+
+/* --- Closing ------------------------------------------------------------- */
+
+.closing {
+    margin-top: 4rem;
+    text-align: center;
+}
+
+.closing__hint {
+    color: var(--ss-signal);
+    font-family: var(--ss-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: var(--ss-track-label);
+    text-transform: uppercase;
+}
+
+.closing__line {
+    margin-top: 0.75rem;
+    font-size: clamp(1.5rem, 4.6vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+}
+
+.closing .actions {
+    justify-content: center;
+}
+
+/* --- Footer -------------------------------------------------------------- */
+
+footer {
+    margin-top: 4rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--ss-ink-12);
+    color: var(--ss-ink-55);
+    font-family: var(--ss-font-mono);
+    font-size: 0.75rem;
+    line-height: 1.9;
+}
+
+footer a {
+    color: var(--ss-ink-55);
+}
+
+footer a:hover {
+    color: var(--ss-ink);
+}
+
+footer p + p {
+    margin-top: 0.35rem;
+}
+
+@media (min-width: 640px) {
+    .modes {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .where__card {
+        grid-template-columns: 1fr;
+    }
+
+    .where__go {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 0.65rem;
+    }
+}
+
+@media (min-width: 720px) {
+    .page {
+        padding-top: 2.25rem;
+    }
+
+    .hero {
+        margin-top: 3.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ss-btn,
+    .where__card {
+        transition: none;
+    }
+}

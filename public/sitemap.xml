@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- sitemap.xml
+     Changes: Created. Public pages of spaceswoosh.app. Add a <url> here
+     whenever a new page becomes a Vite entry or lands in public/. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://spaceswoosh.app/</loc>
+    <lastmod>2026-10-20</lastmod>
+  </url>
+  <url>
+    <loc>https://spaceswoosh.app/about/</loc>
+    <lastmod>2026-10-20</lastmod>
+  </url>
+  <url>
+    <loc>https://spaceswoosh.app/how-to-play/</loc>
+    <lastmod>2026-10-20</lastmod>
+  </url>
+  <url>
+    <loc>https://spaceswoosh.app/swooshtober/</loc>
+    <lastmod>2026-10-20</lastmod>
+  </url>
+  <url>
+    <loc>https://spaceswoosh.app/support.html</loc>
+  </url>
+  <url>
+    <loc>https://spaceswoosh.app/privacy.html</loc>
+  </url>
+</urlset>

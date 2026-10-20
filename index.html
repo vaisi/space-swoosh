@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<!-- index.html — page shell. Changes: the Swooshtober prize line is
+<!-- index.html — page shell. Changes: the desktop download rail shows the
+     Space Swoosh logo (app icon + wordmark) above "Get the app" and links
+     to /about/ and /how-to-play/ under the QR cards (src/site/rail.css).
+     SEO: one-tap arcade meta description, canonical, Open Graph / Twitter
+     tags, VideoGame JSON-LD, and a visually hidden intro with links so
+     crawlers find text on the canvas-only page. Earlier: the Swooshtober prize line is
      “Finish October in 1st place on the Space Board and win $50”. Desktop store cards
      are night paper with white QR codes.
      #hpHint sits 56px below the
@@ -70,11 +75,50 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#12100E">
-    <meta name="description" content="A one-thumb space dodge game in a paper universe. Steer, survive, climb. Get it on the App Store or Google Play.">
-    <title>Space Swoosh</title>
+    <meta name="description" content="Space Swoosh is a free one-tap space arcade game. Steer a tiny ship through asteroid fields, black holes and portals, follow a voiced 42-day story, or fly the endless mode for the global Space Board. Play in your browser or get it on iPhone and Android.">
+    <title>Space Swoosh: one-tap space arcade game</title>
+    <link rel="canonical" href="https://spaceswoosh.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Space Swoosh">
+    <meta property="og:title" content="Space Swoosh: one-tap space arcade game">
+    <meta property="og:description" content="One tap. One tiny ship. A voiced 42-day story and an endless run with a global Space Board. Free on iPhone, Android and the web.">
+    <meta property="og:url" content="https://spaceswoosh.app/">
+    <meta property="og:image" content="https://spaceswoosh.app/icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:image:alt" content="The Space Swoosh app icon: a bone-white ship inside a blue shield ring.">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@playspaceswoosh">
+    <meta name="twitter:title" content="Space Swoosh: one-tap space arcade game">
+    <meta name="twitter:description" content="One tap. One tiny ship. A voiced 42-day story and an endless run with a global Space Board.">
+    <meta name="twitter:image" content="https://spaceswoosh.app/icon-512.png">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Space Swoosh",
+        "url": "https://spaceswoosh.app/",
+        "image": "https://spaceswoosh.app/icon-512.png",
+        "description": "A free one-tap space arcade game. Steer a tiny spaceship through asteroid fields, black holes and portals, follow a voiced 42-day story, or fly the endless mode and chase a spot on the global leaderboard.",
+        "genre": ["Arcade", "Casual", "Endless runner"],
+        "gamePlatform": ["iOS", "Android", "Web browser"],
+        "playMode": "SinglePlayer",
+        "sameAs": [
+            "https://apps.apple.com/app/id6801885446",
+            "https://play.google.com/store/apps/details?id=com.orbi.spaceswoosh",
+            "https://www.instagram.com/spaceswoosh_app",
+            "https://www.youtube.com/@playspaceswoosh",
+            "https://www.tiktok.com/@spaceswoosh.app",
+            "https://x.com/playspaceswoosh"
+        ],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+    </script>
     <!-- Brand tokens: loads Space Grotesk + Space Mono and exposes var(--ss-*)
          so DOM chrome (pause button, name input) matches the canvas surfaces. -->
     <link rel="stylesheet" href="/src/brand/tokens.css">
+    <link rel="stylesheet" href="/src/site/logo.css">
+    <link rel="stylesheet" href="/src/site/rail.css">
     <style>
         html, body {
             height: 100%;
@@ -563,6 +607,11 @@
     <script type="module" src="/src/main.js"></script>
 </head>
 <body>
+    <div class="seo-intro">
+        <h1>Space Swoosh</h1>
+        <p>A free one-tap space arcade game. Steer a tiny spaceship through asteroid fields, black holes and portals, follow a voiced 42-day story, or fly the endless Open Space mode and chase a spot on the global Space Board. No ads, never pay to win.</p>
+        <p><a href="/about/">About the game</a> · <a href="/how-to-play/">How to play</a></p>
+    </div>
     <aside class="store-rail store-rail--left" aria-label="Swooshtober">
         <div class="swoosh-promo">
             <h2 class="swoosh-promo__title"><a href="/swooshtober/">Swooshtober</a></h2>
@@ -598,6 +647,10 @@
     </div>
     <aside class="store-rail store-rail--right" aria-label="Download Space Swoosh">
         <div class="get-app">
+            <a class="ss-logo" href="/about/" aria-label="About Space Swoosh">
+                <img class="ss-logo__icon" src="/icon-192.png" width="192" height="192" alt="">
+                <span class="ss-logo__word">Space Swoosh</span>
+            </a>
             <h2 class="get-app__title">Get the app</h2>
             <p class="get-app__lead">Point your camera at a code.</p>
             <div class="get-app__list">
@@ -628,6 +681,10 @@
                     <span class="get-app__go" aria-hidden="true">Scan</span>
                 </a>
             </div>
+            <nav class="site-links" aria-label="About the game">
+                <a href="/about/">About</a>
+                <a href="/how-to-play/">How to play</a>
+            </nav>
         </div>
     </aside>
 

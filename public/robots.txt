@@ -1,0 +1,7 @@
+# robots.txt for spaceswoosh.app
+# Changes: Created. Every page may be crawled; the sitemap lists the pages
+# worth indexing.
+User-agent: *
+Allow: /
+
+Sitemap: https://spaceswoosh.app/sitemap.xml
