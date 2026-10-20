@@ -1,5 +1,7 @@
 // PlayCamera.swift
-// Changes: Y-up port of Android Camera.js catch-up (deadzone, smoothing, reseat).
+// Changes: Engines-out coast drops the cruise floor so a dead hull stays
+// seated instead of sliding off the bottom while KM keeps climbing.
+// Y-up port of Android Camera.js catch-up (deadzone, smoothing, reseat).
 
 import Foundation
 import CoreGraphics
@@ -42,7 +44,10 @@ enum PlayCamera {
 
         let floorSpeed = cfg.speed * height
         let shipPerTick = abs(world.ship.verticalVel) / 60
-        let floorPerTick = floorSpeed / 60
+        // Floor keeps normal flight from hitching when a turn dips under cruise.
+        // Once the tank is empty that floor runs away from the slowing hull and
+        // parks it under the frame while abs(Δcamera) still adds KM.
+        let floorPerTick = run.fuelDying ? 0 : floorSpeed / 60
         let matchShip = max(shipPerTick, floorPerTick)
 
         let deadzone = height * cfg.deadzone

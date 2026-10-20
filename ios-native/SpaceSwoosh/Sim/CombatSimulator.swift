@@ -1,5 +1,8 @@
 // CombatSimulator.swift
-// Changes: Nine new obstacles spawn, move, and collide. Accompany holds a
+// Changes: Fuel-out fail uses engine travel only. Black-hole, drift, and
+// repulsor nudges no longer keep a dead hull "moving," so the run ends and
+// taps cannot steer an off-screen ship forever.
+// Nine new obstacles spawn, move, and collide. Accompany holds a
 // set piece, then the belt may add rocks plus one light. Journey rows pass
 // the load budget. Open Space unlocks follow the generated table.
 // Open Space 20k+ storm quiet 0.21 / chain 0.10; Journey L24+
@@ -239,6 +242,9 @@ enum CombatSimulator {
         let prevX = world.ship.x
         let prevY = world.ship.y
         let ship = ShipSimulator()
+        // Engine travel only. Field shoves are applied later and must not
+        // count as "still flying" or a black hole pins the empty tank forever.
+        var engineMoved: CGFloat = 0
         if run.teleportT <= 0 {
             let dying: CGFloat
             if run.fuelDying {
@@ -255,6 +261,7 @@ enum CombatSimulator {
                 speedScale: dying * boost * run.profile.speedMultiplier,
                 style: run.flightStyle
             )
+            engineMoved = hypot(world.ship.x - prevX, world.ship.y - prevY)
             if world.wallBoopSide != 0 {
                 emitBoop(world: &world, run: &run)
             }
@@ -309,8 +316,7 @@ enum CombatSimulator {
         collide(world: &world, run: &run)
         if !run.isOver, run.fuelDying {
             let dur = GameConfig.Fuel.dyingDurationMs / 1000
-            let moved = hypot(world.ship.x - prevX, world.ship.y - prevY)
-            if run.fuelDyingT >= dur, moved <= GameConfig.Fuel.dyingStopSpeed {
+            if run.fuelDyingT >= dur, engineMoved <= GameConfig.Fuel.dyingStopSpeed {
                 run.isOver = true
                 run.completed = false
                 run.failReason = .fuel

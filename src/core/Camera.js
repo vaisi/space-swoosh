@@ -1,6 +1,8 @@
 // Camera.js
 // Scroll position + world→screen mapping.
 // Changes:
+// - Engines-out coast drops the cruise floor. A stopped hull used to read as
+//   "no velocity" (`0 || cruise`) and the floor scrolled it off the bottom.
 // - Reseat (every JS platform): after 5s below the ideal seat, an 8s
 //   ease-in-out creeps the gap closed. Wormhole / black-hole leftover stays
 //   invisible.
@@ -37,9 +39,11 @@ export class Camera {
         // >0 → ship too high → camera must accelerate (scroll faster upward).
         const lag = this.idealOffset - shipScreenY;
 
-        // Match the ship's world travel this tick; never slower than config cruise.
-        const shipPerTick = Math.abs(ship.verticalVelocity || this.speed) * (1 / 60);
-        const floorPerTick = this.speed * (1 / 60);
+        // Match the ship's world travel this tick; never slower than config cruise
+        // while the engines are lit. `0` is a real stop — do not substitute cruise.
+        const vv = ship?.verticalVelocity;
+        const shipPerTick = Math.abs(Number.isFinite(vv) ? vv : this.speed) * (1 / 60);
+        const floorPerTick = this.game?.fuelDying ? 0 : this.speed * (1 / 60);
         const matchShip = -Math.max(shipPerTick, floorPerTick);
 
         // Deadzone follow: inside a band around the ideal seat the camera simply
