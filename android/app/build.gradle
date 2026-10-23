@@ -1,4 +1,4 @@
-// Updated: Play versionCode 54 / versionName 1.0.54. iOS build floor is 72.
+// Updated: Play versionCode 55 / versionName 1.0.55. iOS build floor is 73.
 // and NAV launch-line upload. Play Games v2 for Friends board.
 // Caption guard. R8, EdgeToEdge. Friends YOU overlays the local
 // Open Space personal best.
@@ -20,8 +20,8 @@ android {
         applicationId "com.orbi.spaceswoosh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "54")
-        versionName System.getenv("VERSION_NAME") ?: "1.0.54"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "55")
+        versionName System.getenv("VERSION_NAME") ?: "1.0.55"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

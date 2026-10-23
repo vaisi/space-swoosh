@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<!-- Changes: Marketing 1.0.5 — ASC approved 1.0.4 and closed that train
-	     (90062 / 90186). Build floor is 72. Status bar hidden; no system nav title.
+	     (90062 / 90186). Build floor is 73. Status bar hidden; no system nav title.
 	     APP_STORE_APPLE_ID; REVENUECAT_IOS_KEY. -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
@@ -22,7 +22,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.5</string>
 	<key>CFBundleVersion</key>
-	<string>72</string>
+	<string>73</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<!-- Required for ProMotion 120 Hz. Without this, iOS caps third-party apps at 60. -->
