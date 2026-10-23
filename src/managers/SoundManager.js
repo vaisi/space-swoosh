@@ -3,6 +3,17 @@
 // cues for sparkle pickups, style-swoosh near-misses, sidewall wall-boops,
 // wormhole portal hops, and empty-tank engine sputter.
 // Changes:
+// - Shield pickup (and the portal-exit shield gift) plays from a decoded
+//   buffer. shield.mp3 is a quiet shimmer until the hit at ~110 ms; playback
+//   starts just before that hit, with a few ms of fade so the cut does not
+//   click. Same low-latency path as turn / smash.
+// - Shield-smash and crash play from decoded AudioBuffers (same path as turn)
+//   instead of seeking an <audio> element, which was late by a media-buffer
+//   quantum on every hit. AudioContext opens with latencyHint 'interactive'
+//   at the start of the unlock gesture, before any <audio>.play(), so the
+//   device buffer is not already latched high. turn/move/crash/smash buffers
+//   drop leading silence (turn.mp3 is silent ~45 ms, crash.mp3 ~25 ms) so the
+//   audible onset lines up with the direction change or the impact.
 // - currentVoiceLevel / getCurrentVoiceLevel: Space Log play/stop knows which
 //   Journey day owns the shared voice slot (set in playLevelVoice, cleared on
 //   stop / ended / error). Cue voices leave it null.
@@ -58,7 +69,15 @@ const SFX_ENABLED_KEY = 'soundSfxEnabled';
 const VOICE_ENABLED_KEY = 'soundVoiceEnabled';
 const TURN_VOLUME = 0.3;
 const MOVE_VOLUME = 0.15;
+const IMPACT_VOLUME = 0.4;
+const SHIELD_VOLUME = 0.4;
 const BGM_VOLUME = 0.4;
+// Dead air shorter than this is encoder padding / export silence, not a swell.
+// turn.mp3 stays at 0 until ~45 ms; crash.mp3 until ~25 ms. Cap so a quiet
+// intro on a longer cue is left alone.
+const TRIM_MAX_SECONDS = 0.08;
+const TRIM_PEAK_RATIO = 0.02;
+const TRIM_BACKOFF_SECONDS = 0.003;
 const BGM_DUCK_VOLUME = 0.14;
 const VOICE_VOLUME = 0.85;
 const VOICE_LEVEL_MIN = 1;
@@ -158,6 +177,9 @@ export class SoundManager {
         this.sfxBuffers = {
             turn: null,
             move: null,
+            crash: null,
+            shieldCrash: null,
+            shield: null,
             firstBoop: null,
             swooshVoice: null,
             fuelLow1: null,
@@ -212,15 +234,22 @@ export class SoundManager {
         if (this.initialized) return;
         
         try {
-            // Pre-load all HTMLAudio cues (unlock + buffer in media pipeline).
-            for (const sound of Object.values(this.sounds)) {
+            // Open the low-latency graph inside the unlock gesture, before any
+            // <audio>.play(). A media element that plays first latches a large
+            // device buffer and every later Web Audio cue inherits that delay.
+            this.ensureAudioContext();
+            this.warmOutput();
+
+            // Only cues that still play through <audio> need the gesture unlock.
+            // Smash / crash / turn / shield are decoded buffers.
+            for (const key of ['bgm', 'explosion', 'powerup']) {
+                const sound = this.sounds[key];
+                if (!sound) continue;
                 await sound.play().catch(() => {});
                 sound.pause();
                 sound.currentTime = 0;
             }
 
-            // Unlock Web Audio for synthesized + decoded one-shot SFX.
-            this.ensureAudioContext();
             await this.loadSfxBuffers();
             
             this.initialized = true;
@@ -230,7 +259,7 @@ export class SoundManager {
     }
 
     /** Fetch + decode a one-shot SFX; returns null on 404 / decode failure. */
-    async decodeSfxBuffer(url) {
+    async decodeSfxBuffer(url, opts = {}) {
         const ctx = this.audioCtx;
         if (!ctx) return null;
         try {
@@ -241,20 +270,99 @@ export class SoundManager {
             }
             const raw = await res.arrayBuffer();
             // Copy so decodeAudioData can detach without racing the response body.
-            return await ctx.decodeAudioData(raw.slice(0));
+            const buffer = await ctx.decodeAudioData(raw.slice(0));
+            return opts.trim ? this.trimLeadingSilence(buffer, opts) : buffer;
         } catch (error) {
             console.warn(`Failed to decode SFX ${url}:`, error);
             return null;
         }
     }
 
+    /**
+     * Copy `buffer` without a quiet leading stretch. Onset is the first sample
+     * at `peakRatio` of the file peak, backed off a few ms so the attack itself
+     * is not clipped. A lead longer than `maxSeconds` is kept. `fadeSeconds`
+     * ramps the new start so a cut into a loud sample does not click.
+     */
+    trimLeadingSilence(buffer, opts = {}) {
+        const ctx = this.audioCtx;
+        if (!ctx || !buffer) return buffer;
+
+        const channels = buffer.numberOfChannels;
+        const length = buffer.length;
+        const sampleRate = buffer.sampleRate;
+        const maxSeconds = opts.maxSeconds ?? TRIM_MAX_SECONDS;
+        const peakRatio = opts.peakRatio ?? TRIM_PEAK_RATIO;
+        const backoffSeconds = opts.backoffSeconds ?? TRIM_BACKOFF_SECONDS;
+        const fadeSeconds = opts.fadeSeconds ?? 0;
+        const maxSkip = Math.floor(sampleRate * maxSeconds);
+        if (maxSkip <= 0 || length <= maxSkip) return buffer;
+
+        const data = [];
+        let peak = 0;
+        for (let c = 0; c < channels; c++) {
+            const channel = buffer.getChannelData(c);
+            data.push(channel);
+            for (let i = 0; i < length; i++) {
+                const sample = channel[i];
+                const amp = sample < 0 ? -sample : sample;
+                if (amp > peak) peak = amp;
+            }
+        }
+        if (peak < 0.0001) return buffer;
+
+        const threshold = peak * peakRatio;
+        let onset = -1;
+        const scan = Math.min(length, maxSkip);
+        for (let i = 0; i < scan; i++) {
+            for (let c = 0; c < channels; c++) {
+                const sample = data[c][i];
+                const amp = sample < 0 ? -sample : sample;
+                if (amp >= threshold) {
+                    onset = i;
+                    break;
+                }
+            }
+            if (onset >= 0) break;
+        }
+        if (onset <= 0) return buffer;
+
+        const backoff = Math.floor(sampleRate * backoffSeconds);
+        const start = Math.max(0, onset - backoff);
+        // A few samples of padding is inaudible and not worth the copy.
+        if (start < Math.floor(sampleRate * 0.005)) return buffer;
+
+        const trimmed = ctx.createBuffer(channels, length - start, sampleRate);
+        for (let c = 0; c < channels; c++) {
+            trimmed.getChannelData(c).set(data[c].subarray(start));
+        }
+        const fadeN = Math.min(trimmed.length, Math.floor(sampleRate * fadeSeconds));
+        if (fadeN > 1) {
+            for (let c = 0; c < channels; c++) {
+                const channel = trimmed.getChannelData(c);
+                for (let i = 0; i < fadeN; i++) channel[i] *= i / fadeN;
+            }
+        }
+        return trimmed;
+    }
+
     async loadSfxBuffers() {
         const [
-            turn, move, firstBoop, swooshVoice, fuelLow1, fuelLow2, fuelLow3,
+            turn, move, crash, shieldCrash, shield, firstBoop, swooshVoice, fuelLow1, fuelLow2, fuelLow3,
             epilogueOpen, epilogueSkip,
         ] = await Promise.all([
-            this.decodeSfxBuffer('/sounds/turn.mp3'),
-            this.decodeSfxBuffer('/sounds/move.mp3'),
+            this.decodeSfxBuffer('/sounds/turn.mp3', { trim: true }),
+            this.decodeSfxBuffer('/sounds/move.mp3', { trim: true }),
+            this.decodeSfxBuffer('/sounds/crash.mp3', { trim: true }),
+            this.decodeSfxBuffer('/sounds/crash_with_shield.mp3', { trim: true }),
+            // Quiet shimmer until the hit near 110 ms. Start just before it.
+            this.decodeSfxBuffer('/sounds/shield.mp3', {
+                trim: true,
+                maxSeconds: 0.15,
+                peakRatio: 0.5,
+                backoffSeconds: 0.008,
+                fadeSeconds: 0.003,
+            }),
             this.decodeSfxBuffer('/sounds/voice/first-boop.mp3'),
             this.decodeSfxBuffer('/sounds/voice/swoosh-voice.mp3'),
             this.decodeSfxBuffer('/sounds/voice/fuel-low-1.mp3'),
@@ -265,6 +373,9 @@ export class SoundManager {
         ]);
         this.sfxBuffers.turn = turn;
         this.sfxBuffers.move = move;
+        this.sfxBuffers.crash = crash;
+        this.sfxBuffers.shieldCrash = shieldCrash;
+        this.sfxBuffers.shield = shield;
         this.sfxBuffers.firstBoop = firstBoop;
         this.sfxBuffers.swooshVoice = swooshVoice;
         this.sfxBuffers.fuelLow1 = fuelLow1;
@@ -288,7 +399,9 @@ export class SoundManager {
             gain.gain.value = volume;
             src.connect(gain);
             gain.connect(this.outputNode(ctx));
-            src.start(0);
+            // currentTime, not 0: some engines treat 0 as context-time zero and
+            // skip a short buffer once the clock has moved.
+            src.start(ctx.currentTime);
             this.recoverBgmIfInterrupted();
         } catch (error) {
             console.error('Error in playBuffer:', error);
@@ -746,7 +859,11 @@ export class SoundManager {
         if (!this.audioCtx) {
             const Ctx = window.AudioContext || window.webkitAudioContext;
             if (!Ctx) return null;
-            this.audioCtx = new Ctx();
+            try {
+                this.audioCtx = new Ctx({ latencyHint: 'interactive' });
+            } catch {
+                this.audioCtx = new Ctx();
+            }
             this.outputBus = this.audioCtx.createGain();
             this.outputBus.gain.value = 1;
             this.outputBus.connect(this.audioCtx.destination);
@@ -776,6 +893,20 @@ export class SoundManager {
             this.swooshNoiseBuffer = buffer;
         }
         return this.audioCtx;
+    }
+
+    /** One silent sample so the output device is open before the first real cue. */
+    warmOutput() {
+        const ctx = this.audioCtx;
+        if (!ctx) return;
+        try {
+            const src = ctx.createBufferSource();
+            src.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+            src.connect(this.outputNode(ctx));
+            src.start(ctx.currentTime);
+        } catch {
+            /* context not running yet — the next cue still starts it */
+        }
     }
 
     outputNode(ctx = this.ensureAudioContext()) {
@@ -932,21 +1063,11 @@ export class SoundManager {
     }
 
     playShield() {
-        if (!this.initialized || !this.canPlaySfx()) return;
-        
-        try {
-            const shieldSound = this.sounds.shield;
-            shieldSound.currentTime = 0;
-            const playPromise = shieldSound.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Error playing shield sound:", error);
-                });
-            }
-        } catch (error) {
-            console.error("Error in playShield:", error);
+        if (this.sfxBuffers.shield) {
+            this.playBuffer(this.sfxBuffers.shield, SHIELD_VOLUME);
+            return;
         }
+        this.playHtmlCue(this.sounds.shield);
     }
 
     playExplosion() {
@@ -1194,40 +1315,36 @@ export class SoundManager {
         this.playBuffer(this.sfxBuffers.turn, this.turnVolume);
     }
 
-    playShieldCrash() {
-        if (!this.initialized || !this.canPlaySfx()) return;
-        
+    playHtmlCue(sound) {
+        if (!this.initialized || !this.canPlaySfx() || !sound) return;
+
         try {
-            const crashSound = this.sounds.shieldCrash;
-            crashSound.currentTime = 0;
-            const playPromise = crashSound.play();
-            
+            sound.currentTime = 0;
+            const playPromise = sound.play();
             if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Error playing shield crash sound:", error);
+                playPromise.catch((error) => {
+                    console.error('Error playing cue:', error);
                 });
             }
         } catch (error) {
-            console.error("Error in playShieldCrash:", error);
+            console.error('Error in playHtmlCue:', error);
         }
     }
 
-    playCrash() {
-        if (!this.initialized || !this.canPlaySfx()) return;
-        
-        try {
-            const crashSound = this.sounds.crash;
-            crashSound.currentTime = 0;
-            const playPromise = crashSound.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Error playing crash sound:", error);
-                });
-            }
-        } catch (error) {
-            console.error("Error in playCrash:", error);
+    playShieldCrash() {
+        if (this.sfxBuffers.shieldCrash) {
+            this.playBuffer(this.sfxBuffers.shieldCrash, IMPACT_VOLUME);
+            return;
         }
+        this.playHtmlCue(this.sounds.shieldCrash);
+    }
+
+    playCrash() {
+        if (this.sfxBuffers.crash) {
+            this.playBuffer(this.sfxBuffers.crash, IMPACT_VOLUME);
+            return;
+        }
+        this.playHtmlCue(this.sounds.crash);
     }
 
     // Deep space warp with delay-feedback echo. direction 'in' = suck into the
