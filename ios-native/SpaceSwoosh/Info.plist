@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Changes: Marketing 1.0.5 — ASC approved 1.0.4 and closed that train
+	<!-- Changes: Marketing 1.0.6 — ASC approved 1.0.5 and closed that train
 	     (90062 / 90186). Build floor is 73. Status bar hidden; no system nav title.
 	     APP_STORE_APPLE_ID; REVENUECAT_IOS_KEY. -->
 	<key>CFBundleDevelopmentRegion</key>
@@ -20,7 +20,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.5</string>
+	<string>1.0.6</string>
 	<key>CFBundleVersion</key>
 	<string>73</string>
 	<key>LSRequiresIPhoneOS</key>

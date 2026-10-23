@@ -1,6 +1,6 @@
 // generate-pbxproj.mjs
 // Changes: CURRENT_PROJECT_VERSION 73 (above the previous floor of 72).
-// MARKETING_VERSION is 1.0.5. ASC approved 1.0.4 and closed that train. Packs nav_*.mp3, Game Center, RevenueCat, Firebase.
+// MARKETING_VERSION is 1.0.6. ASC approved 1.0.5 and closed that train. Packs nav_*.mp3, Game Center, RevenueCat, Firebase.
 // Run: node scripts/generate-pbxproj.mjs
 
 import fs from 'node:fs';
@@ -374,7 +374,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.0.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -404,7 +404,7 @@ ${swiftFiles.map((f) => `\t\t\t\t${ensureFile(f).build} /* ${path.basename(f)} i
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.0.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
