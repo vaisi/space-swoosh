@@ -185,19 +185,24 @@
         {
           "id": "NAV_03_EMBER_2",
           "file": "nav_03_ember_2.mp3",
-          "display": "Ember's warm tonight. Or maybe that's me.",
-          "elevenlabs_input": "[warm, a little flirtatious] Ember's warm tonight. [soft chuckle] Or maybe that's me.",
-          "est_seconds": 3.5,
+          "display": "Ember. Twin traces. They never touch.",
+          "elevenlabs_input": "[measured, flat] Ember. Twin traces. [beat] They never touch.",
+          "est_seconds": 4.48,
           "cues": [
             {
-              "start": 0.1,
-              "end": 1.46,
-              "text": "Ember's warm tonight."
+              "start": 0.12,
+              "end": 0.67,
+              "text": "Ember."
             },
             {
-              "start": 1.96,
-              "end": 3.33,
-              "text": "Or maybe that's me."
+              "start": 0.92,
+              "end": 2.07,
+              "text": "Twin traces."
+            },
+            {
+              "start": 2.52,
+              "end": 4.22,
+              "text": "They never touch."
             }
           ]
         },
@@ -550,19 +555,24 @@
         {
           "id": "NAV_08_FLETCH_2",
           "file": "nav_08_fletch_2.mp3",
-          "display": "Ooh, Fletch. Feeling hot tonight?",
-          "elevenlabs_input": "[playful] Ooh, Fletch. Feeling hot tonight?",
-          "est_seconds": 2.8,
+          "display": "Fletch. One ribbon. It cools to teal.",
+          "elevenlabs_input": "[measured, flat] Fletch. One ribbon. [beat] It cools to teal.",
+          "est_seconds": 4.48,
           "cues": [
             {
-              "start": 0.1,
-              "end": 1.01,
-              "text": "Ooh, Fletch."
+              "start": 0.12,
+              "end": 0.67,
+              "text": "Fletch."
             },
             {
-              "start": 1.31,
-              "end": 2.67,
-              "text": "Feeling hot tonight?"
+              "start": 0.92,
+              "end": 2.07,
+              "text": "One ribbon."
+            },
+            {
+              "start": 2.52,
+              "end": 4.22,
+              "text": "It cools to teal."
             }
           ]
         },
