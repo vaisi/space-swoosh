@@ -3,7 +3,9 @@
   Changes: Analytics collection is forced on at native startup. iOS plist
   IS_ANALYTICS_ENABLED must be true (a false value drops every event).
   Web needs VITE_FIREBASE_APP_ID from a Firebase Web app; otherwise gtag
-  sends to G-T7PQRTJH1Z. /swooshtober/ logs swooshtober_view.
+  sends to G-T7PQRTJH1Z. EEA hits grant analytics_storage and deny ad
+  storage before the tag loads, or Realtime drops them. /swooshtober/
+  logs swooshtober_view.
   DebugView is the immediate check. Realtime on
   Android waits until the app is backgrounded.
   Friends displays Game Center / Play Games photos on-device
@@ -93,9 +95,9 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 
 - Same project: `spaceswoosh-faa9c`. Register a **Web app** in Firebase Console → Project settings if one is not already there. Copy its `appId` (`1:149157024817:web:…`), `apiKey`, and `measurementId` into `.env` and into GitHub Actions secrets `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_API_KEY`, and `VITE_FIREBASE_MEASUREMENT_ID`, then redeploy Pages. The 23 Oct production bundle was built with all three empty.
 - The web data stream on this property is SpaceSwoosh Web (`https://spaceswoosh.app`), measurement id `G-T7PQRTJH1Z`. That is the gtag id the site sends.
-- Events flow through `src/services/Analytics.js`. With `VITE_FIREBASE_APP_ID` set, the page uses `firebase/analytics`. Without it, gtag loads `https://www.googletagmanager.com/gtag/js?id=G-T7PQRTJH1Z` and the console warns. An ad blocker or Brave shields swallows that request; the Android app does not.
+- Events flow through `src/services/Analytics.js`. With `VITE_FIREBASE_APP_ID` set, the page uses `firebase/analytics`. Without it, gtag loads `https://www.googletagmanager.com/gtag/js?id=G-T7PQRTJH1Z` and the console warns. Before the tag loads, consent default grants `analytics_storage` and denies `ad_storage`, `ad_user_data`, and `ad_personalization`. An EEA hit that leaves those unset is accepted and then omitted from Realtime. An ad blocker or Brave shields swallows the request; the Android app does not.
 - `/swooshtober/` logs `swooshtober_view` (`page` = `/swooshtober/`) from `swooshtober/main.js` on load, plus the automatic `page_view`. About and How to play do not.
-- Check: blocker off, DevTools → Network → `collect`. A hit to `google-analytics.com/g/collect` whose `tid` is this stream should be followed by 1 active user in Realtime within about a minute. On Swooshtober, Realtime’s event list should include `swooshtober_view`.
+- Check: blocker off, DevTools → Network → `collect`. The hit needs `tid=G-T7PQRTJH1Z` and `gcs=G101` (analytics granted, ads denied). That should be 1 active user in Realtime within about a minute. On Swooshtober, Realtime’s event list should include `swooshtober_view`.
 - Advertising Identifier: not used on web.
 
 ## PrivacyInfo.xcprivacy

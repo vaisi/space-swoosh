@@ -7,6 +7,9 @@
 // - Web reads import.meta.env.VITE_FIREBASE_* directly (Vite inlines those).
 //   Firebase JS when VITE_FIREBASE_APP_ID is set; gtag to
 //   VITE_FIREBASE_MEASUREMENT_ID (default G-T7PQRTJH1Z) only when it is not.
+// - Before that tag loads, consent default grants analytics_storage and
+//   denies ad storage. An EEA hit with those signals unset (gcd letter l,
+//   no gcs) returns 204 and never appears in Realtime.
 // - Web: Firebase Analytics JS (same project as iOS/Android, spaceswoosh-faa9c)
 //   instead of standalone gtag. Native still uses @capacitor-firebase/analytics.
 // - Phone web logs `web_store_prompt` (store_target ios|android|both) when the
@@ -61,8 +64,29 @@ const FIREBASE_WEB_CONFIG = {
 let webAnalytics = null;
 let webLogEvent = null;
 let webSetUserProperties = null;
+let consentDefaulted = false;
+let gtagScriptStarted = false;
 const pendingEvents = [];
 const pendingProps = [];
+
+/**
+ * EEA traffic with no consent signal is dropped from Realtime even when
+ * /g/collect returns 204. This game has no ad use and already collects
+ * gameplay analytics on iOS and Android, so analytics storage is granted
+ * and the three ad signals stay denied. Must run before gtag.js executes.
+ */
+function ensureConsentDefault() {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function gtag() { window.dataLayer.push(arguments); };
+    if (consentDefaulted) return;
+    consentDefaulted = true;
+    window.gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'granted',
+    });
+}
 
 /**
  * Firebase Analytics only accepts string / number (long|double) params.
@@ -142,6 +166,8 @@ export function initAnalytics() {
 
     if (webAnalytics) return;
 
+    ensureConsentDefault();
+
     const appId = String(FIREBASE_WEB_CONFIG.appId || '').trim();
     if (!appId) {
         console.warn(
@@ -177,9 +203,9 @@ function initGtagFallback() {
     if (typeof document === 'undefined') return;
     const measurementId = FIREBASE_WEB_CONFIG.measurementId;
     if (!measurementId) return;
-    if (!window.gtag) {
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = function gtag() { window.dataLayer.push(arguments); };
+    ensureConsentDefault();
+    if (!gtagScriptStarted) {
+        gtagScriptStarted = true;
         window.gtag('js', new Date());
         window.gtag('config', measurementId);
         const script = document.createElement('script');
