@@ -1,9 +1,14 @@
 // Analytics.js
 // One place to record a game event, whatever the platform underneath.
 // Changes:
+// - Native startup calls FirebaseAnalytics.setEnabled(true) so a stale
+//   google-services / plist flag cannot leave collection off. The plugin
+//   persists that flag; the following launch is the one Realtime sees.
+// - Web reads import.meta.env.VITE_FIREBASE_* directly (Vite inlines those).
+//   Firebase JS when VITE_FIREBASE_APP_ID is set; gtag to
+//   VITE_FIREBASE_MEASUREMENT_ID (default G-SMEY63Z40C) only when it is not.
 // - Web: Firebase Analytics JS (same project as iOS/Android, spaceswoosh-faa9c)
-//   instead of standalone gtag. Falls back to gtag if VITE_FIREBASE_APP_ID is
-//   missing. Native still uses @capacitor-firebase/analytics.
+//   instead of standalone gtag. Native still uses @capacitor-firebase/analytics.
 // - Phone web logs `web_store_prompt` (store_target ios|android|both) when the
 //   download bar is on screen, and `web_store_click` (store ios|play) on tap.
 // - Every event auto-attaches `platform` (ios|android|web).
@@ -12,7 +17,8 @@
 // - Sanitize params for Firebase (string | number only). Booleans like
 //   `completed: true` were putBoolean'd by the plugin and can cause Android to
 //   drop the whole custom event — convert to 0/1. Truncate long strings.
-// - import.meta.env falls back to {} outside Vite, so Node scripts can import.
+// - Each VITE_FIREBASE_* read is a direct import.meta.env member, guarded when
+//   Vite is absent, so Node scripts can import.
 // - Review prompt: review_prompt_shown (trigger day_6|day_13), review_prompt_yes,
 //   not_really_enjoying, review_prompt_later, review_from_options.
 
@@ -22,17 +28,34 @@ import { clientPlatform } from '../core/platform.js';
 
 const isNative = () => Capacitor.isNativePlatform();
 
-const env = import.meta.env ?? {};
+/**
+ * Vite inlines each `import.meta.env.VITE_*` member. A copy of the env
+ * object (`const env = import.meta.env`) does not. Outside Vite, env is
+ * missing, so the lookup is guarded and the public fallbacks still apply.
+ */
+function vitePublic(value, fallback = '') {
+    if (value == null) return fallback;
+    const text = String(value).trim();
+    return text || fallback;
+}
+
+const hasViteEnv = typeof import.meta !== 'undefined' && import.meta.env;
 
 /** Public web SDK config — same project as google-services.json / iOS plist. */
 const FIREBASE_WEB_CONFIG = {
-    apiKey: env.VITE_FIREBASE_API_KEY || 'AIzaSyCJrjzvI2U0w79UiyRw3EjHte09m888zwg',
+    apiKey: vitePublic(
+        hasViteEnv ? import.meta.env.VITE_FIREBASE_API_KEY : undefined,
+        'AIzaSyCJrjzvI2U0w79UiyRw3EjHte09m888zwg',
+    ),
     authDomain: 'spaceswoosh-faa9c.firebaseapp.com',
     projectId: 'spaceswoosh-faa9c',
     storageBucket: 'spaceswoosh-faa9c.firebasestorage.app',
     messagingSenderId: '149157024817',
-    appId: env.VITE_FIREBASE_APP_ID || '',
-    measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || 'G-SMEY63Z40C',
+    appId: vitePublic(hasViteEnv ? import.meta.env.VITE_FIREBASE_APP_ID : undefined),
+    measurementId: vitePublic(
+        hasViteEnv ? import.meta.env.VITE_FIREBASE_MEASUREMENT_ID : undefined,
+        'G-SMEY63Z40C',
+    ),
 };
 
 let webAnalytics = null;
@@ -102,18 +125,29 @@ function flushWebQueue() {
 }
 
 /**
- * Boot Firebase Analytics on web. Native iOS/Android already have the SDK
- * from google-services.json / GoogleService-Info.plist.
+ * Boot analytics.
+ * Web: Firebase JS when a Web app id is configured, otherwise gtag.
+ * Native: turn collection on. Android uploads when the app backgrounds
+ * (or about hourly while it stays open). DebugView is immediate.
  */
 export function initAnalytics() {
-    if (isNative() || typeof document === 'undefined') return;
+    if (typeof document === 'undefined') return;
+
+    if (isNative()) {
+        FirebaseAnalytics.setEnabled({ enabled: true }).catch((err) => {
+            console.warn('[analytics] setEnabled failed', err);
+        });
+        return;
+    }
+
     if (webAnalytics) return;
 
     const appId = String(FIREBASE_WEB_CONFIG.appId || '').trim();
     if (!appId) {
         console.warn(
-            '[analytics] VITE_FIREBASE_APP_ID missing — using gtag fallback until a '
-            + 'Firebase Web app is registered on spaceswoosh-faa9c.'
+            '[analytics] VITE_FIREBASE_APP_ID missing — gtag '
+            + FIREBASE_WEB_CONFIG.measurementId
+            + '. Register a Web app on spaceswoosh-faa9c so the Firebase SDK is used.'
         );
         initGtagFallback();
         return;

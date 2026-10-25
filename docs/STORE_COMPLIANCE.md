@@ -1,6 +1,11 @@
 <!--
   docs/STORE_COMPLIANCE.md
-  Changes: Friends displays Game Center / Play Games photos on-device
+  Changes: Analytics collection is forced on at native startup. iOS plist
+  IS_ANALYTICS_ENABLED must be true (a false value drops every event).
+  Web needs VITE_FIREBASE_APP_ID from a Firebase Web app; otherwise gtag
+  sends to G-SMEY63Z40C. DebugView is the immediate check. Realtime on
+  Android waits until the app is backgrounded.
+  Friends displays Game Center / Play Games photos on-device
   only — Photos stays unchecked. Native Friends board (Game Center /
   Play Games). Web Firebase Analytics (same project as iOS/Android).
   App Privacy ticks match native iOS (Firebase + RevenueCat + call
@@ -62,30 +67,33 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 ## Firebase (iOS native)
 
 - Same project: `spaceswoosh-faa9c` (bundle `com.orbi.spaceswoosh`).
-- Place `GoogleService-Info.plist` at `ios-native/SpaceSwoosh/GoogleService-Info.plist` (gitignored). Codemagic writes it from `GOOGLE_SERVICE_INFO_PLIST`.
+- Place `GoogleService-Info.plist` at `ios-native/SpaceSwoosh/GoogleService-Info.plist` (gitignored). Codemagic writes it from `GOOGLE_SERVICE_INFO_PLIST`. Re-download the plist after Google Analytics is linked and confirm `IS_ANALYTICS_ENABLED` is `true`, then paste that XML back into the Codemagic secret. A `false` value tells the SDK not to collect. The local plist is set to `true`. `Analytics.swift` also calls `Analytics.setAnalyticsCollectionEnabled(true)` after `FirebaseApp.configure()`, so a stale Codemagic copy of the old plist cannot drop events once that build ships.
 - Events flow through `ios-native/SpaceSwoosh/Services/Analytics.swift` (`FirebaseAnalyticsCore`). Same names as Android `Analytics.js`. Every event includes `platform=ios`. Successful IAP also logs GA4 `purchase` (`value` + `currency`).
 - Advertising Identifier: not linked (`FirebaseAnalyticsCore`) + `GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS=false`.
-- Debug: enable Analytics DebugView for the device, then play a run and watch `game_over` / `journey_level_end` in Firebase Console.
+- Debug: add launch argument `-FIRAnalyticsDebugEnabled`, then play a run and watch `session_start` / `game_over` / `journey_level_end` in Firebase Console → Analytics → DebugView. Realtime can lag a minute after the app backgrounds. Standard reports lag for hours.
 
 ## Firebase (Android)
 
-- Project: `spaceswoosh-faa9c` (package `com.orbi.spaceswoosh`).
-- Place `google-services.json` at `android/app/google-services.json` (gitignored; each machine / CI must supply it).
-- Events flow through `src/services/Analytics.js` → `@capacitor-firebase/analytics`.
+- Project: `spaceswoosh-faa9c` (package `com.orbi.spaceswoosh`, app id `1:149157024817:android:41a728ada0d69ed81bf110`).
+- Place `google-services.json` at `android/app/google-services.json` (gitignored; each machine / CI must supply it). The file in the repo is that Android client. It has no analytics-off switch. Re-download it from Project settings after the Firebase CLI is signed in again, and replace the copy if the new file differs.
+- Events flow through `src/services/Analytics.js` → `@capacitor-firebase/analytics`. `initAnalytics()` calls `FirebaseAnalytics.setEnabled({ enabled: true })` on native startup. The plugin persists that flag; the following launch is the one that collects if collection had been off.
+- The SDK holds events on the device until the app goes to the background, or for about an hour if it stays in front. A five-minute run that never leaves the game shows 0 in Realtime even when the SDK is fine. Press Home, wait a minute, then check Realtime.
 - Advertising ID: `android/app/src/main/AndroidManifest.xml` sets
   `google_analytics_adid_collection_enabled=false` and
   `tools:node="remove"` on `com.google.android.gms.permission.AD_ID` so the
   Play Advertising ID declaration can remain **No** (Firebase would otherwise
-  merge the permission into the AAB).
-- Debug: enable Analytics DebugView for the device, then play a run and watch `game_over` / `journey_level_end` in Firebase Console.
+  merge the permission into the AAB). User counts still use the app instance id.
+- Debug: `adb shell setprop debug.firebase.analytics.app com.orbi.spaceswoosh`, open the app, then Firebase Console → Analytics → DebugView. That stream is immediate.
 - Most-played ship: break down `game_over` / `journey_level_end` by `ship_id` (also `equip_ship` for menu selection).
 - Theme / sound: `set_theme` (`theme`), `set_sound` (master mute on/off), `set_sound_channel` (music/sfx/voice).
 - Revenue: GA4 `purchase` after RevenueCat success (skins + Pro). `purchase_skin` remains a non-revenue funnel event.
 
 ## Firebase (Web)
 
-- Same project: `spaceswoosh-faa9c`. Register a **Web app** in Firebase Console if one is not already there, then set `VITE_FIREBASE_APP_ID` (and `VITE_FIREBASE_MEASUREMENT_ID` if it is not `G-SMEY63Z40C`) in GitHub Actions so Pages deploys land in the same Explorations view as iOS/Android (`platform=web`).
-- Events flow through `src/services/Analytics.js` → `firebase/analytics`. If the Web app id is missing, gtag is a fallback so the browser is not silent.
+- Same project: `spaceswoosh-faa9c`. Register a **Web app** in Firebase Console → Project settings if one is not already there. Copy its `appId` (`1:149157024817:web:…`), `apiKey`, and `measurementId` into `.env` and into GitHub Actions secrets `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_API_KEY`, and `VITE_FIREBASE_MEASUREMENT_ID`, then redeploy Pages. The 23 Oct production bundle was built with all three empty.
+- The live web tag checked from Google is `G-SMEY63Z40C` (Google tag `GT-K4VF8CC5`). That is the gtag fallback. It only shows on the Firebase property in the console if that measurement id is a data stream on this property. Confirm it under Google Analytics → Admin → Data streams.
+- Events flow through `src/services/Analytics.js`. With `VITE_FIREBASE_APP_ID` set, the page uses `firebase/analytics`. Without it, gtag loads `https://www.googletagmanager.com/gtag/js?id=G-SMEY63Z40C` and the console warns. An ad blocker or Brave shields swallows that request; the Android app does not.
+- Check: blocker off, DevTools → Network → `collect`. A hit to `google-analytics.com/g/collect` whose `tid` is this stream should be followed by 1 active user in Realtime within about a minute.
 - Advertising Identifier: not used on web.
 
 ## PrivacyInfo.xcprivacy

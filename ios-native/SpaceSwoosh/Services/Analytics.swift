@@ -1,7 +1,9 @@
 // Analytics.swift
-// Changes: Native iOS Firebase Analytics via FirebaseAnalyticsCore (IDFA-free).
-// Same events / param sanitizing as Android Analytics.js. Auto-attaches
-// platform=ios. User properties for equipped_ship / max_journey_level / theme.
+// Changes: Collection is forced on after FirebaseApp.configure(). A plist
+// with IS_ANALYTICS_ENABLED false was dropping every iOS event. Native iOS
+// Firebase Analytics via FirebaseAnalyticsCore (IDFA-free). Same events /
+// param sanitizing as Android Analytics.js. Auto-attaches platform=ios.
+// User properties for equipped_ship / max_journey_level / theme.
 // GA4 purchase events are logged from PurchasesService after RevenueCat success.
 // Review prompt: review_prompt_shown / _yes / _later, not_really_enjoying,
 // review_from_options.
@@ -16,6 +18,8 @@ enum AnalyticsService {
             return
         }
         FirebaseApp.configure()
+        // Overrides IS_ANALYTICS_ENABLED=false on a stale GoogleService-Info.plist.
+        Analytics.setAnalyticsCollectionEnabled(true)
     }
 
     static func track(_ name: String, _ params: [String: Any] = [:]) {
