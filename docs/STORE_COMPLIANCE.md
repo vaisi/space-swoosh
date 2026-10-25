@@ -3,7 +3,8 @@
   Changes: Analytics collection is forced on at native startup. iOS plist
   IS_ANALYTICS_ENABLED must be true (a false value drops every event).
   Web needs VITE_FIREBASE_APP_ID from a Firebase Web app; otherwise gtag
-  sends to G-SMEY63Z40C. DebugView is the immediate check. Realtime on
+  sends to G-SMEY63Z40C. /swooshtober/ logs swooshtober_view.
+  DebugView is the immediate check. Realtime on
   Android waits until the app is backgrounded.
   Friends displays Game Center / Play Games photos on-device
   only — Photos stays unchecked. Native Friends board (Game Center /
@@ -93,7 +94,8 @@ Leaderboard backend: **vaisi's Project** (`ptzaxgslzjefaxdkrvyr`). Schema is in
 - Same project: `spaceswoosh-faa9c`. Register a **Web app** in Firebase Console → Project settings if one is not already there. Copy its `appId` (`1:149157024817:web:…`), `apiKey`, and `measurementId` into `.env` and into GitHub Actions secrets `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_API_KEY`, and `VITE_FIREBASE_MEASUREMENT_ID`, then redeploy Pages. The 23 Oct production bundle was built with all three empty.
 - The live web tag checked from Google is `G-SMEY63Z40C` (Google tag `GT-K4VF8CC5`). That is the gtag fallback. It only shows on the Firebase property in the console if that measurement id is a data stream on this property. Confirm it under Google Analytics → Admin → Data streams.
 - Events flow through `src/services/Analytics.js`. With `VITE_FIREBASE_APP_ID` set, the page uses `firebase/analytics`. Without it, gtag loads `https://www.googletagmanager.com/gtag/js?id=G-SMEY63Z40C` and the console warns. An ad blocker or Brave shields swallows that request; the Android app does not.
-- Check: blocker off, DevTools → Network → `collect`. A hit to `google-analytics.com/g/collect` whose `tid` is this stream should be followed by 1 active user in Realtime within about a minute.
+- `/swooshtober/` logs `swooshtober_view` (`page` = `/swooshtober/`) from `swooshtober/main.js` on load, plus the automatic `page_view`. About and How to play do not.
+- Check: blocker off, DevTools → Network → `collect`. A hit to `google-analytics.com/g/collect` whose `tid` is this stream should be followed by 1 active user in Realtime within about a minute. On Swooshtober, Realtime’s event list should include `swooshtober_view`.
 - Advertising Identifier: not used on web.
 
 ## PrivacyInfo.xcprivacy

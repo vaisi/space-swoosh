@@ -1,8 +1,10 @@
 // main.js
-// Changes: The starfield is imported from src/site/stars.js, shared with
-// the About and How to play pages. Loads the live Zigzag distance top 10
-// from high_scores.
+// Changes: Logs swooshtober_view through the same analytics path as the
+// game, so a visit to /swooshtober/ shows up in Realtime. The starfield
+// is imported from src/site/stars.js, shared with the About and How to
+// play pages. Loads the live Zigzag distance top 10 from high_scores.
 
+import { initAnalytics, track } from '../src/services/Analytics.js';
 import { supabase } from '../src/config/supabase.js';
 import { SKIN_DEFS } from '../src/ships/skinDefs.js';
 import { appStoreUrl, PLAY_STORE_URL } from '../src/services/StoreLinks.js';
@@ -162,6 +164,11 @@ async function loadLiveBoard() {
     }
     renderLiveBoard(data || [], count || 0);
 }
+
+initAnalytics();
+track('swooshtober_view', {
+    page: '/swooshtober/',
+});
 
 renderPhase();
 loadLiveBoard();
