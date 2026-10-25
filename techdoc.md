@@ -1,6 +1,14 @@
 # Space Swoosh — Technical Documentation
 
-<!-- Changes: A Journey hull is chosen once per visit (journeyShipPicked on
+<!-- Changes: Analytics collection is forced on for Android
+     (FirebaseAnalytics.setEnabled) and iOS
+     (Analytics.setAnalyticsCollectionEnabled). The iOS plist
+     IS_ANALYTICS_ENABLED flag is true. Web reads each
+     VITE_FIREBASE_* member directly and falls back to gtag
+     G-SMEY63Z40C when VITE_FIREBASE_APP_ID is empty. /swooshtober/
+     logs swooshtober_view on load. Android
+     Realtime waits until the app backgrounds; DebugView does not.
+     A Journey hull is chosen once per visit (journeyShipPicked on
      web, the same flag in RootView). Next Level, the map, and Exit Run
      reuse it until the title menu or the result Menu button. Open Space
      still opens the Hangar every time.
@@ -288,12 +296,18 @@ There are **two play modes**, chosen from Play:
 - **Stack:** vanilla JS (ES modules), [Vite](https://vite.dev) dev/build,
   Capacitor 8 for **Android** (and legacy Cap iOS reference tree), **native
   SpriteKit/SwiftUI** for shipping iOS under `ios-native/`, Supabase for the
-  online leaderboard, Firebase Analytics on web (`firebase/analytics` + Vite
-  `VITE_FIREBASE_*`; gtag fallback if the Web app id is missing), Capacitor
-  Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`)
-  and native iOS (`ios-native/` `FirebaseAnalyticsCore` + gitignored
-  `GoogleService-Info.plist`). Same Firebase project `spaceswoosh-faa9c`.
-  Every custom event carries `platform` (`ios`|`android`|`web`).
+  online leaderboard, Firebase Analytics on web (`firebase/analytics` when
+  `VITE_FIREBASE_APP_ID` is set; otherwise gtag to `G-SMEY63Z40C`), Capacitor
+  Android (`@capacitor-firebase/analytics` + `android/app/google-services.json`,
+  collection forced on at startup), and native iOS (`ios-native/`
+  `FirebaseAnalyticsCore` + `GoogleService-Info.plist` with
+  `IS_ANALYTICS_ENABLED` true, and
+  `Analytics.setAnalyticsCollectionEnabled(true)`). Same Firebase project
+  `spaceswoosh-faa9c`. Every custom event carries `platform`
+  (`ios`|`android`|`web`). Android keeps events on device until the app
+  backgrounds (about an hour if it stays open). DebugView is immediate:
+  `adb shell setprop debug.firebase.analytics.app com.orbi.spaceswoosh`,
+  or iOS launch argument `-FIRAnalyticsDebugEnabled`.
 - **Entry:** `index.html` → `src/main.js` → time-capped `ensureBrandFonts()`
   (1.5s, never `document.fonts.ready`) → `new Game(GameConfig)` → **main menu**.
   `initEntitlements()` (RevenueCat) runs in the background after `start()` so a
@@ -358,9 +372,9 @@ the game is built — Vite inlines any `VITE_*` var into the bundle / native she
 | --- | --- | --- |
 | `VITE_SUPABASE_URL` | Project URL (Settings → API / Connect) | Identifies the project |
 | `VITE_SUPABASE_ANON_KEY` | **anon** (Legacy API Keys) or **publishable** (`sb_publishable_…`) | Low — subject to RLS |
-| `VITE_FIREBASE_API_KEY` | Firebase project settings → Web app (optional; Android key is the fallback) | Public client key |
-| `VITE_FIREBASE_APP_ID` | Firebase Web app id (`1:…:web:…`) | Public; required for web events in the same console as iOS/Android |
-| `VITE_FIREBASE_MEASUREMENT_ID` | Web GA4 stream (`G-…`) | Public; defaults to `G-SMEY63Z40C` |
+| `VITE_FIREBASE_API_KEY` | Firebase project settings → Web app (public Android client key is the fallback) | Public client key |
+| `VITE_FIREBASE_APP_ID` | Firebase Web app id (`1:149157024817:web:…`) | Public; required for the Firebase JS SDK. Empty means gtag fallback |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Web GA4 stream (`G-…`) | Public; live tag `G-SMEY63Z40C` when omitted |
 
 **Never** put `service_role` or a secret key (`sb_secret_…`) in `.env` as a
 `VITE_*` var, in source, or in GitHub/Codemagic game-build env groups. Those
@@ -487,7 +501,7 @@ After a claim checks out, set `PUBLISHED_WINNER` in `swooshtober/main.js` to `{ 
 | `config/navCues.json` | Archive copy and 123 launch lines. Display text and Line IDs are verbatim. `cues_are_estimates` is still true. |
 | `ships/hangarFlight.js` | Hangar preview. The ship is a `Spacecraft` and each frame calls `Spacecraft.update()` (the run's zigzag or arc step, heading, and `updateTrail`). The lane is inset so the hull and wake stay inside the stage. The camera only seats the hull. |
 | `ui/screens/HangarScreen.js` | Hangar paint, swipe, ruler, Launch. |
-| `services/Analytics.js` | Platform analytics: Firebase JS on web (`VITE_FIREBASE_APP_ID`); Capacitor plugin on Android; Swift `AnalyticsService` on native iOS. Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. Phone web download bar: `web_store_prompt` (`store_target` ios\|android\|both), `web_store_click` (`store` ios\|play). |
+| `services/Analytics.js` | Platform analytics. Web: Firebase JS when `VITE_FIREBASE_APP_ID` is set, otherwise gtag `G-SMEY63Z40C` (console warning). Native startup calls `setEnabled(true)` (Android/Capacitor) and `Analytics.setAnalyticsCollectionEnabled(true)` (iOS). Android Realtime updates after the app backgrounds; DebugView is immediate (`adb shell setprop debug.firebase.analytics.app com.orbi.spaceswoosh`, iOS `-FIRAnalyticsDebugEnabled`). Every event gets `platform`. Params sanitized to string/number (booleans → 0/1). GA4 `purchase` (value + currency) after RevenueCat success. User properties: `equipped_ship`, `max_journey_level`, `theme`. Run ends + `equip_ship` carry `ship_id`. `game_over` also `distance` + `flight_style`. `journey_level_end` also `day_name`. Prefs: `set_theme`, `set_sound`, `set_sound_channel`. Epilogue: `journey_epilogue_send` / `journey_epilogue_skip`. Review: `review_prompt_shown` (`trigger` `day_6`\|`day_13`), `review_prompt_yes`, `not_really_enjoying`, `review_prompt_later`, `review_from_options`. Swooshtober page load: `swooshtober_view` (`page` `/swooshtober/`). Phone web download bar: `web_store_prompt` (`store_target` ios\|android\|both), `web_store_click` (`store` ios\|play). |
 | `services/ReviewPrompt.js` | Enjoyment card eligibility (`ssReviewPrompt`): pending → Day 6; Later snoozes to Day 13 then `done`. Native only. |
 | `services/StoreLinks.js` | Play listing `com.orbi.spaceswoosh`; App Store id `6801885446` (`VITE_APP_STORE_APPLE_ID` override). `appStoreUrl()` is locale-neutral. Feeds Rate, the mobile web gate, and desktop QR generation (`npm run assets:qr`). |
 | `ui/screens/ReviewPromptScreen.js` | Paper overlay on a Journey clear: Enjoying so far? / It's great / Not really / Later. |
