@@ -6,7 +6,7 @@
 //   persists that flag; the following launch is the one Realtime sees.
 // - Web reads import.meta.env.VITE_FIREBASE_* directly (Vite inlines those).
 //   Firebase JS when VITE_FIREBASE_APP_ID is set; gtag to
-//   VITE_FIREBASE_MEASUREMENT_ID (default G-SMEY63Z40C) only when it is not.
+//   VITE_FIREBASE_MEASUREMENT_ID (default G-T7PQRTJH1Z) only when it is not.
 // - Web: Firebase Analytics JS (same project as iOS/Android, spaceswoosh-faa9c)
 //   instead of standalone gtag. Native still uses @capacitor-firebase/analytics.
 // - Phone web logs `web_store_prompt` (store_target ios|android|both) when the
@@ -54,7 +54,7 @@ const FIREBASE_WEB_CONFIG = {
     appId: vitePublic(hasViteEnv ? import.meta.env.VITE_FIREBASE_APP_ID : undefined),
     measurementId: vitePublic(
         hasViteEnv ? import.meta.env.VITE_FIREBASE_MEASUREMENT_ID : undefined,
-        'G-SMEY63Z40C',
+        'G-T7PQRTJH1Z',
     ),
 };
 
